@@ -1,0 +1,26 @@
+{
+  "_policy": [
+    "Ceilings are guardrails, not reduction targets.",
+    "When a file exceeds its type target, its ceiling freezes at the size it had",
+    "when the debt was recorded. Raising a frozen ceiling is a reviewable diff and",
+    "needs a justification in the commit message. The ladder is: relocate the",
+    "content to its proper tier, then condense it, and only then raise the ceiling.",
+    "A too-low ceiling is a budget bug, not a win.",
+    "Budgets are in bytes. Bytes are deterministic and dependency-free. Word counts",
+    "undercount fenced code, which costs more tokens per word than prose does."
+  ],
+  "targets": {
+    "rules": 3000,
+    "docs": 8000,
+    "skills": 5000,
+    "agents": 8000,
+    "commands": 2000
+  },
+  "frozen": {
+    "_why": "Authored before the rule/record split in #22. Each states its own rationale inline; that prose moves to a decision record and these ceilings come down with it.",
+    "rules/engineering/quality/solid.md": 6809,
+    "rules/engineering/quality/yagni.md": 6169,
+    "rules/engineering/quality/kiss.md": 4491,
+    "rules/engineering/backend/python/module-boundaries.md": 5331
+  }
+}

@@ -6,13 +6,15 @@ on:
     branches: [main]
 
 jobs:
-  edges:
-    name: artifact graph
+  gates:
+    name: gates
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-      - name: Validate declared edges
-        run: python3 scripts/validate_edges.py
+      - name: Prove each gate rejects a bad input
+        run: python3 scripts/gates_test.py
+      - name: Run the gates
+        run: python3 scripts/run_gates.py
