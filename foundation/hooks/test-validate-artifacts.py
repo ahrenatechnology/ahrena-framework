@@ -32,6 +32,10 @@ summary: A doc that passes.
 ---
 
 # Reference
+
+## Where this stops
+
+It does not reach the fixture next door.
 """
 
 GOOD_RULE = """---
@@ -46,6 +50,14 @@ references:
 ---
 
 # Bounded
+
+## Conditions
+
+1. The thing is not done.
+
+## Where this stops
+
+It does not reach the other thing.
 """
 
 GOOD_SKILL = """---
@@ -58,6 +70,14 @@ references:
 ---
 
 # Doing things
+
+## 1. Do the thing
+
+Do it.
+
+## When this skill does not apply
+
+When the thing is already done.
 """
 
 GOOD_AGENT = """---
@@ -71,6 +91,18 @@ references:
 ---
 
 # Specialist
+
+## What this agent is for
+
+Specialist work.
+
+## Skills it orchestrates
+
+Only `doing-things`.
+
+## What it does not do
+
+Anything else.
 """
 
 GOOD_COMMAND = """---
@@ -83,6 +115,10 @@ references:
 ---
 
 # /start
+
+## What runs
+
+`doing-things`.
 """
 
 VALID_CORPUS = {
@@ -397,6 +433,124 @@ CASES = [
         },
         ["no failures"],
         ok=True,
+    ),
+    case(
+        "a leftover marker in a body fails",
+        {"p/docs/reference.md": GOOD_DOC + "\nTODO: finish this section.\n"},
+        ["body still carries the marker 'TODO'"],
+    ),
+    case(
+        "a leftover marker in a frontmatter field fails",
+        {"p/docs/reference.md": GOOD_DOC.replace("summary: A doc that passes.", "summary: TBD")},
+        ["field 'summary' still carries the marker 'TBD'"],
+    ),
+    case(
+        "an unfilled template placeholder in a body fails",
+        {"p/docs/reference.md": GOOD_DOC + "\nThis explains <the concept>.\n"},
+        ["body still carries the template placeholder '<the concept>'"],
+    ),
+    case(
+        "an unfilled template placeholder in a frontmatter field fails",
+        {
+            "p/docs/reference.md": GOOD_DOC.replace(
+                "title: Reference", "title: <noun phrase, title case>"
+            )
+        },
+        ["field 'title' still carries the template placeholder"],
+    ),
+    case(
+        # <plugin> and <name> in a command line are what the reader substitutes,
+        # not what the author forgot. All 18 angle brackets in the real corpus
+        # are this, so the scan skips code.
+        "a placeholder inside a code fence passes",
+        {"p/docs/reference.md": GOOD_DOC + "\n```sh\npython3 <plugin>/hooks/x.py\n```\n"},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a marker inside inline code passes",
+        {"p/docs/reference.md": GOOD_DOC + "\nA leftover `TODO` passes the field check.\n"},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a rule with no Conditions section fails",
+        {
+            "p/docs/reference.md": GOOD_DOC,
+            "p/rules/bounded.md": GOOD_RULE.replace(
+                "## Conditions\n\n1. The thing is not done.\n\n", ""
+            ),
+        },
+        ["'## Conditions' is missing"],
+    ),
+    case(
+        "a rule with no Where this stops section fails",
+        {
+            "p/docs/reference.md": GOOD_DOC,
+            "p/rules/bounded.md": GOOD_RULE.replace(
+                "## Where this stops\n\nIt does not reach the other thing.\n", ""
+            ),
+        },
+        ["'## Where this stops' is missing"],
+    ),
+    case(
+        "a doc with no Where this stops section fails",
+        {
+            "p/docs/reference.md": GOOD_DOC.replace(
+                "## Where this stops\n\nIt does not reach the fixture next door.\n", ""
+            )
+        },
+        ["'## Where this stops' is missing"],
+    ),
+    case(
+        "a skill with no When this skill does not apply section fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            ).replace("## When this skill does not apply\n\nWhen the thing is already done.\n", "")
+        },
+        ["'## When this skill does not apply' is missing"],
+    ),
+    case(
+        "a skill with no numbered step fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            ).replace("## 1. Do the thing", "## Doing it")
+        },
+        ["no numbered step"],
+    ),
+    case(
+        "an agent missing a required section fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            ),
+            "p/agents/specialist.md": GOOD_AGENT.replace(
+                "## What it does not do\n\nAnything else.\n", ""
+            ),
+        },
+        ["'## What it does not do' is missing"],
+    ),
+    case(
+        "a command with no What runs section fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            ),
+            "p/commands/start.md": GOOD_COMMAND.replace("## What runs\n\n`doing-things`.\n", ""),
+        },
+        ["'## What runs' is missing"],
+    ),
+    case(
+        "a heading inside a code fence does not satisfy a required section",
+        {
+            "p/docs/reference.md": GOOD_DOC.replace(
+                "## Where this stops\n\nIt does not reach the fixture next door.\n",
+                "```markdown\n## Where this stops\n```\n",
+            )
+        },
+        ["'## Where this stops' is missing"],
     ),
     case(
         "a broken body link fails",

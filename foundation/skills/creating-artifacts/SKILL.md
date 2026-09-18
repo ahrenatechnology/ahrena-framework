@@ -8,6 +8,7 @@ references:
   - rules/naming.md
   - rules/frontmatter.md
   - rules/progressive-disclosure.md
+  - rules/completeness.md
   - docs/artifact-model.md
 ---
 
@@ -54,7 +55,9 @@ Place it flat in its type directory. A skill is `skills/<name>/SKILL.md` and not
 | agent | `references/agent.md` |
 | command | `references/command.md` |
 
-Fill every field. Leave no placeholder behind: the gate checks that required fields are non-empty, not that they are meaningful, so a leftover `TODO` will pass the gate and fail review.
+Fill every field, and keep the sections the template gives you. `rules/completeness.md` fails a leftover marker or an unreplaced `<placeholder>`, and fails a missing required section, so an unfinished copy does not reach review.
+
+What the gate cannot check is whether a section that exists says anything. A `Where this stops` reading "use judgment" passes condition 3 and still tells the reader nothing.
 
 ## 5. Put the material where the step reads it, not in the body
 

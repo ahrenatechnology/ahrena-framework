@@ -8,11 +8,12 @@ references:
   - rules/pilars.md
   - rules/naming.md
   - rules/frontmatter.md
+  - rules/completeness.md
 ---
 
 # The artifact model
 
-This is the reference for `rules/pilars.md`, `rules/naming.md` and `rules/frontmatter.md`. They state what is checked; this states why. The fourth foundation rule, `rules/progressive-disclosure.md`, has its own companion in `docs/context-budget.md`.
+This is the reference for four of the five foundation rules: `rules/pilars.md`, `rules/naming.md`, `rules/frontmatter.md` and `rules/completeness.md`. They state what is checked; this states why. The fifth, `rules/progressive-disclosure.md`, has its own companion in `docs/context-budget.md`.
 
 ## Five types, one job each
 
@@ -77,7 +78,19 @@ A rule is only as strong as what checks it. Two routes exist, and the rule decla
 
 Declaring `judgment` is allowed. Declaring `judgment` for something that is decidable is how a framework fills up with rules that nobody enforces, so the review question for every new rule is whether a script could have decided it.
 
-## Where the model stops
+## What makes an artifact complete
+
+An artifact is authored by filling a template, and that decides which defects survive to review. They are not subtle ones: they are the parts of the template nobody filled.
+
+**A leftover marker or bracket is the most common.** `TODO`, `TBD`, and an unreplaced `<noun phrase, title case>` in a title all pass a schema check, because the field is present and non-empty. Only reading catches them, and reading is the expensive thing. So `rules/completeness.md` makes the gate read for them instead.
+
+The scan skips code, and that is not a compromise. `<plugin>` and `<name>` on a command line are what the reader is meant to substitute, and a backticked `TODO` is prose about markers rather than a marker. Every angle bracket in this corpus is one of those two, which is why scanning code would fail nothing real and reject everything honest.
+
+**A missing section is the other.** Each type owes its reader a fixed set: a rule owes its conditions and its boundary, a skill owes the cases it does not handle, an agent owes what it refuses. These are not formatting preferences. The boundary section is what separates a rule from dogma, and the "does not apply" section is what stops a skill being reached for in the wrong situation. An artifact that drops them is not shorter, it is incomplete.
+
+Fixed headings also let a reader skim a corpus they have never seen, and let the gate check presence without understanding content.
+
+## Where this stops
 
 The model governs artifacts, not code. A bounded context, a module layout or a class design is the subject of an artifact, never an artifact itself.
 
