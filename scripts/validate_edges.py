@@ -28,6 +28,19 @@ def main() -> int:
         for root in ROOTS
         for p in (repo / root).rglob("*.md")
     }
+    # A gate that passes because it scanned nothing is worse than no gate.
+    # Assert the scan found the areas it is supposed to cover before trusting
+    # a green result.
+    required = ("rules/engineering/quality/solid", "docs/engineering/quality/solid")
+    missing_areas = [area for area in required if area not in artifacts]
+    if missing_areas or len(artifacts) < 4:
+        print(
+            f"artifact discovery returned {len(artifacts)} artifact(s) and is "
+            f"missing {missing_areas or 'nothing'}; the scan is broken, not the graph",
+            file=sys.stderr,
+        )
+        return 2
+
     dangling: list[str] = []
 
     for root in ROOTS:
