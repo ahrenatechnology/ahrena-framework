@@ -16,7 +16,13 @@ What changes is scoped and deliberate:
 
 ## Status
 
-Architecture in definition. The work is tracked in the issues of this repository.
+Early. The `ahrena-foundation` plugin carries the self-hosting core: the three rules that define what an artifact is, the doc that explains them, the skill that creates new ones, and the gate that enforces all of it.
+
+```sh
+python3 foundation/hooks/validate-artifacts.py
+```
+
+The gate takes no dependencies, so the check CI runs is the check a consumer runs. Everything else is tracked in the issues of this repository.
 
 ## License
 
