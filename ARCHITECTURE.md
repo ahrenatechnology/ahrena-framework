@@ -81,7 +81,29 @@ A rule that nothing checks is a claim, not a guardrail. Where a rule is mechanic
 
 Artifacts reference each other through links that CI resolves. A reference to something that does not exist fails the build.
 
-## Open
+## How rules and docs reach the agent
 
-- Whether `rules/` and `docs/` reach the agent through a generated index or through a hook, per platform
-- How the install step places a plugin's skills under `.agents/skills` for DeepSeek: copy, symlink, or a generated pointer
+No platform loads a `rules/` or `docs/` directory natively. They are ours, so we decide how they arrive — and they arrive differently, because they are different things.
+
+**A doc is never injected.** It is a reference manual, consulted when a decision needs it. A skill or agent names its path and reads it at the moment of use. Injecting docs is how a framework arrives at tens of thousands of always-loaded tokens that are irrelevant to the task at hand.
+
+**A rule arrives by one of two routes, decided by whether it is mechanically decidable.**
+
+| The rule is | Route | Why |
+|---|---|---|
+| mechanically decidable | a hook in `hooks/` | A guardrail that runs beats a guardrail that is read. It costs no context and it cannot be overlooked. |
+| a judgment call | the platform's instruction file, as one line plus a link | It needs a reader, so it needs to be in context — but only its statement, never its rationale. |
+
+The install step writes the second route into whatever file the platform reads: `CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and DeepSeek, `.cursor/rules/*.mdc` for Cursor, whose `description`, `globs` and `alwaysApply` fields make the scoping native.
+
+What it writes is an index, not the corpus: one line per rule, each linking its full text. A rule that cannot be stated in one line plus a link is carrying rationale that belongs in a doc.
+
+This is the rule that keeps the injected set small, and it is measurable: the always-loaded footprint is one line per judgment-call rule, and every mechanical rule contributes zero.
+
+## How the install reaches DeepSeek
+
+DeepSeek discovers `<name>/SKILL.md` under `<projectRoot>/.agents/skills` and carries no manifest, so the install step places them.
+
+**Symlink by default.** `.agents/skills/<name>` points at the plugin's own `skills/<name>`. It costs no bytes, it cannot drift, and DeepSeek's watcher follows additions and removals at that root.
+
+**Copy on Windows**, where symlinks need `core.symlinks=true` and developer mode, neither of which a framework may assume. A copied tree can go stale, so the copy path records the source and a freshness gate fails when the two diverge. The symlink path needs no such gate, which is the reason it is the default rather than a preference.
