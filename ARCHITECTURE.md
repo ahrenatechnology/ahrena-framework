@@ -42,9 +42,26 @@ ahrena-framework/
     └── hooks/                      deterministic enforcement
 ```
 
-**There is no transpilation.** Each platform manifest points at the same `skills/` and `agents/` directories. Only the manifest differs, because the platforms already agree on the file format. No derived tree is generated, committed or kept in sync.
+**There is no transpilation.** Every platform reads the same `skills/` and `agents/` directories. Only the manifest differs, because the platforms already agree on the file format. No derived tree is generated, committed or kept in sync.
 
-Claude Code needs no per-plugin manifest; it discovers the directories by convention.
+## The four platforms
+
+Every plugin ships for all four at once. A plugin that supports three is incomplete.
+
+| Platform | How it finds the plugin | What we ship |
+|---|---|---|
+| **Claude Code** | `.claude-plugin/marketplace.json` at the repository root; directories by convention inside the plugin | the marketplace entry |
+| **Codex** | `.codex-plugin/plugin.json` inside the plugin | the manifest |
+| **Cursor** | `.cursor-plugin/plugin.json` inside the plugin | the manifest |
+| **DeepSeek** | directory discovery at `<projectRoot>/.agents/skills`, ranked by source; no manifest exists | the install-time mapping |
+
+DeepSeek is the one that carries no manifest: its local provider discovers `<name>/SKILL.md` bundles and flat `<name>.md` files under `.agents/skills`, so the consumer's install step places or links the plugin's skills there.
+
+Its documentation also states the constraint that settles our layout:
+
+> Nested recursive `**/SKILL.md` discovery is not supported.
+
+Skill directories are therefore flat under `skills/`, and skill names are kebab-case. That is not a preference — a nested layout is invisible to DeepSeek.
 
 ## Decisions
 
@@ -66,5 +83,5 @@ Artifacts reference each other through links that CI resolves. A reference to so
 
 ## Open
 
-- Which platforms ship in the first release beyond Claude Code, Codex and Cursor
-- Whether `rules/` and `docs/` reach the agent through a generated `CLAUDE.md` or through a hook
+- Whether `rules/` and `docs/` reach the agent through a generated index or through a hook, per platform
+- How the install step places a plugin's skills under `.agents/skills` for DeepSeek: copy, symlink, or a generated pointer
