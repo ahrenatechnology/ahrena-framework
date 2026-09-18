@@ -1,0 +1,25 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  artifacts:
+    name: artifact gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # The gate ships with the plugin and takes no dependencies, so CI runs
+      # exactly what a consumer runs. No install step, by design.
+      - name: Test the gate
+        run: python3 foundation/hooks/test-validate-artifacts.py
+
+      - name: Validate the artifact corpus
+        run: python3 foundation/hooks/validate-artifacts.py
