@@ -40,8 +40,11 @@ Nested maps, inline collections and multi-line scalars are rejected. The restric
 | `title` | ● | ● | | | |
 | `summary` | | ● | | | |
 | `description` | | | ● | ● | ● |
+| `role` | | | | ● | |
 | `statement` | ● | | | | |
 | `enforcement` | ● | | | | |
+
+`role` is the agent's subject as a noun phrase, beside the persona in `name`. `rules/naming.md` explains why an agent carries two.
 
 `subclade` and `references` are optional on every type. `enforced-by` is required when `enforcement` is `hook` and rejected when it is `judgment`.
 

@@ -1,9 +1,10 @@
 ---
-name: <filename-without-md, noun phrase, kebab-case>
+name: <filename-without-md, kebab-case. A persona name is allowed here and only here.>
 description: <the specialism, then when to hand work to it. Written for the caller deciding whether this is the right specialist.>
 type: agent
 clade: <plugin-clade>
 subclade: <optional>
+role: <the subject as a noun phrase, kebab-case, e.g. artifact-author>
 references:
   - skills/<skill-it-orchestrates>/SKILL.md
   - rules/<rule-it-enforces>.md

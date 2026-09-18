@@ -40,7 +40,7 @@ REQUIRED = {
     "rule": ("id", "type", "clade", "title", "statement", "enforcement"),
     "doc": ("id", "type", "clade", "title", "summary"),
     "skill": ("name", "description", "type", "clade"),
-    "agent": ("name", "description", "type", "clade"),
+    "agent": ("name", "description", "type", "clade", "role"),
     "command": ("name", "description", "type", "clade"),
 }
 
@@ -292,16 +292,29 @@ def check_enforcement(a: Artifact, findings: list[Finding]) -> None:
         )
 
 
-def check_naming(a: Artifact, findings: list[Finding]) -> None:
-    if not KEBAB.match(a.name):
-        findings.append(Finding(a.rel, "naming", f"'{a.name}' is not kebab-case"))
-
-    if a.name == a.kind or a.name.startswith(f"{a.kind}-"):
-        findings.append(Finding(a.rel, "naming", f"'{a.name}' repeats its type; the directory already says it"))
-
+def _check_name_shape(a: Artifact, value: str, findings: list[Finding], label: str = "name") -> None:
+    """Kebab-case, and free of the prefixes the directory and the plugin already carry."""
+    prefix = "" if label == "name" else f"{label} "
+    if not KEBAB.match(value):
+        findings.append(Finding(a.rel, "naming", f"{prefix}'{value}' is not kebab-case"))
+    if value == a.kind or value.startswith(f"{a.kind}-"):
+        findings.append(
+            Finding(a.rel, "naming", f"{prefix}'{value}' repeats its type; the directory already says it")
+        )
     clade = a.data.get("clade")
-    if isinstance(clade, str) and clade and (a.name == clade or a.name.startswith(f"{clade}-")):
-        findings.append(Finding(a.rel, "naming", f"'{a.name}' repeats its clade; the plugin already says it"))
+    if isinstance(clade, str) and clade and (value == clade or value.startswith(f"{clade}-")):
+        findings.append(
+            Finding(a.rel, "naming", f"{prefix}'{value}' repeats its clade; the plugin already says it")
+        )
+
+
+def check_naming(a: Artifact, findings: list[Finding]) -> None:
+    _check_name_shape(a, a.name, findings)
+
+    if a.kind == "agent":
+        role = a.data.get("role")
+        if isinstance(role, str) and role.strip():
+            _check_name_shape(a, role, findings, label="role")
 
     if a.kind == "skill" and not a.name.split("-")[0].endswith("ing"):
         findings.append(

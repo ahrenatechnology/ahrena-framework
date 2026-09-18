@@ -65,6 +65,7 @@ name: specialist
 description: A specialist. Hand it specialist work.
 type: agent
 clade: fixture
+role: thing-doer
 references:
   - skills/doing-things/SKILL.md
 ---
@@ -204,6 +205,41 @@ CASES = [
             "p/skills/thing-doer/SKILL.md": GOOD_SKILL.replace(
                 "name: doing-things", "name: thing-doer"
             ).replace("references:\n  - rules/bounded.md\n", "")
+        },
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "an agent with no role fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace("references:\n  - rules/bounded.md\n", ""),
+            "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer\n", ""),
+        },
+        ["required field 'role' is missing"],
+    ),
+    case(
+        "an agent role that is not kebab-case fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace("references:\n  - rules/bounded.md\n", ""),
+            "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: Thing Doer"),
+        },
+        ["role 'Thing Doer' is not kebab-case"],
+    ),
+    case(
+        "an agent role that repeats its type fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace("references:\n  - rules/bounded.md\n", ""),
+            "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: agent-thing-doer"),
+        },
+        ["role 'agent-thing-doer' repeats its type"],
+    ),
+    case(
+        # The point of the two-name rule: a persona handle is allowed on an
+        # agent, and only on an agent.
+        "an agent with a persona name and a noun-phrase role passes",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace("references:\n  - rules/bounded.md\n", ""),
+            "p/agents/claudionor.md": GOOD_AGENT.replace("name: specialist", "name: claudionor"),
         },
         ["no failures"],
         ok=True,
