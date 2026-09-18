@@ -31,6 +31,10 @@ Material the step reads goes in `references/`. Work the step executes goes
 in `scripts/`. A procedure that can be run is worth more than one that has
 to be paraphrased.
 
+Inline, a code block holds only the line a person types: the cap is 10
+lines and the gate enforces it. Name every file you put in the body from
+the step that opens it, or the gate fails it as unreachable.
+
 ## When this skill does not apply
 
 The neighbouring cases it will be reached for and should not handle, with

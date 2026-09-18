@@ -12,7 +12,7 @@ references:
 
 # The artifact model
 
-This is the reference for the three foundation rules. They state what is checked; this states why.
+This is the reference for `rules/pilars.md`, `rules/naming.md` and `rules/frontmatter.md`. They state what is checked; this states why. The fourth foundation rule, `rules/progressive-disclosure.md`, has its own companion in `docs/context-budget.md`.
 
 ## Five types, one job each
 

@@ -6,7 +6,9 @@ clade: foundation
 references:
   - rules/pilars.md
   - rules/frontmatter.md
+  - rules/progressive-disclosure.md
   - docs/artifact-model.md
+  - docs/context-budget.md
 ---
 
 # Reviewing artifacts
@@ -88,7 +90,9 @@ Over-declaring is the common direction, and it is not harmless: the graph is wha
 
 Ask what this artifact adds to a request that has nothing to do with it.
 
-A hook rule costs zero. A judgment rule costs one line. A doc costs nothing until something reads it. A skill costs its `description` in every listing. An artifact that quietly breaks that accounting is a finding even when everything else is right.
+A hook rule costs zero. A judgment rule costs one line. A doc costs nothing until something reads it. A skill costs its `description` in every listing, and its body every time it fires.
+
+The gate already decides two of these: the 10-line cap on code blocks in a body, and whether every file in a skill's body is reachable from a step. What is left for you is the part no threshold reaches. A body with no code at all can still be three times longer than the procedure needs, and material can sit in the right tier while being the wrong material. `rules/progressive-disclosure.md` states the mechanics; `docs/context-budget.md` gives you the accounting to argue with.
 
 ## 11. Report
 
