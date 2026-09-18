@@ -23,6 +23,8 @@ python3 <plugin>/hooks/validate-artifacts.py
 
 Spending review attention on kebab-case is waste. If the gate is red, the review has not started yet.
 
+It now also decides leftover markers, unreplaced placeholders and missing sections, so those are off your list. What it cannot decide is whether a section that exists says anything: a `Where this stops` reading "use judgment" passes the gate and fails step 7.
+
 ## 2. Challenge the type
 
 This is where most defects are, so it comes first.

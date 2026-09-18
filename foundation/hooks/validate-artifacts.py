@@ -63,6 +63,21 @@ CODE_BLOCK_MAX = 10
 BODY_TIERED = frozenset({"skill", "agent"})
 BODY_DIRS = ("references", "scripts")
 
+# An artifact is authored by filling a template, so the defects that survive to
+# review are the parts of the template that were never filled.
+PLACEHOLDER_TOKEN = re.compile(r"\b(TODO|TBD|FIXME|XXX)\b")
+PLACEHOLDER_ANGLE = re.compile(r"<[A-Za-z][^<>:\n]{0,60}>")
+INLINE_CODE = re.compile(r"`[^`\n]*`")
+
+REQUIRED_SECTIONS = {
+    "rule": ("Conditions", "Where this stops"),
+    "doc": ("Where this stops",),
+    "skill": ("When this skill does not apply",),
+    "agent": ("What this agent is for", "Skills it orchestrates", "What it does not do"),
+    "command": ("What runs",),
+}
+NUMBERED_STEP = re.compile(r"^\d+\.")
+
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 KEY = re.compile(r"^[a-z][a-z0-9-]*$")
 MD_LINK = re.compile(r"\[[^\]]*\]\(\s*([^)\s]+)")
@@ -364,6 +379,73 @@ def check_references(a: Artifact, index: dict[str, str], findings: list[Finding]
             )
 
 
+def _outside_fences(body: str) -> list[tuple[int, str]]:
+    """Body lines that are not inside a fenced code block, with their offsets."""
+    lines, in_fence = [], False
+    for offset, line in enumerate(body.splitlines()):
+        if FENCE.match(line):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            lines.append((offset, line))
+    return lines
+
+
+def check_completeness(a: Artifact, findings: list[Finding]) -> None:
+    """Markers and template placeholders that were never filled in."""
+    scans = ((PLACEHOLDER_TOKEN, "marker"), (PLACEHOLDER_ANGLE, "template placeholder"))
+
+    for key in sorted(a.data):
+        value = a.data[key]
+        for item in [value] if isinstance(value, str) else value:
+            for pattern, label in scans:
+                found = pattern.search(item)
+                if found:
+                    findings.append(
+                        Finding(
+                            a.rel,
+                            "completeness",
+                            f"field '{key}' still carries the {label} {found.group()!r}",
+                        )
+                    )
+                    break
+
+    # Code is skipped: <plugin> and <name> on a command line are what the reader
+    # substitutes, and a backticked TODO is prose about markers, not a marker.
+    for offset, line in _outside_fences(a.body):
+        prose = INLINE_CODE.sub("", line)
+        for pattern, label in scans:
+            found = pattern.search(prose)
+            if found:
+                findings.append(
+                    Finding(
+                        f"{a.rel}:{a.body_start + offset}",
+                        "completeness",
+                        f"body still carries the {label} {found.group()!r}",
+                    )
+                )
+                break
+
+
+def check_sections(a: Artifact, findings: list[Finding]) -> None:
+    """The sections each type owes its reader."""
+    headings = [line[3:].strip() for _, line in _outside_fences(a.body) if line.startswith("## ")]
+    present = {h.lower() for h in headings}
+
+    for required in REQUIRED_SECTIONS[a.kind]:
+        if required.lower() not in present:
+            findings.append(Finding(a.rel, "completeness", f"'## {required}' is missing"))
+
+    if a.kind == "skill" and not any(NUMBERED_STEP.match(h) for h in headings):
+        findings.append(
+            Finding(
+                a.rel,
+                "completeness",
+                "a skill has no numbered step; a procedure without an order is a doc",
+            )
+        )
+
+
 def check_disclosure(a: Artifact, findings: list[Finding]) -> None:
     """The 10-line cap on code blocks in a body that loads on every trigger."""
     if a.kind not in BODY_TIERED:
@@ -476,6 +558,8 @@ def main(argv: list[str]) -> int:
             check_enforcement(a, findings)
             check_naming(a, findings)
             check_references(a, index, findings)
+            check_completeness(a, findings)
+            check_sections(a, findings)
             check_disclosure(a, findings)
             check_reachability(a, findings)
             check_links(a, findings)
