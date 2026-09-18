@@ -7,6 +7,7 @@ references:
   - rules/pilars.md
   - rules/naming.md
   - rules/frontmatter.md
+  - rules/progressive-disclosure.md
   - docs/artifact-model.md
 ---
 
@@ -55,7 +56,13 @@ Place it flat in its type directory. A skill is `skills/<name>/SKILL.md` and not
 
 Fill every field. Leave no placeholder behind: the gate checks that required fields are non-empty, not that they are meaningful, so a leftover `TODO` will pass the gate and fail review.
 
-## 5. Declare enforcement, for a rule only
+## 5. Put the material where the step reads it, not in the body
+
+A skill or agent body is paid in full every time the artifact fires, so only the line a person types belongs inline. `rules/progressive-disclosure.md` caps a code block there at 10 lines.
+
+Anything copied and edited goes in `references/`. Anything executed goes in `scripts/`. Then name the file in the step that opens it, because the gate also fails material that no step can reach.
+
+## 6. Declare enforcement, for a rule only
 
 Ask whether a script could decide the condition.
 
@@ -65,13 +72,13 @@ Ask whether a script could decide the condition.
 
 Reaching for `judgment` because the hook is work is how the corpus fills with rules nothing enforces. If the condition is decidable, it is a hook.
 
-## 6. Wire the references
+## 7. Wire the references
 
 List plugin-relative paths in `references`. Check the pair against the matrix in `rules/pilars.md` before adding one. Commands reference only skills and agents; rules reference only docs.
 
 A mention in prose is not a reference. Only declare a dependency the artifact actually has.
 
-## 7. Run the gate
+## 8. Run the gate
 
 ```sh
 python3 <plugin>/hooks/validate-artifacts.py [repo-root]

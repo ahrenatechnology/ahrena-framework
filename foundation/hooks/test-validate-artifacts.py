@@ -317,6 +317,88 @@ CASES = [
         ["it is 'hook' or 'judgment'"],
     ),
     case(
+        "a code block over 10 lines in a skill body fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            )
+            + "\n```python\n"
+            + "x = 1\n" * 11
+            + "```\n"
+        },
+        ["code block is 11 lines", "the limit in a skill body is 10"],
+    ),
+    case(
+        "a code block of exactly 10 lines passes",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            )
+            + "\n```python\n"
+            + "x = 1\n" * 10
+            + "```\n"
+        },
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a code block over 10 lines in an agent body fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            ),
+            "p/agents/specialist.md": GOOD_AGENT + "\n```sh\n" + "echo hi\n" * 12 + "```\n",
+        },
+        ["code block is 12 lines", "the limit in an agent body is 10"],
+    ),
+    case(
+        "a long code block in a doc passes; the rule does not reach docs",
+        {"p/docs/reference.md": GOOD_DOC + "\n```python\n" + "x = 1\n" * 40 + "```\n"},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a long code block in a rule passes; the rule does not reach rules",
+        {
+            "p/docs/reference.md": GOOD_DOC,
+            "p/rules/bounded.md": GOOD_RULE + "\n```python\n" + "x = 1\n" * 40 + "```\n",
+        },
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a references file no step names fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            ),
+            "p/skills/doing-things/references/orphan.md": "nobody opens this\n",
+        },
+        ["'references/orphan.md' is never named in SKILL.md"],
+    ),
+    case(
+        "a scripts file no step names fails",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            ),
+            "p/skills/doing-things/scripts/orphan.py": "# nobody runs this\n",
+        },
+        ["'scripts/orphan.py' is never named in SKILL.md"],
+    ),
+    case(
+        "a references file the body names passes",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            )
+            + "\nStep 1 reads `references/material.md`.\n",
+            "p/skills/doing-things/references/material.md": "read me\n",
+        },
+        ["no failures"],
+        ok=True,
+    ),
+    case(
         "a broken body link fails",
         {"p/docs/reference.md": GOOD_DOC + "\nSee [the thing](./absent.md).\n"},
         ["link target './absent.md' does not exist"],

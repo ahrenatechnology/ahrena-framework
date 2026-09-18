@@ -57,6 +57,12 @@ IDENTITY_FIELD = {"rule": "id", "doc": "id", "skill": "name", "agent": "name", "
 
 STATEMENT_MAX = 160
 
+# The body of a skill or an agent is paid in full every time the artifact fires,
+# so material that is copied rather than typed belongs in references/ or scripts/.
+CODE_BLOCK_MAX = 10
+BODY_TIERED = frozenset({"skill", "agent"})
+BODY_DIRS = ("references", "scripts")
+
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 KEY = re.compile(r"^[a-z][a-z0-9-]*$")
 MD_LINK = re.compile(r"\[[^\]]*\]\(\s*([^)\s]+)")
@@ -358,6 +364,55 @@ def check_references(a: Artifact, index: dict[str, str], findings: list[Finding]
             )
 
 
+def check_disclosure(a: Artifact, findings: list[Finding]) -> None:
+    """The 10-line cap on code blocks in a body that loads on every trigger."""
+    if a.kind not in BODY_TIERED:
+        return
+    article = "an" if a.kind[0] in "aeiou" else "a"
+    opened: int | None = None
+    for offset, line in enumerate(a.body.splitlines()):
+        if not FENCE.match(line):
+            continue
+        if opened is None:
+            opened = offset
+            continue
+        length = offset - opened - 1
+        if length > CODE_BLOCK_MAX:
+            findings.append(
+                Finding(
+                    f"{a.rel}:{a.body_start + opened}",
+                    "progressive-disclosure",
+                    f"code block is {length} lines; the limit in {article} {a.kind} body is "
+                    f"{CODE_BLOCK_MAX}, and anything longer is material for references/ or scripts/",
+                )
+            )
+        opened = None
+
+
+def check_reachability(a: Artifact, findings: list[Finding]) -> None:
+    """Material a step cannot reach is not deferred, it is orphaned."""
+    if a.kind != "skill":
+        return
+    root = a.path.parent
+    for subdir in BODY_DIRS:
+        directory = root / subdir
+        if not directory.is_dir():
+            continue
+        for path in sorted(p for p in directory.rglob("*") if p.is_file()):
+            rel = path.relative_to(root).as_posix()
+            # Lenient on purpose: a mention anywhere in the body satisfies it.
+            # Blocking a correct skill costs more than a stray mention does.
+            if rel in a.body or path.name in a.body:
+                continue
+            findings.append(
+                Finding(
+                    a.rel,
+                    "progressive-disclosure",
+                    f"'{rel}' is never named in SKILL.md, so no step can reach it",
+                )
+            )
+
+
 def check_links(a: Artifact, findings: list[Finding]) -> None:
     in_fence = False
     for offset, line in enumerate(a.body.splitlines()):
@@ -421,6 +476,8 @@ def main(argv: list[str]) -> int:
             check_enforcement(a, findings)
             check_naming(a, findings)
             check_references(a, index, findings)
+            check_disclosure(a, findings)
+            check_reachability(a, findings)
             check_links(a, findings)
         checked += len(artifacts)
 
