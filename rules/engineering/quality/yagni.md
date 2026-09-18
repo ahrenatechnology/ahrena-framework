@@ -3,9 +3,6 @@ type: rule
 title: YAGNI
 scope: engineering/quality
 enforcement: review-block
-relates:
-  - rules/engineering/quality/kiss
-  - rules/engineering/quality/solid
 ---
 
 # Rule: YAGNI

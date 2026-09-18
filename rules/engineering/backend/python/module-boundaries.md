@@ -3,10 +3,6 @@ type: rule
 title: Python module boundaries
 scope: engineering/backend/python
 enforcement: ci-block
-consults:
-  - docs/engineering/backend/python/module-boundaries
-relates:
-  - rules/engineering/quality/solid
 ---
 
 # Rule: Python module boundaries
@@ -16,6 +12,8 @@ relates:
 ## Law
 
 > **Every architectural layer MUST be a distributable Python package with its own `pyproject.toml` and an explicitly declared dependency direction. Imports MUST travel inward — infrastructure to application to domain — and never outward. A cycle between modules is FORBIDDEN regardless of direction, and CI MUST reject it.**
+
+The layout, and the three ways to break a cycle: [the doc companion](../../../../docs/engineering/backend/python/module-boundaries.md).
 
 ## Coverage
 
@@ -36,7 +34,7 @@ components/{context}/
 └── infra/         # adapters implement them
 ```
 
-The separation is not cosmetic. When `domain` and `infra` share one distribution, every consumer of the domain inherits the infrastructure's dependency tree — the database driver, the cloud SDK, the telemetry client — whether it touches them or not. Splitting the distributions keeps each dependency set off the other's consumers.
+The separation is not cosmetic: one distribution per layer keeps each dependency set off the other's consumers. The doc companion has the full cost argument.
 
 ### 2. `components/` is a PEP 420 namespace root
 

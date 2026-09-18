@@ -3,11 +3,6 @@ type: rule
 title: SOLID
 scope: engineering/quality
 enforcement: review-block
-consults:
-  - docs/engineering/quality/solid
-relates:
-  - rules/engineering/quality/yagni
-  - rules/engineering/quality/kiss
 ---
 
 # Rule: SOLID
@@ -17,6 +12,8 @@ relates:
 ## Law
 
 > **Every module MUST satisfy the five conditions stated in this rule. Each condition is written as a detectable state with a threshold, not as a principle to interpret. An abstraction introduced to satisfy any of them MUST first pass the abstraction trigger defined in [`yagni`](yagni.md) — a principle is never sufficient justification on its own.**
+
+What each condition prevents and where it stops paying: [the doc companion](../../../docs/engineering/quality/solid.md).
 
 ## Coverage
 

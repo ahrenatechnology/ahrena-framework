@@ -2,8 +2,6 @@
 type: doc
 title: Python module boundaries
 scope: engineering/backend/python
-consulted_by:
-  - rules/engineering/backend/python/module-boundaries
 ---
 
 # Doc: Python module boundaries

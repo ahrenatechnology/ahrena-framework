@@ -69,6 +69,15 @@ def _(tmp: pathlib.Path) -> None:
     )
 
 
+@case("verify-edges", "rejects a broken same-directory link")
+def _(tmp: pathlib.Path) -> None:
+    # The original pattern anchored on ./ or ../ and skipped sibling links
+    # entirely, so renaming a sibling artifact stayed green.
+    (tmp / "rules/engineering/quality/kiss.md").write_text(
+        "# Rule\n\nSee [yagni](gone.md).\n"
+    )
+
+
 @case("verify-edges", "rejects an empty scan instead of reporting success")
 def _(tmp: pathlib.Path) -> None:
     shutil.rmtree(tmp / "rules")

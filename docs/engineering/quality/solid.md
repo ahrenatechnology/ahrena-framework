@@ -2,8 +2,6 @@
 type: doc
 title: SOLID
 scope: engineering/quality
-consulted_by:
-  - rules/engineering/quality/solid
 ---
 
 # Doc: SOLID

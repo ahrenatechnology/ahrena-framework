@@ -3,9 +3,6 @@ type: rule
 title: KISS
 scope: engineering/quality
 enforcement: review-block
-relates:
-  - rules/engineering/quality/yagni
-  - rules/engineering/quality/solid
 ---
 
 # Rule: KISS

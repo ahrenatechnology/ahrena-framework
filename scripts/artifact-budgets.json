@@ -18,9 +18,9 @@
   },
   "frozen": {
     "_why": "Authored before the rule/record split in #22. Each states its own rationale inline; that prose moves to a decision record and these ceilings come down with it.",
-    "rules/engineering/quality/solid.md": 6809,
-    "rules/engineering/quality/yagni.md": 6169,
-    "rules/engineering/quality/kiss.md": 4491,
-    "rules/engineering/backend/python/module-boundaries.md": 5331
+    "rules/engineering/quality/solid.md": 6806,
+    "rules/engineering/quality/yagni.md": 6089,
+    "rules/engineering/quality/kiss.md": 4410,
+    "rules/engineering/backend/python/module-boundaries.md": 5182
   }
 }

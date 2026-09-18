@@ -2,9 +2,10 @@
 """Validate the artifact graph: every declared edge must resolve.
 
 Checks two kinds of edge:
-  - typed edges in frontmatter (consults / relates / consulted_by), written as
-    repo-relative paths without the .md suffix
-  - markdown links between artifacts
+  - typed edges in frontmatter (invokes / orchestrates), written as repo-relative
+    paths without the .md suffix. Per issue #3 these carry only the relations
+    where direction is an authority claim; everything else is a prose link.
+  - markdown links between artifacts, relative, including same-directory ones
 
 Exits non-zero on the first dangling edge. This is the seed of issue #3; the
 hierarchy-direction check is not implemented yet.
@@ -18,7 +19,9 @@ import sys
 ROOTS = ("rules", "docs", "skills", "agents", "commands")
 FRONTMATTER = re.compile(r"^---\n(.*?)\n---", re.S)
 TYPED_EDGE = re.compile(r"^\s+- ((?:%s)/[\w/-]+)$" % "|".join(ROOTS), re.M)
-MD_LINK = re.compile(r"\]\((\.\.?/[^)]+\.md)\)")
+# Any relative .md target, including a same-directory link like (yagni.md).
+# Anchoring on ./ or ../ silently skipped every sibling reference.
+MD_LINK = re.compile(r"\]\((?!https?:|/)([^)#]+\.md)(?:#[^)]*)?\)")
 
 
 def main() -> int:
