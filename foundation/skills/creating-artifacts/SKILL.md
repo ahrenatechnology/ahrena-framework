@@ -39,6 +39,7 @@ Read `rules/naming.md` before choosing a name. The three failures that recur:
 - a type prefix (`rule-naming`)
 - a clade prefix (`foundation-naming`)
 - a skill named as a noun (`artifact-creation` instead of `creating-artifacts`)
+- an agent given only one name. An agent declares a handle in `name` and its subject in `role`, and a persona name is allowed in the first and nowhere else.
 
 Place it flat in its type directory. A skill is `skills/<name>/SKILL.md` and nothing deeper.
 

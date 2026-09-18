@@ -16,7 +16,7 @@ What changes is scoped and deliberate:
 
 ## Status
 
-Early. The `ahrena-foundation` plugin carries the self-hosting core: the three rules that define what an artifact is, the doc that explains them, the skill that creates new ones, and the gate that enforces all of it.
+Early. The `ahrena-foundation` plugin carries the self-hosting core: the three rules that define what an artifact is, the doc that explains them, the skills that create, review and enforce artifacts, the specialist that orchestrates those skills, and the gate that decides every condition the rules state.
 
 ```sh
 python3 foundation/hooks/validate-artifacts.py
