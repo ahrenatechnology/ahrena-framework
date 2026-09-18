@@ -1,0 +1,13 @@
+{
+  "name": "ahrena-foundation",
+  "displayName": "Ahrena Foundation",
+  "version": "0.1.0",
+  "description": "The self-hosting core: what an artifact is, where it lives, how it is named, and the skills that create the others.",
+  "author": { "name": "Ahrena Technology" },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/foundation",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": ["authoring", "conventions", "naming", "templates", "scaffolding"],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

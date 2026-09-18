@@ -1,0 +1,26 @@
+{
+  "name": "ahrena",
+  "description": "Operating artifacts for AI coding agents: unbreakable rules, reference docs, repeatable skills, specialist agents and entry-point commands. Organized by clade, distributed as plugins.",
+  "version": "0.1.0",
+  "owner": {
+    "name": "Ahrena Technology",
+    "url": "https://github.com/ahrenatechnology"
+  },
+  "plugins": [
+    {
+      "name": "ahrena-foundation",
+      "description": "The self-hosting core: what an artifact is, where it lives, how it is named, and the skills that create the others. Every other plugin depends on this one.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "foundation",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/foundation",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": ["authoring", "conventions", "naming", "templates", "scaffolding"]
+    }
+  ]
+}
