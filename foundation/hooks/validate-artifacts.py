@@ -68,6 +68,7 @@ BODY_DIRS = ("references", "scripts")
 PLACEHOLDER_TOKEN = re.compile(r"\b(TODO|TBD|FIXME|XXX)\b")
 PLACEHOLDER_ANGLE = re.compile(r"<[A-Za-z][^<>:\n]{0,60}>")
 INLINE_CODE = re.compile(r"`[^`\n]*`")
+LEFTOVER_SCANS = ((PLACEHOLDER_TOKEN, "marker"), (PLACEHOLDER_ANGLE, "template placeholder"))
 
 REQUIRED_SECTIONS = {
     "rule": ("Conditions", "Where this stops"),
@@ -111,6 +112,40 @@ def _unquote(value: str) -> str:
     return value
 
 
+def _apply_line(raw: str, n: int, data: dict, current: str | None) -> str | None:
+    """Fold one frontmatter line, on line `n`, into `data`.
+
+    Returns the key a list item on the next line would extend, or None when the
+    next line may not be one. Anything outside a flat map of scalars and lists
+    of scalars raises, which is what frontmatter.md promises.
+    """
+    stripped = raw.strip()
+    if not stripped:
+        return None
+    if stripped.startswith("- "):
+        if current is None:
+            raise FrontmatterError(f"line {n}: list item with no key above it")
+        data[current].append(_unquote(stripped[2:].strip()))
+        return current
+    if raw[0] in " \t":
+        raise FrontmatterError(f"line {n}: indented line that is not a list item; nested maps are not allowed")
+    if ":" not in raw:
+        raise FrontmatterError(f"line {n}: not a 'key: value' pair")
+    key, _, value = raw.partition(":")
+    key, value = key.strip(), value.strip()
+    if not KEY.match(key):
+        raise FrontmatterError(f"line {n}: '{key}' is not a valid field name")
+    if key in data:
+        raise FrontmatterError(f"line {n}: '{key}' is declared twice")
+    if value == "":
+        data[key] = []
+        return key
+    if value[0] in "[{|>&*":
+        raise FrontmatterError(f"line {n}: inline collections and block scalars are not allowed")
+    data[key] = _unquote(value)
+    return None
+
+
 def parse_frontmatter(text: str) -> tuple[dict, int]:
     """Parse a flat map of scalars and lists of scalars.
 
@@ -131,34 +166,7 @@ def parse_frontmatter(text: str) -> tuple[dict, int]:
     data: dict = {}
     current: str | None = None
     for offset, raw in enumerate(lines[1:end]):
-        n = offset + 2
-        if not raw.strip():
-            current = None
-            continue
-        stripped = raw.strip()
-        if stripped.startswith("- "):
-            if current is None:
-                raise FrontmatterError(f"line {n}: list item with no key above it")
-            data[current].append(_unquote(stripped[2:].strip()))
-            continue
-        if raw[0] in " \t":
-            raise FrontmatterError(f"line {n}: indented line that is not a list item; nested maps are not allowed")
-        if ":" not in raw:
-            raise FrontmatterError(f"line {n}: not a 'key: value' pair")
-        key, _, value = raw.partition(":")
-        key, value = key.strip(), value.strip()
-        if not KEY.match(key):
-            raise FrontmatterError(f"line {n}: '{key}' is not a valid field name")
-        if key in data:
-            raise FrontmatterError(f"line {n}: '{key}' is declared twice")
-        if value == "":
-            data[key] = []
-            current = key
-        else:
-            if value[0] in "[{|>&*":
-                raise FrontmatterError(f"line {n}: inline collections and block scalars are not allowed")
-            data[key] = _unquote(value)
-            current = None
+        current = _apply_line(raw, offset + 2, data, current)
     return data, end + 2
 
 
@@ -391,40 +399,45 @@ def _outside_fences(body: str) -> list[tuple[int, str]]:
     return lines
 
 
+def _first_leftover(text: str) -> tuple[str, str] | None:
+    """The first marker or template placeholder in `text`, as (label, matched text).
+
+    Markers win ties, so a field carrying both is reported once, as the marker.
+    """
+    for pattern, label in LEFTOVER_SCANS:
+        found = pattern.search(text)
+        if found:
+            return label, found.group()
+    return None
+
+
 def check_completeness(a: Artifact, findings: list[Finding]) -> None:
     """Markers and template placeholders that were never filled in."""
-    scans = ((PLACEHOLDER_TOKEN, "marker"), (PLACEHOLDER_ANGLE, "template placeholder"))
-
     for key in sorted(a.data):
         value = a.data[key]
         for item in [value] if isinstance(value, str) else value:
-            for pattern, label in scans:
-                found = pattern.search(item)
-                if found:
-                    findings.append(
-                        Finding(
-                            a.rel,
-                            "completeness",
-                            f"field '{key}' still carries the {label} {found.group()!r}",
-                        )
-                    )
-                    break
+            leftover = _first_leftover(item)
+            if leftover is None:
+                continue
+            label, text = leftover
+            findings.append(
+                Finding(a.rel, "completeness", f"field '{key}' still carries the {label} {text!r}")
+            )
 
     # Code is skipped: <plugin> and <name> on a command line are what the reader
     # substitutes, and a backticked TODO is prose about markers, not a marker.
     for offset, line in _outside_fences(a.body):
-        prose = INLINE_CODE.sub("", line)
-        for pattern, label in scans:
-            found = pattern.search(prose)
-            if found:
-                findings.append(
-                    Finding(
-                        f"{a.rel}:{a.body_start + offset}",
-                        "completeness",
-                        f"body still carries the {label} {found.group()!r}",
-                    )
-                )
-                break
+        leftover = _first_leftover(INLINE_CODE.sub("", line))
+        if leftover is None:
+            continue
+        label, text = leftover
+        findings.append(
+            Finding(
+                f"{a.rel}:{a.body_start + offset}",
+                "completeness",
+                f"body still carries the {label} {text!r}",
+            )
+        )
 
 
 def check_sections(a: Artifact, findings: list[Finding]) -> None:

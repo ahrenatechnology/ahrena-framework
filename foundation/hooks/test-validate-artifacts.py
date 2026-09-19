@@ -599,6 +599,38 @@ CASES = [
         {"p/docs/reference.md": GOOD_DOC.replace("title: Reference", "Title_Case: Reference")},
         ["is not a valid field name"],
     ),
+    case(
+        "a line that is not a 'key: value' pair fails, on its own line number",
+        {"p/docs/reference.md": GOOD_DOC.replace("title: Reference", "title: Reference\njust a line")},
+        ["line 6: not a 'key: value' pair"],
+    ),
+    case(
+        # A blank line closes the list above it, so what follows has no key.
+        "a list item after a blank line fails, on its own line number",
+        {
+            "p/docs/reference.md": GOOD_DOC.replace(
+                "summary: A doc that passes.",
+                "references:\n  - docs/reference.md\n\n  - docs/other.md\nsummary: A doc that passes.",
+            )
+        },
+        ["line 9: list item with no key above it"],
+    ),
+    case(
+        "a leftover marker in a list field fails",
+        {
+            "p/docs/reference.md": GOOD_DOC.replace(
+                "summary: A doc that passes.",
+                "summary: A doc that passes.\nreferences:\n  - docs/TODO-later.md",
+            )
+        },
+        ["field 'references' still carries the marker 'TODO'"],
+    ),
+    case(
+        # Markers win the tie, so the field is reported once rather than twice.
+        "a field carrying both a marker and a placeholder is reported once",
+        {"p/docs/reference.md": GOOD_DOC.replace("summary: A doc that passes.", "summary: TODO <fill this in>")},
+        ["1 failure(s)", "field 'summary' still carries the marker 'TODO'"],
+    ),
 ]
 
 
