@@ -36,6 +36,21 @@
       "repository": "https://github.com/ahrenatechnology/ahrena-framework",
       "license": "MIT",
       "keywords": ["solid", "kiss", "yagni", "abstraction", "cohesion", "code-quality"]
+    },
+    {
+      "name": "ahrena-engineering-python",
+      "description": "What is specific to Python: a distribution per layer under a PEP 420 namespace root, a dependency direction that only runs downward, and an import graph a script proves acyclic.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering-python",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering-python",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": ["python", "imports", "circular-imports", "layering", "packaging", "namespace-packages"]
     }
   ]
 }
