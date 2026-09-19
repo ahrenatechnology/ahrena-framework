@@ -7,8 +7,20 @@ on:
 
 jobs:
   artifacts:
-    name: artifact gate
-    runs-on: ubuntu-latest
+    name: artifact gate (${{ matrix.os }})
+    # Two legs, because one class of defect in these hooks is invisible on one
+    # of them. `rglob("SKILL.md")` matched a lowercase `skill.md` template and
+    # failed the gate on every contributor's Mac while this job stayed green,
+    # and no arrangement of files reproduces that on a case-sensitive
+    # filesystem — the wrong answer comes from the filesystem, not from the
+    # tree. A regression case is therefore only as good as the platform it
+    # runs on, so the suites run on both. This repository is public, so the
+    # macOS leg is free.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       # Both actions are pinned past the Node 20 deprecation. The runner
       # already forces Node 24 on them and says so in a warning on every
