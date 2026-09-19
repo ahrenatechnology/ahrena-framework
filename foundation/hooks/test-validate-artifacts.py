@@ -130,6 +130,33 @@ VALID_CORPUS = {
 }
 
 
+# A case that needs a second plugin supplies its own marketplace under the same
+# path, which the runner writes after the default one.
+TWO_PLUGINS = json.dumps(
+    {
+        "name": "fixture",
+        "plugins": [
+            {"name": "fixture-plugin", "source": {"path": "p"}},
+            {"name": "other-plugin", "source": {"path": "q"}},
+        ],
+    }
+)
+MARKETPLACE_PATH = ".claude-plugin/marketplace.json"
+
+NEIGHBOUR_DOC = GOOD_DOC.replace("id: reference", "id: neighbour").replace(
+    "title: Reference", "title: Neighbour"
+)
+NEIGHBOUR_DOC_TO_RULE = NEIGHBOUR_DOC.replace(
+    "summary: A doc that passes.",
+    "summary: A doc that passes.\nreferences:\n  - fixture-plugin:rules/bounded.md",
+)
+
+
+def qualified(ref: str) -> str:
+    """The fixture rule, with its one reference replaced by `ref`."""
+    return GOOD_RULE.replace("  - docs/reference.md", f"  - {ref}")
+
+
 def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) -> tuple:
     return (name, files, expect, ok)
 
@@ -630,6 +657,72 @@ CASES = [
         "a field carrying both a marker and a placeholder is reported once",
         {"p/docs/reference.md": GOOD_DOC.replace("summary: A doc that passes.", "summary: TODO <fill this in>")},
         ["1 failure(s)", "field 'summary' still carries the marker 'TODO'"],
+    ),
+    # --- references across plugins -----------------------------------------
+    case(
+        "a qualified reference into another plugin passes",
+        {
+            MARKETPLACE_PATH: TWO_PLUGINS,
+            "q/docs/neighbour.md": NEIGHBOUR_DOC,
+            "p/rules/bounded.md": qualified("other-plugin:docs/neighbour.md"),
+        },
+        ["2 artifact(s), no failures"],
+        ok=True,
+    ),
+    case(
+        "a qualified reference naming a plugin the marketplace does not list fails",
+        {
+            MARKETPLACE_PATH: TWO_PLUGINS,
+            "q/docs/neighbour.md": NEIGHBOUR_DOC,
+            "p/rules/bounded.md": qualified("ghost-plugin:docs/neighbour.md"),
+        },
+        ["names 'ghost-plugin', which is not a plugin in the marketplace"],
+    ),
+    case(
+        "a qualified reference into one's own plugin fails",
+        {
+            "p/docs/reference.md": GOOD_DOC,
+            "p/rules/bounded.md": qualified("fixture-plugin:docs/reference.md"),
+        },
+        ["is inside this plugin; drop the 'fixture-plugin:' prefix"],
+    ),
+    case(
+        "the matrix applies across plugins too",
+        {
+            MARKETPLACE_PATH: TWO_PLUGINS,
+            "q/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            ),
+            "p/rules/bounded.md": qualified("other-plugin:skills/doing-things/SKILL.md"),
+        },
+        ["a rule may not reference a skill"],
+    ),
+    case(
+        "a qualified reference to a path that is not there fails",
+        {
+            MARKETPLACE_PATH: TWO_PLUGINS,
+            "q/docs/neighbour.md": NEIGHBOUR_DOC,
+            "p/rules/bounded.md": qualified("other-plugin:docs/absent.md"),
+        },
+        ["reference 'other-plugin:docs/absent.md' does not exist"],
+    ),
+    case(
+        "an unqualified reference does not reach into another plugin",
+        {
+            MARKETPLACE_PATH: TWO_PLUGINS,
+            "q/docs/neighbour.md": NEIGHBOUR_DOC,
+            "p/rules/bounded.md": qualified("docs/neighbour.md"),
+        },
+        ["reference 'docs/neighbour.md' does not exist"],
+    ),
+    case(
+        "two plugins that reference each other fail as a cycle",
+        {
+            MARKETPLACE_PATH: TWO_PLUGINS,
+            "q/docs/neighbour.md": NEIGHBOUR_DOC_TO_RULE,
+            "p/rules/bounded.md": qualified("other-plugin:docs/neighbour.md"),
+        },
+        ["plugins depend in a cycle", "fixture-plugin -> other-plugin -> fixture-plugin"],
     ),
 ]
 

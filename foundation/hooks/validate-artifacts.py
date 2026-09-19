@@ -178,6 +178,7 @@ class Artifact:
     path: Path  # absolute
     rel: str  # plugin-relative, posix
     plugin: Path
+    plugin_name: str  # the name the marketplace gives this plugin
     kind: str  # derived from location
     name: str  # derived from location
     data: dict = field(default_factory=dict)
@@ -185,7 +186,7 @@ class Artifact:
     body: str = ""
 
 
-def collect(plugin: Path, findings: list[Finding]) -> list[Artifact]:
+def collect(plugin: Path, plugin_name: str, findings: list[Finding]) -> list[Artifact]:
     artifacts: list[Artifact] = []
 
     for dirname, kind in FLAT_DIRS.items():
@@ -199,7 +200,7 @@ def collect(plugin: Path, findings: list[Finding]) -> list[Artifact]:
                     Finding(rel, "naming", f"{dirname}/ is flat; this file sits in a subdirectory")
                 )
                 continue
-            artifacts.append(Artifact(path, rel, plugin, kind, path.stem))
+            artifacts.append(Artifact(path, rel, plugin, plugin_name, kind, path.stem))
 
     skills = plugin / SKILLS_DIR
     if skills.is_dir():
@@ -215,7 +216,7 @@ def collect(plugin: Path, findings: list[Finding]) -> list[Artifact]:
                     )
                 )
                 continue
-            artifacts.append(Artifact(path, rel, plugin, "skill", parts[0]))
+            artifacts.append(Artifact(path, rel, plugin, plugin_name, "skill", parts[0]))
         for path in sorted(skills.glob("*.md")):
             findings.append(
                 Finding(
@@ -359,32 +360,87 @@ def check_naming(a: Artifact, findings: list[Finding]) -> None:
         )
 
 
-def check_references(a: Artifact, index: dict[str, str], findings: list[Finding]) -> None:
+def _split_ref(ref: str) -> tuple[str, str]:
+    """A reference as (plugin name, plugin-relative path).
+
+    The name is empty when the reference is unqualified, which is every
+    reference inside one plugin. `ahrena-engineering:docs/simplicity.md` is the
+    qualified form and the only way to name an artifact in another plugin.
+    """
+    name, sep, path = ref.partition(":")
+    return (name, path) if sep else ("", ref)
+
+
+def _declared_refs(a: Artifact) -> list[str]:
+    """The reference list, or empty when the field is absent or the wrong shape."""
     refs = a.data.get("references", [])
-    if isinstance(refs, str):
+    return [] if isinstance(refs, str) else refs
+
+
+def _reference_error(a: Artifact, ref: str, index: dict[str, str], plugins: set[str]) -> str | None:
+    """Why `ref` is not a usable edge out of `a`, or None when it is one."""
+    owner, path = _split_ref(ref)
+    if owner and owner not in plugins:
+        return f"reference '{ref}' names '{owner}', which is not a plugin in the marketplace"
+    if owner == a.plugin_name:
+        return f"reference '{ref}' is inside this plugin; drop the '{owner}:' prefix"
+    if path.startswith("/") or ".." in Path(path).parts:
+        return f"reference '{ref}' escapes the plugin; a reference is plugin-relative"
+    target = index.get(f"{owner or a.plugin_name}:{path}")
+    if target is not None:
+        if target in ALLOWED_REFS[a.kind]:
+            return None
+        return f"a {a.kind} may not reference a {target} ('{ref}')"
+    if not owner and (a.plugin / path).exists():
+        return f"reference '{ref}' is not an artifact"
+    return f"reference '{ref}' does not exist"
+
+
+def check_references(a: Artifact, index: dict[str, str], plugins: set[str], findings: list[Finding]) -> None:
+    if isinstance(a.data.get("references", []), str):
         findings.append(Finding(a.rel, "frontmatter", "references is a list, even with one entry"))
         return
-    for ref in refs:
-        if ref.startswith("/") or ".." in Path(ref).parts:
-            findings.append(
-                Finding(a.rel, "pilars", f"reference '{ref}' escapes the plugin; references are plugin-relative")
-            )
+    for ref in _declared_refs(a):
+        message = _reference_error(a, ref, index, plugins)
+        if message:
+            findings.append(Finding(a.rel, "pilars", message))
+
+
+def _path_back(start: str, edges: dict[str, set[str]], walked: list[str]) -> list[str] | None:
+    """A walk onward from the end of `walked` that arrives back at `start`, or None."""
+    for nxt in sorted(edges.get(walked[-1], ())):
+        if nxt == start:
+            return walked + [nxt]
+        if nxt in walked:
             continue
-        target = index.get(ref)
-        if target is None:
-            exists = (a.plugin / ref).exists()
+        found = _path_back(start, edges, walked + [nxt])
+        if found:
+            return found
+    return None
+
+
+def check_plugin_graph(artifacts: list[Artifact], findings: list[Finding]) -> None:
+    """A qualified reference is a dependency between plugins, and those are acyclic.
+
+    Two plugins that reference each other cannot be installed one at a time, and
+    neither can be read first. The walk enumerates paths rather than colouring
+    nodes, which is the wrong algorithm at any real size and the right one at
+    three plugins; a marketplace large enough to notice is a marketplace large
+    enough to justify Tarjan, and this comment is where that starts.
+    """
+    edges: dict[str, set[str]] = {}
+    for a in artifacts:
+        for ref in _declared_refs(a):
+            owner, _ = _split_ref(ref)
+            if owner and owner != a.plugin_name:
+                edges.setdefault(a.plugin_name, set()).add(owner)
+    for start in sorted(edges):
+        cycle = _path_back(start, edges, [start])
+        if cycle:
             findings.append(
-                Finding(
-                    a.rel,
-                    "pilars",
-                    f"reference '{ref}' is not an artifact" if exists else f"reference '{ref}' does not exist",
-                )
+                Finding(".claude-plugin/marketplace.json", "pilars", f"plugins depend in a cycle: {' -> '.join(cycle)}")
             )
-            continue
-        if target not in ALLOWED_REFS[a.kind]:
-            findings.append(
-                Finding(a.rel, "pilars", f"a {a.kind} may not reference a {target} ('{ref}')")
-            )
+            return
 
 
 def _outside_fences(body: str) -> list[tuple[int, str]]:
@@ -541,42 +597,62 @@ def find_root(argv: list[str]) -> Path:
     raise SystemExit("cannot locate the repository root: no .claude-plugin/marketplace.json found")
 
 
-def plugin_paths(root: Path) -> list[Path]:
+def plugin_paths(root: Path) -> list[tuple[str, Path]]:
+    """Every plugin the marketplace lists, as (name, directory).
+
+    The name is what a qualified reference addresses, so it comes from the
+    marketplace rather than from the directory: the marketplace name is the
+    identity that survives installation.
+    """
     manifest = root / ".claude-plugin" / "marketplace.json"
     catalog = json.loads(manifest.read_text(encoding="utf-8"))
-    paths = []
+    plugins = []
     for entry in catalog.get("plugins", []):
+        name = entry.get("name")
         subdir = entry.get("source", {}).get("path")
+        if not name:
+            raise SystemExit("a plugin in the marketplace declares no name")
         if not subdir:
-            raise SystemExit(f"plugin '{entry.get('name')}' declares no source.path in the marketplace")
+            raise SystemExit(f"plugin '{name}' declares no source.path in the marketplace")
         path = root / subdir
         if not path.is_dir():
-            raise SystemExit(f"plugin '{entry.get('name')}' points at '{subdir}', which is not a directory")
-        paths.append(path)
-    return paths
+            raise SystemExit(f"plugin '{name}' points at '{subdir}', which is not a directory")
+        plugins.append((name, path))
+    return plugins
+
+
+def check_artifact(a: Artifact, index: dict[str, str], names: set[str], findings: list[Finding]) -> None:
+    check_fields(a, findings)
+    check_type(a, findings)
+    check_statement(a, findings)
+    check_enforcement(a, findings)
+    check_naming(a, findings)
+    check_references(a, index, names, findings)
+    check_completeness(a, findings)
+    check_sections(a, findings)
+    check_disclosure(a, findings)
+    check_reachability(a, findings)
+    check_links(a, findings)
 
 
 def main(argv: list[str]) -> int:
     root = find_root(argv)
     findings: list[Finding] = []
-    checked = 0
+    plugins = plugin_paths(root)
+    names = {name for name, _ in plugins}
 
-    for plugin in plugin_paths(root):
-        artifacts = [a for a in collect(plugin, findings) if read(a, findings)]
-        index = {a.rel: a.kind for a in artifacts}
-        for a in artifacts:
-            check_fields(a, findings)
-            check_type(a, findings)
-            check_statement(a, findings)
-            check_enforcement(a, findings)
-            check_naming(a, findings)
-            check_references(a, index, findings)
-            check_completeness(a, findings)
-            check_sections(a, findings)
-            check_disclosure(a, findings)
-            check_reachability(a, findings)
-            check_links(a, findings)
-        checked += len(artifacts)
+    artifacts: list[Artifact] = []
+    for name, path in plugins:
+        artifacts += [a for a in collect(path, name, findings) if read(a, findings)]
+
+    # One index across every plugin, keyed by the qualified name, so that an
+    # unqualified reference resolves inside its own plugin and a qualified one
+    # resolves anywhere the marketplace reaches.
+    index = {f"{a.plugin_name}:{a.rel}": a.kind for a in artifacts}
+    for a in artifacts:
+        check_artifact(a, index, names, findings)
+    check_plugin_graph(artifacts, findings)
+    checked = len(artifacts)
 
     if findings:
         print(f"{len(findings)} failure(s) across {checked} artifact(s):\n")

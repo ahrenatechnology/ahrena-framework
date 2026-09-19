@@ -21,7 +21,9 @@ Every condition below is decided by `hooks/check-boundaries.py`, which builds th
 
 The language-agnostic engineering plugin carries a SOLID rule whose sixth condition is dependency inversion, and that condition closes by saying the layer map is an input a reviewer supplies, because that plugin ships none. This rule is that condition with the map filled in and a script reading it.
 
-A reference is plugin-relative and a rule may reference only a doc, so the SOLID rule is named here in prose rather than linked. One line of it is what a reader needs, restated: **a module on the policy side of the layer map may not import a module on the mechanism side.** Everything else about that condition — when to invert by extracting a port and when to invert by moving the code — stays where it is, and is not duplicated here.
+A rule may reference only a doc, so that condition is linked from the body rather than declared: [`solid.md`](../../engineering/rules/solid.md), condition 6. The link is an ordinary relative path, which is how `foundation/rules/pilars.md` says a body link crosses a plugin, and it means a rename over there fails the gate here instead of quietly leaving this paragraph pointing at nothing.
+
+One line of that condition is what a reader needs, and it is restated rather than fetched: **a module on the policy side of the layer map may not import a module on the mechanism side.** Everything else — when to invert by extracting a port and when to invert by moving the code — stays where it is, and is not duplicated here.
 
 ## What counts as a node
 
