@@ -14,7 +14,14 @@ jobs:
       # already forces Node 24 on them and says so in a warning on every
       # run; these majors target it, so the warning goes and nothing is
       # left running on a version that is scheduled to stop working.
+      #
+      # The full history is fetched because contributing/hooks/check-commit-
+      # message.py walks a revision range. The default shallow clone has one
+      # commit and `git rev-list base..head` would be empty on it, which is a
+      # gate that passes by seeing nothing.
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v6
         with:
@@ -33,5 +40,38 @@ jobs:
       - name: Test the boundaries hook
         run: python3 engineering-python/hooks/test-check-boundaries.py
 
+      - name: Test the branch-name hook
+        run: python3 contributing/hooks/test-check-branch-name.py
+
+      - name: Test the commit-message hook
+        run: python3 contributing/hooks/test-check-commit-message.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
+
+      # Both contributing hooks judge a pull request and nothing else.
+      #
+      # On a push to trunk there is no branch to name — the hook would be
+      # handed `main` and would print that it has nothing to decide — and the
+      # commits are a rebase's re-authored copies, which carry no signature:
+      # contributing/rules/commit-format.md records that 20 of trunk's 24
+      # commits fail condition 6 for that reason and that the condition is
+      # enforced over a pull request's own commits instead. Running these on
+      # push would therefore fail trunk permanently over work nobody can now
+      # fix, so they are gated on the event.
+      #
+      # The two values arrive through the environment rather than being
+      # interpolated into the command. A branch name is attacker-controlled on
+      # a fork's pull request and `${{ }}` inside `run:` is textual
+      # substitution, so a name holding shell metacharacters would execute.
+      - name: Check the branch name
+        if: github.event_name == 'pull_request'
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: python3 contributing/hooks/check-branch-name.py "$BRANCH"
+
+      - name: Check the commits on this pull request
+        if: github.event_name == 'pull_request'
+        env:
+          RANGE: ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
+        run: python3 contributing/hooks/check-commit-message.py "$RANGE"

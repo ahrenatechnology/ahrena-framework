@@ -51,6 +51,21 @@
       "repository": "https://github.com/ahrenatechnology/ahrena-framework",
       "license": "MIT",
       "keywords": ["python", "imports", "circular-imports", "layering", "packaging", "namespace-packages"]
+    },
+    {
+      "name": "ahrena-contributing",
+      "description": "Branch and commit conventions as decidable states: the issue number a branch name carries, the Conventional Commits subject a history can be read from, and the signature a commit object must hold.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "contributing",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/contributing",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": ["git", "branch-naming", "conventional-commits", "signed-commits", "contributing"]
     }
   ]
 }
