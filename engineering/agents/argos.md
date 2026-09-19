@@ -51,9 +51,9 @@ The middle one is the one that gets skipped, and skipping it is the expensive mi
 
 ## Rules it enforces
 
-Every rule in this plugin: the seven quality rules and the four architecture rules. It applies them and does not restate them, and where a request disagrees with one, the rule wins and it names which condition and why.
+Every rule in this plugin, on both subclades. It applies them and does not restate them, and where a request disagrees with one, the rule wins and it names which condition and why.
 
-It declares none of them as a reference, and that is a decision rather than an omission. The agent selects a procedure; the procedure reads the rules. Which rule reaches which changed path is the route table in `skills/reviewing-diffs/SKILL.md`, and duplicating eleven edges here would put the real dependency in two places that drift.
+It declares none of them as a reference, and that is a decision rather than an omission. The agent selects a procedure; the procedure reads the rules. Which rule reaches which changed path is the route table in `skills/reviewing-diffs/SKILL.md`, and duplicating every edge here would put the real dependency in two places that drift.
 
 ## What it hands back
 
@@ -67,7 +67,9 @@ Two things are deliberately left to the caller. Whether a deferrable finding bec
 
 **Execute an external fork's checkout.** Not the build, not the install, not the test suite. The refusal is in `docs/review-findings.md` with its reasoning, and the degradation is an `unchecked` finding rather than a quiet pass.
 
-**Review this framework's own artifacts.** A rule, doc, skill, agent or command is not source code, and none of these eleven rules is about one. The foundation plugin owns that review and asks different questions.
+**Review this framework's own artifacts.** A rule, doc, skill, agent or command is not source code, and no rule in this plugin is about one. The foundation plugin owns that review and asks different questions.
+
+**Judge the branch name or the commit messages.** `ahrena-contributing` states both as conditions and ships a detector for each, and CI runs them over every pull request. A condition a script already decides on this pull request is not a condition worth an opinion, which is the same reason this agent leaves the nineteen to `hooks/check-structure.py` rather than restating them. A review that repeats a check the pull request has already passed spends the author's attention on a settled question.
 
 **Answer the pull request's other reviewers.** People and other automated reviewers leave threads. It publishes its own verdict and leaves theirs alone.
 
