@@ -72,7 +72,7 @@ The language-agnostic engineering plugin's SOLID rule ends its dependency-invers
 
 That is the only thing added. The part of the condition about *how* to invert — that extracting a port and moving the code are both inversions, that the second is smaller and almost never the one proposed, and that a port with one adapter and no test at the seam is the shape the abstraction trigger deletes — is not restated here and should not be. A reader who needs it reads that rule.
 
-Nothing in this plugin can reference it. References are plugin-relative, the cross-plugin addressing form has not been decided, and duplicating the condition to get around that would create the second source of truth the framework spends most of its gate avoiding. Naming it in prose is the smaller loss.
+A reference could now address it. `foundation/rules/pilars.md` has since settled the cross-plugin form — `ahrena-engineering:rules/solid.md`, the marketplace name and then the plugin-relative path — and doc-to-rule is a pair the matrix permits. It is still not declared here, and the reason has changed from "cannot" to "will not": a declared reference is a load edge, and a reader who needs the inversion argument should pay for that rule when they open it rather than every time they open this page. Naming it in prose costs nothing. `docs/toolchain.md`, the other doc in this directory, does declare a qualified reference, because it argues against a decision that lives in the other plugin and a reader cannot check the argument without it.
 
 ## Where this stops
 
