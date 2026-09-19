@@ -1,0 +1,13 @@
+{
+  "name": "ahrena-engineering",
+  "displayName": "Ahrena Engineering",
+  "version": "0.1.0",
+  "description": "Language-agnostic engineering fundamentals: what justifies an abstraction, which structure must come out regardless, and the complexity signals a script can decide.",
+  "author": { "name": "Ahrena Technology" },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": ["solid", "kiss", "yagni", "abstraction", "cohesion", "code-quality"],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

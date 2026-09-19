@@ -33,8 +33,10 @@ On `feat/foundation-core`, in PR #33. Eleven artifacts, gate green.
 | **C** | Voice, and the config file | `rules/voice.md`, `docs/voice.md`, `hooks/verify-banned-terms.py`, `.ahrena/config.json` | new files, `README.md` | three decisions below (#24, #25) |
 | **D** | Context injection per platform | `hooks/session-context.py`, generated-block markers, `hooks/verify-instruction-freshness.py` | `ARCHITECTURE.md`, new files | C, and a measurement against Claude Code |
 | **E** | MCP transport hierarchy | `rules/mcp-transport.md` + doc | new files | which plugin owns it |
-| **F** | Two judgment scans in review | none | `skills/reviewing-artifacts/SKILL.md` | nothing |
-| **G** | Engineering fundamentals (#5) | a second plugin: SOLID, KISS, YAGNI, clean code, DTO, patterns, DDD, contract-first, decorators, Python modules | new plugin dir, `.claude-plugin/marketplace.json` | nothing |
+| **G2** | Engineering, remaining children of #5 | clean code (#8), input DTO (#9), pattern dictionary (#10), DDD (#11), contract-first (#12), boundary decorators (#13) | `engineering/`, `README.md` | nothing |
+| **G3** | Python module boundaries (#17) | a third plugin, `ahrena-engineering-python` | new plugin dir, `.claude-plugin/marketplace.json` | nothing |
+
+Landed since this table was written: **F** (two judgment scans, in `reviewing-artifacts`) and **G1** (the `ahrena-engineering` plugin with SOLID, KISS and YAGNI).
 
 ### What serializes, and what does not
 
