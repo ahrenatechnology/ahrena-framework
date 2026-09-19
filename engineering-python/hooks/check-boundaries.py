@@ -35,10 +35,14 @@ from __future__ import annotations
 import ast
 import sys
 from collections import deque
-from dataclasses import dataclass
+from collections.abc import Iterator
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Union
 
 RULE = "module-boundaries"
+
+ImportNode = Union[ast.Import, ast.ImportFrom]
 
 SKIP_DIRS = frozenset(
     {
@@ -60,7 +64,8 @@ SKIP_DIRS = frozenset(
     }
 )
 
-FUNC_NODES: tuple[type, ...] = (ast.FunctionDef, ast.AsyncFunctionDef)
+# Unannotated so that a checker narrows through the isinstance below it.
+FUNC_NODES = (ast.FunctionDef, ast.AsyncFunctionDef)
 
 # The map this rule ships, rather than one a reviewer supplies per repository.
 # Policy ranks below mechanism and an import may only run down the ranks.
@@ -177,7 +182,7 @@ def ancestor_initializers(
 
 @dataclass
 class RawImport:
-    node: ast.AST
+    node: ImportNode
     deferred: bool  # condition 3: the statement sits inside a function body
     guarded: bool  # condition 4: the statement sits under `if TYPE_CHECKING:`
 
@@ -234,7 +239,7 @@ def _annotation_names(tree: ast.Module) -> set[int]:
             holders.append(node.annotation)
         elif isinstance(node, FUNC_NODES) and node.returns is not None:
             holders.append(node.returns)
-    marked = set()
+    marked: set[int] = set()
     for holder in holders:
         marked.update(id(sub) for sub in ast.walk(holder) if isinstance(sub, ast.Name))
     return marked
@@ -331,64 +336,74 @@ def build_edges(module: Module, tree: ast.Module, modules: dict[Path, Module]) -
 # --- condition 1: the graph is acyclic -------------------------------------
 
 
-def components(graph: dict[Path, list[Path]]) -> list[list[Path]]:
-    """Tarjan's strongly connected components, iteratively.
+@dataclass
+class Tarjan:
+    """The state of an iterative strongly-connected-component search.
 
-    Iteratively because a real repository's import graph is deeper than the
+    Iterative because a real repository's import graph is deeper than the
     interpreter's recursion limit, and a gate that crashes on a large tree is
-    a gate people turn off.
+    a gate people turn off. The six fields travel together through every step
+    of the walk, which is what makes them a value rather than a parameter
+    list; `engineering/rules/value-semantics.md` is the condition that asked.
     """
-    index: dict[Path, int] = {}
-    low: dict[Path, int] = {}
-    stack: list[Path] = []
-    on_stack: set[Path] = set()
-    found: list[list[Path]] = []
-    counter = 0
 
-    def enter(node: Path) -> None:
-        nonlocal counter
-        index[node] = low[node] = counter
-        counter += 1
-        stack.append(node)
-        on_stack.add(node)
+    graph: dict[Path, list[Path]]
+    index: dict[Path, int] = field(default_factory=dict)
+    low: dict[Path, int] = field(default_factory=dict)
+    stack: list[Path] = field(default_factory=list)
+    on_stack: set[Path] = field(default_factory=set)
+    found: list[list[Path]] = field(default_factory=list)
+    work: list[tuple[Path, Iterator[Path]]] = field(default_factory=list)
 
-    for start in sorted(graph):
-        if start in index:
-            continue
-        enter(start)
-        work = [(start, iter(graph[start]))]
-        while work:
-            node, pending = work[-1]
-            descended = _descend(node, pending, index, low, on_stack, enter, work, graph)
-            if descended:
+    def enter(self, node: Path) -> None:
+        self.index[node] = self.low[node] = len(self.index)
+        self.stack.append(node)
+        self.on_stack.add(node)
+
+    def descend(self, node: Path, pending: Iterator[Path]) -> bool:
+        """Follow one edge out of `node`, or exhaust it and report False."""
+        for nxt in pending:
+            if nxt not in self.index:
+                self.enter(nxt)
+                self.work.append((nxt, iter(self.graph.get(nxt, []))))
+                return True
+            if nxt in self.on_stack:
+                self.low[node] = min(self.low[node], self.index[nxt])
+        return False
+
+    def pop_component(self, node: Path) -> list[Path]:
+        group = []
+        while True:
+            member = self.stack.pop()
+            self.on_stack.discard(member)
+            group.append(member)
+            if member == node:
+                return group
+
+    def run(self) -> list[list[Path]]:
+        for start in sorted(self.graph):
+            if start in self.index:
                 continue
-            work.pop()
-            if work:
-                low[work[-1][0]] = min(low[work[-1][0]], low[node])
-            if low[node] == index[node]:
-                found.append(_pop_component(node, stack, on_stack))
-    return found
+            self.enter(start)
+            self.work = [(start, iter(self.graph[start]))]
+            self._unwind()
+        return self.found
+
+    def _unwind(self) -> None:
+        while self.work:
+            node, pending = self.work[-1]
+            if self.descend(node, pending):
+                continue
+            self.work.pop()
+            if self.work:
+                self.low[self.work[-1][0]] = min(self.low[self.work[-1][0]], self.low[node])
+            if self.low[node] == self.index[node]:
+                self.found.append(self.pop_component(node))
 
 
-def _descend(node, pending, index, low, on_stack, enter, work, graph) -> bool:
-    for nxt in pending:
-        if nxt not in index:
-            enter(nxt)
-            work.append((nxt, iter(graph.get(nxt, []))))
-            return True
-        if nxt in on_stack:
-            low[node] = min(low[node], index[nxt])
-    return False
-
-
-def _pop_component(node: Path, stack: list[Path], on_stack: set[Path]) -> list[Path]:
-    group = []
-    while True:
-        member = stack.pop()
-        on_stack.discard(member)
-        group.append(member)
-        if member == node:
-            return group
+def components(graph: dict[Path, list[Path]]) -> list[list[Path]]:
+    """Tarjan's strongly connected components, iteratively."""
+    return Tarjan(graph).run()
 
 
 def shortest_cycle(graph: dict[Path, list[Path]], group: set[Path], start: Path) -> list[Path]:

@@ -184,7 +184,10 @@ from collections.abc import Iterator
 BROKEN = "def unclosed(:\n"
 
 
-def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) -> tuple:
+Case = tuple[str, dict[str, str], list[str], bool]
+
+
+def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) -> Case:
     return (name, files, expect, ok)
 
 
