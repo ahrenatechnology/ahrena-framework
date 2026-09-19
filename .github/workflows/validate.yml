@@ -26,5 +26,8 @@ jobs:
       - name: Test the structure hook
         run: python3 engineering/hooks/test-check-structure.py
 
+      - name: Test the boundaries hook
+        run: python3 engineering-python/hooks/test-check-boundaries.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
