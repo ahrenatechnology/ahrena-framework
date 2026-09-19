@@ -64,6 +64,25 @@ jobs:
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
 
+      # The engineering plugin's nineteen conditions gated every consumer and
+      # nothing here, which is how an eight-parameter `_descend` sat in the
+      # boundaries hook until somebody ran the gate by hand. A framework that
+      # ships a gate and does not stand under it is making a claim it has not
+      # tested.
+      #
+      # The detectors, not their suites. The list is derived rather than
+      # written out, so a plugin that adds a detector is covered without this
+      # step being remembered. The `test-` prefix is what excludes the
+      # suites, and that exclusion is the one engineering/rules/duplication.md
+      # asks for in its own words: the `problems_for` and `main` harness is
+      # written out in four suites, so condition 1 fires on the third, and
+      # collapsing it would need a module shared between plugins — the
+      # dependency the no-dependency constraint exists to prevent.
+      - name: Check the structure of the hooks
+        run: |
+          python3 engineering/hooks/check-structure.py \
+            $(ls */hooks/*.py | grep -v '/test-')
+
       # Both contributing hooks judge a pull request and nothing else.
       #
       # On a push to trunk there is no branch to name — the hook would be
