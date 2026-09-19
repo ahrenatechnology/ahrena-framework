@@ -268,6 +268,467 @@ class Service:
         return self.repo.load(key)
 '''
 
+# --- rules/clean-code.md condition 1: function size ------------------------
+
+
+def _statements(count: int) -> str:
+    lines = "\n".join(f"    value_{n} = {n}" for n in range(count))
+    return f"def build(seed):\n{lines}\n"
+
+
+OVER_THE_STATEMENT_LIMIT = _statements(31)
+AT_THE_STATEMENT_LIMIT = _statements(30)
+
+BIG_NESTED_DEF = '''
+def outer(seed):
+    def inner(value):
+''' + "\n".join(f"        step_{n} = {n}" for n in range(31)) + '''
+        return step_0
+
+    return inner(seed)
+'''
+
+DOCSTRING_NOT_COUNTED = '''
+def build(seed):
+    """A docstring is not a statement of the body."""
+''' + "\n".join(f"    value_{n} = {n}" for n in range(30)) + "\n"
+
+# --- rules/clean-code.md condition 2: unreachable code ---------------------
+
+UNREACHABLE = '''
+def total(rows):
+    return sum(rows)
+    rows.clear()
+'''
+
+UNREACHABLE_AFTER_RAISE = '''
+def total(rows):
+    for row in rows:
+        raise ValueError(row)
+        row.clear()
+    return 0
+'''
+
+EXIT_INSIDE_A_BRANCH = '''
+def total(rows):
+    if not rows:
+        return 0
+    return sum(rows)
+'''
+
+EXIT_AT_THE_END_OF_A_LOOP = '''
+def first(rows):
+    for row in rows:
+        if row:
+            continue
+    return None
+'''
+
+# --- rules/clean-code.md condition 3: commented-out code -------------------
+
+COMMENTED_OUT = '''
+def total(rows):
+    # rows = normalise(rows)
+    return sum(rows)
+'''
+
+COMMENTED_OUT_CALL = '''
+def total(rows):
+    # print(rows)
+    return sum(rows)
+'''
+
+PROSE_COMMENT = '''
+def total(rows):
+    # the caller has already normalised rows, so summing is enough here
+    # Usage: total(rows)
+    # see check_links for the shape this mirrors
+    return sum(rows)
+'''
+
+TOOL_DIRECTIVE = '''
+def total(rows):
+    # type: ignore
+    # noqa: E501
+    # pragma: no cover
+    return sum(rows)
+'''
+
+# The mixed fixture docs/clean-code.md reports against: six commented-out lines
+# among ten comments that are prose about code, which is the shape that breaks
+# a detector matching anything that parses.
+SIXTEEN_COMMENTS = '''
+# old = compute(value)
+# return old
+# import json
+# self.cache.clear()
+# print("debug")
+# blocks.append(("handler", list(handler.body)))
+# the limit is 3, and the overflow is rationale that belongs in a doc
+# Usage:
+# type: ignore
+# noqa: E501
+# see check_links for the shape this mirrors
+# A value above 1 says the class already contains two objects
+# Decided by hooks/check-structure.py for Python.
+# `raise NotImplementedError` in a concrete type
+# returns the map and the line number the body starts on
+# TODO fix this before the next slice
+value = 1
+'''
+
+# --- rules/value-semantics.md condition 1: parameter count -----------------
+
+FIVE_PARAMETERS = '''
+def connect(host, port, timeout, retries, backoff):
+    return host
+'''
+
+FOUR_PARAMETERS = '''
+def connect(host, port, timeout, retries):
+    return host
+'''
+
+FOUR_PLUS_RECEIVER = '''
+class Client:
+    def connect(self, host, port, timeout, retries):
+        return self.session
+'''
+
+VARIADIC = '''
+def connect(host, port, timeout, retries, *rest, **extra):
+    return host
+'''
+
+# --- rules/value-semantics.md condition 2: a data clump --------------------
+
+CLUMP = '''
+def connect(host, port, timeout):
+    return host
+
+
+def reconnect(host, port, timeout):
+    return port
+
+
+def probe(host, port, timeout):
+    return timeout
+'''
+
+LONGER_CLUMP = '''
+def connect(host, port, timeout, scheme):
+    return host
+
+
+def reconnect(host, port, timeout, scheme):
+    return port
+
+
+def probe(host, port, timeout, scheme):
+    return timeout
+'''
+
+CLUMP_OF_TWO = '''
+def connect(host, port, timeout):
+    return host
+
+
+def reconnect(host, port, timeout):
+    return port
+'''
+
+SHORT_RUN = '''
+def connect(host, port):
+    return host
+
+
+def reconnect(host, port):
+    return port
+
+
+def probe(host, port):
+    return port
+'''
+
+# --- rules/value-semantics.md condition 3: a mutable field -----------------
+
+FROZEN_WITH_LIST = '''
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Route:
+    name: str
+    hops: list[str]
+'''
+
+FROZEN_WITH_FACTORY = '''
+from dataclasses import dataclass, field
+
+
+@dataclass(frozen=True)
+class Route:
+    name: str
+    hops: tuple = field(default_factory=dict)
+'''
+
+FROZEN_WITH_TUPLE = '''
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Route:
+    name: str
+    hops: tuple[str, ...]
+'''
+
+NAMEDTUPLE_WITH_DICT = '''
+from typing import NamedTuple
+
+
+class Route(NamedTuple):
+    name: str
+    labels: dict[str, str]
+'''
+
+MUTABLE_DATACLASS = '''
+from dataclasses import dataclass
+
+
+@dataclass
+class Route:
+    name: str
+    hops: list[str]
+'''
+
+# --- rules/value-semantics.md condition 4: the mutation escape hatch -------
+
+SETATTR_IN_A_METHOD = '''
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Route:
+    name: str
+
+    def rename(self, value):
+        object.__setattr__(self, "name", value)
+        return self
+'''
+
+SETATTR_IN_POST_INIT = '''
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Route:
+    name: str
+
+    def __post_init__(self):
+        object.__setattr__(self, "name", self.name.strip())
+'''
+
+# --- rules/value-semantics.md condition 5: equality without hashing --------
+
+EQ_WITHOUT_HASH = '''
+class Money:
+    def __init__(self, amount):
+        self.amount = amount
+
+    def __eq__(self, other):
+        return self.amount == other.amount
+'''
+
+EQ_WITH_HASH = '''
+class Money:
+    def __init__(self, amount):
+        self.amount = amount
+
+    def __eq__(self, other):
+        return self.amount == other.amount
+
+    def __hash__(self):
+        return hash(self.amount)
+'''
+
+EQ_WITH_HASH_DISCLAIMED = '''
+class Money:
+    __hash__ = None
+
+    def __init__(self, amount):
+        self.amount = amount
+
+    def __eq__(self, other):
+        return self.amount == other.amount
+'''
+
+EQ_ON_A_DATACLASS = '''
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Money:
+    amount: int
+
+    def __eq__(self, other):
+        return self.amount == other.amount
+'''
+
+# --- rules/cross-cutting-concerns.md condition 1: an inline retry ----------
+
+INLINE_RETRY = '''
+import time
+
+
+def fetch(url):
+    for attempt in range(3):
+        try:
+            return open(url)
+        except OSError:
+            time.sleep(attempt)
+    return None
+'''
+
+POLL_WITHOUT_CATCHING = '''
+import time
+
+
+def wait(check):
+    while not check():
+        time.sleep(1)
+    return True
+'''
+
+LOOP_WITHOUT_SLEEPING = '''
+def scan(paths):
+    for path in paths:
+        try:
+            return open(path)
+        except OSError:
+            continue
+    return None
+'''
+
+# --- rules/cross-cutting-concerns.md condition 2: inline transactions ------
+
+INLINE_TRANSACTION = '''
+def save(session, record):
+    try:
+        session.add(record)
+        session.commit()
+    except RuntimeError:
+        session.rollback()
+        raise
+'''
+
+COMMIT_ONLY = '''
+def save(session, record):
+    session.add(record)
+    session.commit()
+    return record
+'''
+
+# --- rules/cross-cutting-concerns.md condition 3: an inline timer ----------
+
+INLINE_TIMER = '''
+import time
+
+
+def handle(request):
+    started = time.perf_counter()
+    result = request.run()
+    return result, time.perf_counter() - started
+'''
+
+ONE_CLOCK_READ = '''
+import time
+
+
+def stamp(record):
+    record.at = time.time()
+    return record
+'''
+
+TWO_CLOCK_READS_NO_DURATION = '''
+import time
+
+
+def stamp(record):
+    record.opened = time.time()
+    record.closed = time.time()
+    return record
+'''
+
+# --- rules/domain-model.md condition 1: the domain imports a mechanism -----
+
+DOMAIN_IMPORTS_ADAPTER = '''
+from billing.adapters.sql import rows
+
+
+def total(order):
+    return rows(order)
+'''
+
+DOMAIN_IMPORTS_RELATIVE_INFRASTRUCTURE = '''
+from ..infrastructure.cache import get
+
+
+def total(order):
+    return get(order)
+'''
+
+DOMAIN_IMPORTS_A_DRIVER = '''
+import redis
+
+
+def total(order):
+    return redis.Redis().get(order)
+'''
+
+DOMAIN_IMPORTS_THE_DOMAIN = '''
+from decimal import Decimal
+
+from .money import Money
+
+
+def total(order):
+    return Money(Decimal(order.amount))
+'''
+
+ADAPTER_IMPORTS_A_DRIVER = '''
+import redis
+
+
+def load(key):
+    return redis.Redis().get(key)
+'''
+
+# --- rules/domain-model.md condition 2: a vendor token in a domain name ----
+
+VENDOR_IN_A_CLASS_NAME = '''
+class SqlOrderGateway:
+    def load(self, key):
+        return key
+'''
+
+VENDOR_IN_A_FIELD_NAME = '''
+class Order:
+    json_payload: str
+'''
+
+VENDOR_IN_A_FUNCTION_NAME = '''
+def build_dto(order):
+    return order
+'''
+
+CLEAN_DOMAIN_NAMES = '''
+class Order:
+    placed_at: str
+
+    def total(self):
+        return self.placed_at
+'''
+
 BROKEN = "def unclosed(:\n"
 
 
@@ -380,6 +841,260 @@ CASES = [
         {"a.py": NON_BOOLEAN},
         ["no failures"],
         ok=True,
+    ),
+    # --- clean-code, condition 1
+    case(
+        "a function body over 30 statements fails",
+        {"a.py": OVER_THE_STATEMENT_LIMIT},
+        ["[clean-code] condition 1", "build holds 31 statements", "the limit is 30"],
+    ),
+    case(
+        "a function body of exactly 30 statements passes",
+        {"a.py": AT_THE_STATEMENT_LIMIT},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a nested def counts as one statement and is measured on its own",
+        {"a.py": BIG_NESTED_DEF},
+        ["inner holds 32 statements"],
+    ),
+    case(
+        "the docstring is not counted against the limit",
+        {"a.py": DOCSTRING_NOT_COUNTED},
+        ["no failures"],
+        ok=True,
+    ),
+    # --- clean-code, condition 2
+    case(
+        "a statement after a return fails",
+        {"a.py": UNREACHABLE},
+        ["[clean-code] condition 2", "cannot run", "total"],
+    ),
+    case(
+        "a statement after a raise inside a loop fails",
+        {"a.py": UNREACHABLE_AFTER_RAISE},
+        ["[clean-code] condition 2"],
+    ),
+    case(
+        "an exit inside a branch does not kill what follows the branch",
+        {"a.py": EXIT_INSIDE_A_BRANCH},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "an exit that ends its own block passes",
+        {"a.py": EXIT_AT_THE_END_OF_A_LOOP},
+        ["no failures"],
+        ok=True,
+    ),
+    # --- clean-code, condition 3
+    case(
+        "a comment that parses as an assignment fails",
+        {"a.py": COMMENTED_OUT},
+        ["[clean-code] condition 3", "rows = normalise(rows)"],
+    ),
+    case(
+        "a comment that parses as a bare call fails",
+        {"a.py": COMMENTED_OUT_CALL},
+        ["[clean-code] condition 3"],
+    ),
+    case("prose comments pass", {"a.py": PROSE_COMMENT}, ["no failures"], ok=True),
+    case("tool directives pass", {"a.py": TOOL_DIRECTIVE}, ["no failures"], ok=True),
+    case(
+        "six of sixteen comments are code and the other ten are prose about code",
+        {"a.py": SIXTEEN_COMMENTS},
+        ["6 failure(s) across 1 file(s)"],
+    ),
+    # --- value-semantics, condition 1
+    case(
+        "a callable with five parameters fails",
+        {"a.py": FIVE_PARAMETERS},
+        ["[value-semantics] condition 1", "connect takes 5 parameters", "the limit is 4"],
+    ),
+    case("a callable with four parameters passes", {"a.py": FOUR_PARAMETERS}, ["no failures"], ok=True),
+    case(
+        "the receiver does not count against the parameter limit",
+        {"a.py": FOUR_PLUS_RECEIVER},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "star-args and star-kwargs do not count against the limit",
+        {"a.py": VARIADIC},
+        ["no failures"],
+        ok=True,
+    ),
+    # --- value-semantics, condition 2
+    case(
+        "a three-name run shared by three callables fails",
+        {"a.py": CLUMP},
+        ["[value-semantics] condition 2", "host, port, timeout", "3 callables"],
+    ),
+    case(
+        "the longest shared run is reported, not every sub-run of it",
+        {"a.py": LONGER_CLUMP},
+        ["host, port, timeout, scheme"],
+    ),
+    case(
+        "a run shared by only two callables passes",
+        {"a.py": CLUMP_OF_TWO},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a two-name run shared by three callables passes",
+        {"a.py": SHORT_RUN},
+        ["no failures"],
+        ok=True,
+    ),
+    # --- value-semantics, condition 3
+    case(
+        "a list field on a frozen dataclass fails",
+        {"a.py": FROZEN_WITH_LIST},
+        ["[value-semantics] condition 3", "Route.hops"],
+    ),
+    case(
+        "a mutable default factory on a frozen dataclass fails",
+        {"a.py": FROZEN_WITH_FACTORY},
+        ["[value-semantics] condition 3"],
+    ),
+    case("a tuple field on a frozen dataclass passes", {"a.py": FROZEN_WITH_TUPLE}, ["no failures"], ok=True),
+    case(
+        "a dict field on a NamedTuple fails",
+        {"a.py": NAMEDTUPLE_WITH_DICT},
+        ["[value-semantics] condition 3", "Route.labels"],
+    ),
+    case(
+        "a list field on a type that was never declared immutable passes",
+        {"a.py": MUTABLE_DATACLASS},
+        ["no failures"],
+        ok=True,
+    ),
+    # --- value-semantics, condition 4
+    case(
+        "object.__setattr__ in a method of a frozen type fails",
+        {"a.py": SETATTR_IN_A_METHOD},
+        ["[value-semantics] condition 4", "rename"],
+    ),
+    case(
+        "object.__setattr__ in __post_init__ passes",
+        {"a.py": SETATTR_IN_POST_INIT},
+        ["no failures"],
+        ok=True,
+    ),
+    # --- value-semantics, condition 5
+    case(
+        "a class defining __eq__ and no __hash__ fails",
+        {"a.py": EQ_WITHOUT_HASH},
+        ["[value-semantics] condition 5", "Money defines __eq__"],
+    ),
+    case("a class defining both passes", {"a.py": EQ_WITH_HASH}, ["no failures"], ok=True),
+    case(
+        "a class that sets __hash__ to None has said so deliberately",
+        {"a.py": EQ_WITH_HASH_DISCLAIMED},
+        ["no failures"],
+        ok=True,
+    ),
+    case("a dataclass is not asked for __hash__", {"a.py": EQ_ON_A_DATACLASS}, ["no failures"], ok=True),
+    # --- cross-cutting-concerns, condition 1
+    case(
+        "a loop that catches and sleeps is an inline retry",
+        {"a.py": INLINE_RETRY},
+        ["[cross-cutting-concerns] condition 1", "fetch"],
+    ),
+    case(
+        "a poll loop that catches nothing passes",
+        {"a.py": POLL_WITHOUT_CATCHING},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a loop that catches without backing off passes",
+        {"a.py": LOOP_WITHOUT_SLEEPING},
+        ["no failures"],
+        ok=True,
+    ),
+    # --- cross-cutting-concerns, condition 2
+    case(
+        "commit and rollback in one body is an inline transaction boundary",
+        {"a.py": INLINE_TRANSACTION},
+        ["[cross-cutting-concerns] condition 2", "save"],
+    ),
+    case("a commit with no rollback beside it passes", {"a.py": COMMIT_ONLY}, ["no failures"], ok=True),
+    # --- cross-cutting-concerns, condition 3
+    case(
+        "two clock reads and a subtraction is an inline timer",
+        {"a.py": INLINE_TIMER},
+        ["[cross-cutting-concerns] condition 3", "handle"],
+    ),
+    case("a single clock read passes", {"a.py": ONE_CLOCK_READ}, ["no failures"], ok=True),
+    case(
+        "two clock reads with no duration between them pass",
+        {"a.py": TWO_CLOCK_READS_NO_DURATION},
+        ["no failures"],
+        ok=True,
+    ),
+    # --- domain-model, condition 1
+    case(
+        "a domain module importing an adapter fails",
+        {"billing/domain/order.py": DOMAIN_IMPORTS_ADAPTER},
+        ["[domain-model] condition 1", "billing.adapters.sql"],
+    ),
+    case(
+        "a domain module importing infrastructure relatively fails",
+        {"billing/domain/order.py": DOMAIN_IMPORTS_RELATIVE_INFRASTRUCTURE},
+        ["[domain-model] condition 1", "infrastructure.cache"],
+    ),
+    case(
+        "a domain module importing a driver fails",
+        {"billing/domain/order.py": DOMAIN_IMPORTS_A_DRIVER},
+        ["[domain-model] condition 1", "redis"],
+    ),
+    case(
+        "a domain module importing the standard library and its own siblings passes",
+        {"billing/domain/order.py": DOMAIN_IMPORTS_THE_DOMAIN},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "an adapter importing a driver is the adapter doing its job",
+        {"billing/adapters/store.py": ADAPTER_IMPORTS_A_DRIVER},
+        ["no failures"],
+        ok=True,
+    ),
+    # --- domain-model, condition 2
+    case(
+        "a vendor token in a domain class name fails",
+        {"billing/domain/order.py": VENDOR_IN_A_CLASS_NAME},
+        ["[domain-model] condition 2", "SqlOrderGateway", "'sql'"],
+    ),
+    case(
+        "a vendor token in a domain field name fails",
+        {"billing/domain/order.py": VENDOR_IN_A_FIELD_NAME},
+        ["[domain-model] condition 2", "json_payload"],
+    ),
+    case(
+        "a technique token in a domain function name fails",
+        {"billing/domain/order.py": VENDOR_IN_A_FUNCTION_NAME},
+        ["[domain-model] condition 2", "build_dto"],
+    ),
+    case(
+        "a vendor token in a module outside the domain passes",
+        {"billing/adapters/sql_gateway.py": VENDOR_IN_A_CLASS_NAME},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "domain names in the domain's own vocabulary pass",
+        {"billing/domain/order.py": CLEAN_DOMAIN_NAMES},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a domain module file named for a vendor fails",
+        {"billing/domain/sql_order.py": CLEAN_DOMAIN_NAMES},
+        ["[domain-model] condition 2", "sql_order.py"],
     ),
     # --- the walk itself
     case(

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Detectors for the structural conditions in the engineering rules.
 
-Decides four conditions stated in two rules:
+Decides seventeen conditions stated in six rules:
 
     engineering/rules/solid.md
       1. a class whose LCOM4 exceeds 1
@@ -11,9 +11,34 @@ Decides four conditions stated in two rules:
       1. control flow nested more than 3 deep inside a function body
       2. a function branching on a boolean parameter
 
-The remaining conditions in rules/solid.md need a test run, a count across the
-tree or a layer map, and each says so in its own text. This script decides the
-ones a parser can decide and claims nothing about the rest.
+    engineering/rules/clean-code.md
+      1. a function body holding more than 30 statements
+      2. a statement that follows an unconditional exit in the same block
+      3. a comment whose text parses as code
+
+    engineering/rules/value-semantics.md
+      1. a callable taking more than 4 named parameters
+      2. a run of 3 parameter names passed together by 3 callables
+      3. a mutable field on a type declared immutable
+      4. a write through a frozen type's own guard
+      5. a class defining __eq__ with no __hash__ beside it
+
+    engineering/rules/cross-cutting-concerns.md
+      1. a retry written inline: a loop that catches and backs off
+      2. a function that both commits and rolls back
+      3. a function that measures its own duration
+
+    engineering/rules/domain-model.md
+      1. a module under domain/ importing a mechanism
+      2. a name declared under domain/ carrying a vendor token
+
+The remaining conditions in rules/solid.md, rules/cross-cutting-concerns.md
+and rules/domain-model.md need a test run, a count across the tree or a
+reviewer, and each says so in its own text. This script decides the ones a
+parser can decide and claims nothing about the rest. The conditions in
+rules/contract-first.md and rules/pattern-selection.md are decided by jobs the
+consuming project runs or by a reviewer reading a catalog, and none of them is
+here.
 
 Python only. The standard library ships one parser, this plugin takes no
 dependencies, and a regular expression over source stops matching the first
@@ -27,7 +52,10 @@ Usage:
 from __future__ import annotations
 
 import ast
+import io
+import re
 import sys
+import tokenize
 from dataclasses import dataclass
 from itertools import combinations
 from pathlib import Path
@@ -38,6 +66,24 @@ from pathlib import Path
 # indentation, you're screwed anyway". Measured over control flow rather than
 # raw indentation, so a method's own def does not count against it.
 NESTING_MAX = 3
+
+# Inside the empty span in the framework's own Python: over 61 functions the
+# distribution reaches 26 statements and then jumps straight to 41. Thirty sits
+# near the bottom of that gap, so it fails the one function that was already
+# too long and leaves headroom over ordinary code without being calibrated to
+# the outlier. docs/clean-code.md carries the distribution.
+STATEMENT_MAX = 30
+
+# The measured ceiling of the same corpus: 61 callables, maximum 4, and 4 at
+# the 95th percentile. Martin's Clean Code puts the ceiling at three; the cap
+# takes the measured number, which is one higher and fails nothing that exists.
+PARAMETER_MAX = 4
+
+# Fowler's Data Clumps is about three or more values that travel together, and
+# the rule of three is the arbitration this plugin already uses for the
+# discriminator chain in rules/solid.md. One mechanism, not two.
+CLUMP_MIN = 3
+CLUMP_OCCURRENCES = 3
 
 SKIP_DIRS = frozenset(
     {
@@ -93,6 +139,21 @@ class Finding:
         return f"{self.where}\n    [{self.rule}] condition {self.condition}: {self.message}"
 
 
+@dataclass
+class Source:
+    """One parsed file. A parameter object, for the reason its own rule gives.
+
+    Every check needs the tree, the display path and (for the comment scan) the
+    text. Passed separately that is a three-name run repeated across every
+    check in the file, which is the data clump condition 2 of
+    rules/value-semantics.md detects. One object, one parameter.
+    """
+
+    rel: str
+    text: str
+    tree: ast.AST
+
+
 # --- shared helpers --------------------------------------------------------
 
 
@@ -133,6 +194,31 @@ def own_nodes(fn: ast.AST):
         for child in ast.iter_child_nodes(node):
             if not isinstance(child, DEF_NODES):
                 stack.append(child)
+
+
+def functions(tree: ast.AST):
+    """Every function and method in the tree, at any depth."""
+    return (node for node in ast.walk(tree) if isinstance(node, FUNC_NODES))
+
+
+def classes(tree: ast.AST):
+    return (node for node in ast.walk(tree) if isinstance(node, ast.ClassDef))
+
+
+def within(node: ast.AST):
+    """`node` and everything under it, not descending into nested defs."""
+    stack = [node]
+    while stack:
+        current = stack.pop()
+        yield current
+        for child in ast.iter_child_nodes(current):
+            if not isinstance(child, DEF_NODES):
+                stack.append(child)
+
+
+def called_names(nodes) -> set[str]:
+    """The trailing identifier of every call among these nodes."""
+    return {base_name(node.func) for node in nodes if isinstance(node, ast.Call)}
 
 
 def is_abstract(fn: ast.AST) -> bool:
@@ -218,8 +304,8 @@ def _partition(members: list[ast.AST]) -> list[list[str]]:
     return union.groups()
 
 
-def check_cohesion(tree: ast.AST, rel: str, findings: list[Finding]) -> None:
-    for cls in (n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)):
+def check_cohesion(src: Source, findings: list[Finding]) -> None:
+    for cls in classes(src.tree):
         if _is_interface_or_record(cls):
             continue
         members = _graph_members(cls)
@@ -230,7 +316,7 @@ def check_cohesion(tree: ast.AST, rel: str, findings: list[Finding]) -> None:
             partition = " | ".join("{" + ", ".join(g) + "}" for g in groups)
             findings.append(
                 Finding(
-                    f"{rel}:{cls.lineno}",
+                    f"{src.rel}:{cls.lineno}",
                     "solid",
                     1,
                     f"class {cls.name} has LCOM4 = {len(groups)}; its methods partition into "
@@ -249,8 +335,8 @@ def _raises_not_implemented(stmt: ast.stmt) -> bool:
     return base_name(raised) == "NotImplementedError"
 
 
-def check_unimplemented(tree: ast.AST, rel: str, findings: list[Finding]) -> None:
-    for fn in (n for n in ast.walk(tree) if isinstance(n, FUNC_NODES)):
+def check_unimplemented(src: Source, findings: list[Finding]) -> None:
+    for fn in functions(src.tree):
         body = without_docstring(fn.body)
         if len(body) != 1 or not _raises_not_implemented(body[0]):
             continue
@@ -258,7 +344,7 @@ def check_unimplemented(tree: ast.AST, rel: str, findings: list[Finding]) -> Non
             continue
         findings.append(
             Finding(
-                f"{rel}:{fn.lineno}",
+                f"{src.rel}:{fn.lineno}",
                 "solid",
                 2,
                 f"{fn.name} is declared and not implemented; implement it, mark it "
@@ -300,8 +386,8 @@ def _depth(node: ast.stmt, level: int) -> tuple[int, int]:
     return best, where
 
 
-def check_nesting(tree: ast.AST, rel: str, findings: list[Finding]) -> None:
-    for fn in (n for n in ast.walk(tree) if isinstance(n, FUNC_NODES)):
+def check_nesting(src: Source, findings: list[Finding]) -> None:
+    for fn in functions(src.tree):
         best, where = 0, fn.lineno
         for stmt in fn.body:
             deep, line = _depth(stmt, 1)
@@ -310,7 +396,7 @@ def check_nesting(tree: ast.AST, rel: str, findings: list[Finding]) -> None:
         if best > NESTING_MAX:
             findings.append(
                 Finding(
-                    f"{rel}:{where}",
+                    f"{src.rel}:{where}",
                     "kiss",
                     1,
                     f"{fn.name} nests control flow {best} deep; the limit is {NESTING_MAX}",
@@ -364,15 +450,15 @@ def _first_branch_per_flag(fn: ast.AST, flags: list[str]) -> dict[str, int]:
     return seen
 
 
-def check_flag_argument(tree: ast.AST, rel: str, findings: list[Finding]) -> None:
-    for fn in (n for n in ast.walk(tree) if isinstance(n, FUNC_NODES)):
+def check_flag_argument(src: Source, findings: list[Finding]) -> None:
+    for fn in functions(src.tree):
         flags = _boolean_parameters(fn)
         if not flags:
             continue
         for flag, line in _first_branch_per_flag(fn, flags).items():
             findings.append(
                 Finding(
-                    f"{rel}:{line}",
+                    f"{src.rel}:{line}",
                     "kiss",
                     2,
                     f"{fn.name} branches on the boolean parameter '{flag}'; that is two "
@@ -381,7 +467,588 @@ def check_flag_argument(tree: ast.AST, rel: str, findings: list[Finding]) -> Non
             )
 
 
-CHECKS = (check_cohesion, check_unimplemented, check_nesting, check_flag_argument)
+# --- rules/clean-code.md condition 1: function size ------------------------
+
+
+def _statement_count(fn: ast.AST) -> int:
+    """Statements in this function's body, not descending into nested defs.
+
+    A nested function or class counts as one statement and is measured on its
+    own, exactly as condition 1 of rules/kiss.md treats nesting depth.
+    """
+    count = 0
+    stack = [list(without_docstring(fn.body))]
+    while stack:
+        for node in stack.pop():
+            count += 1
+            if isinstance(node, DEF_NODES):
+                continue
+            stack.extend(stmts for _, stmts in _blocks(node) if stmts)
+    return count
+
+
+def check_length(src: Source, findings: list[Finding]) -> None:
+    for fn in functions(src.tree):
+        count = _statement_count(fn)
+        if count > STATEMENT_MAX:
+            findings.append(
+                Finding(
+                    f"{src.rel}:{fn.lineno}",
+                    "clean-code",
+                    1,
+                    f"{fn.name} holds {count} statements; the limit is {STATEMENT_MAX}, and a "
+                    "function this long is simulated rather than read",
+                )
+            )
+
+
+# --- rules/clean-code.md condition 2: unreachable code ---------------------
+
+EXIT_NODES: tuple[type, ...] = (ast.Return, ast.Raise, ast.Continue, ast.Break)
+
+
+def _statement_lists(fn: ast.AST):
+    """Every statement list inside this function, not descending into nested defs."""
+    stack = [list(fn.body)]
+    while stack:
+        stmts = stack.pop()
+        yield stmts
+        for node in stmts:
+            if isinstance(node, DEF_NODES):
+                continue
+            stack.extend(nested for _, nested in _blocks(node) if nested)
+
+
+def _first_dead(stmts: list[ast.stmt]) -> ast.stmt | None:
+    for index, node in enumerate(stmts[:-1]):
+        if isinstance(node, EXIT_NODES):
+            return stmts[index + 1]
+    return None
+
+
+def check_unreachable(src: Source, findings: list[Finding]) -> None:
+    for fn in functions(src.tree):
+        for stmts in _statement_lists(fn):
+            dead = _first_dead(stmts)
+            if dead is not None:
+                findings.append(
+                    Finding(
+                        f"{src.rel}:{dead.lineno}",
+                        "clean-code",
+                        2,
+                        f"this statement follows an unconditional exit in {fn.name} and cannot "
+                        "run; delete it, or move the exit that shadows it",
+                    )
+                )
+
+
+# --- rules/clean-code.md condition 3: commented-out code -------------------
+
+# English prose almost never parses as Python, but a single word parses as a
+# bare name and `type: ignore` parses as an annotation. Restricting the match
+# to statements that carry an effect, and excluding the tool directives by
+# prefix, is what keeps the detector silent on ordinary comments.
+COMMENT_STATEMENTS: tuple[type, ...] = (
+    ast.Assign,
+    ast.AugAssign,
+    ast.Return,
+    ast.Raise,
+    ast.Import,
+    ast.ImportFrom,
+    ast.Delete,
+    ast.Assert,
+    ast.Global,
+    ast.Nonlocal,
+)
+
+TOOL_DIRECTIVES = ("type:", "noqa", "pragma", "pylint", "mypy", "ruff", "fmt:", "isort", "!")
+
+
+def _is_code(comment: str) -> bool:
+    body = comment.lstrip("#").strip()
+    if not body or body.startswith(TOOL_DIRECTIVES):
+        return False
+    try:
+        parsed = ast.parse(body)
+    except (SyntaxError, ValueError, MemoryError, RecursionError):
+        return False
+    if not parsed.body:
+        return False
+    head = parsed.body[0]
+    if isinstance(head, COMMENT_STATEMENTS):
+        return True
+    return isinstance(head, ast.Expr) and isinstance(head.value, ast.Call)
+
+
+def _comments(text: str) -> list[tokenize.TokenInfo]:
+    try:
+        stream = tokenize.generate_tokens(io.StringIO(text).readline)
+        return [token for token in stream if token.type == tokenize.COMMENT]
+    except (tokenize.TokenError, SyntaxError, IndentationError, ValueError):
+        return []
+
+
+def check_commented_code(src: Source, findings: list[Finding]) -> None:
+    for token in _comments(src.text):
+        if not _is_code(token.string):
+            continue
+        findings.append(
+            Finding(
+                f"{src.rel}:{token.start[0]}",
+                "clean-code",
+                3,
+                f"this comment is code, not prose: {token.string.strip()!r}; delete it, "
+                "because version control already keeps the version that ran",
+            )
+        )
+
+
+# --- rules/value-semantics.md condition 1: parameter count -----------------
+
+
+def named_parameters(fn: ast.AST) -> list[str]:
+    """Parameter names, without the receiver and without *args and **kwargs.
+
+    The variadics are excluded because they are not a clump: the caller sees
+    one name, not five, and there is nothing to gather into an object.
+    """
+    slots = fn.args.posonlyargs + fn.args.args + fn.args.kwonlyargs
+    return [arg.arg for arg in slots if arg.arg not in RECEIVERS]
+
+
+def check_parameter_count(src: Source, findings: list[Finding]) -> None:
+    for fn in functions(src.tree):
+        names = named_parameters(fn)
+        if len(names) <= PARAMETER_MAX:
+            continue
+        findings.append(
+            Finding(
+                f"{src.rel}:{fn.lineno}",
+                "value-semantics",
+                1,
+                f"{fn.name} takes {len(names)} parameters; the limit is {PARAMETER_MAX}. Gather "
+                "the ones that belong together into a value, or split the function; a parameter "
+                "object with a single call site is gated by the abstraction trigger in "
+                "rules/yagni.md, and with one call site the split is the smaller fix",
+            )
+        )
+
+
+# --- rules/value-semantics.md condition 2: a data clump --------------------
+
+
+def _runs(names: list[str]) -> set[tuple[str, ...]]:
+    """Every contiguous run of CLUMP_MIN or more parameter names."""
+    found = set()
+    for start in range(len(names)):
+        for end in range(start + CLUMP_MIN, len(names) + 1):
+            found.add(tuple(names[start:end]))
+    return found
+
+
+def _sharers(tree: ast.AST) -> dict[tuple[str, ...], list[ast.AST]]:
+    shared: dict[tuple[str, ...], list[ast.AST]] = {}
+    for fn in functions(tree):
+        for run in _runs(named_parameters(fn)):
+            shared.setdefault(run, []).append(fn)
+    return {run: fns for run, fns in shared.items() if len(fns) >= CLUMP_OCCURRENCES}
+
+
+def _contains(longer: tuple[str, ...], shorter: tuple[str, ...]) -> bool:
+    span = len(shorter)
+    return any(longer[i : i + span] == shorter for i in range(len(longer) - span + 1))
+
+
+def _maximal(shared: dict[tuple[str, ...], list[ast.AST]]) -> list[tuple[str, ...]]:
+    """Drop a run that is a sub-run of a longer one shared by the same callables."""
+    kept = []
+    for run, fns in shared.items():
+        lines = {fn.lineno for fn in fns}
+        covered = any(
+            len(other) > len(run) and _contains(other, run) and {f.lineno for f in others} == lines
+            for other, others in shared.items()
+        )
+        if not covered:
+            kept.append(run)
+    return sorted(kept)
+
+
+def check_data_clump(src: Source, findings: list[Finding]) -> None:
+    shared = _sharers(src.tree)
+    for run in _maximal(shared):
+        fns = sorted(shared[run], key=lambda fn: fn.lineno)
+        names = ", ".join(fn.name for fn in fns)
+        findings.append(
+            Finding(
+                f"{src.rel}:{fns[-1].lineno}",
+                "value-semantics",
+                2,
+                f"({', '.join(run)}) is passed together by {len(fns)} callables in this module "
+                f"({names}); the third occurrence is the parameter object, and being the third "
+                "it already satisfies the abstraction trigger in rules/yagni.md",
+            )
+        )
+
+
+# --- rules/value-semantics.md conditions 3 and 4: immutability -------------
+
+MUTABLE_TYPES = frozenset(
+    {
+        "list",
+        "set",
+        "dict",
+        "bytearray",
+        "deque",
+        "defaultdict",
+        "Counter",
+        "OrderedDict",
+        "List",
+        "Set",
+        "Dict",
+        "DefaultDict",
+        "MutableSequence",
+        "MutableMapping",
+        "MutableSet",
+    }
+)
+
+FROZEN_DECORATORS = frozenset({"frozen"})
+FROZEN_BASES = frozenset({"NamedTuple"})
+
+
+def _declares_frozen(cls: ast.ClassDef) -> bool:
+    if any(base_name(base) in FROZEN_BASES for base in cls.bases):
+        return True
+    if decorator_names(cls) & FROZEN_DECORATORS:
+        return True
+    for dec in cls.decorator_list:
+        if not isinstance(dec, ast.Call):
+            continue
+        for keyword in dec.keywords:
+            frozen = keyword.arg == "frozen" and isinstance(keyword.value, ast.Constant)
+            if frozen and keyword.value.value is True:
+                return True
+    return False
+
+
+def _mutable_factory(node: ast.AnnAssign) -> bool:
+    if not isinstance(node.value, ast.Call):
+        return False
+    return any(
+        keyword.arg == "default_factory" and base_name(keyword.value) in MUTABLE_TYPES
+        for keyword in node.value.keywords
+    )
+
+
+def _mutable_fields(cls: ast.ClassDef) -> list[tuple[str, int]]:
+    found = []
+    for node in cls.body:
+        if not isinstance(node, ast.AnnAssign) or not isinstance(node.target, ast.Name):
+            continue
+        if base_name(node.annotation) in MUTABLE_TYPES or _mutable_factory(node):
+            found.append((node.target.id, node.lineno))
+    return found
+
+
+def _setattr_escapes(cls: ast.ClassDef) -> list[tuple[str, int]]:
+    found = []
+    for method in (n for n in cls.body if isinstance(n, FUNC_NODES)):
+        if method.name == "__post_init__":
+            continue
+        for node in own_nodes(method):
+            call = isinstance(node, ast.Call) and base_name(node.func) == "__setattr__"
+            if call and not isinstance(node.func, ast.Name):
+                found.append((method.name, node.lineno))
+                break
+    return found
+
+
+def check_immutability(src: Source, findings: list[Finding]) -> None:
+    for cls in classes(src.tree):
+        if not _declares_frozen(cls):
+            continue
+        for name, line in _mutable_fields(cls):
+            findings.append(
+                Finding(
+                    f"{src.rel}:{line}",
+                    "value-semantics",
+                    3,
+                    f"{cls.name}.{name} is a mutable container on a type declared immutable; "
+                    "the binding is frozen and the contents are not, so two values that compare "
+                    "equal today need not tomorrow. Use the immutable counterpart",
+                )
+            )
+        for name, line in _setattr_escapes(cls):
+            findings.append(
+                Finding(
+                    f"{src.rel}:{line}",
+                    "value-semantics",
+                    4,
+                    f"{cls.name}.{name} writes through the frozen type's own guard; return a "
+                    "replaced copy instead, or the type is not immutable and should not say it is",
+                )
+            )
+
+
+# --- rules/value-semantics.md condition 5: equality without hashing --------
+
+
+def _defines(cls: ast.ClassDef, name: str) -> bool:
+    for node in cls.body:
+        if isinstance(node, FUNC_NODES) and node.name == name:
+            return True
+        if isinstance(node, ast.Assign) and any(base_name(t) == name for t in node.targets):
+            return True
+        if isinstance(node, ast.AnnAssign) and base_name(node.target) == name:
+            return True
+    return False
+
+
+def check_hashability(src: Source, findings: list[Finding]) -> None:
+    for cls in classes(src.tree):
+        generated = bool(decorator_names(cls) & {"dataclass", "attrs", "define", "frozen"})
+        if generated or not _defines(cls, "__eq__") or _defines(cls, "__hash__"):
+            continue
+        findings.append(
+            Finding(
+                f"{src.rel}:{cls.lineno}",
+                "value-semantics",
+                5,
+                f"{cls.name} defines __eq__ and no __hash__, so Python makes it unhashable and "
+                "it cannot be a dict key or a set member; define __hash__ over the same fields, "
+                "or write '__hash__ = None' to say the type has identity rather than value",
+            )
+        )
+
+
+# --- rules/cross-cutting-concerns.md conditions 1 to 3 ---------------------
+
+LOOP_NODES: tuple[type, ...] = (ast.For, ast.AsyncFor, ast.While)
+
+SLEEP_NAMES = frozenset({"sleep"})
+
+TRANSACTION_NAMES = frozenset({"commit", "rollback"})
+
+# A duration is two reads of a clock with a subtraction between them. Reading a
+# clock once is a timestamp, which is data rather than a measurement.
+CLOCK_NAMES = frozenset(
+    {"time", "time_ns", "monotonic", "monotonic_ns", "perf_counter", "perf_counter_ns", "now", "utcnow"}
+)
+
+
+def check_inline_retry(src: Source, findings: list[Finding]) -> None:
+    for fn in functions(src.tree):
+        for loop in (n for n in own_nodes(fn) if isinstance(n, LOOP_NODES)):
+            nodes = list(within(loop))
+            catches = any(isinstance(n, ast.Try) and n.handlers for n in nodes)
+            if not (catches and called_names(nodes) & SLEEP_NAMES):
+                continue
+            findings.append(
+                Finding(
+                    f"{src.rel}:{loop.lineno}",
+                    "cross-cutting-concerns",
+                    1,
+                    f"{fn.name} loops, catches and backs off, which is a retry written inline; "
+                    "apply it at the boundary so the policy is declared once and testable apart "
+                    "from the call it wraps",
+                )
+            )
+            break
+
+
+def check_inline_transaction(src: Source, findings: list[Finding]) -> None:
+    for fn in functions(src.tree):
+        if not TRANSACTION_NAMES <= called_names(own_nodes(fn)):
+            continue
+        findings.append(
+            Finding(
+                f"{src.rel}:{fn.lineno}",
+                "cross-cutting-concerns",
+                2,
+                f"{fn.name} both commits and rolls back, so it owns the transaction boundary as "
+                "well as the work inside it; move the boundary out and let the body raise",
+            )
+        )
+
+
+def check_inline_timer(src: Source, findings: list[Finding]) -> None:
+    for fn in functions(src.tree):
+        nodes = list(own_nodes(fn))
+        reads = [n for n in nodes if isinstance(n, ast.Call) and base_name(n.func) in CLOCK_NAMES]
+        duration = any(isinstance(n, ast.BinOp) and isinstance(n.op, ast.Sub) for n in nodes)
+        if len(reads) < 2 or not duration:
+            continue
+        findings.append(
+            Finding(
+                f"{src.rel}:{reads[0].lineno}",
+                "cross-cutting-concerns",
+                3,
+                f"{fn.name} measures its own duration; a timer written inside the work it times "
+                "is applied once per author instead of once per boundary",
+            )
+        )
+
+
+# --- rules/domain-model.md conditions 1 and 2 ------------------------------
+
+DOMAIN_DIR = "domain"
+
+# The layer names the rule declares, so the map that condition 6 of
+# rules/solid.md needs is carried by the layout instead of by a reviewer.
+MECHANISM_DIRS = frozenset({"adapters", "adapter", "infrastructure", "infra", "persistence"})
+
+# Packages that are a mechanism whatever they are imported for. Stdlib modules
+# a domain legitimately uses — datetime, decimal, uuid, enum, json — are not
+# here; the list holds transports, drivers, frameworks and numeric runtimes.
+MECHANISM_PACKAGES = frozenset(
+    {
+        "sqlite3",
+        "socket",
+        "urllib",
+        "http",
+        "requests",
+        "httpx",
+        "aiohttp",
+        "boto3",
+        "botocore",
+        "redis",
+        "pymongo",
+        "psycopg",
+        "psycopg2",
+        "sqlalchemy",
+        "kafka",
+        "confluent_kafka",
+        "pika",
+        "django",
+        "flask",
+        "fastapi",
+        "starlette",
+        "celery",
+        "pandas",
+        "numpy",
+        "torch",
+        "tensorflow",
+        "sklearn",
+        "openai",
+        "anthropic",
+    }
+)
+
+# Tokens that name something outside every domain: a product, a protocol, a
+# serialisation format or a layering technique. Unlike a list of generic nouns,
+# which docs/clean-code.md refuses, each of these denotes a thing the domain
+# does not contain, so a match is a domain name pointing outward.
+VENDOR_TOKENS = frozenset(
+    {
+        "sql", "sqlite", "postgres", "postgresql", "mysql", "mongo", "mongodb", "redis",
+        "kafka", "rabbitmq", "sqs", "sns", "s3", "dynamodb", "elasticsearch",
+        "http", "https", "rest", "grpc", "graphql", "soap", "websocket",
+        "json", "xml", "yaml", "csv", "protobuf", "avro",
+        "orm", "dao", "dto", "jdbc", "odbc", "impl",
+        "jwt", "oauth", "smtp", "ldap",
+        "boto", "aws", "azure", "gcp",
+        "django", "flask", "fastapi", "celery",
+        "pandas", "numpy", "torch", "tensorflow", "sklearn", "openai", "anthropic",
+    }
+)
+
+TOKEN = re.compile(r"[A-Z]+(?![a-z])|[A-Z][a-z0-9]*|[a-z0-9]+")
+
+
+def name_tokens(name: str) -> list[str]:
+    """A declared name split on snake_case and camelCase boundaries, lowercased."""
+    return [part.lower() for part in TOKEN.findall(name)]
+
+
+def in_domain(rel: str) -> bool:
+    return DOMAIN_DIR in Path(rel).parts
+
+
+def _imported(node: ast.stmt) -> list[str]:
+    """The dotted module path of each import in this statement."""
+    if isinstance(node, ast.Import):
+        return [alias.name for alias in node.names]
+    if isinstance(node, ast.ImportFrom):
+        return [node.module or ""]
+    return []
+
+
+def _mechanism_in(module: str) -> str:
+    parts = [part for part in module.split(".") if part]
+    if parts and parts[0] in MECHANISM_PACKAGES:
+        return parts[0]
+    hits = [part for part in parts if part in MECHANISM_DIRS]
+    return hits[0] if hits else ""
+
+
+def check_domain_imports(src: Source, findings: list[Finding]) -> None:
+    if not in_domain(src.rel):
+        return
+    for node in ast.walk(src.tree):
+        for module in _imported(node):
+            mechanism = _mechanism_in(module)
+            if not mechanism:
+                continue
+            findings.append(
+                Finding(
+                    f"{src.rel}:{node.lineno}",
+                    "domain-model",
+                    1,
+                    f"a domain module imports '{module}', which is mechanism ('{mechanism}'); "
+                    "the domain declares what it needs and the adapter implements it",
+                )
+            )
+
+
+def _declared_names(tree: ast.AST) -> list[tuple[str, int]]:
+    """Every name this module declares: types, callables and annotated fields."""
+    found = []
+    for node in ast.walk(tree):
+        if isinstance(node, DEF_NODES):
+            found.append((node.name, node.lineno))
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            found.append((node.target.id, node.lineno))
+    return found
+
+
+def check_domain_names(src: Source, findings: list[Finding]) -> None:
+    if not in_domain(src.rel):
+        return
+    stem = Path(src.rel).stem
+    for name, line in [(stem, 1), *_declared_names(src.tree)]:
+        hit = next((token for token in name_tokens(name) if token in VENDOR_TOKENS), None)
+        if hit is None:
+            continue
+        shown = f"{stem}.py" if line == 1 and name == stem else name
+        findings.append(
+            Finding(
+                f"{src.rel}:{line}",
+                "domain-model",
+                2,
+                f"the domain name {shown} carries '{hit}', which names a technology rather than "
+                "anything in the domain; the model should read the way the business speaks",
+            )
+        )
+
+
+CHECKS = (
+    check_cohesion,
+    check_unimplemented,
+    check_nesting,
+    check_flag_argument,
+    check_length,
+    check_unreachable,
+    check_commented_code,
+    check_parameter_count,
+    check_data_clump,
+    check_immutability,
+    check_hashability,
+    check_inline_retry,
+    check_inline_transaction,
+    check_inline_timer,
+    check_domain_imports,
+    check_domain_names,
+)
 
 
 # --- entry point -----------------------------------------------------------
@@ -399,28 +1066,24 @@ def sources(roots: list[Path]) -> list[Path]:
     return found
 
 
-def main(argv: list[str]) -> int:
-    roots = [Path(a).resolve() for a in argv[1:]] or [Path.cwd()]
-    base = Path.cwd()
-    findings: list[Finding] = []
-    checked = 0
-    unparsed = 0
+def display_path(path: Path, base: Path) -> str:
+    try:
+        return path.relative_to(base).as_posix()
+    except ValueError:
+        return path.as_posix()
 
-    for path in sources(roots):
-        try:
-            rel = path.relative_to(base).as_posix()
-        except ValueError:
-            rel = path.as_posix()
-        try:
-            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        except (OSError, UnicodeDecodeError, SyntaxError) as exc:
-            unparsed += 1
-            print(f"{rel}\n    skipped, this interpreter cannot parse it: {exc}", file=sys.stderr)
-            continue
-        for check in CHECKS:
-            check(tree, rel, findings)
-        checked += 1
 
+def load(path: Path, rel: str) -> Source | None:
+    """The parsed file, or None once the reason it could not be read is reported."""
+    try:
+        text = path.read_text(encoding="utf-8")
+        return Source(rel, text, ast.parse(text, filename=str(path)))
+    except (OSError, UnicodeDecodeError, SyntaxError) as exc:
+        print(f"{rel}\n    skipped, this interpreter cannot parse it: {exc}", file=sys.stderr)
+        return None
+
+
+def report(findings: list[Finding], checked: int, unparsed: int) -> int:
     suffix = f" ({unparsed} skipped)" if unparsed else ""
     if findings:
         print(f"{len(findings)} failure(s) across {checked} file(s){suffix}:\n")
@@ -430,6 +1093,25 @@ def main(argv: list[str]) -> int:
 
     print(f"{checked} file(s), no failures{suffix}.")
     return 0
+
+
+def main(argv: list[str]) -> int:
+    roots = [Path(a).resolve() for a in argv[1:]] or [Path.cwd()]
+    base = Path.cwd()
+    findings: list[Finding] = []
+    checked = 0
+    unparsed = 0
+
+    for path in sources(roots):
+        source = load(path, display_path(path, base))
+        if source is None:
+            unparsed += 1
+            continue
+        for check in CHECKS:
+            check(source, findings)
+        checked += 1
+
+    return report(findings, checked, unparsed)
 
 
 if __name__ == "__main__":
