@@ -18,8 +18,13 @@ jobs:
 
       # The gate ships with the plugin and takes no dependencies, so CI runs
       # exactly what a consumer runs. No install step, by design.
-      - name: Test the gate
+      # Tests first. A gate whose own tests are not in CI stops being
+      # trustworthy the first time somebody edits it in a hurry.
+      - name: Test the artifact gate
         run: python3 foundation/hooks/test-validate-artifacts.py
+
+      - name: Test the structure hook
+        run: python3 engineering/hooks/test-check-structure.py
 
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
