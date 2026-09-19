@@ -22,7 +22,9 @@ Early. The `ahrena-foundation` plugin carries the self-hosting core: the five ru
 python3 foundation/hooks/validate-artifacts.py
 ```
 
-The gate takes no dependencies, so the check CI runs is the check a consumer runs. Everything else is tracked in the issues of this repository.
+The gate takes no dependencies, so the check CI runs is the check a consumer runs.
+
+`ahrena-engineering` is the second plugin and the first consumer of that core: SOLID, KISS and YAGNI, written as detectable conditions with a single arbitration between them. Everything else is tracked in the issues of this repository.
 
 ## License
 

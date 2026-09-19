@@ -21,6 +21,21 @@
       "repository": "https://github.com/ahrenatechnology/ahrena-framework",
       "license": "MIT",
       "keywords": ["authoring", "conventions", "naming", "templates", "scaffolding"]
+    },
+    {
+      "name": "ahrena-engineering",
+      "description": "Language-agnostic engineering fundamentals: what justifies an abstraction, which structure must come out regardless, and the complexity signals a script can decide.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": ["solid", "kiss", "yagni", "abstraction", "cohesion", "code-quality"]
     }
   ]
 }
