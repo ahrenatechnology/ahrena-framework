@@ -1,2 +1,6 @@
 __pycache__/
 *.py[cod]
+
+# Parallel agents run in isolated worktrees here. Each is a full checkout of
+# this repository whose .git file points at a path that exists on one machine.
+.claude/worktrees/
