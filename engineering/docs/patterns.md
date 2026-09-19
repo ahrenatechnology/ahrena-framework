@@ -4,12 +4,14 @@ type: doc
 clade: engineering
 subclade: quality
 title: Patterns indexed by the situation that calls for them
-summary: Ten patterns, each entered under the condition in the code that names it, with the shape it must exhibit, what it costs, and the cheaper alternative that is the default until it fails.
+summary: Twelve patterns, each entered under the condition in the code that names it, with the shape it must exhibit, what it costs, and the cheaper alternative that is the default until it fails.
 references:
   - rules/pattern-selection.md
   - docs/solid.md
   - docs/simplicity.md
   - docs/cross-cutting-concerns.md
+  - docs/duplication.md
+  - docs/domain-services.md
 ---
 
 # Patterns indexed by the situation that calls for them
@@ -31,7 +33,9 @@ So every entry is entered under its **situation** — a condition on code that e
 
 Each entry is also marked **adds** or **removes**, because condition 3 gates the ones that add structure with the abstraction trigger in `rules/yagni.md`, and a reader should not have to work out which is which.
 
-**The ten entries are not the classical catalog.** They are the named fixes for conditions this plugin's other rules state, plus the two or three that come up most in arguing against those fixes. That is a deliberate scope: a pattern with no situation in this corpus has no entry, and `rules/pattern-selection.md` says in its boundary section that applying one is outside the rule rather than against it.
+**The twelve entries are not the classical catalog.** They are the named fixes for conditions this plugin's other rules state, plus the two or three that come up most in arguing against those fixes. That is a deliberate scope: a pattern with no situation in this corpus has no entry, and `rules/pattern-selection.md` says in its boundary section that applying one is outside the rule rather than against it.
+
+**Two of them are here instead of being rules, and that is worth knowing while reading them.** Specification and Factory were each examined as a candidate rule with a detector, and each was refused — one because its defect is the definition of duplication that `rules/duplication.md` declines to detect, the other because the only detector that does not need a marker this plugin cannot supply is wrong on every finding it produces. Both are still named fixes with a situation, a cost and a cheaper default, which is what an entry here is. [`docs/domain-services.md`](./domain-services.md) carries both refusals with the numbers behind them.
 
 ## Entries under the code-structure axis
 
@@ -127,6 +131,26 @@ Each entry is also marked **adds** or **removes**, because condition 3 gates the
 
 **Cheaper.** A query function per use case, in the application layer, returning exactly what that use case needs. This scales better than it sounds: there are fewer use cases than there are query shapes a general repository ends up supporting.
 
+### Specification — adds
+
+**Situation.** One selection rule — which orders are overdue, which customers are eligible for a tier — is answered in two places: once by a query the storage runs and once by a predicate memory runs. The two agree today and will disagree the first time either is edited alone. This is `docs/duplication.md`'s reviewer question, *where is this decided, and how many places could answer*, with the answer two; it is not detected by either condition of `rules/duplication.md`, because a query and a predicate are two languages and share no shape.
+
+**Shape.** One named object per rule, carrying both answers: a predicate that decides a domain object in memory, and a translation the repository can execute. Both call sites ask the same object, and neither restates the rule. A specification with only the in-memory half has not removed the duplication, because the query still answers separately; a specification whose predicate and whose translation are written independently has moved the two copies inside one type, where at least a reader can see them side by side, and that is the smallest honest version of the pattern.
+
+**Cost.** A second query language, arriving on top of the one the Repository entry above already warns about. Composition is where it grows: two specifications invite `and`, `or` and `not`, which is a small combinator library with its own bugs, and the translation half has to compose too or the composed specification silently falls back to loading everything and filtering in memory. That last failure is invisible until the table is large.
+
+**Cheaper.** A named query method on the repository, when the rule is asked in one place — which is the common case, and `rules/yagni.md`'s trigger has nothing to bite on until the second call site exists. When there are two, the next cheapest answer is to make one of them authoritative and derive the other, so the code says which copy is the source; `docs/duplication.md` calls that a cache rather than two sources of truth. The pattern earns its place when both call sites are genuinely primary and the rule is genuinely one rule.
+
+### Factory — adds
+
+**Situation.** An aggregate whose invariant spans several fields is assembled field by field at a call site, so between the first assignment and the last it exists in a state its own rule forbids, and the enforcement of that rule has moved outside the boundary that owns it. Condition 1 of `rules/aggregates.md` states what this breaks, and its boundary section names this as the more common of the two ways to break it.
+
+**Shape.** One entry point that takes what a caller can supply and returns a valid instance or raises. No partially built instance is observable from outside, and no caller can reach a constructor that skips the check. A factory that assembles and does not validate has added a hop; a factory that validates and does not assemble is a validator, and condition 4 of `rules/pattern-selection.md` says the name is then wrong.
+
+**Cost.** A second place that knows the type's fields, which drifts from the first exactly as the Builder entry above describes, and one more hop for a reader asking how an instance is made. Where the factory is a separate type rather than a classmethod, construction also leaves the file the type is declared in, and the answer to "what makes a valid Order" is then in two files.
+
+**Cheaper.** A constructor that validates. In a language with keyword arguments and defaults this is almost always the right answer, and in Python it is a `__post_init__` that raises or a classmethod on the type itself — both of which keep the invariant in the file that declares the fields it constrains. A separate factory type earns its place when creation needs collaborators the aggregate must not hold, which is the case where the classmethod would drag a port into the domain type.
+
 ### State — adds
 
 **Situation.** An object whose behaviour changes with an internal mode, where three or more of its methods branch on that mode. Below three, this is the discriminator chain entry and the rule of three has not been reached.
@@ -145,12 +169,14 @@ Each entry is also marked **adds** or **removes**, because condition 3 gates the
 
 ## Where this stops
 
-**The catalog is not complete and does not try to be.** Ten entries, chosen because each is the named fix for a condition this plugin states or the named alternative to one. Visitor, flyweight, memento, interpreter, observer, command and the rest of the classical catalog are absent. Their absence means this plugin has nothing useful to say about when to reach for them, not that they are wrong.
+**The catalog is not complete and does not try to be.** Twelve entries, chosen because each is the named fix for a condition this plugin states or the named alternative to one. Visitor, flyweight, memento, interpreter, observer, command and the rest of the classical catalog are absent. Their absence means this plugin has nothing useful to say about when to reach for them, not that they are wrong.
 
 **It does not teach the patterns.** Each entry assumes the reader can recognise the pattern and needs to know when it applies and what it costs. Gamma, Helm, Johnson and Vlissides for the classical set and Fowler's *Patterns of Enterprise Application Architecture* for the repository and the anti-corruption layer are the sources, and neither is reproduced.
 
 **The costs are argued, not measured.** Unlike the thresholds in `docs/clean-code.md` and `docs/value-semantics.md`, nothing here was run against a corpus. A pattern's cost is paid in reading and changing rather than in anything a script counts, so the entries state the cost and the reasoning, and a reader who disagrees with one has a specific claim to disagree with rather than a verdict.
 
-**It carries only part of the domain vocabulary.** Aggregate, entity, value object, domain event, specification and the rest of the tactical DDD set are a vocabulary for modelling rather than for structure, so they are stated as conditions elsewhere rather than as entries here: the consistency boundary and the event are `rules/aggregates.md`, the entity contract is `rules/domain-model.md`, and the mechanical half of value object is `rules/value-semantics.md`. Specification, factory and domain service have no artifact, and their absence means the same thing the missing patterns above mean.
+**It carries only part of the domain vocabulary, and the split is now by what a condition can hold.** Aggregate, entity, value object and domain event are a vocabulary for modelling rather than for structure, so they are stated as conditions elsewhere rather than as entries here: the consistency boundary and the event are `rules/aggregates.md`, the entity contract is `rules/domain-model.md`, and the mechanical half of value object is `rules/value-semantics.md`. Domain service joined them as `rules/domain-services.md`, because behaviour sitting in the wrong layer is a state a condition can name. Specification and Factory did not: each was drafted as a rule and refused, and the two entries above are what they became. `docs/domain-services.md` carries the measurements behind both refusals.
+
+**The rest of the tactical set is still absent.** Layered supertype, module and the remainder of Evans' and Fowler's vocabulary have no entry and no rule, and that absence means the same thing the missing classical patterns above mean: this plugin has nothing useful to say about when to reach for them, not that they are wrong.
 
 **It cannot arbitrate a pattern against a measurement.** Every entry trades indirection for changeability, and a profile beats the catalog. `docs/solid.md` takes the same position and for the same reason.
