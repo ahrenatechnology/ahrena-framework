@@ -373,9 +373,13 @@ SIXTEEN_COMMENTS = '''
 # Decided by hooks/check-structure.py for Python.
 # `raise NotImplementedError` in a concrete type
 # returns the map and the line number the body starts on
-# TODO fix this before the next slice
+# `TODO` fix this before the next slice
 value = 1
 '''
+# The last line is quoted because the corpus is sixteen comments of which six
+# are code, and an unquoted marker would also be a debt-markers finding and
+# make this fixture report seven. The quoting is the escape that rule takes
+# from foundation/rules/completeness.md, and the comment is still prose.
 
 # --- rules/value-semantics.md condition 1: parameter count -----------------
 
@@ -859,7 +863,78 @@ def current(order):
     return order.state in STATUSES
 '''
 
+# --- rules/debt-markers.md condition 1: a marker naming no issue -----------
+
+# Every fixture below sits inside a string, so the hook reading this test file
+# never sees a marker here. That is the same property the detector's own table
+# of marker words relies on, and the reason the condition reads comments only.
+
+UNTRACKED_LINE = '''
+def fee(cents):
+    # TODO: switch to the bank-specific fee table once the spec arrives
+    return cents
+'''
+
+TRACKED_LINE = '''
+def fee(cents):
+    # TODO(#172): switch to the bank-specific fee table once the spec arrives
+    return cents
+'''
+
+FOUR_MARKERS = '''
+first = 1  # TODO: handle the edge case
+second = 2  # TBD
+third = 3  # FIXME: broken for negative numbers
+fourth = 4  # XXX: refactor when we have time
+'''
+
+QUOTED_MARKER = '''
+# a backticked `TODO` in a comment is prose about markers, not a marker
+value = 1
+'''
+
+MARKER_IN_A_STRING = '''
+MARKERS = ("TODO", "TBD", "FIXME", "XXX")
+LABEL = "TODO: this is data, not a comment"
+'''
+
+NEAR_MISSES = '''
+# todo: lowercase is ordinary English, not a convention
+# TODOS and XXXX are longer words that happen to contain one
+value = 1
+'''
+
+LATE_REFERENCE = '''
+# FIXME the retry path is broken, see #3 for context
+value = 1
+'''
+
+ZERO_ISSUE = '''
+# TODO(#0): zero is not an issue number
+value = 1
+'''
+
+ADDS_A_MARKER = CLEAN + '''
+# TODO: added by this very change
+'''
+
 BROKEN = "def unclosed(:\n"
+
+# Two reserved keys in a case's file map. BASELINE holds the tree that is
+# committed first; the rest of the map is then written over it and staged, so
+# the hook meets a repository with a real change in it. ARGS is the argv the
+# hook is invoked with, the path included, which is how a scoped case names the
+# change and how a malformed invocation is pinned. Keeping both inside the map
+# leaves `case` at four parameters, which is the cap condition 1 of
+# rules/value-semantics.md sets and this suite's own subject.
+BASELINE = "@baseline"
+ARGS = "@args"
+
+# The staged diff: what a pre-commit hook has, and the reason the condition
+# works locally rather than only in CI.
+STAGED = ["--changed", "--cached", "."]
+
+GIT_IDENTITY = ("-c", "user.email=gate@example.invalid", "-c", "user.name=gate")
 
 
 def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) -> tuple:
@@ -1305,6 +1380,69 @@ CASES = [
         ["no failures"],
         ok=True,
     ),
+    # --- debt-markers, condition 1, over a tree
+    case(
+        "a marker naming no issue fails",
+        {"a.py": UNTRACKED_LINE},
+        ["[debt-markers] condition 1", "leaves TODO with no issue behind it"],
+    ),
+    case("a marker naming an issue passes", {"a.py": TRACKED_LINE}, ["no failures"], ok=True),
+    case(
+        "all four markers are reported and nothing else is",
+        {"a.py": FOUR_MARKERS},
+        ["4 failure(s) across 1 file(s)", "leaves TBD", "leaves FIXME", "leaves XXX"],
+    ),
+    case("a quoted marker is prose about markers", {"a.py": QUOTED_MARKER}, ["no failures"], ok=True),
+    case(
+        "a marker in a string literal is data, not a comment",
+        {"a.py": MARKER_IN_A_STRING},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a lowercase spelling and a longer word are not markers",
+        {"a.py": NEAR_MISSES},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "an issue number further along the line does not redeem the marker",
+        {"a.py": LATE_REFERENCE},
+        ["[debt-markers] condition 1", "leaves FIXME"],
+    ),
+    case("zero is not an issue number", {"a.py": ZERO_ISSUE}, ["[debt-markers] condition 1"]),
+    # --- debt-markers, condition 1, scoped to a change
+    case(
+        "a marker the change did not touch is out of scope",
+        {BASELINE: {"a.py": UNTRACKED_LINE}, ARGS: STAGED, "b.py": CLEAN},
+        ["2 file(s), no failures"],
+        ok=True,
+    ),
+    case(
+        "a marker the change adds is reported",
+        {BASELINE: {"a.py": CLEAN}, ARGS: STAGED, "a.py": ADDS_A_MARKER},
+        ["[debt-markers] condition 1", "added by this very change"],
+    ),
+    case(
+        "a marker the change rewrites is reported, reference removed",
+        {BASELINE: {"a.py": TRACKED_LINE}, ARGS: STAGED, "a.py": UNTRACKED_LINE},
+        ["[debt-markers] condition 1", "leaves TODO with no issue behind it"],
+    ),
+    case(
+        "the other nineteen conditions are not scoped to the change",
+        {BASELINE: {"a.py": DEEP}, ARGS: STAGED, "b.py": CLEAN},
+        ["[kiss] condition 1", "sweep nests control flow 4 deep"],
+    ),
+    case(
+        "--changed with no revision is an error, not a pass",
+        {ARGS: ["--changed"], "a.py": UNTRACKED_LINE},
+        ["needs a revision or range"],
+    ),
+    case(
+        "--changed outside a repository is an error, not a pass",
+        {ARGS: ["--changed", "HEAD", "."], "a.py": UNTRACKED_LINE},
+        ["--changed:"],
+    ),
     # --- the walk itself
     case(
         # An unimplemented member touches no state, so it is also always its own
@@ -1334,17 +1472,38 @@ CASES = [
 ]
 
 
-def run(files: dict[str, str]) -> tuple[int, str]:
+def write(root: Path, files: dict[str, str]) -> None:
+    for rel, content in files.items():
+        target = root / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+
+
+def git(root: Path, *args: str) -> None:
+    subprocess.run(["git", *GIT_IDENTITY, *args], cwd=str(root), capture_output=True, check=True)
+
+
+def invoke(root: Path, argv: list[str]) -> tuple[int, str]:
+    result = subprocess.run(
+        [sys.executable, str(HOOK), *argv], cwd=str(root), capture_output=True, text=True
+    )
+    return result.returncode, result.stdout + result.stderr
+
+
+def run(files: dict) -> tuple[int, str]:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
-        for rel, content in files.items():
-            target = root / rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(content, encoding="utf-8")
-        result = subprocess.run(
-            [sys.executable, str(HOOK), "."], cwd=tmp, capture_output=True, text=True
-        )
-        return result.returncode, result.stdout + result.stderr
+        baseline = files.get(BASELINE)
+        tree = {rel: text for rel, text in files.items() if rel not in (BASELINE, ARGS)}
+        if baseline is not None:
+            write(root, baseline)
+            git(root, "init", "-q")
+            git(root, "add", "-A")
+            git(root, "commit", "-qm", "the tree before the change")
+        write(root, tree)
+        if baseline is not None:
+            git(root, "add", "-A")
+        return invoke(root, list(files.get(ARGS, ["."])))
 
 
 def problems_for(expect: list[str], ok: bool, code: int, output: str) -> list[str]:

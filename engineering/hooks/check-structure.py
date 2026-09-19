@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Detectors for the structural conditions in the engineering rules.
 
-Decides nineteen conditions stated in seven rules:
+Decides twenty conditions stated in eight rules:
 
     engineering/rules/solid.md
       1. a class whose LCOM4 exceeds 1
@@ -36,6 +36,9 @@ Decides nineteen conditions stated in seven rules:
       1. a third function body carrying a shape two others already carry
       2. a third module-level table carrying contents two others already carry
 
+    engineering/rules/debt-markers.md
+      1. a debt marker in a comment that names no issue
+
 The remaining conditions in rules/solid.md, rules/cross-cutting-concerns.md
 and rules/domain-model.md need a test run, a count across the tree or a
 reviewer, and each says so in its own text. This script decides the ones a
@@ -49,8 +52,30 @@ dependencies, and a regular expression over source stops matching the first
 time somebody reformats. Detectors for other languages belong with the plugins
 that may take a parser dependency.
 
+Nineteen of the twenty conditions read a file. The twentieth is about a change
+rather than a file: condition 1 of rules/debt-markers.md reaches a marker this
+change added or modified, and a path does not say which lines those are. So the
+change is a second, explicit input. `--changed <spec>` passes the spec through
+to `git diff --unified=0` and the condition is then decided over the lines that
+diff adds and no others; with no `--changed`, every line of every file the run
+was handed is in scope.
+
+Defaulting to every line is deliberate. A gate that defaults to seeing less than
+it was handed is a gate that passes by seeing nothing, which is the failure the
+workflow's own `fetch-depth: 0` comment already records for a revision range on
+a shallow clone. The default over-reports on a repository with a backlog of
+markers; `--changed` is how that repository adopts the condition, and it is one
+argument in the same command line, so the local run and the CI run are the same
+run.
+
+git is consulted only for that scoping and only when it is asked for. The other
+nineteen conditions never reach it and decide the same thing outside a
+repository as inside one.
+
 Usage:
     python3 engineering/hooks/check-structure.py [path ...]
+    python3 engineering/hooks/check-structure.py --changed --cached [path ...]
+    python3 engineering/hooks/check-structure.py --changed origin/main...HEAD [path ...]
 """
 
 from __future__ import annotations
@@ -58,6 +83,7 @@ from __future__ import annotations
 import ast
 import io
 import re
+import subprocess
 import sys
 import tokenize
 from dataclasses import dataclass
@@ -161,6 +187,13 @@ class Source:
     rel: str
     text: str
     tree: ast.AST
+    # The lines this run is scoped to, or None for every line. Only the debt
+    # marker condition reads it, because it is the only condition whose subject
+    # is a change rather than a file. The module docstring argues the default.
+    scope: frozenset[int] | None = None
+
+    def in_scope(self, line: int) -> bool:
+        return self.scope is None or line in self.scope
 
 
 # --- shared helpers --------------------------------------------------------
@@ -1259,6 +1292,54 @@ def sweep_duplicate_tables(sources: list[Source], findings: list[Finding]) -> No
         )
 
 
+# --- rules/debt-markers.md condition 1: a marker that names no issue -------
+
+# The closed set, uppercase. These are the four tokens
+# foundation/rules/completeness.md already bans in an artifact's own prose, and
+# they are taken from there unchanged so that the two rules governing these
+# tokens at least agree on which tokens they are. The predecessor framework's
+# list added three lowercase phrases; those are ordinary English, and a detector
+# for them rejects prose, which is the argument completeness.md already made
+# about a lowercase spelling of the first one. The set is asserted rather than
+# measured, by the predecessor and here, and the rule says so.
+MARKERS = ("TODO", "TBD", "FIXME", "XXX")
+
+# The marker, then the reference that redeems it. The boundaries are spelled out
+# rather than taken from \b so that a longer run of the same letters is one word
+# and not a marker. The reference is a parenthesised issue number immediately
+# after the token and nowhere else: a number further along the line is a
+# cross-reference, and the rule wants the owner of the debt, not a pointer.
+DEBT_MARKER = re.compile(
+    r"(?<![A-Za-z0-9_])(" + "|".join(MARKERS) + r")(?![A-Za-z0-9_])(\(#[1-9][0-9]*\))?"
+)
+
+# Prose about markers, quoted the way completeness.md lets an artifact quote
+# one. Without this a detector for the condition cannot describe itself, and
+# neither can the rule's own hook.
+QUOTED = re.compile(r"`[^`]*`")
+
+
+def check_debt_markers(src: Source, findings: list[Finding]) -> None:
+    for token in _comments(src.text):
+        line = token.start[0]
+        if not src.in_scope(line):
+            continue
+        for match in DEBT_MARKER.finditer(QUOTED.sub("", token.string)):
+            if match.group(2):
+                continue
+            findings.append(
+                Finding(
+                    f"{src.rel}:{line}",
+                    "debt-markers",
+                    1,
+                    f"this comment leaves {match.group(1)} with no issue behind it: "
+                    f"{token.string.strip()!r}. Open the issue and write "
+                    f"{match.group(1)}(#N), or do the work now, or delete the marker; "
+                    "debt nobody agreed to is debt nobody is accountable for",
+                )
+            )
+
+
 CHECKS = (
     check_cohesion,
     check_unimplemented,
@@ -1276,6 +1357,7 @@ CHECKS = (
     check_inline_timer,
     check_domain_imports,
     check_domain_names,
+    check_debt_markers,
 )
 
 # A check reads one file. A sweep reads every file the run was given at once,
@@ -1309,14 +1391,75 @@ def display_path(path: Path, base: Path) -> str:
         return path.as_posix()
 
 
-def load(path: Path, rel: str) -> Source | None:
+def load(path: Path, rel: str, scope: frozenset[int] | None) -> Source | None:
     """The parsed file, or None once the reason it could not be read is reported."""
     try:
         text = path.read_text(encoding="utf-8")
-        return Source(rel, text, ast.parse(text, filename=str(path)))
+        return Source(rel, text, ast.parse(text, filename=str(path)), scope)
     except (OSError, UnicodeDecodeError, SyntaxError) as exc:
         print(f"{rel}\n    skipped, this interpreter cannot parse it: {exc}", file=sys.stderr)
         return None
+
+
+# --- the change, when the run is scoped to one -----------------------------
+
+CHANGED_FLAG = "--changed"
+
+# A unified-diff hunk header. With --unified=0 there is no context, so the
+# range on the `+` side is exactly the lines the change adds or rewrites.
+HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+
+
+class Unavailable(Exception):
+    """git could not answer, and the run must say so rather than see nothing."""
+
+
+def git(args: list[str], cwd: Path) -> str:
+    try:
+        done = subprocess.run(["git", *args], cwd=str(cwd), capture_output=True, text=True)
+    except OSError as exc:
+        raise Unavailable(f"git could not be run: {exc}") from exc
+    if done.returncode != 0:
+        raise Unavailable(done.stderr.strip() or f"git exited {done.returncode}")
+    return done.stdout
+
+
+def added_lines(diff: str, top: Path) -> dict[Path, set[int]]:
+    """The lines each file gains, keyed by the path the walk will hand back."""
+    added: dict[Path, set[int]] = {}
+    lines: set[int] | None = None
+    for row in diff.splitlines():
+        if row.startswith("+++ "):
+            target = row[4:].strip()
+            lines = None if target == "/dev/null" else added.setdefault(_target(top, target), set())
+            continue
+        hunk = HUNK.match(row)
+        if hunk is None or lines is None:
+            continue
+        start = int(hunk.group(1))
+        lines.update(range(start, start + int(hunk.group(2) or 1)))
+    return added
+
+
+def _target(top: Path, header: str) -> Path:
+    """The `+++ b/<path>` side of a hunk header, as an absolute path."""
+    return (top / header[2:]).resolve()
+
+
+def scoped(spec: str, paths: list[Path]) -> dict[Path, frozenset[int]]:
+    top = Path(git(["rev-parse", "--show-toplevel"], Path.cwd()).strip()).resolve()
+    diff = git(["diff", "--unified=0", spec, "--", *[str(p) for p in paths]], top)
+    return {path: frozenset(lines) for path, lines in added_lines(diff, top).items()}
+
+
+def split_argv(argv: list[str]) -> tuple[list[str], str | None]:
+    """The paths, and the change the run is scoped to when one was named."""
+    if CHANGED_FLAG not in argv:
+        return argv, None
+    at = argv.index(CHANGED_FLAG)
+    if at + 1 == len(argv):
+        raise Unavailable(f"{CHANGED_FLAG} needs a revision or range to pass to the diff")
+    return argv[:at] + argv[at + 2 :], argv[at + 1]
 
 
 def report(findings: list[Finding], checked: int, unparsed: int) -> int:
@@ -1332,14 +1475,22 @@ def report(findings: list[Finding], checked: int, unparsed: int) -> int:
 
 
 def main(argv: list[str]) -> int:
-    roots = [Path(a).resolve() for a in argv[1:]] or [Path.cwd()]
     base = Path.cwd()
+    try:
+        rest, spec = split_argv(argv[1:])
+        paths = sources([Path(a).resolve() for a in rest] or [base])
+        scope = scoped(spec, paths) if spec is not None else {}
+    except Unavailable as exc:
+        print(f"{CHANGED_FLAG}: {exc}", file=sys.stderr)
+        return 2
+
     findings: list[Finding] = []
     parsed: list[Source] = []
     unparsed = 0
 
-    for path in sources(roots):
-        source = load(path, display_path(path, base))
+    for path in paths:
+        lines = None if spec is None else scope.get(path, frozenset())
+        source = load(path, display_path(path, base), lines)
         if source is None:
             unparsed += 1
             continue
