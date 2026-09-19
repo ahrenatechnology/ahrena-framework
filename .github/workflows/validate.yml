@@ -10,9 +10,13 @@ jobs:
     name: artifact gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # Both actions are pinned past the Node 20 deprecation. The runner
+      # already forces Node 24 on them and says so in a warning on every
+      # run; these majors target it, so the warning goes and nothing is
+      # left running on a version that is scheduled to stop working.
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
