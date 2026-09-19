@@ -33,13 +33,11 @@ On `feat/foundation-core`, in PR #33. Eleven artifacts, gate green.
 | **C** | Voice, and the config file | `rules/voice.md`, `docs/voice.md`, `hooks/verify-banned-terms.py`, `.ahrena/config.json` | new files, `README.md` | three decisions below (#24, #25) |
 | **D** | Context injection per platform | `hooks/session-context.py`, generated-block markers, `hooks/verify-instruction-freshness.py` | `ARCHITECTURE.md`, new files | C, and a measurement against Claude Code |
 | **E** | MCP transport hierarchy | `rules/mcp-transport.md` + doc | new files | which plugin owns it |
-| **H** | DRY, as the rule of three | `engineering/rules/duplication.md` + doc | `engineering/` | nothing |
-| **I** | Tactical DDD vocabulary: aggregates, domain events | `engineering/` | `engineering/` | nothing |
-| **J** | Two clean-code findings in the foundation gate | none | `foundation/hooks/validate-artifacts.py` | nothing |
+| **K** | Specification, factory and domain service | `engineering/` | `engineering/` | nothing |
 
-Epic #5 is closed. Landed since this table was written: **F**, **G1** (SOLID, KISS, YAGNI), **G2** (clean code, value semantics, contract-first, cross-cutting concerns, pattern selection, domain model) and **G3** (the `ahrena-engineering-python` plugin).
+Everything else in this table has landed: **F**, **G1** (SOLID, KISS, YAGNI), **G2** (clean code, value semantics, contract-first, cross-cutting concerns, pattern selection, domain model), **G3** (the `ahrena-engineering-python` plugin), **H** (duplication), **I** (aggregates and domain events) and **J** (the two clean-code findings in the foundation's own gate). Epic #5 is closed.
 
-H and I are gaps the new artifacts name in their own text rather than leave silent. J is the engineering plugin's rules run against the foundation's own hook: `parse_frontmatter` at 41 statements against a limit of 30, and `check_completeness` nesting 4 deep against a limit of 3.
+K is what `docs/patterns.md` still names as absent after I. The plugin now states aggregate, entity, value object and domain event as conditions; specification, factory and domain service have no artifact.
 
 ### What serializes, and what does not
 

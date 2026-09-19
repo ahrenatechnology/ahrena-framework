@@ -729,6 +729,136 @@ class Order:
         return self.placed_at
 '''
 
+# --- rules/duplication.md condition 1: a body copied -----------------------
+
+# Five statements, which is the floor: the smallest body the condition
+# reports. The three differ in every name and every literal and in nothing
+# else, which is the state condition 1 describes.
+SETTLE = '''
+def settle(order):
+    total = order.amount
+    fee = total * 2
+    if fee > 10:
+        fee = 10
+    return total + fee
+'''
+
+REFUND = '''
+def refund(payment):
+    gross = payment.value
+    charge = gross * 3
+    if charge > 20:
+        charge = 20
+    return gross + charge
+'''
+
+ADJUST = '''
+def adjust(entry):
+    base = entry.units
+    extra = base * 7
+    if extra > 4:
+        extra = 4
+    return base + extra
+'''
+
+THREE_COPIES = SETTLE + REFUND + ADJUST
+TWO_COPIES = SETTLE + REFUND
+
+# The same three bodies one statement shorter. Under the floor, so the
+# condition does not see them however many times they are repeated.
+FOUR_STATEMENTS = '''
+def settle(order):
+    total = order.amount
+    fee = total * 2
+    total = total + fee
+    return total
+
+
+def refund(payment):
+    gross = payment.value
+    charge = gross * 3
+    gross = gross + charge
+    return gross
+
+
+def adjust(entry):
+    base = entry.units
+    extra = base * 7
+    base = base + extra
+    return base
+'''
+
+# Same statements, same node types, different wiring: the last line reuses a
+# different name in each. Renaming is consistent rather than blanket, so these
+# are three shapes and not one.
+DIFFERENT_WIRING = '''
+def first(left, right):
+    head = left.value
+    tail = right.value
+    joined = head + tail
+    total = joined + tail
+    return total
+
+
+def second(left, right):
+    head = left.value
+    tail = right.value
+    joined = head + tail
+    total = joined + head
+    return total
+
+
+def third(left, right):
+    head = left.value
+    tail = right.value
+    joined = head + tail
+    total = joined + joined
+    return total
+'''
+
+# --- rules/duplication.md condition 2: a table copied ----------------------
+
+STATUS_TABLE = '''
+STATUSES = ("open", "settled", "void")
+
+
+def current(order):
+    return STATUSES[order.state]
+'''
+
+# The same contents under another name. The name is not the duplicate.
+RENAMED_TABLE = '''
+ORDER_STATES = ("open", "settled", "void")
+
+
+def current(order):
+    return ORDER_STATES[order.state]
+'''
+
+SHORTER_TABLE = '''
+STATUSES = ("open", "void")
+
+
+def current(order):
+    return STATUSES[order.state]
+'''
+
+OTHER_CONTENTS = '''
+STATUSES = ("open", "settled", "cancelled")
+
+
+def current(order):
+    return STATUSES[order.state]
+'''
+
+WRAPPED_TABLE = '''
+STATUSES = frozenset({"open", "settled", "void"})
+
+
+def current(order):
+    return order.state in STATUSES
+'''
+
 BROKEN = "def unclosed(:\n"
 
 
@@ -1095,6 +1225,85 @@ CASES = [
         "a domain module file named for a vendor fails",
         {"billing/domain/sql_order.py": CLEAN_DOMAIN_NAMES},
         ["[domain-model] condition 2", "sql_order.py"],
+    ),
+    # --- duplication, condition 1
+    case(
+        "three function bodies with the same shape fail",
+        {"a.py": THREE_COPIES},
+        ["[duplication] condition 1", "adjust repeats a 5-statement body", "settle", "refund"],
+    ),
+    case(
+        "two copies are a coincidence and pass",
+        {"a.py": TWO_COPIES},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "three copies of a four-statement body are under the floor and pass",
+        {"a.py": FOUR_STATEMENTS},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "the same statements wired to different names are three shapes, not one",
+        {"a.py": DIFFERENT_WIRING},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "copies spread across three files are still three copies",
+        {"a.py": SETTLE, "b.py": REFUND, "c.py": ADJUST},
+        ["[duplication] condition 1", "a.py:2", "b.py:2"],
+    ),
+    case(
+        "copies in one context's domain and adapters are counted together",
+        {"billing/domain/order.py": TWO_COPIES, "billing/adapters/store.py": ADJUST},
+        ["[duplication] condition 1", "inside the context 'billing'"],
+    ),
+    case(
+        "copies in two bounded contexts are two decisions that agree, and pass",
+        {"billing/domain/order.py": TWO_COPIES, "support/domain/ticket.py": ADJUST},
+        ["no failures"],
+        ok=True,
+    ),
+    # --- duplication, condition 2
+    case(
+        "three modules declaring the same table fail, whatever they call it",
+        {"a.py": STATUS_TABLE, "b.py": STATUS_TABLE, "c.py": RENAMED_TABLE},
+        ["[duplication] condition 2", "ORDER_STATES holds the same 3 entries", "STATUSES"],
+    ),
+    case(
+        "the same table in a call wrapper is the same table",
+        {"a.py": WRAPPED_TABLE, "b.py": WRAPPED_TABLE, "c.py": WRAPPED_TABLE},
+        ["[duplication] condition 2"],
+    ),
+    case(
+        "two modules declaring the same table pass",
+        {"a.py": STATUS_TABLE, "b.py": STATUS_TABLE},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a two-entry table repeated three times is under the floor and passes",
+        {"a.py": SHORTER_TABLE, "b.py": SHORTER_TABLE, "c.py": SHORTER_TABLE},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "three tables whose contents differ pass",
+        {"a.py": STATUS_TABLE, "b.py": RENAMED_TABLE, "c.py": OTHER_CONTENTS},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a table repeated across two bounded contexts passes",
+        {
+            "billing/domain/order.py": STATUS_TABLE,
+            "billing/adapters/store.py": STATUS_TABLE,
+            "support/domain/ticket.py": STATUS_TABLE,
+        },
+        ["no failures"],
+        ok=True,
     ),
     # --- the walk itself
     case(

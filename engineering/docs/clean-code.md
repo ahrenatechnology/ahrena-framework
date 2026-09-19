@@ -106,7 +106,7 @@ One true positive and zero false positives across 2,291 lines is the profile `do
 
 **This document does not teach clean code from scratch.** It assumes the reader knows roughly what the practice claims and needs to know what this framework will hold them to. Martin's *Clean Code* and Kernighan and Pike's *The Practice of Programming* are the sources behind the material here and neither is reproduced.
 
-**It does not cover duplication.** Duplication is the other half of what "clean code" usually means and it is a different question, decided by a different predicate: the rule of three, not a size threshold. `docs/simplicity.md` records that DRY has no artifact in this plugin yet and that it is where the next argument will be.
+**It does not cover duplication.** Duplication is the other half of what "clean code" usually means and it is a different question, decided by a different predicate: the rule of three, not a size threshold. `rules/duplication.md` states it and `docs/duplication.md` explains it, including the threshold measurement, which follows the method in this document and had to borrow a control corpus because the framework's own Python contains no duplicated bodies to place a floor against.
 
 **It carries no worked examples outside Python.** The three conditions are stated in language-neutral terms and the one shipped detector parses Python, because the Python standard library contains a Python parser and nothing else. Detectors for other languages belong with the plugins that may take a parser dependency.
 
