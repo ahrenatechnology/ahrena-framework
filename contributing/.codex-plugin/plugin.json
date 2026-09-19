@@ -1,0 +1,10 @@
+{
+  "name": "ahrena-contributing",
+  "version": "0.1.0",
+  "description": "Branch and commit conventions as decidable states: the issue number a branch name carries, the Conventional Commits subject a history can be read from, and the signature a commit object must hold.",
+  "author": { "name": "Ahrena Technology", "url": "https://github.com/ahrenatechnology" },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/contributing",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": ["git", "branch-naming", "conventional-commits", "signed-commits", "contributing"]
+}
