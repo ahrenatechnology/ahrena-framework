@@ -34,10 +34,17 @@ On `feat/foundation-core`, in PR #33. Eleven artifacts, gate green.
 | **D** | Context injection per platform | `hooks/session-context.py`, generated-block markers, `hooks/verify-instruction-freshness.py` | `ARCHITECTURE.md`, new files | C, and a measurement against Claude Code |
 | **E** | MCP transport hierarchy | `rules/mcp-transport.md` + doc | new files | which plugin owns it |
 | **K** | Specification, factory and domain service | `engineering/` | `engineering/` | nothing |
+| **L** | Argos, the pull-request reviewer | `engineering/agents/argos.md` + three skills | `engineering/` | nothing |
+| **M** | Publish Argos as a GitHub custom agent | `.github/agents/argos.agent.md` | `.github/`, `ARCHITECTURE.md`, `foundation/rules/naming.md` | L, and the extension conflict below |
+| **N** | Stacked pull requests | port of 6 predecessor artifacts, 1,523 lines | `engineering/` or a contributing plugin | **A and B** |
 
 Everything else in this table has landed: **F**, **G1** (SOLID, KISS, YAGNI), **G2** (clean code, value semantics, contract-first, cross-cutting concerns, pattern selection, domain model), **G3** (the `ahrena-engineering-python` plugin), **H** (duplication), **I** (aggregates and domain events) and **J** (the two clean-code findings in the foundation's own gate). Epic #5 is closed.
 
 K is what `docs/patterns.md` still names as absent after I. The plugin now states aggregate, entity, value object and domain event as conditions; specification, factory and domain service have no artifact.
+
+**N is the second round, and it cannot come first.** The six stacked-pull-request artifacts in the predecessor (`codex-stacked-prs` 271 lines, `kata-stacked-pr-create` 330, `kata-stacked-pr-merge` 320, `kata-stacked-pr-rebase` 237, `cry-new-stacked-pr` 44, `codex-git-spice` 321) consult nine rules from the contributing set: branch naming, conventional commits, commit language, small commits, signed commits, issue-first, issue quality, PR quality and protected trunk. None of those exist here yet. Building N before A and B means inventing the rules it rests on, which is how the predecessor ended up with a rule corpus nobody could trace.
+
+Argos extends into stacked pull requests in that round: a stack is a review subject with an order, and reviewing the third pull request in a stack without its two parents is a different procedure.
 
 ### What serializes, and what does not
 
@@ -56,6 +63,14 @@ K is what `docs/patterns.md` still names as absent after I. The plugin now state
 | The framework does not own MCP configuration | Four platforms already declare MCP servers in their own manifests. A framework key listing them is a fifth source of truth that can disagree with the four real ones |
 | Persona names are allowed on agents, and nowhere else | `name` is the handle, `role` is the subject |
 | References carry no verb | The pair of types already determines it |
+| MCP transport is ordered: remote HTTP, then a vendor binary, then npx, with Docker undecided | The predecessor already wrote this as `lex-mcp` section 5, with the same reasoning. The vendor-binary tier is the one worth recovering, because a binary needs no Node |
+| A hook whose tests are not in CI is not trusted | All three suites run in `validate.yml`, tests before the corpus check |
+
+There is a **fifth platform**, found on 2026-09-19 and not yet reflected in `ARCHITECTURE.md`, which still says four. GitHub custom agents are `.agent.md` files under `.github/agents/` in a repository, or under `/agents/` in the organisation's `.github` repository, and they run in Copilot's cloud agent on github.com — assigned to an issue, opening a pull request — as well as in several IDEs. Their frontmatter is `description` (required) plus `name`, `tools`, `model`, `target` and others, which our open schema for agents already accepts unchanged.
+
+Two things follow. The extension and directory conflict with `foundation/rules/naming.md`, which says an agent is `<plugin>/agents/<name>.md`; that is row M. And `AGENTS.md` gains a third consumer, since Copilot's coding agent reads it too, which strengthens the injection design in row D at no cost.
+
+Sources could not be read first-hand: `docs.github.com` is blocked by this environment's egress proxy, so the field list came from secondary sources and one of them disagrees about whether the organisation-level file carries the `.agent` infix. Confirm before building M.
 
 ## Open, and only the owner settles these
 
@@ -64,7 +79,10 @@ K is what `docs/patterns.md` still names as absent after I. The plugin now state
 3. **Does composition (#25) supersede the config file?** A layer that patches entries by id is a configuration mechanism. Deciding after both are built means building two.
 4. **Does a branch name require an issue number?** The predecessor demanded `{type}/{issue}-{slug}`. This repository's own `feat/foundation-core` would fail it. Blocks A.
 5. **Does `lex-mcp` survive?** Its third clause anchors on a `.directives` key that is being deleted. Without an anchor it becomes a maxim. Rewrite for third-party servers, or drop.
-6. **Which plugin owns the MCP transport rule?** It is not the self-hosting core. Foundation is the wrong home and no tooling plugin exists.
+6. **Which plugin owns the MCP transport rule?** It is not the self-hosting core. Foundation is the wrong home and no tooling plugin exists. When it is written, it needs a sentence the predecessor's version lacks: the order optimises for local resource cost, and remote-first means the data leaves the machine. On a codebase handling a client's accounting records that is the first question anyone asks, and the rule has to say which axis it optimises and where that inverts.
+7. **Do cross-plugin references get an addressing form now?** `pilars.md` said the question waits until a second plugin needs to reference the first. Two artifacts have now paid for its absence independently: `engineering-python/rules/module-boundaries.md` restates one line of SOLID's sixth condition in prose because it cannot link it, and `engineering/rules/duplication.md` names the same constraint from the other side, observing that a third plugin would turn `SKIP_DIRS` into a finding whose only fix is the shared module the no-dependency constraint forbids.
+8. **Does `enforcement` gain a third state?** It takes one value per rule today, so a rule whose conditions are partly mechanical cannot say so. `solid.md` hits it with two of six conditions scripted. `value-semantics.md` found a workaround — carry the judgment in the finding message, so it is delivered when the condition fires rather than in every request — which may be the answer, or may be a pattern that only works for gated conditions.
+9. **How does an agent published to GitHub stay in sync with its plugin copy?** Row M creates a second file for the same agent, in a different directory with a different extension. Generating one from the other makes it a derived file, which #23 wants fewer of; maintaining both by hand makes them drift.
 
 ## Not coming across
 
