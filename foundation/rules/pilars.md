@@ -46,15 +46,31 @@ Each of these is decided by `hooks/validate-artifacts.py`.
 4. Every path in `references` points at a type the matrix permits.
 5. Every relative markdown link in the body resolves to a file that exists.
 6. A rule declares `enforcement`, and when it declares `hook` the file named in `enforced-by` exists.
+7. A reference that crosses plugins names its target's plugin, and that plugin is one the marketplace lists.
+8. The plugin dependency graph those references form is acyclic.
 
-## References are plugin-relative
+## How a reference addresses its target
 
-A path in `references` is relative to the plugin root and may not escape it. `docs/artifact-model.md` is valid; `../other-plugin/docs/x.md` and `/foundation/docs/x.md` are not.
+**Inside one plugin, a reference is a path from the plugin root.** `docs/artifact-model.md` is valid; `/foundation/docs/x.md` and anything containing `..` are not. This is the ordinary case and it does not change.
 
-Cross-plugin references are not expressible today because there is one plugin. When a second plugin needs to reference this one, the addressing form is decided then, and this rule grows a sixth condition. It does not grow one now.
+**Across plugins, a reference is `<plugin>:<path>`.** `ahrena-engineering:docs/simplicity.md` names the plugin, then the same plugin-relative path. The plugin is named as the **marketplace** names it, not as its directory is spelled, because the marketplace name is the identity that survives installation — a consumer who installs two plugins gets whatever on-disk layout the platform chooses, and a relative path between them resolves only in this repository.
+
+Three things follow, and the gate decides all three. A qualified reference naming a plugin the marketplace does not list fails, because the edge points nowhere. A qualified reference into the artifact's own plugin fails, because one thing gets one spelling. And **the matrix above applies unchanged** — a rule may reference a doc in another plugin for exactly the reasons it may reference one in its own, and may not reference a rule in either.
+
+**Crossing plugins is a dependency, so the graph of them is acyclic.** Two plugins that reference each other cannot be installed one at a time and neither can be read first. Today `ahrena-engineering-python` depends on `ahrena-engineering`, which depends on `ahrena-foundation`, and nothing points back.
+
+## A body link is not a reference
+
+Condition 5 checks markdown links in the body, and it resolves them from the file rather than from the plugin root. A link into another plugin is therefore an ordinary relative path — `../../engineering/rules/solid.md` — and it works the way every other link works: it resolves on disk, it opens on GitHub, and the gate fails it when the target is renamed.
+
+This is the route for the case the matrix refuses. A rule may not *reference* another rule, in its own plugin or anywhere else, because a declared reference is a load edge and a rule that drags another rule into context has doubled the cost of both. Naming one in prose costs nothing and is already how `duplication.md` cites `yagni.md`. Crossing a plugin boundary changes the path and changes nothing else.
 
 ## Where this stops
 
 The matrix governs references, not mentions. A doc may discuss a skill in prose, name it and explain when it applies. What it may not do is put that skill in its `references` list, because that declares a dependency the hierarchy does not allow.
+
+**The gate validates a marketplace, not an installation.** It sees every plugin the catalogue lists and can therefore resolve every qualified reference. A consumer who installs `ahrena-engineering-python` and not `ahrena-engineering` has a dangling edge, and nothing here detects it — the installed set is the platform's business and this repository never sees it. Conditions 7 and 8 keep the catalogue coherent, which is the most a gate that runs before distribution can promise.
+
+**Nothing here orders the plugins.** Acyclic is the only shape required; no artifact declares a layer, and a plugin may reference any other it does not already sit downstream of. Three plugins do not justify a layering vocabulary, and the first time two of them disagree about which is lower is the moment to invent one.
 
 The rule also says nothing about whether the artifact is any good. A well-shaped artifact with wrong content passes every condition here.
