@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Detectors for the structural conditions in the engineering rules.
 
-Decides seventeen conditions stated in six rules:
+Decides nineteen conditions stated in seven rules:
 
     engineering/rules/solid.md
       1. a class whose LCOM4 exceeds 1
@@ -31,6 +31,10 @@ Decides seventeen conditions stated in six rules:
     engineering/rules/domain-model.md
       1. a module under domain/ importing a mechanism
       2. a name declared under domain/ carrying a vendor token
+
+    engineering/rules/duplication.md
+      1. a third function body carrying a shape two others already carry
+      2. a third module-level table carrying contents two others already carry
 
 The remaining conditions in rules/solid.md, rules/cross-cutting-concerns.md
 and rules/domain-model.md need a test run, a count across the tree or a
@@ -79,11 +83,16 @@ STATEMENT_MAX = 30
 # takes the measured number, which is one higher and fails nothing that exists.
 PARAMETER_MAX = 4
 
-# Fowler's Data Clumps is about three or more values that travel together, and
-# the rule of three is the arbitration this plugin already uses for the
-# discriminator chain in rules/solid.md. One mechanism, not two.
+# The arbitration this plugin uses everywhere a repetition has to become a
+# thing: the discriminator chain in rules/solid.md, the data clump below, the
+# boundary in rules/cross-cutting-concerns.md and both conditions in
+# rules/duplication.md. One mechanism, declared once, not four numbers that
+# happen to agree.
+RULE_OF_THREE = 3
+
+# Fowler's Data Clumps is about three or more values that travel together.
 CLUMP_MIN = 3
-CLUMP_OCCURRENCES = 3
+CLUMP_OCCURRENCES = RULE_OF_THREE
 
 SKIP_DIRS = frozenset(
     {
@@ -470,14 +479,14 @@ def check_flag_argument(src: Source, findings: list[Finding]) -> None:
 # --- rules/clean-code.md condition 1: function size ------------------------
 
 
-def _statement_count(fn: ast.AST) -> int:
-    """Statements in this function's body, not descending into nested defs.
+def body_statements(body: list[ast.stmt]) -> int:
+    """Statements in this body, not descending into nested defs.
 
     A nested function or class counts as one statement and is measured on its
     own, exactly as condition 1 of rules/kiss.md treats nesting depth.
     """
     count = 0
-    stack = [list(without_docstring(fn.body))]
+    stack = [list(body)]
     while stack:
         for node in stack.pop():
             count += 1
@@ -489,7 +498,7 @@ def _statement_count(fn: ast.AST) -> int:
 
 def check_length(src: Source, findings: list[Finding]) -> None:
     for fn in functions(src.tree):
-        count = _statement_count(fn)
+        count = body_statements(without_docstring(fn.body))
         if count > STATEMENT_MAX:
             findings.append(
                 Finding(
@@ -1031,6 +1040,225 @@ def check_domain_names(src: Source, findings: list[Finding]) -> None:
         )
 
 
+# --- rules/duplication.md conditions 1 and 2 -------------------------------
+
+# The smallest body the clone condition reports. Measured over 288,485 lines
+# of the CPython standard library: at four statements the detector first
+# groups three unrelated constructors (argparse, difflib, doctest) that each
+# assign four parameters to four fields, and at five and above every group in
+# that corpus is a genuine repetition. docs/duplication.md carries the counts.
+CLONE_MIN_STATEMENTS = 5
+
+# Fowler's three-or-more again, this time over a table's entries. Below it the
+# detector reports [], {}, () and ['Popen'] — five of the seven groups it
+# finds in the same corpus, and none of the two worth having.
+TABLE_MIN_ENTRIES = 3
+
+COLLECTION_NODES: tuple[type, ...] = (ast.List, ast.Set, ast.Tuple, ast.Dict)
+
+# A bounded context is a directory, as rules/domain-model.md declares, and
+# these are the layer names that mark one. The directory above the first of
+# them is the context a file belongs to.
+CONTEXT_LAYERS = MECHANISM_DIRS | {DOMAIN_DIR, "application"}
+
+# The fields that carry a declared identifier rather than structure. Renaming
+# these consistently is what makes two bodies one shape when one is the other
+# with different names.
+IDENTIFIER_FIELDS: dict[type, tuple[str, ...]] = {
+    ast.Name: ("id",),
+    ast.Attribute: ("attr",),
+    ast.arg: ("arg",),
+    ast.keyword: ("arg",),
+    ast.alias: ("name", "asname"),
+    ast.ExceptHandler: ("name",),
+    ast.Global: ("names",),
+    ast.Nonlocal: ("names",),
+    ast.FunctionDef: ("name",),
+    ast.AsyncFunctionDef: ("name",),
+    ast.ClassDef: ("name",),
+}
+
+
+@dataclass
+class Copy:
+    path: str
+    line: int
+    what: str  # the function, or the names the table is bound to
+    size: int  # statements for a body, entries for a table
+
+    @property
+    def where(self) -> str:
+        return f"{self.path}:{self.line}"
+
+
+class Shape:
+    """A body's structure, with its identifiers and its literals renamed.
+
+    Two bodies have one shape when either can be obtained from the other by
+    renaming. The renaming is consistent rather than blanket: the first
+    distinct name becomes n0 and the second n1, so `a + b` and `a + a` stay
+    different shapes and only a real copy collides.
+    """
+
+    def __init__(self) -> None:
+        self.names: dict[str, str] = {}
+        self.literals: dict[str, str] = {}
+        self.parts: list[str] = []
+
+    def emit(self, node: ast.AST) -> None:
+        if isinstance(node, ast.Constant):
+            kind = type(node.value).__name__
+            key = f"{kind}:{node.value!r}"
+            self.parts.append(self.literals.setdefault(key, f"{kind}{len(self.literals)}"))
+            return
+        self.parts.append(type(node).__name__ + "(")
+        identifiers = IDENTIFIER_FIELDS.get(type(node), ())
+        for field, value in ast.iter_fields(node):
+            self.emit_value(value, identifiers, field)
+            self.parts.append(",")
+        self.parts.append(")")
+
+    def emit_value(self, value: object, identifiers: tuple[str, ...], field: str) -> None:
+        if field in identifiers and isinstance(value, str):
+            self.parts.append(self.names.setdefault(value, f"n{len(self.names)}"))
+        elif isinstance(value, ast.AST):
+            self.emit(value)
+        elif isinstance(value, list):
+            for item in value:
+                self.emit_value(item, identifiers, field)
+        else:
+            self.parts.append(repr(value))
+
+
+def shape_of(body: list[ast.stmt]) -> str:
+    shape = Shape()
+    for stmt in body:
+        shape.emit(stmt)
+    return "".join(shape.parts)
+
+
+def context_of(rel: str) -> str:
+    """The bounded context a file sits in: the directory above its layer.
+
+    A tree with none of the layer directories is one context, which is the
+    right answer for a codebase that has not drawn any: everything in it is
+    one model, so every copy in it counts against every other.
+    """
+    parts = Path(rel).parts
+    for index, part in enumerate(parts):
+        if part in CONTEXT_LAYERS:
+            return "/".join(parts[:index])
+    return ""
+
+
+def _bodies(sources: list[Source]) -> dict[tuple[str, str], list[Copy]]:
+    """Function bodies at or over the floor, grouped by context and shape."""
+    found: dict[tuple[str, str], list[Copy]] = {}
+    for src in sources:
+        context = context_of(src.rel)
+        for fn in functions(src.tree):
+            body = without_docstring(fn.body)
+            size = body_statements(body)
+            if size < CLONE_MIN_STATEMENTS:
+                continue
+            found.setdefault((context, shape_of(body)), []).append(
+                Copy(src.rel, fn.lineno, fn.name, size)
+            )
+    return found
+
+
+def _entries(node: ast.expr) -> list:
+    return node.keys if isinstance(node, ast.Dict) else node.elts
+
+
+def _table(node: ast.stmt) -> ast.expr | None:
+    """The literal collection this module-level assignment binds, if any.
+
+    A single-argument call around one counts, because `frozenset({...})` and
+    `tuple([...])` are the same table wearing the constructor that makes it
+    immutable, which is what condition 3 of rules/value-semantics.md asks for.
+    """
+    value = node.value if isinstance(node, (ast.Assign, ast.AnnAssign)) else None
+    if isinstance(value, ast.Call) and len(value.args) == 1 and not value.keywords:
+        value = value.args[0]
+    if not isinstance(value, COLLECTION_NODES):
+        return None
+    return value if len(_entries(value)) >= TABLE_MIN_ENTRIES else None
+
+
+def _bound_to(node: ast.stmt) -> str:
+    targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+    return ", ".join(base_name(target) for target in targets) or "a table"
+
+
+def _tables(sources: list[Source]) -> dict[tuple[str, str], list[Copy]]:
+    """Module-level literal tables, grouped by context and by contents."""
+    found: dict[tuple[str, str], list[Copy]] = {}
+    for src in sources:
+        context = context_of(src.rel)
+        for node in getattr(src.tree, "body", []):
+            table = _table(node)
+            if table is None:
+                continue
+            found.setdefault((context, ast.dump(table)), []).append(
+                Copy(src.rel, node.lineno, _bound_to(node), len(_entries(table)))
+            )
+    return found
+
+
+def _duplicates(groups: dict[tuple[str, str], list[Copy]]) -> list[tuple[str, list[Copy]]]:
+    """The groups that reached the rule of three, each ordered and with its context."""
+    reached = []
+    for (context, _), copies in sorted(groups.items()):
+        if len(copies) >= RULE_OF_THREE:
+            reached.append((context, sorted(copies, key=lambda copy: (copy.path, copy.line))))
+    return reached
+
+
+def _inside(context: str) -> str:
+    return f" inside the context '{context}'" if context else ""
+
+
+def _listed(copies: list[Copy]) -> str:
+    return "; ".join(f"{copy.what} at {copy.where}" for copy in copies)
+
+
+def sweep_duplicate_bodies(sources: list[Source], findings: list[Finding]) -> None:
+    for context, copies in _duplicates(_bodies(sources)):
+        last = copies[-1]
+        findings.append(
+            Finding(
+                last.where,
+                "duplication",
+                1,
+                f"{last.what} repeats a {last.size}-statement body that "
+                f"{len(copies) - 1} other functions already carry{_inside(context)} "
+                f"({_listed(copies[:-1])}); three copies is one decision written three "
+                "times. Collapse them and parameterise what differs; being the third "
+                "occurrence this already satisfies the abstraction trigger in "
+                "rules/yagni.md, and a base class raised to hold the common part is "
+                "more structure than the duplication it removes",
+            )
+        )
+
+
+def sweep_duplicate_tables(sources: list[Source], findings: list[Finding]) -> None:
+    for context, copies in _duplicates(_tables(sources)):
+        last = copies[-1]
+        findings.append(
+            Finding(
+                last.where,
+                "duplication",
+                2,
+                f"{last.what} holds the same {last.size} entries as "
+                f"{len(copies) - 1} other module-level tables{_inside(context)} "
+                f"({_listed(copies[:-1])}); the names differ and the contents are the "
+                "duplicate. Declare it once and import it. A name is not an "
+                "abstraction, so the trigger in rules/yagni.md does not gate this fix",
+            )
+        )
+
+
 CHECKS = (
     check_cohesion,
     check_unimplemented,
@@ -1048,6 +1276,14 @@ CHECKS = (
     check_inline_timer,
     check_domain_imports,
     check_domain_names,
+)
+
+# A check reads one file. A sweep reads every file the run was given at once,
+# because a copy that stays in one module is the rarer and the cheaper half of
+# duplication: the expensive one is the body pasted into the next package.
+SWEEPS = (
+    sweep_duplicate_bodies,
+    sweep_duplicate_tables,
 )
 
 
@@ -1099,7 +1335,7 @@ def main(argv: list[str]) -> int:
     roots = [Path(a).resolve() for a in argv[1:]] or [Path.cwd()]
     base = Path.cwd()
     findings: list[Finding] = []
-    checked = 0
+    parsed: list[Source] = []
     unparsed = 0
 
     for path in sources(roots):
@@ -1109,9 +1345,12 @@ def main(argv: list[str]) -> int:
             continue
         for check in CHECKS:
             check(source, findings)
-        checked += 1
+        parsed.append(source)
 
-    return report(findings, checked, unparsed)
+    for sweep in SWEEPS:
+        sweep(parsed, findings)
+
+    return report(findings, len(parsed), unparsed)
 
 
 if __name__ == "__main__":

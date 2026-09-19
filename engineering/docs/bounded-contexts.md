@@ -105,10 +105,10 @@ What backs them is the fixture suite, which pins each condition in both directio
 
 ## Where this stops
 
-**This document does not teach DDD.** Context mapping, the strategic patterns, ubiquitous language as a practice and the tactical vocabulary beyond aggregate and entity are all assumed rather than taught. Evans' *Domain-Driven Design* and Vernon's *Implementing Domain-Driven Design* are the sources.
+**This document does not teach DDD.** Context mapping, the strategic patterns and ubiquitous language as a practice are assumed rather than taught. Evans' *Domain-Driven Design* and Vernon's *Implementing Domain-Driven Design* are the sources. The tactical vocabulary this plugin does state — where the consistency boundary falls, what may cross it and what an event carries — is `rules/aggregates.md`, with `docs/aggregates.md` behind it; this document covers the layout the context sits in and the contract an entity owes.
 
 **It does not decide how contexts integrate.** Shared kernel, customer-supplier, conformist, published language and the rest are the question of what happens between two contexts, and the rule says only that a context does not reach into another's internals. The integration patterns are a strategic decision per pair, and this plugin has no basis to pick one.
 
-**It does not cover events as a modelling device.** Domain events are how most of these contexts would communicate, and their shape on the wire is `rules/contract-first.md`'s subject while their place in the model is not covered anywhere yet.
+**It does not cover events as a modelling device.** Domain events are how most of these contexts would communicate. Their place in the model — what an event carries, and why it is inseparable from the boundary it leaves — is now `rules/aggregates.md`; their shape on the wire remains `rules/contract-first.md`'s subject; and what happens to one when it crosses from this context into another is the integration question the previous paragraph declines.
 
 **It says nothing about how big a context should be.** That is the question everyone asks first and it has no threshold. A context is as large as one model that holds, and finding the seam is done by listening to where the same word starts meaning two things — which is why the practice is a conversation and not a metric.
