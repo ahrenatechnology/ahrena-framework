@@ -12,6 +12,7 @@ Usage:
 
 from __future__ import annotations
 
+import importlib.util
 import subprocess
 import sys
 import tempfile
@@ -998,7 +999,11 @@ ARGS = "@args"
 CONFIG = "@config"
 COMMITTED = "@committed"
 DIVERGED = "@diverged"
-RESERVED = (BASELINE, ARGS, CONFIG, COMMITTED, DIVERGED)
+# CHECK is the sixth, and the one that is not about a tree: it holds a callable
+# that inspects the hook directly and returns the same `(code, output)` pair a
+# run does, for the one property below that no repository can demonstrate.
+CHECK = "@check"
+RESERVED = (BASELINE, ARGS, CONFIG, COMMITTED, DIVERGED, CHECK)
 
 # The staged diff: what a pre-commit hook has, and the reason the condition
 # works locally rather than only in CI. Then the two forms the rule's own prose
@@ -1016,32 +1021,74 @@ COLOURED = [("color.diff", "always")]
 EXTERNAL_DRIVER = [("diff.external", "/bin/true")]
 NO_PREFIX = [("diff.noprefix", "true")]
 
-# A tree large enough that one pathspec argument per walked file is an argument
-# list the kernel refuses. The limit is on the total bytes of the list, not on
-# the file count, so the paths are long as well as many — a real checkout's are.
-#
-# The shape is bounded by the *other* limit, and the two pull against each
-# other. A path must stay under PATH_MAX, which is 1024 on macOS against Linux's
-# 4096, and that ceiling counts the whole path including the temporary root. An
-# earlier version of this case stacked twelve 200-character components: 2,436
-# characters, fine on Linux, and `[Errno 63] File name too long` on macOS before
-# the case could assert anything. So depth buys nothing here and width is spent
-# where it is safe.
-#
-# CROWD * (len(LONG_PATH) + the filename) is the argv, and at these numbers that
-# is about 4 MB — past Linux's ~2 MiB and past macOS's ~1 MiB, so the case fires
-# on both. Building the tree costs a few seconds, which is why it is one case.
-CROWD = 8000
-LONG_PATH = "/".join(f"d{level}" + "x" * 140 for level in range(3))
-
 GIT_IDENTITY = ("-c", "user.email=gate@example.invalid", "-c", "user.name=gate")
 
+# --- the one property no repository can demonstrate ------------------------
 
-def crowd(first: str) -> dict[str, str]:
-    """`CROWD` walked files under long paths, the first of them holding `first`."""
-    tree = {f"{LONG_PATH}/f{n:05d}.py": "value = 1\n" for n in range(CROWD)}
-    tree[f"{LONG_PATH}/f00000.py"] = first
-    return tree
+# A walk this large is free here, because nothing is written and git is never
+# run. The ceiling is generous: the pinned command is eleven arguments and this
+# leaves room for another option, since what is being pinned is that the count
+# does not scale with the walk, not what the count happens to be today.
+WALKED = 20000
+COMMAND_MAX = 16
+HOOK_SPEC = importlib.util.spec_from_file_location("check_structure", HOOK)
+
+
+class Answers:
+    """Stands in for the subprocess module, and remembers what git was asked."""
+
+    def __init__(self, top: Path) -> None:
+        self.asked: list[list[str]] = []
+        self.top = top
+
+    def run(self, args: list[str], **named) -> subprocess.CompletedProcess:
+        self.asked.append(args)
+        reply = f"{self.top}\n" if "rev-parse" in args else ""
+        if named.get("text"):
+            return subprocess.CompletedProcess(args, 0, reply, "")
+        return subprocess.CompletedProcess(args, 0, reply.encode(), b"")
+
+
+def command_does_not_grow() -> tuple[int, str]:
+    """The diff command is one length, whatever size the walk handed it.
+
+    A pathspec argument per walked file is an argument list the kernel refuses
+    past a few thousand files, which kills all twenty conditions on a repository
+    whose only fault is being large. The fix drops the pathspec, because the
+    walk has already chosen the files; that is asserted here directly rather
+    than by reaching the kernel's refusal, and the reason is worth writing down.
+
+    Reaching the refusal was tried twice and is not portably reachable. The
+    first shape built twelve directories of 200 characters, because filling an
+    argument list wants long paths; it passed on Linux and died in its own
+    fixture with ENAMETOOLONG on macOS, whose PATH_MAX is 1024 against Linux's
+    4096. The second spent the width where PATH_MAX allows it and reached about
+    4 MB of argv, which does fire on both of today's runners.
+
+    It is the second shape that settles it, because the threshold it clears is
+    not fixed. On Linux the limit is `RLIMIT_STACK / 4`: measured on one
+    ordinary machine, 1.97 MiB at the default 8MB stack, 3.96 MiB at
+    `ulimit -s 16384`, and 5.94 MiB from 64MB up. So a 4 MB case reports `ok`,
+    having tested nothing, for anyone whose stack limit is raised — one shell
+    builtin — and a case that could not be fooled needs 6 MiB of pathspec,
+    which is some 7,000 files at the longest path macOS will hold, to test the
+    kernel rather than the hook. The threshold is a property of the machine.
+    The code's own property is pinned instead, and git is stood in for, so
+    nothing here touches a repository or the configuration of the box either.
+    """
+    hook = importlib.util.module_from_spec(HOOK_SPEC)
+    # Registered before it is executed, because @dataclass resolves a field's
+    # annotation through sys.modules and the hook declares one.
+    sys.modules[HOOK_SPEC.name] = hook
+    HOOK_SPEC.loader.exec_module(hook)
+    top = Path.cwd().resolve()
+    answers = Answers(top)
+    hook.subprocess = answers
+    hook.scoped("--cached", [top / f"f{n:05d}.py" for n in range(WALKED)])
+    diff = [asked for asked in answers.asked if "diff" in asked][-1]
+    if len(diff) > COMMAND_MAX:
+        return 1, f"the command grew with the walk: {len(diff)} arguments for {WALKED} file(s)"
+    return 0, f"{len(diff)} argument(s) for {WALKED} walked file(s): {' '.join(diff)}"
 
 
 def case(name: str, files: dict, expect: list[str], ok: bool = False) -> tuple:
@@ -1622,9 +1669,15 @@ CASES = [
         ["3 failure(s) across 3 file(s)", *QUOTED_NAMES],
     ),
     case(
-        "a tree too large for one pathspec per file is still scoped",
-        {BASELINE: crowd("value = 1\n"), ARGS: STAGED, **crowd(ADDS_A_MARKER)},
-        [f"1 failure(s) across {CROWD} file(s)", "added by this very change"],
+        "the diff command does not grow with the walk",
+        {CHECK: command_does_not_grow},
+        [f"argument(s) for {WALKED} walked file(s)", "--cached", "--no-color", "--unified=0"],
+        ok=True,
+    ),
+    case(
+        "a walked path outside the repository is refused, not scoped to nothing",
+        {BASELINE: {"a.py": CLEAN}, ARGS: ["--changed", "--cached", ".", str(HOOK)]},
+        ["--changed:", "lies outside the repository"],
     ),
     case(
         "an unresolved merge is reported, not passed over",
@@ -1755,6 +1808,9 @@ def invoke(root: Path, argv: list[str]) -> tuple[int, str]:
 
 
 def run(files: dict) -> tuple[int, str]:
+    check = files.get(CHECK)
+    if check is not None:
+        return check()
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         if BASELINE in files:
