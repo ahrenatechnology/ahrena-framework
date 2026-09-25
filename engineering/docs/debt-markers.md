@@ -4,7 +4,7 @@ type: doc
 clade: engineering
 subclade: quality
 title: Why a deferral has to name a number
-summary: Why the reference must be an issue number rather than something trackable, what the detector is handed and why the change is an input rather than an inference, the tangential-finding protocol that replaces the marker, and the two trees the framework's two marker rules govern.
+summary: Why the reference must be an issue number rather than something trackable, what the detector is handed and why the change is an input rather than an inference, why the diff it reads is pinned and parsed as a hostile input, the tangential-finding protocol that replaces the marker, and the two trees the framework's two marker rules govern.
 references:
   - rules/debt-markers.md
   - docs/review-findings.md
@@ -39,13 +39,17 @@ The condition is prospective; the hook that decides it is not, on its own, and t
 
 `hooks/check-structure.py` is invoked with paths. It resolves them, walks directories for `*.py`, parses each file, and hands each check a parsed file. Nineteen of its twenty conditions want exactly that, because their subject is a file. This one's subject is a change, and nothing in a path, a file or a parse tree says which lines a change wrote. The hook cannot infer it, and a hook that tried — by file modification time, by walking history and guessing, by comparing against a cached previous run — would be wrong in a way nobody could predict from reading it.
 
-So the change is an input. `--changed <spec>` hands the spec to `git diff --unified=0`, the hook reads the `+` side of every hunk header, and the marker condition is decided over those line numbers and no others. Two things follow that are worth naming.
+So the change is an input. `--changed <spec>` hands the spec to `git diff --unified=0`, the hook reads the `+` side of every hunk header, and the marker condition is decided over those line numbers and no others. Four things follow that are worth naming.
 
 **It works in both places it has to work.** `--changed --cached` is the staged diff, which is what a pre-commit hook holds; `--changed origin/main...HEAD` is a pull request's change, which is what CI holds. The same hook, the same flag, the same answer. The failure this avoids is a condition implemented as a CI-only step, where a local run silently passes and the author discovers the gate after pushing — the arrangement that teaches people the gate is somebody else's problem.
 
 **The default is every line, not no lines.** With no `--changed`, the hook has no change and scopes the condition to everything it was handed. Defaulting the other way would be tidier for an adopting repository and would mean that any invocation that forgot the flag reported a clean tree, which is a gate that passes by seeing nothing. The repository's own workflow already carries that lesson in the comment explaining why it fetches full history rather than a shallow clone: an empty range is not a green gate, it is an unasked question.
 
-The two remaining limits of the git route are stated rather than worked around. A file git does not report as changed is out of scope, so an untracked file is invisible under `--changed`, and a path spelled in a way git quotes in its diff header is not matched. Both are properties of the input; neither is a judgment the detector is making.
+**A diff is a hostile input, and the invocation is pinned because of it.** The output of `git diff` is not a fixed format: `color.diff` wraps every row in escape sequences, `diff.external` and `GIT_EXTERNAL_DIFF` replace the patch with whatever another program prints, a textconv filter rewrites the content, and `diff.noprefix` drops the `a/` and `b/` a naive reader chops off the front of the path. Each of those is an ordinary setting on somebody's machine, and every one of them ends with the condition scoped to nothing or scoped to the wrong file while the run exits 0. So the run pins colour off, external and textconv drivers off, both prefixes and the context width, and it pins them after the caller's spec because git lets a later flag win. The patch is then decoded leniently rather than strictly, because a diff carries whatever bytes the changed files carry and a strict decode ends the run in a traceback that CI reads as a finding.
+
+**The parser does not trust the patch body either.** Under `--unified=0` an added line is rendered with a single `+`, so a source line whose own text begins `++ ` arrives as `+++ ` — indistinguishable, to a reader scanning for the next file header, from the real thing. A file carrying diff fixtures has such a line, and this hook's own test suite is one. Read as a header it re-points the scope at a path lifted out of somebody's source, which hides every later marker in the file that really changed and reports one in a file the change never opened. The answer is structural rather than a heuristic: a `+++ ` row counts only straight after the matching `--- ` row, and each hunk's body is consumed by the counts the header declares rather than scanned past. The path is then unquoted, because git C-quotes a name holding a double quote or a backslash whatever `core.quotePath` says, and a marker that hid behind a filename would be a marker the gate can never see.
+
+The one remaining limit of the git route is stated rather than worked around. A file git does not report as changed is out of scope, so a file that has never been added is invisible under `--changed <rev>` — it is in scope under `--changed --cached` the moment it is staged, which is where a pre-commit hook meets it. That is a property of the input, not a judgment the detector is making.
 
 ## The tangential-finding protocol
 

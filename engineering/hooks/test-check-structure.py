@@ -918,26 +918,121 @@ ADDS_A_MARKER = CLEAN + '''
 # TODO: added by this very change
 '''
 
+DOUBLE_BACKTICKS = '''
+# a ``TODO`` fenced in a pair of backticks is prose about markers too
+value = 1
+'''
+
+SPACED_REFERENCE = '''
+# TODO (#1): the reference has to touch the marker
+value = 1
+'''
+
 BROKEN = "def unclosed(:\n"
 
-# Two reserved keys in a case's file map. BASELINE holds the tree that is
+# --- what the diff can carry that the scope must survive -------------------
+
+# A Python file holding diff fixtures, which is what this suite is. Two of its
+# lines begin `++ `, and under --unified=0 an added line renders with a single
+# `+`, so each reaches the hook's parser as `+++ `. The padding is what puts the
+# marker in a second hunk: a hunk's range is declared before its body is read,
+# so only a later hunk can be re-pointed by a body row read as a header.
+#
+# The two rows are written out rather than escaped, so that this file carries
+# the shape it is about: the diff of the commit that added these lines has
+# `+++ b/decoy.py` in its body, and the hook run over its own change is the
+# first thing that would have caught the defect.
+PADDING = "".join(f"pad_{n} = {n}\n" for n in range(12))
+BEFORE_THE_FIXTURE = "value = 1\n" + PADDING
+DECOY_ROWS = '''\
+-- a/decoy.py
+++ b/decoy.py
+'''
+VICTIM_ROW = '''\
+++ b/victim.py
+'''
+OPENS_A_STRING = 'value = 1\nSAMPLE = """\n'
+DIFF_FIXTURE = (
+    OPENS_A_STRING
+    + DECOY_ROWS
+    + '"""\n'
+    + PADDING
+    + "# TODO: the marker a body row read as a header would hide\n"
+)
+NAMES_ANOTHER_FILE = OPENS_A_STRING + VICTIM_ROW + '"""\n' + PADDING + "extra = 2\n"
+# Line 17 is where the change's second hunk lands, so a parser that let the
+# `++ b/victim.py` row re-point the scope reports this line of this file.
+UNTOUCHED_VICTIM = "".join(f"pad_{n} = {n}\n" for n in range(16)) + (
+    "# TODO: pre-existing, and this change never opened the file\n"
+)
+
+# One byte the UTF-8 codec rejects. Decoded strictly it ends the run in a
+# traceback with an exit code CI cannot tell from a finding, and takes the other
+# nineteen conditions with it; without --changed the same file is skipped by
+# name and the run completes, so the strict decode was a regression.
+LATIN_1 = "# café, written in latin-1\nvalue = 1\n".encode("latin-1")
+
+# Three names git C-quotes in a diff header. core.quotePath reaches only the
+# first; a backslash and a double quote are quoted whatever it says, so a hook
+# that did not undo the quoting would be permanently blind to those two. The
+# non-ASCII name uses a letter with no canonical decomposition, so a filesystem
+# that normalises does not hand the walk a different spelling than git recorded.
+QUOTED_NAMES = ("straße.py", "back\\slash.py", 'quote".py')
+
+# --- how a case describes the repository the hook meets --------------------
+
+# Five reserved keys in a case's file map. BASELINE holds the tree that is
 # committed first; the rest of the map is then written over it and staged, so
 # the hook meets a repository with a real change in it. ARGS is the argv the
 # hook is invoked with, the path included, which is how a scoped case names the
-# change and how a malformed invocation is pinned. Keeping both inside the map
-# leaves `case` at four parameters, which is the cap condition 1 of
+# change and how a malformed invocation is pinned. CONFIG is git configuration
+# set on the fixture, because the tmpdir inherits the developer's global one and
+# a case that relied on that would pass or fail by machine. COMMITTED commits
+# the change as well as staging it, which is what a revision or a range needs to
+# have something to reach. DIVERGED commits a conflicting tree on another branch
+# and merges it back, leaving the repository mid-merge. Keeping all five inside
+# the map leaves `case` at four parameters, which is the cap condition 1 of
 # rules/value-semantics.md sets and this suite's own subject.
 BASELINE = "@baseline"
 ARGS = "@args"
+CONFIG = "@config"
+COMMITTED = "@committed"
+DIVERGED = "@diverged"
+RESERVED = (BASELINE, ARGS, CONFIG, COMMITTED, DIVERGED)
 
 # The staged diff: what a pre-commit hook has, and the reason the condition
-# works locally rather than only in CI.
+# works locally rather than only in CI. Then the two forms the rule's own prose
+# recommends for a pull request: a revision, and the three-dot range against the
+# commit the change branched from. `base` is the tag the fixture leaves there.
 STAGED = ["--changed", "--cached", "."]
+REVISION = ["--changed", "HEAD~1", "."]
+RANGE = ["--changed", "base...HEAD", "."]
+
+# Three ordinary git configurations. Each one empties or mis-points the scope of
+# an unpinned diff while the run still exits 0 — colour escapes stop the header
+# and hunk patterns matching, a replacement driver prints something else
+# entirely, and a dropped prefix turns `abc.py` into `c.py`.
+COLOURED = [("color.diff", "always")]
+EXTERNAL_DRIVER = [("diff.external", "/bin/true")]
+NO_PREFIX = [("diff.noprefix", "true")]
+
+# A tree large enough that one pathspec argument per walked file is an argument
+# list the kernel refuses. The paths are nested deep on purpose: the limit is on
+# the total size of the list, and a real checkout's paths are long.
+CROWD = 2000
+LONG_PATH = "/".join(f"d{level}" + "x" * 200 for level in range(12))
 
 GIT_IDENTITY = ("-c", "user.email=gate@example.invalid", "-c", "user.name=gate")
 
 
-def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) -> tuple:
+def crowd(first: str) -> dict[str, str]:
+    """`CROWD` walked files under long paths, the first of them holding `first`."""
+    tree = {f"{LONG_PATH}/f{n:05d}.py": "value = 1\n" for n in range(CROWD)}
+    tree[f"{LONG_PATH}/f00000.py"] = first
+    return tree
+
+
+def case(name: str, files: dict, expect: list[str], ok: bool = False) -> tuple:
     return (name, files, expect, ok)
 
 
@@ -1411,6 +1506,17 @@ CASES = [
         ["[debt-markers] condition 1", "leaves FIXME"],
     ),
     case("zero is not an issue number", {"a.py": ZERO_ISSUE}, ["[debt-markers] condition 1"]),
+    case(
+        "a marker fenced in a pair of backticks is prose about markers too",
+        {"a.py": DOUBLE_BACKTICKS},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "the message says the reference has to touch the marker",
+        {"a.py": SPACED_REFERENCE},
+        ["[debt-markers] condition 1", "nothing between the marker and the bracket"],
+    ),
     # --- debt-markers, condition 1, scoped to a change
     case(
         "a marker the change did not touch is out of scope",
@@ -1434,6 +1540,92 @@ CASES = [
         ["[kiss] condition 1", "sweep nests control flow 4 deep"],
     ),
     case(
+        "a revision reaches the change committed against it",
+        {BASELINE: {"a.py": CLEAN}, ARGS: REVISION, COMMITTED: True, "a.py": ADDS_A_MARKER},
+        ["[debt-markers] condition 1", "added by this very change"],
+    ),
+    case(
+        "a three-dot range reaches a pull request's own change",
+        {BASELINE: {"a.py": CLEAN}, ARGS: RANGE, COMMITTED: True, "a.py": ADDS_A_MARKER},
+        ["[debt-markers] condition 1", "added by this very change"],
+    ),
+    case(
+        "a marker a range does not reach stays out of scope",
+        {BASELINE: {"a.py": UNTRACKED_LINE}, ARGS: RANGE, COMMITTED: True, "b.py": CLEAN},
+        ["2 file(s), no failures"],
+        ok=True,
+    ),
+    # --- debt-markers, condition 1: what the diff itself can carry
+    case(
+        "a source line beginning '++ ' is not a file header",
+        {BASELINE: {"a.py": BEFORE_THE_FIXTURE}, ARGS: STAGED, "a.py": DIFF_FIXTURE},
+        ["[debt-markers] condition 1", "a.py:18", "a body row read as a header would hide"],
+    ),
+    case(
+        "a '++ ' line does not blame a file the change never opened",
+        {
+            BASELINE: {"a.py": BEFORE_THE_FIXTURE, "victim.py": UNTOUCHED_VICTIM},
+            ARGS: STAGED,
+            "a.py": NAMES_ANOTHER_FILE,
+        },
+        ["2 file(s), no failures"],
+        ok=True,
+    ),
+    case(
+        "a coloured diff does not empty the scope",
+        {BASELINE: {"a.py": CLEAN}, ARGS: STAGED, CONFIG: COLOURED, "a.py": ADDS_A_MARKER},
+        ["[debt-markers] condition 1", "added by this very change"],
+    ),
+    case(
+        "an external diff driver does not empty the scope",
+        {BASELINE: {"a.py": CLEAN}, ARGS: STAGED, CONFIG: EXTERNAL_DRIVER, "a.py": ADDS_A_MARKER},
+        ["[debt-markers] condition 1", "added by this very change"],
+    ),
+    case(
+        "a diff with no path prefix still names the file it changed",
+        {BASELINE: {"abc.py": CLEAN}, ARGS: STAGED, CONFIG: NO_PREFIX, "abc.py": ADDS_A_MARKER},
+        ["[debt-markers] condition 1", "abc.py:", "added by this very change"],
+    ),
+    case(
+        "a byte the codec rejects skips one file, it does not end the run",
+        {
+            BASELINE: {"a.py": CLEAN, "latin.py": "value = 1\n"},
+            ARGS: STAGED,
+            "a.py": ADDS_A_MARKER,
+            "latin.py": LATIN_1,
+        },
+        [
+            "1 failure(s) across 1 file(s) (1 skipped)",
+            "added by this very change",
+            "skipped, this interpreter cannot parse it",
+        ],
+    ),
+    case(
+        "a marker behind a name git quotes is still in scope",
+        {
+            BASELINE: {name: CLEAN for name in QUOTED_NAMES},
+            ARGS: STAGED,
+            **{name: ADDS_A_MARKER for name in QUOTED_NAMES},
+        },
+        ["3 failure(s) across 3 file(s)", *QUOTED_NAMES],
+    ),
+    case(
+        "a tree too large for one pathspec per file is still scoped",
+        {BASELINE: crowd("value = 1\n"), ARGS: STAGED, **crowd(ADDS_A_MARKER)},
+        [f"1 failure(s) across {CROWD} file(s)", "added by this very change"],
+    ),
+    case(
+        "an unresolved merge is reported, not passed over",
+        {
+            BASELINE: {"a.py": CLEAN, "b.py": "value = 1\n"},
+            ARGS: STAGED,
+            DIVERGED: {"a.py": "conflicting = 1\n"},
+            "a.py": "value = 2\n",
+            "b.py": "value = 1\n# TODO: added beside the conflict\n",
+        },
+        ["--changed:", "unresolved merge"],
+    ),
+    case(
         "--changed with no revision is an error, not a pass",
         {ARGS: ["--changed"], "a.py": UNTRACKED_LINE},
         ["needs a revision or range"],
@@ -1442,6 +1634,26 @@ CASES = [
         "--changed outside a repository is an error, not a pass",
         {ARGS: ["--changed", "HEAD", "."], "a.py": UNTRACKED_LINE},
         ["--changed:"],
+    ),
+    case(
+        "--changed --name-only is refused, not read as a clean tree",
+        {BASELINE: {"a.py": CLEAN}, ARGS: ["--changed", "--name-only", "."], "a.py": ADDS_A_MARKER},
+        ["is not a revision or range", "--cached and --staged"],
+    ),
+    case(
+        "--changed --quiet is refused, not read as a clean tree",
+        {BASELINE: {"a.py": CLEAN}, ARGS: ["--changed", "--quiet", "."], "a.py": ADDS_A_MARKER},
+        ["is not a revision or range"],
+    ),
+    case(
+        "--changed -U5 is refused, so the context cannot be widened",
+        {BASELINE: {"a.py": CLEAN}, ARGS: ["--changed", "-U5", "."], "a.py": ADDS_A_MARKER},
+        ["is not a revision or range"],
+    ),
+    case(
+        "--changed --staged is the other spelling of the staged diff",
+        {BASELINE: {"a.py": CLEAN}, ARGS: ["--changed", "--staged", "."], "a.py": ADDS_A_MARKER},
+        ["[debt-markers] condition 1", "added by this very change"],
     ),
     # --- the walk itself
     case(
@@ -1472,15 +1684,55 @@ CASES = [
 ]
 
 
-def write(root: Path, files: dict[str, str]) -> None:
+def write(root: Path, files: dict) -> None:
     for rel, content in files.items():
         target = root / rel
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8")
+        if isinstance(content, bytes):
+            target.write_bytes(content)
+        else:
+            target.write_text(content, encoding="utf-8")
 
 
 def git(root: Path, *args: str) -> None:
     subprocess.run(["git", *GIT_IDENTITY, *args], cwd=str(root), capture_output=True, check=True)
+
+
+def attempt(root: Path, *args: str) -> None:
+    """A git command allowed to fail, which is what a conflicting merge does."""
+    subprocess.run(["git", *GIT_IDENTITY, *args], cwd=str(root), capture_output=True)
+
+
+def commit(root: Path, subject: str) -> None:
+    git(root, "add", "-A")
+    git(root, "commit", "-qm", subject)
+
+
+def diverge(root: Path, side: dict) -> None:
+    """A conflicting commit on another branch, ready to be merged back."""
+    git(root, "checkout", "-q", "-b", "side")
+    write(root, side)
+    commit(root, "the other branch")
+    git(root, "checkout", "-q", "-")
+
+
+def prepare(root: Path, files: dict) -> None:
+    """The repository the hook meets: a baseline commit, then the change over it."""
+    write(root, files[BASELINE])
+    git(root, "init", "-q")
+    for key, value in files.get(CONFIG, ()):
+        git(root, "config", key, value)
+    commit(root, "the tree before the change")
+    git(root, "tag", "base")
+    side = files.get(DIVERGED)
+    if side:
+        diverge(root, side)
+    write(root, {rel: text for rel, text in files.items() if rel not in RESERVED})
+    git(root, "add", "-A")
+    if files.get(COMMITTED) or side:
+        commit(root, "the change under review")
+    if side:
+        attempt(root, "merge", "side")
 
 
 def invoke(root: Path, argv: list[str]) -> tuple[int, str]:
@@ -1493,16 +1745,10 @@ def invoke(root: Path, argv: list[str]) -> tuple[int, str]:
 def run(files: dict) -> tuple[int, str]:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
-        baseline = files.get(BASELINE)
-        tree = {rel: text for rel, text in files.items() if rel not in (BASELINE, ARGS)}
-        if baseline is not None:
-            write(root, baseline)
-            git(root, "init", "-q")
-            git(root, "add", "-A")
-            git(root, "commit", "-qm", "the tree before the change")
-        write(root, tree)
-        if baseline is not None:
-            git(root, "add", "-A")
+        if BASELINE in files:
+            prepare(root, files)
+        else:
+            write(root, {rel: text for rel, text in files.items() if rel not in RESERVED})
         return invoke(root, list(files.get(ARGS, ["."])))
 
 
