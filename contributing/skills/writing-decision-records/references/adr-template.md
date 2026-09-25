@@ -13,7 +13,6 @@ in the filename, and the gate checks that they agree.
 - **Status:** accepted
 - **Date:** YYYY-MM-DD
 - **Issue:** #nnn
-- **Supersedes:** ADR-nnn
 
 ## Context
 
@@ -40,10 +39,14 @@ outside the log.
 **Issue** is optional and carries the thread the decision came out of. Write it
 when there is one; a record that cannot name an issue is not thereby worse.
 
-**Supersedes** appears only when this record replaces an earlier one, and it is
-half of a pair — the older record gains `- **Superseded by:** ADR-nnn` and its
-status becomes `superseded`, in the same commit. The gate fails a chain that
-resolves in one direction only.
+**Supersedes** is not in the skeleton, because it belongs only on a record that
+replaces an earlier one. Add `- **Supersedes:** ADR-003` under `Issue` when this
+is that record; it is half of a pair, and the older record gains
+`- **Superseded by:** ADR-nnn` and the status `superseded` in the same commit.
+A record that replaces two — the way two decisions are merged, since condition 2
+forbids deleting either — carries a `Supersedes` line for each, or names both on
+one line separated by a comma. The gate fails a chain that resolves in one
+direction only, one that names a record itself, and one that closes into a ring.
 
 ## The four sections
 

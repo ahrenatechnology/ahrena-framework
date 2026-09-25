@@ -34,7 +34,7 @@ Add one and pad to three digits. Numbers are never reused and never skipped, so 
 
 ## 3. Copy the template and fill it
 
-`references/adr-template.md` is the record, with the prompt for each section beside it. Save it as `docs/adr/ADR-nnn-slug.md`, with the slug kebab-case and the same number in the heading as in the filename.
+`references/adr-template.md` is the record, with the prompt for each section beside it. Save it as `docs/adr/ADR-nnn-slug.md`, with the slug kebab-case and the same number in the heading as in the filename. The skeleton carries no `Supersedes` line, because most records do not supersede anything; step 4 is where it is added.
 
 Two sections carry the weight and both are usually written too thin.
 
@@ -48,7 +48,9 @@ When this record replaces an earlier one, two files change in the same commit.
 
 The new record gains `- **Supersedes:** ADR-003` and says in its Context what changed since. The old record gains `- **Superseded by:** ADR-009` and its status becomes `superseded`. Nothing else in the old record is edited — it stays an accurate account of what was decided then.
 
-Forgetting the second edit is the failure this is a step for. Condition 6 checks the pair, not each half, so a chain that resolves one way and not the other fails.
+When this record replaces two — which is how two decisions are merged, since condition 2 forbids deleting either — it carries a `Supersedes` line for each, and each of them carries its own `Superseded by` pointing here.
+
+Forgetting the second edit is the failure this is a step for. Condition 6 checks the pair, not each half, so a chain that resolves one way and not the other fails. It also follows the chain: a record naming itself, and a ring of records each superseding the next, resolve edge by edge and leave a log with no current decision in it, so both fail.
 
 ## 5. Run the gate
 
@@ -56,7 +58,7 @@ Forgetting the second edit is the failure this is a step for. Condition 6 checks
 python3 contributing/hooks/check-decision-records.py docs/adr
 ```
 
-It decides the seven conditions in `rules/decision-records.md` over the whole directory, not just the new file, which is how it catches the half-written supersession and the gap a deletion left.
+It decides the seven conditions in `rules/decision-records.md` over the whole directory and everything under it, not just the new file, which is how it catches the half-written supersession and the gap a deletion left. CI runs the same hook with no argument, against `docs/adr`.
 
 ## 6. Put the entry in the log and point it at the record
 

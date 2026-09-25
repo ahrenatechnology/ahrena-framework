@@ -106,15 +106,15 @@ The format comes from the predecessor's `kata-adr-write`, which is simplified MA
 
 **The 60-character slug cap.** Stated by the predecessor without a derivation and enforcing nothing anybody gets wrong. The slug is kebab-case and that is all.
 
-**"Sequential numbering is inviolable."** Kept as two conditions, not as an exhortation. Duplicate numbers are what concurrent authors produce; gaps are what a deleted record leaves. Both are decidable and both are now decided by the hook.
+**"Sequential numbering is inviolable."** Kept as two conditions, not as an exhortation. Duplicate numbers are what concurrent authors produce; gaps are what a deleted record leaves. Both are decidable and both are now decided by the hook, over every directory under the log — because a record moved into `archive/` would otherwise be a deletion the gap condition cannot see.
 
-**The bare "at least one alternative."** Kept, and kept honest. The hook decides that a list item exists under the heading. An alternative reading "do nothing" satisfies it, and the predecessor's framing — *an ADR with no alternatives is suspicious* — is a review question that no script inherits.
+**The bare "at least one alternative."** Kept, and kept honest. The hook decides that a list item — a bullet or a numbered one — exists under the heading. An alternative reading "do nothing" satisfies it, and the predecessor's framing — *an ADR with no alternatives is suspicious* — is a review question that no script inherits.
 
 ## What the hook decides, and what it cannot
 
-`hooks/check-decision-records.py` decides the seven conditions in `rules/decision-records.md`. Six of them are the shape of a string or a file's presence. The seventh is the only one with any reach:
+`hooks/check-decision-records.py` decides the seven conditions in `rules/decision-records.md`. Six of them — 1 to 5 and 7 — are the shape of a string or a file's presence. **Condition 6 is the only one with any reach**, and condition 7's alternatives clause is the one the rule calls theatre:
 
-**Supersession is checked in both directions.** A record marked `superseded` names its successor, the successor exists, and the successor names it back. A half-written chain — the common failure, because the second edit happens in a different file at a different moment — fails the gate. That one condition is most of the hook's value, and it is the thing the inherited format left to discipline.
+**Supersession is checked in both directions, and then the chain is followed.** A record marked `superseded` names its successor, the successor exists, and the successor names it back. A half-written chain — the common failure, because the second edit happens in a different file at a different moment — fails the gate. So does a record that names itself and a ring that closes, both of which satisfy every single edge and still leave a log with no current decision in it. That one condition is most of the hook's value, and it is the thing the inherited format left to discipline.
 
 What the hook cannot decide is everything this document is about. It cannot tell whether a decision deserved a record, whether the alternatives are the real ones, whether the consequences are the ones that will actually be paid, or whether the context would mean anything to a reader in two years. The checklist narrows that judgment. Nothing decides it.
 
