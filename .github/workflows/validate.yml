@@ -61,8 +61,22 @@ jobs:
       - name: Test the commit-message hook
         run: python3 contributing/hooks/test-check-commit-message.py
 
+      - name: Test the decision-records hook
+        run: python3 contributing/hooks/test-check-decision-records.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
+
+      # The third contributing hook is not gated on the event, because unlike
+      # the two below it judges files rather than refs. There is nothing about
+      # a decision log that is only true on a pull request: a gap, a duplicate
+      # number or a half-written supersession is just as wrong on trunk, and
+      # trunk is where somebody pulling finds it. Run with no argument, so the
+      # default path is what is judged and a repository with no docs/adr/
+      # prints that it has nothing to decide and passes — which is this
+      # repository today, and is the branch a consumer with no log takes.
+      - name: Check the decision records
+        run: python3 contributing/hooks/check-decision-records.py
 
       # The engineering plugin's nineteen conditions gated every consumer and
       # nothing here, which is how an eight-parameter `_descend` sat in the
@@ -83,7 +97,8 @@ jobs:
           python3 engineering/hooks/check-structure.py \
             $(ls */hooks/*.py | grep -v '/test-')
 
-      # Both contributing hooks judge a pull request and nothing else.
+      # The remaining two contributing hooks judge a pull request and
+      # nothing else.
       #
       # On a push to trunk there is no branch to name — the hook would be
       # handed `main` and would print that it has nothing to decide — and the
