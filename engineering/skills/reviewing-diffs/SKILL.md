@@ -38,7 +38,7 @@ Three facts, recorded before any file is read, because every later step depends 
 
 ## 2. Sort the changed paths into routes
 
-The eleven rules do not all reach every change, and reading all of them against every diff spends attention on conditions that cannot fire. Each changed path selects a set; a path can be in several.
+The thirteen rules do not all reach every change, and reading all of them against every diff spends attention on conditions that cannot fire. Each changed path selects a set; a path can be in several.
 
 | What the path is | Read against it |
 |---|---|
@@ -100,10 +100,10 @@ Hand the set to `skills/publishing-review-verdicts/SKILL.md`. Do not publish fro
 
 ## When this skill does not apply
 
-**An artifact of this framework** — a rule, doc, skill, agent or command — is not source code and none of these eleven rules is about it. The foundation plugin carries the procedure for reviewing those, and it asks different questions.
+**An artifact of this framework** — a rule, doc, skill, agent or command — is not source code and none of these thirteen rules is about it. The foundation plugin carries the procedure for reviewing those, and it asks different questions.
 
 **A Python distribution's import graph, namespace layout or module boundaries.** Those conditions live in the Python plugin and its own detector decides them.
 
 **Whether the change is wanted.** This procedure decides whether the code satisfies the conditions, not whether the feature should exist, whether the approach is the right one, or whether the effort was worth it. Those are the reviewer's to raise as questions and the owner's to settle.
 
-**A change with no diff to read.** A rename-only change, a merge commit, a vendored dependency bump and a generated file refresh have no authored lines, and running eleven rules over them produces noise. Say what the change is and stop.
+**A change with no diff to read.** A rename-only change, a merge commit, a vendored dependency bump and a generated file refresh have no authored lines, and running thirteen rules over them produces noise. Say what the change is and stop.
