@@ -246,6 +246,26 @@ CASES = [
         {"p/skills/python/doing-things/SKILL.md": GOOD_SKILL.replace("references:\n  - rules/bounded.md\n", "")},
         ["exactly one level deep"],
     ),
+    # Red on a case-insensitive filesystem before the glob in `collect` was
+    # fixed, and green on a case-sensitive one either way: there, the literal
+    # `rglob("SKILL.md")` never returned `skill.md` in the first place. So this
+    # case has teeth only on the macOS leg of the matrix in validate.yml, which
+    # is why that leg exists. No arrangement of files can reproduce the defect
+    # on Linux, because the defect is the filesystem's answer and not the
+    # tree's shape.
+    case(
+        "a lowercase skill.md under references is a template, not a nested skill",
+        {
+            "p/docs/reference.md": GOOD_DOC,
+            "p/rules/bounded.md": GOOD_RULE,
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "Do it.", "Do it, the way references/skill.md lays out."
+            ),
+            "p/skills/doing-things/references/skill.md": "# The template a step hands out\n",
+        },
+        ["no failures"],
+        ok=True,
+    ),
     case(
         "a flat skill file fails",
         {"p/skills/doing-things.md": GOOD_SKILL},
