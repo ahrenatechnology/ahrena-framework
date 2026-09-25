@@ -489,7 +489,7 @@ def check_completeness(a: Artifact, findings: list[Finding]) -> None:
             )
 
     # Code is skipped: <plugin> and <name> on a command line are what the reader
-    # substitutes, and a backticked TODO is prose about markers, not a marker.
+    # substitutes, and a backticked `TODO` is prose about markers, not a marker.
     for offset, line in _outside_fences(a.body):
         leftover = _first_leftover(INLINE_CODE.sub("", line))
         if leftover is None:

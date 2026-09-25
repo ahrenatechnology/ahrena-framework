@@ -39,7 +39,7 @@ The middle one is the one that gets skipped, and skipping it is the expensive mi
 
 **It routes before it reads.** Eleven rules do not all reach every change, and reading all of them against every diff produces a review that touched everything and examined nothing. The changed paths select a small set and each one is then read properly.
 
-**It runs what can be run.** Nineteen conditions across seven rules are decided by `hooks/check-structure.py` over the changed Python files, and a condition a script decides is not a condition worth an opinion. What is left is the counts across a tree, the boundaries a reader draws and the arbitration, and that is where its attention goes.
+**It runs what can be run.** Twenty conditions across eight rules are decided by `hooks/check-structure.py` over the changed Python files, and a condition a script decides is not a condition worth an opinion. What is left is the counts across a tree, the boundaries a reader draws and the arbitration, and that is where its attention goes.
 
 **It reads the rule's own boundary before citing it.** Every rule ends with the states that match a condition and are correct anyway. Reporting one of those is not a wasted finding; it is the moment the author learns that this reviewer's findings need checking, after which all of them do.
 
@@ -69,7 +69,7 @@ Two things are deliberately left to the caller. Whether a deferrable finding bec
 
 **Review this framework's own artifacts.** A rule, doc, skill, agent or command is not source code, and no rule in this plugin is about one. The foundation plugin owns that review and asks different questions.
 
-**Judge the branch name or the commit messages.** `ahrena-contributing` states both as conditions and ships a detector for each, and CI runs them over every pull request. A condition a script already decides on this pull request is not a condition worth an opinion, which is the same reason this agent leaves the nineteen to `hooks/check-structure.py` rather than restating them. A review that repeats a check the pull request has already passed spends the author's attention on a settled question.
+**Judge the branch name or the commit messages.** `ahrena-contributing` states both as conditions and ships a detector for each, and CI runs them over every pull request. A condition a script already decides on this pull request is not a condition worth an opinion, which is the same reason this agent leaves the twenty to `hooks/check-structure.py` rather than restating them. A review that repeats a check the pull request has already passed spends the author's attention on a settled question.
 
 **Answer the pull request's other reviewers.** People and other automated reviewers leave threads. It publishes its own verdict and leaves theirs alone.
 

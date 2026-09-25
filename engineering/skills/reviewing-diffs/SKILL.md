@@ -15,6 +15,7 @@ references:
   - rules/domain-model.md
   - rules/aggregates.md
   - rules/cross-cutting-concerns.md
+  - rules/debt-markers.md
   - docs/patterns.md
   - docs/review-findings.md
   - skills/detecting-contract-breaks/SKILL.md
@@ -53,12 +54,14 @@ A path that matches nothing below the first row falls through to the language-ag
 ## 3. Run the shipped detector over the changed Python files
 
 ```sh
-python3 engineering/hooks/check-structure.py path/to/changed.py
+python3 engineering/hooks/check-structure.py --changed <base>...<head> path/to/changed.py
 ```
 
-It decides nineteen conditions across seven rules in one pass and prints each finding with its file, line and rule already attached, which is three of the four fields a finding owes. Pass it the changed files rather than the tree: a whole-tree run buries the change under pre-existing violations that belong to nobody in this review.
+It decides twenty conditions across eight rules in one pass and prints each finding with its file, line and rule already attached, which is three of the four fields a finding owes. Pass it the changed files rather than the tree: a whole-tree run buries the change under pre-existing violations that belong to nobody in this review.
 
-Two recurring failures at this step. The detector parses Python only, so a change in any other language gets nothing from it and the conditions it would have decided move to step 4 by reading. And a file the rules' boundary sections exclude by path — a generated parser table, a template directory, a fixture that commits and rolls back — will produce findings the rule itself says are not findings; step 6 is where they are removed, and removing them at step 3 by not running the detector loses the rest of the file.
+`--changed` is that same instruction for the twentieth condition, whose subject is a change rather than a file. Condition 1 of [`rules/debt-markers.md`](../../rules/debt-markers.md) reaches a debt marker this change added or modified, and a path does not say which lines those are — so without the flag the detector reads every line it was handed and reports the consumer's whole marker backlog, which is the review nobody reads that the paragraph above is about. The spec is the base and the head fixed in step 1, written as the three-dot range, so that the detector and the reading agree on what "in the diff" means when step 7 applies the severity test. It takes a revision or a range, or `--cached` for a change that is staged and not yet committed; any other option it refuses rather than scoping the condition to nothing.
+
+Three recurring failures at this step. The detector parses Python only, so a change in any other language gets nothing from it and the conditions it would have decided move to step 4 by reading. A file the rules' boundary sections exclude by path — a generated parser table, a template directory, a fixture that commits and rolls back — will produce findings the rule itself says are not findings; step 6 is where they are removed, and removing them at step 3 by not running the detector loses the rest of the file. And the detector exits 2, not 1, when it cannot scope the change: a revision git cannot resolve, an unresolved merge, a directory outside the repository. That exit decided nothing, so it is an `unchecked` finding for condition 1 of `rules/debt-markers.md` under step 5's rule, and never a pass.
 
 ## 4. Read the routed judgment conditions against the changed lines
 

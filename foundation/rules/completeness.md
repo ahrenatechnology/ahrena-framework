@@ -18,6 +18,8 @@ No frontmatter field and no line of prose carries `TODO`, `TBD`, `FIXME`, `XXX`,
 
 The scan skips fenced blocks and inline code. `<plugin>` on a command line is what the reader substitutes, and a backticked `TODO` is prose about markers. Both are correct authoring, and both would be rejected by a scan that read code.
 
+**These four markers are banned in an artifact's own text, and nowhere else.** The same four tokens in a consumer's source are governed by condition 1 of [`debt-markers.md`](../../engineering/rules/debt-markers.md) in the engineering plugin, which permits one that names an issue — because source is where work in progress legitimately lives and a finished artifact is not. The two rules take the same four tokens and the same backtick escape, so they never disagree about what a marker is, only about what one means.
+
 ## The sections each type owes
 
 | Type | Required `##` sections |
