@@ -6,14 +6,14 @@ It lives at the repository root rather than inside `foundation/`, because it is 
 
 ## Landed
 
-Four plugins, **48 artifacts**, 253 test cases, six hooks, no dependency beyond the standard library.
+Four plugins, **53 artifacts**, 337 test cases, seven hooks, no dependency beyond the standard library.
 
 | Plugin | Rules | Docs | Skills | Agents | What it is |
 |---|---|---|---|---|---|
 | `ahrena-foundation` | 5 | 2 | 3 | 1 | What an artifact is, what it may cost, when it is finished, and the gate that decides it |
-| `ahrena-engineering` | 12 | 13 | 4 | 1 | Language-agnostic fundamentals with one arbitration between them, and the reviewer that applies them |
+| `ahrena-engineering` | 13 | 14 | 4 | 1 | Language-agnostic fundamentals with one arbitration between them, and the reviewer that applies them |
 | `ahrena-engineering-python` | 2 | 2 | — | — | What is specific to one language: the import graph, and the typing a checker decides |
-| `ahrena-contributing` | 2 | 1 | — | — | What governs the repository rather than the code in it |
+| `ahrena-contributing` | 3 | 2 | 1 | — | What governs the repository rather than the code in it |
 
 ## Queued
 
@@ -32,7 +32,7 @@ Every row is a GitHub issue now. This table is the index and the dependency grap
 | [#59](https://github.com/ahrenatechnology/ahrena-framework/issues/59) | Nothing listens for `@claude` | `.github/workflows/` | the app and a secret, both owner-side |
 | [#12](https://github.com/ahrenatechnology/ahrena-framework/issues/12) | Contract-first: the authoring skills that never shipped | `engineering/` | open question 8 for the enforcement half |
 
-**Landed and closed:** the foundation core and its gate, the eleven engineering rules, the Python plugin, Argos ([#33](https://github.com/ahrenatechnology/ahrena-framework/issues/33)), branch and commit rules ([#38](https://github.com/ahrenatechnology/ahrena-framework/issues/38)), specification, factory and domain service ([#42](https://github.com/ahrenatechnology/ahrena-framework/issues/42)), safe refactoring ([#43](https://github.com/ahrenatechnology/ahrena-framework/issues/43)) and Python typing and toolchain ([#44](https://github.com/ahrenatechnology/ahrena-framework/issues/44)). Epic #5 is closed.
+**Landed and closed:** the foundation core and its gate, the thirteen engineering rules, the Python plugin, Argos ([#33](https://github.com/ahrenatechnology/ahrena-framework/issues/33)), branch and commit rules ([#38](https://github.com/ahrenatechnology/ahrena-framework/issues/38)), specification, factory and domain service ([#42](https://github.com/ahrenatechnology/ahrena-framework/issues/42)), safe refactoring ([#43](https://github.com/ahrenatechnology/ahrena-framework/issues/43)) Python typing and toolchain ([#44](https://github.com/ahrenatechnology/ahrena-framework/issues/44)), decision records ([#65](https://github.com/ahrenatechnology/ahrena-framework/issues/65)) and debt markers ([#66](https://github.com/ahrenatechnology/ahrena-framework/issues/66)). Epic #5 is closed.
 
 ### What serializes, and what does not
 
@@ -41,6 +41,8 @@ Every row is a GitHub issue now. This table is the index and the dependency grap
 **The index is not the only thing that collides.** Parallel agents must run in separate git worktrees. Four once shared one working tree and one git index: one agent's commit landed on another's branch, and each was validating a tree holding three others' half-written files, so every verification any of them did meant nothing. No two of them ever touched the same file.
 
 ## Decided
+
+This table now has an overflow. `contributing/rules/decision-records.md` says when a decision outgrows a row and becomes a record under `docs/adr/`, and `contributing/docs/decision-records.md` works the test against these eleven: six records would cover seven of the rows, four rows are enough as they are, and **nothing migrates**. The rows below are where they were. A record is written when a decision is made, not by backfilling a table that already holds the reasoning.
 
 | Decision | Consequence |
 |---|---|

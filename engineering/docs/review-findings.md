@@ -50,7 +50,7 @@ The predecessor of this procedure carried two levels and distinguished them by c
 
 ## Why the review routes by changed path
 
-The eleven rules in this plugin do not all reach every change. The conditions in `rules/domain-model.md` are about modules under a context's `domain/` directory; the conditions in `rules/contract-first.md` are about a published contract document; the shipped detector parses Python and nothing else.
+The thirteen rules in this plugin do not all reach every change. The conditions in `rules/domain-model.md` are about modules under a context's `domain/` directory; the conditions in `rules/contract-first.md` are about a published contract document; the shipped detector parses Python and nothing else.
 
 Reading every rule against every diff produces two failures at once. The reviewer spends its attention on conditions that cannot fire, and the conditions that can fire get a fraction of what they deserve. Routing is what buys the depth: the changed paths select a small set of rules, and each one is then read properly against the lines that could violate it.
 
@@ -72,4 +72,4 @@ So the procedure does not do it. It records an `unchecked` finding that names ea
 
 **Nothing here decides what happens to the findings.** Which verdict a set of findings produces, when the reviewer may approve, and how the result is published are in `docs/review-verdicts.md`, because they are about the reviewer's history on the pull request rather than about the change.
 
-**The route map is not a taxonomy of software.** It maps the paths this plugin's conditions can reach. A change touching something none of the eleven rules is about produces a review that says so, and that is the honest output rather than a failure of the map.
+**The route map is not a taxonomy of software.** It maps the paths this plugin's conditions can reach. A change touching something none of the thirteen rules is about produces a review that says so, and that is the honest output rather than a failure of the map.
