@@ -7,8 +7,20 @@ on:
 
 jobs:
   artifacts:
-    name: artifact gate
-    runs-on: ubuntu-latest
+    name: artifact gate (${{ matrix.os }})
+    # Two legs, because one class of defect in these hooks is invisible on one
+    # of them. `rglob("SKILL.md")` matched a lowercase `skill.md` template and
+    # failed the gate on every contributor's Mac while this job stayed green,
+    # and no arrangement of files reproduces that on a case-sensitive
+    # filesystem — the wrong answer comes from the filesystem, not from the
+    # tree. A regression case is therefore only as good as the platform it
+    # runs on, so the suites run on both. This repository is public, so the
+    # macOS leg is free.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       # Both actions are pinned past the Node 20 deprecation. The runner
       # already forces Node 24 on them and says so in a warning on every
@@ -65,6 +77,25 @@ jobs:
       # repository today, and is the branch a consumer with no log takes.
       - name: Check the decision records
         run: python3 contributing/hooks/check-decision-records.py
+
+      # The engineering plugin's nineteen conditions gated every consumer and
+      # nothing here, which is how an eight-parameter `_descend` sat in the
+      # boundaries hook until somebody ran the gate by hand. A framework that
+      # ships a gate and does not stand under it is making a claim it has not
+      # tested.
+      #
+      # The detectors, not their suites. The list is derived rather than
+      # written out, so a plugin that adds a detector is covered without this
+      # step being remembered. The `test-` prefix is what excludes the
+      # suites, and that exclusion is the one engineering/rules/duplication.md
+      # asks for in its own words: the `problems_for` and `main` harness is
+      # written out in four suites, so condition 1 fires on the third, and
+      # collapsing it would need a module shared between plugins — the
+      # dependency the no-dependency constraint exists to prevent.
+      - name: Check the structure of the hooks
+        run: |
+          python3 engineering/hooks/check-structure.py \
+            $(ls */hooks/*.py | grep -v '/test-')
 
       # The remaining two contributing hooks judge a pull request and
       # nothing else.

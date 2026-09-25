@@ -204,7 +204,15 @@ def collect(plugin: Path, plugin_name: str, findings: list[Finding]) -> list[Art
 
     skills = plugin / SKILLS_DIR
     if skills.is_dir():
-        for path in sorted(skills.rglob("SKILL.md")):
+        # Wildcard, then filter on the name, rather than rglob("SKILL.md").
+        # A glob segment carrying no wildcard is resolved as a direct existence
+        # check instead of by comparing names from a directory listing, so on a
+        # case-insensitive filesystem it matches a file spelled another way and
+        # hands back the pattern's spelling rather than the name on disk. That
+        # made this plugin's own references/skill.md template a skill on macOS,
+        # three levels deep, failing the condition below. A wildcard segment
+        # comes from the listing, so the name compared here is the real one.
+        for path in sorted(p for p in skills.rglob("*.md") if p.name == "SKILL.md"):
             rel = path.relative_to(plugin).as_posix()
             parts = path.relative_to(skills).parts
             if len(parts) != 2:
