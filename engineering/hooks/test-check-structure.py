@@ -1017,10 +1017,22 @@ EXTERNAL_DRIVER = [("diff.external", "/bin/true")]
 NO_PREFIX = [("diff.noprefix", "true")]
 
 # A tree large enough that one pathspec argument per walked file is an argument
-# list the kernel refuses. The paths are nested deep on purpose: the limit is on
-# the total size of the list, and a real checkout's paths are long.
-CROWD = 2000
-LONG_PATH = "/".join(f"d{level}" + "x" * 200 for level in range(12))
+# list the kernel refuses. The limit is on the total bytes of the list, not on
+# the file count, so the paths are long as well as many — a real checkout's are.
+#
+# The shape is bounded by the *other* limit, and the two pull against each
+# other. A path must stay under PATH_MAX, which is 1024 on macOS against Linux's
+# 4096, and that ceiling counts the whole path including the temporary root. An
+# earlier version of this case stacked twelve 200-character components: 2,436
+# characters, fine on Linux, and `[Errno 63] File name too long` on macOS before
+# the case could assert anything. So depth buys nothing here and width is spent
+# where it is safe.
+#
+# CROWD * (len(LONG_PATH) + the filename) is the argv, and at these numbers that
+# is about 4 MB — past Linux's ~2 MiB and past macOS's ~1 MiB, so the case fires
+# on both. Building the tree costs a few seconds, which is why it is one case.
+CROWD = 8000
+LONG_PATH = "/".join(f"d{level}" + "x" * 140 for level in range(3))
 
 GIT_IDENTITY = ("-c", "user.email=gate@example.invalid", "-c", "user.name=gate")
 
