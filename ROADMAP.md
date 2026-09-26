@@ -6,14 +6,14 @@ It lives at the repository root rather than inside `foundation/`, because it is 
 
 ## Landed
 
-Four plugins, **53 artifacts**, 337 test cases, seven hooks, no dependency beyond the standard library.
+Four plugins, **57 artifacts**, 377 test cases, nine hooks, no dependency beyond the standard library.
 
 | Plugin | Rules | Docs | Skills | Agents | What it is |
 |---|---|---|---|---|---|
 | `ahrena-foundation` | 5 | 2 | 3 | 1 | What an artifact is, what it may cost, when it is finished, and the gate that decides it |
 | `ahrena-engineering` | 13 | 14 | 4 | 1 | Language-agnostic fundamentals with one arbitration between them, and the reviewer that applies them |
 | `ahrena-engineering-python` | 2 | 2 | — | — | What is specific to one language: the import graph, and the typing a checker decides |
-| `ahrena-contributing` | 3 | 2 | 1 | — | What governs the repository rather than the code in it |
+| `ahrena-contributing` | 6 | 3 | 1 | — | What governs the repository rather than the code in it, from the issue to trunk |
 
 ## Queued
 
@@ -21,18 +21,17 @@ Every row is a GitHub issue now. This table is the index and the dependency grap
 
 | Issue | Work | Touches | Blocked by |
 |---|---|---|---|
-| [#39](https://github.com/ahrenatechnology/ahrena-framework/issues/39) | Issue, pull request and trunk rules | `contributing/` | label and status vocabulary (#22) |
 | [#34](https://github.com/ahrenatechnology/ahrena-framework/issues/34) | Code quality and code review — eight groups plus correctness and resource discipline | `engineering/`, `engineering-python/` | eleven owner decisions in the issue |
 | [#45](https://github.com/ahrenatechnology/ahrena-framework/issues/45) | Issue-driven development, planning and QA-as-process — seven groups | undecided plugin | ten owner decisions in the issue |
 | [#54](https://github.com/ahrenatechnology/ahrena-framework/issues/54) | Voice as a rule, and the configuration file that would gate it | new files, `README.md` | three decisions below |
 | [#55](https://github.com/ahrenatechnology/ahrena-framework/issues/55) | Context injection per platform, and staleness detection | `ARCHITECTURE.md`, new files | #54, and a measurement against Claude Code |
 | [#56](https://github.com/ahrenatechnology/ahrena-framework/issues/56) | MCP transport hierarchy | new files | which plugin owns it |
 | [#57](https://github.com/ahrenatechnology/ahrena-framework/issues/57) | Publish Argos as a GitHub custom agent | `.github/`, `ARCHITECTURE.md`, `foundation/rules/naming.md` | seven content items, in the issue |
-| [#58](https://github.com/ahrenatechnology/ahrena-framework/issues/58) | Stacked pull requests, and Argos reviewing a stack | `engineering/`, `contributing/` | **#39** |
+| [#58](https://github.com/ahrenatechnology/ahrena-framework/issues/58) | Stacked pull requests, and Argos reviewing a stack | `engineering/`, `contributing/` | the open question in the owner's decisions, in the issue |
 | [#59](https://github.com/ahrenatechnology/ahrena-framework/issues/59) | Nothing listens for `@claude` | `.github/workflows/` | the app and a secret, both owner-side |
 | [#12](https://github.com/ahrenatechnology/ahrena-framework/issues/12) | Contract-first: the authoring skills that never shipped | `engineering/` | open question 8 for the enforcement half |
 
-**Landed and closed:** the foundation core and its gate, the thirteen engineering rules, the Python plugin, Argos ([#33](https://github.com/ahrenatechnology/ahrena-framework/issues/33)), branch and commit rules ([#38](https://github.com/ahrenatechnology/ahrena-framework/issues/38)), specification, factory and domain service ([#42](https://github.com/ahrenatechnology/ahrena-framework/issues/42)), safe refactoring ([#43](https://github.com/ahrenatechnology/ahrena-framework/issues/43)) Python typing and toolchain ([#44](https://github.com/ahrenatechnology/ahrena-framework/issues/44)), decision records ([#65](https://github.com/ahrenatechnology/ahrena-framework/issues/65)) and debt markers ([#66](https://github.com/ahrenatechnology/ahrena-framework/issues/66)). Epic #5 is closed.
+**Landed and closed:** the foundation core and its gate, the thirteen engineering rules, the Python plugin, Argos ([#33](https://github.com/ahrenatechnology/ahrena-framework/issues/33)), branch and commit rules ([#38](https://github.com/ahrenatechnology/ahrena-framework/issues/38)), specification, factory and domain service ([#42](https://github.com/ahrenatechnology/ahrena-framework/issues/42)), safe refactoring ([#43](https://github.com/ahrenatechnology/ahrena-framework/issues/43)) Python typing and toolchain ([#44](https://github.com/ahrenatechnology/ahrena-framework/issues/44)), decision records ([#65](https://github.com/ahrenatechnology/ahrena-framework/issues/65)), debt markers ([#66](https://github.com/ahrenatechnology/ahrena-framework/issues/66)), and issue, pull-request and trunk rules ([#39](https://github.com/ahrenatechnology/ahrena-framework/issues/39)). Epic #5 is closed.
 
 ### What serializes, and what does not
 
