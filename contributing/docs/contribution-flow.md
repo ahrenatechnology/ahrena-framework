@@ -23,7 +23,7 @@ Three of those four steps already happened in this repository the way they shoul
 
 The link that is missing is the first arrow. A branch called `feat/foundation-core` records what kind of change it is and what it is about, and nothing about what it answers. Five of five branches predating this plugin are that shape, so the work is traceable from the branch only to whoever remembers it.
 
-The pull request is a weaker case and is worth stating at its real strength rather than borrowing the branch's. Of the seven pull requests opened here, six name an issue in the body; only #35 names none. The link is therefore usually written — it is just written by hand, in prose, once per pull request, and five of the seven carry no `Closes`, `Fixes` or `Resolves`, so nothing closes on merge. That is a pull-request problem with a pull-request fix, and this plugin does not carry one.
+The pull request is a weaker case and is worth stating at its real strength rather than borrowing the branch's. Of the seven pull requests opened here, six name an issue in the body; only #35 names none. The link is therefore usually written — it is just written by hand, in prose, once per pull request, and five of the seven carry no `Closes`, `Fixes` or `Resolves`, so nothing closes on merge. That is a pull-request problem with a pull-request fix, and `rules/pr-quality.md` is that fix.
 
 Putting the issue number in the branch name fixes that at the cheapest possible point. The number is available at the one moment somebody is guaranteed to be thinking about the work as a whole, it costs nothing to carry, and it propagates for free: the branch name appears on the pull request, in the merge commit, and in every `git branch` listing for as long as the branch exists. It also enforces issue-first without a second rule to do it, because a name that needs the number cannot be written before the number exists.
 
@@ -113,7 +113,7 @@ Each of these was stated as law by the predecessor, and each is refused here rat
 
 ## Where this stops
 
-**This plugin covers the branch and the commit, and stops there.** What an issue must contain, what a pull request must contain, and whether trunk may be written to directly are three separate questions with three separate answers, and none of them is settled in this plugin today. The branch rule therefore says only that a number must be present, not that the issue behind it is any good; and nothing here says what happens between pushing a branch and the change arriving on trunk.
+**This doc covers the branch and the commit, and stops there.** What an issue must contain, what a pull request must contain, and whether trunk may be written to directly are three separate questions with three separate answers. They are settled by `rules/issue-quality.md`, `rules/pr-quality.md` and `rules/protected-trunk.md`, and `docs/pull-requests-and-trunk.md` carries their evidence. The branch rule still says only that a number must be present, not that the issue behind it is any good.
 
 **Both rules ship a hook, and neither of them runs on a contributor's machine unless they run it.** There is no installed git hook, no `pre-push`, and no `commit-msg`. The enforcement point is CI, for the reason `rules/commit-format.md` gives: at `commit-msg` time there is no commit object, so the signature condition has nothing to read, and two enforcement points that disagree are worse than one that fires late.
 
