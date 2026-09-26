@@ -7,6 +7,7 @@ title: <noun phrase, title case>
 statement: <one line, max 160 chars, the only line that reaches the agent>
 enforcement: <hook|judgment>
 enforced-by: <hooks/<name>.py, only when enforcement is hook>
+enforced-in: <tree|forge, optional, only when enforcement is hook; omitted means tree>
 references:
   - docs/<rationale-companion>.md
 ---

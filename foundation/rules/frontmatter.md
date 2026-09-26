@@ -46,7 +46,7 @@ Nested maps, inline collections and multi-line scalars are rejected. The restric
 
 `role` is the agent's subject as a noun phrase, beside the persona in `name`. `rules/naming.md` explains why an agent carries two.
 
-`subclade` and `references` are optional on every type. `enforced-by` is required when `enforcement` is `hook` and rejected when it is `judgment`.
+`subclade` and `references` are optional on every type. `enforced-by` is required when `enforcement` is `hook` and rejected when it is `judgment`. `enforced-in` is optional on a rule whose `enforcement` is `hook`, and rejected when it is `judgment`.
 
 Rules and docs use `id`, `title` and `summary` because nothing outside this framework reads them. Skills, agents and commands use `name` and `description` because the platforms do, and a parallel set of our own fields would be a second thing to keep in sync.
 
@@ -72,6 +72,16 @@ The value is `hook` or `judgment`.
 
 `judgment` means the condition needs a reader.
 
+## `enforced-in`
+
+Whether a condition needs a reader is one question. Where the script that decides it can run is another, and `enforcement` does not answer it. `enforced-in` does, with one of two values.
+
+`tree` is the default, and omitting the field means it. The hook reads the working tree alone: offline, stdlib-only, no token. A consumer runs it and gets the answer the repository gets.
+
+`forge` means the hook still decides the condition exactly, but the state it reads is the forge's — an issue, a pull-request body, a label — so it runs in CI with the default `GITHUB_TOKEN`. Without a token it reports the condition unchecked rather than failed, because an offline checkout cannot see what it would have to judge.
+
+A `judgment` rule names no detector, so there is nothing to place and the field is rejected. This repository's `ADR-002` records why this is a second field and not a third value of `enforcement`.
+
 ## Conditions
 
 Each of these is decided by `hooks/validate-artifacts.py`.
@@ -82,6 +92,7 @@ Each of these is decided by `hooks/validate-artifacts.py`.
 4. A rule or a doc carries no field outside the declared set.
 5. `statement` is one line of at most 160 characters.
 6. `enforcement` is `hook` or `judgment`, and `enforced-by` is present exactly when it is `hook`.
+7. `enforced-in`, when present, is `tree` or `forge`, and is absent when `enforcement` is `judgment`.
 
 ## Where this stops
 

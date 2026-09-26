@@ -400,6 +400,54 @@ CASES = [
         ["it is 'hook' or 'judgment'"],
     ),
     case(
+        "enforcement: hook with enforced-in: forge passes",
+        {
+            "p/docs/reference.md": GOOD_DOC,
+            "p/rules/bounded.md": GOOD_RULE.replace(
+                "enforcement: judgment",
+                "enforcement: hook\nenforced-by: hooks/thing.py\nenforced-in: forge",
+            ),
+            "p/hooks/thing.py": "",
+        },
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "enforcement: hook with enforced-in: tree passes",
+        {
+            "p/docs/reference.md": GOOD_DOC,
+            "p/rules/bounded.md": GOOD_RULE.replace(
+                "enforcement: judgment",
+                "enforcement: hook\nenforced-by: hooks/thing.py\nenforced-in: tree",
+            ),
+            "p/hooks/thing.py": "",
+        },
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "an unknown enforced-in value fails",
+        {
+            "p/docs/reference.md": GOOD_DOC,
+            "p/rules/bounded.md": GOOD_RULE.replace(
+                "enforcement: judgment",
+                "enforcement: hook\nenforced-by: hooks/thing.py\nenforced-in: cloud",
+            ),
+            "p/hooks/thing.py": "",
+        },
+        ["it is 'tree' or 'forge'"],
+    ),
+    case(
+        "enforcement: judgment with an enforced-in fails",
+        {
+            "p/docs/reference.md": GOOD_DOC,
+            "p/rules/bounded.md": GOOD_RULE.replace(
+                "enforcement: judgment", "enforcement: judgment\nenforced-in: forge"
+            ),
+        },
+        ["so enforced-in is not allowed"],
+    ),
+    case(
         "a code block over 10 lines in a skill body fails",
         {
             "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(

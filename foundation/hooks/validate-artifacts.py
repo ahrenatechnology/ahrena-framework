@@ -46,7 +46,7 @@ REQUIRED = {
 
 # Ours end to end, so the schema is closed.
 OPTIONAL = {
-    "rule": ("subclade", "references", "enforced-by"),
+    "rule": ("subclade", "references", "enforced-by", "enforced-in"),
     "doc": ("subclade", "references"),
 }
 # skill, agent and command are read by four platforms that add fields on their
@@ -56,6 +56,10 @@ CLOSED_SCHEMA = frozenset(OPTIONAL)
 IDENTITY_FIELD = {"rule": "id", "doc": "id", "skill": "name", "agent": "name", "command": "name"}
 
 STATEMENT_MAX = 160
+
+# Where a hook's detector runs. `tree` is offline and reads the working tree
+# alone; `forge` reads the forge's state and runs only in CI. ADR-002.
+ENFORCED_IN = ("tree", "forge")
 
 # The body of a skill or an agent is paid in full every time the artifact fires,
 # so material that is copied rather than typed belongs in references/ or scripts/.
@@ -309,6 +313,16 @@ def check_enforcement(a: Artifact, findings: list[Finding]) -> None:
         return
     enforcement = a.data.get("enforcement")
     enforced_by = a.data.get("enforced-by")
+    enforced_in = a.data.get("enforced-in")
+    if enforced_in is not None:
+        if enforced_in not in ENFORCED_IN:
+            findings.append(
+                Finding(a.rel, "frontmatter", f"enforced-in is '{enforced_in}'; it is 'tree' or 'forge'")
+            )
+        elif enforcement == "judgment":
+            findings.append(
+                Finding(a.rel, "frontmatter", "enforcement is 'judgment', so enforced-in is not allowed")
+            )
     if enforcement not in ("hook", "judgment"):
         if isinstance(enforcement, str) and enforcement.strip():
             findings.append(

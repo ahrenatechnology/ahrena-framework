@@ -75,6 +75,8 @@ Add both to the workflow, tests first. A gate whose own tests are not in CI stop
 
 Then set `enforced-by` on the rule to the hook's plugin-relative path. The gate checks that the file exists, so a rule claiming an enforcement it does not have fails immediately.
 
+If the hook reads the forge — an issue, a pull-request body, a label — rather than the tree, set `enforced-in: forge`, run it in CI with the default `GITHUB_TOKEN`, and have it report unchecked, not failed, when no token is present.
+
 ## 7. Record what resisted
 
 Some conditions do not fully reduce to a script. Say so, in the rule's "where this stops", with the reason and the cost of closing it.
