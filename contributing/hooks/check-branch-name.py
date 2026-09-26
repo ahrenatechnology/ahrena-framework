@@ -58,7 +58,7 @@ SHAPE = "type/issue-slug, as in feat/38-branch-and-commit-rules"
 # through a merge rather than being worked on; `release/` is the same by
 # convention; `HEAD` is what git answers with in a detached checkout, where
 # there is no branch name to judge. Nothing here says trunk may be committed to
-# — that is a separate rule and this plugin does not carry it yet.
+# — that is protected-trunk.md's question.
 OUTSIDE_EXACT = frozenset({"main", "master", "HEAD"})
 OUTSIDE_PREFIX = "release/"
 

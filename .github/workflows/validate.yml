@@ -3,7 +3,10 @@ name: validate
 on:
   push:
     branches: [main]
+  # `edited` because the pull-request check reads the title and the body,
+  # and editing either changes what it would decide.
   pull_request:
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
   artifacts:
@@ -21,6 +24,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    # Read-only, and no more than the forge-tier checks read: the issues a
+    # body closes, the pull request's closing references, and the
+    # repository's merge settings and rulesets. ADR-002.
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
     steps:
       # Both actions are pinned past the Node 20 deprecation. The runner
       # already forces Node 24 on them and says so in a warning on every
@@ -63,6 +73,12 @@ jobs:
 
       - name: Test the decision-records hook
         run: python3 contributing/hooks/test-check-decision-records.py
+
+      - name: Test the pull-request hook
+        run: python3 contributing/hooks/test-check-pull-request.py
+
+      - name: Test the trunk hook
+        run: python3 contributing/hooks/test-check-trunk.py
 
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
@@ -124,3 +140,21 @@ jobs:
         env:
           RANGE: ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
         run: python3 contributing/hooks/check-commit-message.py "$RANGE"
+
+      # The forge-tier checks, which read GitHub rather than the tree and so
+      # take the default token. Without one they report unchecked, not failed.
+      # The payload comes from GITHUB_EVENT_PATH, which Actions sets, so no
+      # title, body or branch name is ever interpolated into a command.
+      - name: Check the pull request
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 contributing/hooks/check-pull-request.py
+
+      # Not gated on the event: the merge settings and the rulesets are wrong
+      # on a pull request exactly when they are wrong on trunk, and a push to
+      # trunk is the only event condition 3 has anything to decide on.
+      - name: Check trunk
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 contributing/hooks/check-trunk.py
