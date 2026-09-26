@@ -63,6 +63,11 @@ CLOSING = re.compile(
 # `and` or an ampersand, then another reference. Only the first one closes.
 LIST_TAIL = re.compile(r"\s*(?:,|\band\b|&)\s*(?:[\w.-]+/[\w.-]+)?#[1-9][0-9]*", re.IGNORECASE)
 
+# What GitHub does not read for references or closing keywords: fenced code,
+# inline code and HTML comments. A body quoting `Closes #4, #5` as an example
+# closes nothing, and this pull request's own first run failed on exactly that.
+NOT_PROSE = re.compile(r"^(```|~~~).*?^\1[^\n]*$|`[^`\n]*`|<!--.*?-->", re.DOTALL | re.MULTILINE)
+
 # GitHub appends ` (#<number>)` to the subject of a squash commit.
 SQUASH_SUFFIX = " (#{number})"
 
@@ -83,7 +88,7 @@ query($owner: String!, $name: String!, $number: Int!) {
 class PullRequest:
     number: int
     title: str
-    body: str
+    body: str  # the prose only: code and comments are removed, as GitHub ignores them
     branch: str
     repository: str
 
@@ -99,7 +104,7 @@ def from_event(event: dict) -> PullRequest | None:
     return PullRequest(
         int(pull["number"]),
         pull.get("title") or "",
-        pull.get("body") or "",
+        NOT_PROSE.sub(" ", pull.get("body") or ""),
         (pull.get("head") or {}).get("ref") or "",
         (event.get("repository") or {}).get("full_name") or "",
     )
