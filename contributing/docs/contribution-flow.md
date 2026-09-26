@@ -19,7 +19,7 @@ This is the reference for the two rules in this plugin. They state what is check
 issue  →  branch  →  commits  →  pull request
 ```
 
-Three of those four steps already happened in this repository the way they should. Issues exist and are detailed. Branches are typed. Commits are conventional — all 24 of them, which is a better rate than most projects reach on purpose.
+Three of those four steps already happened in this repository the way they should. Issues exist and are detailed. Branches are typed. Commits are conventional — all 38 of them, which is a better rate than most projects reach on purpose.
 
 The link that is missing is the first arrow. A branch called `feat/foundation-core` records what kind of change it is and what it is about, and nothing about what it answers. Five of five branches predating this plugin are that shape, so the work is traceable from the branch only to whoever remembers it.
 
@@ -45,25 +45,35 @@ Closing the set at the measured five would be the corpus-driven move, and it wou
 
 So the set is inherited rather than measured, from `@commitlint/config-conventional`'s `type-enum`, which is the list the Conventional Commits specification itself points at for everything beyond `feat` and `fix`. It is stated once in each hook and read from the specification rather than from the other hook.
 
-Scope stays optional on the same evidence, in the other direction: 13 of 24 commits carry one, so requiring it would fail practice that is not wrong and forbidding it would fail more than half the corpus.
+Scope stays optional on the same evidence, in the other direction: 21 of 38 commits carry one, so requiring it would fail practice that is not wrong and forbidding it would fail more than half the corpus.
 
 ## Where 72 came from
 
 `git log` indents every line of a commit message by four spaces. A subject of 72 characters therefore occupies 76 columns of a default 80-column terminal, and a subject of 77 wraps. That is the whole derivation, and it is the only reason the number is 72 rather than 70 or 80. It reaches this framework by way of the predecessor's `codex-commit-standards`, which stated 72 without saying where it came from.
 
-The threshold is inherited rather than measured because the measurement does not offer one. Here is the distribution over the 24 subjects on trunk:
+The threshold is inherited rather than measured. When it was set, the measurement offered nothing to inherit instead; re-measured, it offers 77, and 77 is worse. Here is the distribution over the 38 subjects on trunk:
 
 | | Characters |
 |---|---|
 | Shortest | 21 |
-| Median | 64 |
-| 90th percentile | 73 |
-| Longest | 76 |
-| Over 72 | 4 of 24 |
+| Median | 65 |
+| 90th percentile | 75 |
+| Longest | 88 |
+| Over 72 | 6 of 38 |
 
-There is no empty span anywhere a ceiling could sit. The upper half runs 64, 65, 66, 67, 68, 69, 70, 71, 73, 73, 75, 76 — the only integers absent from that run are 72 and 74, a one-character hole each — and above 60 the widest gap in the whole distribution is three characters, between 61 and 64. The move `rules/clean-code.md` in the engineering plugin makes — place the threshold in an empty span, where it fails nothing that exists and cannot be reached without a change of kind — is not available, because there is no span. The one real gap in this corpus is 17 characters wide, between 21 and 38, and a gap at the bottom of a distribution is no use for a ceiling.
+Over the first 24 subjects there was no empty span anywhere a ceiling could sit, and that absence was the whole argument for inheriting the number. Over 38 there is one. The body of the distribution still ends at 76 — the run from 64 up is 64, 65, 66, 67, 68, 69, 70, 71, 73, 75, 76, missing only 72 and 74, a one-character hole each — and then it stops. The next two subjects are 83 and 88. That leaves 77 to 82 empty, six characters wide, which is the widest span in the distribution apart from the 16-character hole between 21 and 38, and a gap at the bottom is no use for a ceiling.
 
-That left two honest options: take the measured ceiling of 76, or state the inherited 72 as inherited. 76 was refused. It is the corpus's own outlier, a threshold calibrated to it fails nothing and therefore detects nothing, and it would abandon the arithmetic that is the only argument for having a number at all. So the rule takes 72, says so, and says that four commits on trunk already fail it. Four of 24 is a rule that changes the practice by a little, which is the amount of change it is honest to ask for on evidence this thin.
+So the move `rules/clean-code.md` in the engineering plugin makes — place the threshold in an empty span, where it fails nothing in the body and cannot be reached without a change of kind — now returns an answer. The answer is 77, and it is refused three times over.
+
+**The span was opened by two commits.** Both are `engineering-python` subjects written on the same day, at 83 and 88. Two observations establish that somebody wrote two long subjects, not that a change of kind begins above 76. One more subject at 79 closes the span and the measured threshold evaporates, which is the test of whether a span is structure or sample.
+
+**77 is laxer than 72, not stricter.** It fails the two outliers and passes 73, 75 and 76; the inherited threshold fails all six. The measurement therefore argues for loosening the rule until more of what exists passes it, and that is the direction in which calibrating to a corpus is least defensible — a ceiling that rises to admit whatever was written last detects nothing by construction.
+
+**77 has no derivation.** 72 occupies 76 columns of an 80-column terminal under `git log`'s four-space indent, and 77 wraps. That arithmetic is the only argument for having a number rather than a preference, and trading it for a span two commits opened is a bad trade.
+
+**And the span sits where only violations live.** It runs 77 to 82, and the cap is 72, so every subject that could fill it already fails condition 3. The gap cannot be closed by compliant practice — only by writing more of exactly what the rule forbids. This was demonstrated by the commit that wrote this paragraph: its first subject was 79 characters, landing inside the span, and the hook rejected it before it could reach trunk. A gap that opens above a ceiling, in the region the ceiling exists to empty, is produced by the ceiling and carries no information about where the ceiling belongs.
+
+So the rule keeps 72 and the reason has changed. It is no longer that the measurement offered nothing; it is that the measurement offered 77 and 77 is worse. Six of 38 commits on trunk fail the threshold the rule ships, and saying so is what keeps this a rule that asks for a small change on thin evidence rather than one that claims the evidence is better than it is.
 
 ## What "signed" means, and which one is checked
 
@@ -87,7 +97,9 @@ Both of the obvious shortcuts were run against a commit known to carry an SSH `g
 
 **What the choice costs is trust, and the cost is real.** A self-signed key nobody has vouched for satisfies condition 6, and so does a signature over a payload that has since been rewritten. The condition proves that signing was configured and used. Proving who signed is a different job and it belongs where the keys are, which is the forge.
 
-The other thing it cannot do is survive the forge's merge. Every commit written in this project's agent container carries an SSH signature, and those objects still exist on the feature branches with their `gpgsig` headers intact. The copies that landed on `main` were re-authored by a rebase, and a rebase does not re-sign: 20 of 24 commits on trunk carry no signature header at all. That is why the condition is checked over a pull request's own commits rather than over trunk's history.
+The other thing it cannot do is survive the forge's merge, and which merge is the whole of it. Every commit written in this project's agent container carries an SSH signature. A rebase merge re-authors each one onto the base and does not re-sign; a squash merge is built on the forge's side and is signed there. The evidence is clean: 31 of 38 commits on trunk carry no signature header at all, and the seven that do are the four earliest commits and three squash merges. That is why the condition is checked over a pull request's own commits rather than over trunk's history.
+
+It also means the fix is a repository setting rather than anything this rule can ship. This repository records the decision as `ADR-001` and has configured the forge to offer no merge method but the squash. A consumer has to make that choice themselves, and until they do, their trunk will keep collecting unsigned copies of commits that were signed when they were written.
 
 ## The three things a reviewer still has to do
 
