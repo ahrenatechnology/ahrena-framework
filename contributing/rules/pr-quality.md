@@ -21,6 +21,8 @@ A pull request is the one place where an issue, a branch and the commit that lan
 
 Each of these is decided by `hooks/check-pull-request.py`.
 
+The body is read as GitHub reads it. Fenced code, inline code and HTML comments carry no references and close nothing, so a body quoting `Closes #4, #5` as an example is not held to it.
+
 1. **The body names the issue the branch carries.** A branch named `feat/39-issue-pr-trunk-rules` answers #39, and the body writes `#39` somewhere, as `Closes #39` when the merge finishes it or `Part of #39` when it does not. `owner/name#39` counts when it names this repository. The branch name ties the branch to the issue for a machine; the body is where a reviewer reads the tie. A branch with no number is `branch-naming.md`'s failure, and this condition does not report it a second time.
 
 2. **A closing keyword is followed by one issue, not a list.** GitHub reads `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`, `resolve`, `resolves` and `resolved` in any case, with an optional colon, and binds the keyword to the single reference that follows it. `Closes #4, #5, #6` closes #4. A comma, an `and` or an `&` followed by another reference is the list, and it fails. Each issue gets its own keyword.

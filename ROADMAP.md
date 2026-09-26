@@ -6,7 +6,7 @@ It lives at the repository root rather than inside `foundation/`, because it is 
 
 ## Landed
 
-Four plugins, **57 artifacts**, 373 test cases, nine hooks, no dependency beyond the standard library.
+Four plugins, **57 artifacts**, 377 test cases, nine hooks, no dependency beyond the standard library.
 
 | Plugin | Rules | Docs | Skills | Agents | What it is |
 |---|---|---|---|---|---|

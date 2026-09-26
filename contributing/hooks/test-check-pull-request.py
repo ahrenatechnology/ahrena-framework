@@ -113,6 +113,33 @@ CASES = [
         ["0 failure(s)"],
         ok=True,
     ),
+    case(
+        "#79 quoting #33's list in inline code closes nothing, and passes",
+        pull(body="Closes #1\n\nCondition 2 fails `Closes #4, #5, #6`."),
+        forge(),
+        ["0 failure(s)"],
+        ok=True,
+    ),
+    case(
+        "a closing keyword in a fenced block is not read",
+        pull(body="Closes #1\n\n```\nCloses #2, #3\n```\n"),
+        forge(),
+        ["0 failure(s)"],
+        ok=True,
+    ),
+    case(
+        "a closing keyword in an HTML comment is not read",
+        pull(body="Closes #1 <!-- Fixes #2, #3 -->"),
+        forge(),
+        ["0 failure(s)"],
+        ok=True,
+    ),
+    case(
+        "the branch's issue named only inside code is not named",
+        pull(body="Adds `#1`.", branch="feat/1-widget"),
+        forge(closes=()),
+        ["[pr-quality] condition 1"],
+    ),
     # --- condition 3: the title fits trunk
     case(
         "#77's title lands at 73 characters once the squash suffix is added, and fails",
