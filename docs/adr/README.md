@@ -14,6 +14,7 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-004](ADR-004-a-plan-is-an-artifact.md) | A plan is an artifact, held in a sub-issue |
 | [ADR-005](ADR-005-github-holds-the-work-inventory.md) | GitHub holds the work inventory, and `ROADMAP.md` is retired |
 | [ADR-006](ADR-006-a-stack-is-read-from-its-bases.md) | A stack is read from its bases, and no tool or flag is adopted |
+| [ADR-007](ADR-007-acceptance-criteria-live-in-the-issue.md) | Acceptance criteria live in the issue, and a test names the one it covers |
 
 ## Decided, as rows
 

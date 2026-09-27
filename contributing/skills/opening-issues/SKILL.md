@@ -7,6 +7,7 @@ references:
   - rules/issue-quality.md
   - rules/branch-naming.md
   - rules/pr-quality.md
+  - skills/writing-acceptance-criteria/SKILL.md
 ---
 
 # Opening issues
@@ -32,7 +33,7 @@ Open a new issue beside an existing one only when the work is genuinely independ
 Three things, each the answer to a question a reviewer will ask:
 
 - **What is wrong or missing, and the evidence.** A measurement, a reproduction, a failing run, the line that is wrong. If there is no evidence, say so.
-- **What done looks like.** The files, the behaviour that changes, the condition that starts passing. A reviewer holds the pull request against this.
+- **What done looks like**, as acceptance criteria under `## Acceptance criteria`, numbered so tests can name them. `writing-acceptance-criteria` gives the shape. A reviewer holds the pull request against this.
 - **What it leaves to other issues.** Decisions already made, work blocked elsewhere, and the parts another issue owns, each by number.
 
 The title names the problem or the outcome, not a task list. Write the body to a file, so it can be read back before it is sent.
@@ -87,4 +88,4 @@ gh api -X POST repos/<owner>/<repo>/branches/<old-name>/rename -f new_name=<type
 
 ## When this skill does not apply
 
-Writing acceptance criteria as a format is not here: that belongs to the issue-driven flow (#92). Splitting one issue into a plan of several is the planning work (#93). This skill writes one issue well.
+The shape of acceptance criteria is `writing-acceptance-criteria`. Splitting one issue into a plan of several is the planning work (#93). This skill writes one issue well.
