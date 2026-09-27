@@ -35,6 +35,6 @@ Each of these is decided by `hooks/check-trunk.py`.
 
 **Condition 1 may be unchecked in CI, and that is recorded rather than hidden.** The merge settings are fields of the repository resource, and whether the default `GITHUB_TOKEN` is shown them was not verified before this rule shipped. If it is not, condition 1 prints unchecked in every run, and the setting is still an owner's to make.
 
-**Nothing here requires a pull request's base to be trunk.** A stacked pull request's base is another pull request's branch, and it reaches trunk only when the bottom of the stack does, by the same squash. The stack is #58's.
+**Nothing here requires a pull request's base to be trunk.** A stacked pull request's base is another pull request's branch, and it reaches trunk only when the bottom of the stack does, by the same squash. The stack is `stacked-pull-requests.md`'s.
 
 **The bypass list is not read.** A ruleset can let an admin push past it. Whether that list is right is an owner's call, and condition 3 is what catches it being used.

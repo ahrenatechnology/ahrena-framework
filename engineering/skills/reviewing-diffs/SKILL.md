@@ -32,6 +32,8 @@ Three facts, recorded before any file is read, because every later step depends 
 
 **The base.** The commit the change merges into, not the tip of the default branch. A diff taken against the wrong base reports every commit somebody else landed in between, and a review that does that is discarded whole.
 
+For a layer of a stack the base is its parent's branch, not trunk, so the diff is the layer alone. A finding on a line the layer did not touch belongs to the layer that did, and is raised on that pull request instead. When the parent lands and the layer is restacked onto trunk, the diff changes, and a verdict given before the restack does not carry over. [`contributing/rules/stacked-pull-requests.md`](../../../contributing/rules/stacked-pull-requests.md) says how a layer is told from a pull request against the wrong base.
+
 **The head.** The exact commit under review. It names the review, it bounds what counts as "in the diff" for the severity test in step 7, and `skills/publishing-review-verdicts/SKILL.md` builds the comment marker from it.
 
 **Whether execution is permitted.** It is permitted when the head is a branch in the same repository as the base. It is not permitted when the head is an external fork, because building the project runs the change author's code — the dependency manifest, the build script, an install hook and every transitive dependency they name — on this machine. When it is not permitted, record one `unchecked` finding naming each condition step 5 will not decide and this reason, and carry on. Every other step in this procedure only reads.

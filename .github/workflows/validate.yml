@@ -80,6 +80,9 @@ jobs:
       - name: Test the trunk hook
         run: python3 contributing/hooks/test-check-trunk.py
 
+      - name: Test the stack hook
+        run: python3 contributing/hooks/test-check-stack.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
 
@@ -150,6 +153,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 contributing/hooks/check-pull-request.py
+
+      # Also a pull-request check, and run on every one rather than only on a
+      # stack, because condition 3 catches a branch carrying commits that
+      # already landed, whether or not anything was stacked.
+      - name: Check the stack
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 contributing/hooks/check-stack.py
 
       # Not gated on the event: the merge settings and the rulesets are wrong
       # on a pull request exactly when they are wrong on trunk, and a push to

@@ -43,6 +43,6 @@ The body is read as GitHub reads it. Fenced code, inline code and HTML comments 
 
 **Nothing here reads the body for substance.** A body that names the right issue, closes it correctly and describes a different change passes every condition. Whether the description matches the diff, whether the verification section shows anything was verified, and whether the pull request is one change are the reviewer's questions, and `docs/pull-requests-and-trunk.md` states them where a condition would have been.
 
-**A stacked pull request is not special here.** Its base is another pull request's branch rather than trunk, and no condition reads the base. The stack itself is #58's.
+**A stacked pull request is not special here.** Its base is another pull request's branch rather than trunk, and no condition reads the base. The stack itself is `stacked-pull-requests.md`'s.
 
 **Most of this repository's pull requests before this rule would fail it.** The measurements are in the doc, including three of the conditions failing on pull requests opened the same week the rule was written. The rule changes the practice rather than describing it.
