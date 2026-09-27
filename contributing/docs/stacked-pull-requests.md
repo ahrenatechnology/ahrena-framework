@@ -56,7 +56,7 @@ git push --force-with-lease
 
 `<tip-of-feat/1-bottom>` is A2, the last commit #80 had. After the rebase `feat/2-top` is `S ── B1'`, and #81's diff is B1 alone.
 
-The base has to move too. GitHub retargets the pull requests based on a branch when that branch is deleted after its pull request merges. This repository's `delete_branch_on_merge` is off, so the branch stays, #81 stays based on it, and condition 1 fails #81 with "already landed. Retarget it to main". `gh pr edit 81 --base main` fixes it, or turning on **Automatically delete head branches** under Settings → General makes GitHub do it on every merge.
+The base has to move too. GitHub retargets the pull requests based on a branch when that branch is deleted after its pull request merges. This repository turned on `delete_branch_on_merge` on 2026-09-27, so landing #80 deletes `feat/1-bottom` and GitHub moves #81 to `main` by itself. A repository with it off keeps the branch, #81 stays based on it, and condition 1 fails #81 with "already landed. Retarget it to main"; `gh pr edit 81 --base main` fixes that by hand.
 
 Then #81 is the bottom, and the same steps repeat up the stack.
 
