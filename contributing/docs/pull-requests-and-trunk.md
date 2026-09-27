@@ -42,13 +42,15 @@ On 2026-09-26, over 22 merged pull requests and 55 issues.
 
 **`ADR-001` was not enforced.** The record was accepted on 2026-09-25 and decided on the squash. The repository still allowed all three merge methods, no ruleset covered `main`, and `main` was not protected. Of the seven pull requests merged since #68, four landed as squashes (#68, #69, #71, #76) and three by rebase, all on 2026-09-26: #74, the pull request that carried `ADR-001` itself, then #77 and #78. The three rebased commits carry no signature and no ` (#N)`. #75 reported this. `protected-trunk.md` conditions 1 and 2 are that report as a check, and they fail on this repository until an owner changes the settings.
 
+**A commit message closed an epic.** `75481ca`, the squash of #79, closed #45. The squash message was assembled from the branch's commit messages, and one of them explained condition 5 with the words "when it closed #45". GitHub reads a closing keyword in any commit message that reaches the default branch, and treats it as plain text, so backticks do not protect it. The same message quoted `Closes #4, #5, #6`, which would have closed #4 had it been open. Condition 5 of `pr-quality.md` passed #79, because `closingIssuesReferences` does not list what commit messages will close. The fix is on the forge rather than in the detector: `protected-trunk.md` condition 1 requires the squash message to be the pull-request body, which is the text `pr-quality.md` already reads.
+
 **Every issue has a body.** None of the 55 has fewer than 40 characters. That is why `issue-quality.md` has no hook: its one mechanical candidate holds everywhere.
 
 ## What an owner has to do
 
 Two settings, neither of which a pull request can make:
 
-1. Under **Settings → General → Pull Requests**, allow squash merging only, and set the default squash commit title to the pull request title.
+1. Under **Settings → General → Pull Requests**, allow squash merging only, and set the default commit message to **Pull request title and description**.
 2. Under **Settings → Rules → Rulesets**, add a ruleset targeting the default branch with **Require a pull request before merging**.
 
 Until both are done, `protected-trunk.md` fails in every run, on every pull request and on trunk. That is the intended state. A check that stays green while the decision it enforces is not in force would claim something false.

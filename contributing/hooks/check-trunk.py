@@ -3,7 +3,7 @@
 
 Decides the three conditions the rule states:
 
-    1. the forge merges by squash only, titled with the pull request's title
+    1. the forge merges by squash only, written from the pull request's title and body
     2. something on the forge requires a pull request to reach trunk
     3. every commit a push adds to trunk is the squash of a merged pull request
 
@@ -34,13 +34,18 @@ from forge import Finding, Forge, Unchecked, Unreachable, from_environment, load
 RULE = "protected-trunk"
 
 # The merge settings ADR-001 decides, as the REST API names them. Squash on,
-# the two others off, and the squash titled from the pull request, so the
-# title pr-quality condition 3 checks is the subject trunk actually receives.
+# the two others off, and the squash titled and written from the pull request,
+# so the title and body pr-quality checks are the text trunk actually receives.
 MERGE_SETTINGS = (
     ("allow_squash_merge", True, "the squash is the one method ADR-001 allows"),
     ("allow_rebase_merge", False, "a rebase re-authors every commit and drops its signature"),
     ("allow_merge_commit", False, "a merge commit ends trunk's linearity"),
     ("squash_merge_commit_title", "PR_TITLE", "the title is what pr-quality checks as trunk's subject"),
+    (
+        "squash_merge_commit_message",
+        "PR_BODY",
+        "the body is what pr-quality checks, and a closing keyword in any other text on trunk closes an issue",
+    ),
 )
 
 # The subject GitHub gives a squash commit ends in ` (#<number>)`.

@@ -34,6 +34,7 @@ SQUASH_ONLY = {
     "allow_rebase_merge": False,
     "allow_merge_commit": False,
     "squash_merge_commit_title": "PR_TITLE",
+    "squash_merge_commit_message": "PR_BODY",
 }
 REQUIRES_PR = [{"type": "pull_request"}, {"type": "non_fast_forward"}]
 
@@ -81,8 +82,15 @@ def cases(shas: dict[str, str]) -> list[tuple]:
         (
             "this repository's settings on the day the rule was written fail",
             pull_event(),
-            forge(settings={**SQUASH_ONLY, "allow_rebase_merge": True, "allow_merge_commit": True, "squash_merge_commit_title": "COMMIT_OR_PR_TITLE"}),
-            ["allow_rebase_merge is True", "allow_merge_commit is True", "squash_merge_commit_title is 'COMMIT_OR_PR_TITLE'", "3 failure(s)"],
+            forge(settings={**SQUASH_ONLY, "allow_rebase_merge": True, "allow_merge_commit": True, "squash_merge_commit_title": "COMMIT_OR_PR_TITLE", "squash_merge_commit_message": "COMMIT_MESSAGES"}),
+            ["allow_rebase_merge is True", "allow_merge_commit is True", "squash_merge_commit_title is 'COMMIT_OR_PR_TITLE'", "squash_merge_commit_message is 'COMMIT_MESSAGES'", "4 failure(s)"],
+            False,
+        ),
+        (
+            "a squash written from the branch's commit messages fails, which is how 75481ca closed #45",
+            pull_event(),
+            forge(settings={**SQUASH_ONLY, "squash_merge_commit_message": "COMMIT_MESSAGES"}),
+            ["[protected-trunk] condition 1", "squash_merge_commit_message is 'COMMIT_MESSAGES', not 'PR_BODY'"],
             False,
         ),
         (
