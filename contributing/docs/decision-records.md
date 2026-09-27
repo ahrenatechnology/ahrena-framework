@@ -16,7 +16,7 @@ The answer matters because both obvious answers are wrong. "Every decision gets 
 
 ## The log this repository already keeps
 
-`ROADMAP.md` has a **Decided** table. It is an undeclared decision log and it has been working, in the sense that a one-line record of a verdict is worth far more than nothing. What it cannot do is visible in its own contents.
+`ROADMAP.md` had a **Decided** table, which now lives unchanged in `docs/adr/README.md`. It is an undeclared decision log and it has been working, in the sense that a one-line record of a verdict is worth far more than nothing. What it cannot do is visible in its own contents.
 
 **It has no supersession.** When open question 7 was settled, there was no way to say so, so the question was struck through in place and annotated in prose — *"the slot is kept so that the numbers the other rows and #34 cite still point where they did"*. That is a hand-rolled tombstone, invented on the spot because the log had no mechanism for one decision replacing another. It is the clearest evidence in the repository that the table has run out.
 
@@ -82,7 +82,7 @@ The four refusals in *Not coming across* are decisions too, and the same test se
 
 ## Where a record lives, and why it is not an artifact
 
-A decision record is **project state, not framework content**. It records why this repository decided something, it ships to nobody, and it has no reason to pass the artifact gate. That is the same argument `ROADMAP.md` makes for sitting at the repository root rather than inside `foundation/`.
+A decision record is **project state, not framework content**. It records why this repository decided something, it ships to nobody, and it has no reason to pass the artifact gate. That is the same argument that kept `ROADMAP.md` at the repository root rather than inside `foundation/` while it existed.
 
 So records live in `docs/adr/` at the repository root, outside every plugin. Three consequences follow.
 
@@ -120,7 +120,7 @@ What the hook cannot decide is everything this document is about. It cannot tell
 
 ## Where this stops
 
-**Nothing here migrates the Decided table.** The verdicts above are an analysis, not a plan, and the eleven rows stay exactly where they are until somebody decides otherwise.
+**Nothing here promotes the Decided rows.** The verdicts above are an analysis, not a plan. The eleven rows moved to `docs/adr/README.md` when `ROADMAP.md` was retired (ADR-005), and they are still rows there until somebody writes the record.
 
 **The three questions are a test, not a formula.** They will misfire in both directions — a decision that passes all three and still reads as ceremony, a row that fails all three and is missed for a year. The promotion trigger is the cheap correction for the second case and there is none for the first; a record that turned out not to be worth writing is a sunk half hour and it stays, because deleting it leaves the gap that condition 2 of the rule then fails on.
 
