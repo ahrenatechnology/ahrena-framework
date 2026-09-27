@@ -83,6 +83,9 @@ jobs:
       - name: Test the stack hook
         run: python3 contributing/hooks/test-check-stack.py
 
+      - name: Test the traceability hook
+        run: python3 contributing/hooks/test-check-traceability.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
 
@@ -162,6 +165,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 contributing/hooks/check-stack.py
+
+      # The criteria of every issue this pull request closes, read from the
+      # issues, against the tests in this checkout. ADR-007.
+      - name: Check the trace from criteria to tests
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 contributing/hooks/check-traceability.py
 
       # Not gated on the event: the merge settings and the rulesets are wrong
       # on a pull request exactly when they are wrong on trunk, and a push to
