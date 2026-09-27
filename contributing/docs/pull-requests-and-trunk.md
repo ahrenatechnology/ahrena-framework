@@ -77,4 +77,4 @@ Until both are done, `protected-trunk.md` fails in every run, on every pull requ
 
 **The forge is GitHub.** Both hooks read GitHub's REST and GraphQL APIs, and the closing keywords, `closingIssuesReferences`, rulesets and merge settings are GitHub's. A project on another forge gets conditions 1 to 3 of `pr-quality.md` unchanged, since they read only the title, body and branch, and every other condition reports unchecked. Porting the rest is a detector per forge, not a change to the rules.
 
-**Stacking is #58's.** Nothing here reads a pull request's base, so a stack passes or fails exactly as its parts would alone.
+**Stacking is `stacked-pull-requests.md`'s.** Nothing here reads a pull request's base, so a stack passes or fails exactly as its parts would alone.
