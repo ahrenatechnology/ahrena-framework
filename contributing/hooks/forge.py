@@ -22,8 +22,10 @@ import json
 import os
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 DEFAULT_API = "https://api.github.com"
 DEFAULT_GRAPHQL = "https://api.github.com/graphql"
@@ -125,3 +127,18 @@ def report(findings: list[Finding], unchecked: list[Unchecked], subject: str) ->
         print(line)
     print(f"{subject}: {len(findings)} failure(s), {len(unchecked)} unchecked.")
     return 1 if findings else 0
+
+
+def run_on_pull_request(argv: list[str], read: Callable[[dict], Any], judge: Callable[[Any, Forge], tuple]) -> int:
+    """The whole of a pull-request check's entry point, shared by the three that have one.
+
+    `read` turns the event into the check's own view of the pull request, or
+    None when the event carries none. That view has `repository` and `where`.
+    """
+    pr = read(load_event(argv))
+    if pr is None:
+        print("not a pull-request event, nothing to decide.")
+        return 0
+    findings, unchecked = judge(pr, from_environment(pr.repository))
+    return report(findings, unchecked, pr.where)
+

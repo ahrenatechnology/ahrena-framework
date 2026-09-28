@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from forge import Finding, Forge, Unchecked, Unreachable, from_environment, load_event, report  # noqa: E402
+from forge import Finding, Forge, Unchecked, Unreachable, run_on_pull_request  # noqa: E402
 
 RULE = "stacked-pull-requests"
 
@@ -163,12 +163,7 @@ def judge(pr: PullRequest, forge: Forge) -> tuple[list[Finding], list[Unchecked]
 
 
 def main(argv: list[str]) -> int:
-    pr = from_event(load_event(argv))
-    if pr is None:
-        print("not a pull-request event, nothing to decide.")
-        return 0
-    findings, unchecked = judge(pr, from_environment(pr.repository))
-    return report(findings, unchecked, pr.where)
+    return run_on_pull_request(argv, from_event, judge)
 
 
 if __name__ == "__main__":

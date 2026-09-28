@@ -38,7 +38,7 @@ The base is what makes it a layer. `stacked-pull-requests.md` condition 1 checks
 
 ## 3. Review and land from the bottom
 
-Each layer is reviewed against its parent, which is its base. Land the bottom first, by squash, which is the only method the forge offers. A higher layer cannot reach trunk before it: merging it would land it on its parent's branch.
+Each layer is reviewed against its parent, which is its base. Land the bottom first, by squash, which is the only method the forge offers. A higher layer cannot reach trunk before it: merging it would land it on its parent's branch. Do not collapse a layer into its parent to save a restack. The layer's `Closes` would never reach trunk, and its issue would stay open.
 
 ## 4. Restack the next layer
 
