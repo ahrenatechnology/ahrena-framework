@@ -19,7 +19,7 @@ An issue is where work starts. `branch-naming.md` makes a branch carry the numbe
 
 1. **It states what is wrong or missing, with the evidence for it.** A measurement, a reproduction, a link to the failing run, the line that is wrong. #39 opens with "this session opened 5 pull requests and 3 of them had no issue behind them", and that sentence is what made the work arguable. Where no evidence exists, the issue says so rather than implying some.
 
-2. **It states what done looks like, in terms a reviewer can hold the pull request against.** The files it produces, the behaviour that changes, the condition that starts passing. How acceptance criteria are written, and where they live, is issue-driven development's to settle (#45). This condition asks only that done is written down before the work starts.
+2. **It states what done looks like, in terms a reviewer can hold the pull request against.** The files it produces, the behaviour that changes, the condition that starts passing. Done takes the form of acceptance criteria, numbered `AC-1` upward under a `## Acceptance criteria` heading in the issue itself. This repository's `ADR-007` records why the issue is their only home. The criteria are what a test later names and what the reviewer holds the pull request against.
 
 3. **It states what it leaves to other issues, when it touches something another issue owns.** The decisions already made, the work that is blocked on something else, and the part that belongs somewhere else, each named by number. #39's "Label and status vocabulary is unsettled (#22). Do not invent one" is the shape.
 
