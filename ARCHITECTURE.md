@@ -32,6 +32,7 @@ ahrena-framework/
 │   └── marketplace.json          the catalogue: every plugin, by name
 │
 └── <plugin>/
+    ├── .claude-plugin/plugin.json  manifest, points at the same content
     ├── .codex-plugin/plugin.json   manifest, points at the same content
     ├── .cursor-plugin/plugin.json  manifest, points at the same content
     ├── rules/                      *.md
@@ -50,10 +51,12 @@ Every plugin ships for all four at once. A plugin that supports three is incompl
 
 | Platform | How it finds the plugin | What we ship |
 |---|---|---|
-| **Claude Code** | `.claude-plugin/marketplace.json` at the repository root; directories by convention inside the plugin | the marketplace entry |
+| **Claude Code** | `.claude-plugin/marketplace.json` at the repository root names the plugin; `.claude-plugin/plugin.json` inside the plugin describes it | the manifest |
 | **Codex** | `.codex-plugin/plugin.json` inside the plugin | the manifest |
 | **Cursor** | `.cursor-plugin/plugin.json` inside the plugin | the manifest |
 | **DeepSeek** | directory discovery at `<projectRoot>/.agents/skills`, ranked by source; no manifest exists | the install-time mapping |
+
+The marketplace is the catalogue, not the manifest. Claude Code accepts an entry as the manifest only when the entry sets `"strict": false`, and this repository sets it on none. Without the file, an organisation sync skipped all four plugins (#106). Keeping the manifest inside the plugin, as Codex and Cursor already do, means one layout serves every platform that has a manifest.
 
 DeepSeek is the one that carries no manifest: its local provider discovers `<name>/SKILL.md` bundles and flat `<name>.md` files under `.agents/skills`, so the consumer's install step places or links the plugin's skills there.
 
