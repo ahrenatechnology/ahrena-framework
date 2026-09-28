@@ -1,67 +1,90 @@
 ---
 name: stacking-pull-requests
-description: Open, land and restack a stack of pull requests with git and gh alone. Use when a change has been split into layers that should be reviewed separately and land in order, when the bottom of a stack has just merged and the next layer must move onto trunk, or when a check reports that a pull request carries commits that already landed.
+description: Build, submit and land a stack of pull requests, with the forge's native stacks where it has them and by running the stack yourself where it does not. Use when a change has been split into layers that should be reviewed apart and land in order, when layers already opened need to become a stack, when a layer below has landed, or when a stack is ready to merge.
 type: skill
 clade: contributing
 references:
   - rules/stacked-pull-requests.md
   - rules/branch-naming.md
   - rules/pr-quality.md
-  - docs/stacked-pull-requests.md
+  - skills/opening-issues/SKILL.md
 ---
 
 # Stacking pull requests
 
-A stack is a chain of pull requests, each based on the branch of the one beneath it. No tool is required and none is assumed; every step below is `git` and `gh`. [`docs/stacked-pull-requests.md`](../../docs/stacked-pull-requests.md) draws the chain before and after a layer lands, and is worth reading once.
+A stack is a set of pull requests, each based on the one below, landing on trunk in order. Where the forge has native stacks, the forge does the mechanics and this skill adds the framework's rules. Where it has none, you run the stack yourself, and this skill is the procedure. [`docs/stacked-pull-requests.md`](../../docs/stacked-pull-requests.md) draws both.
 
-Stack only when the layers are worth reviewing apart. Most changes are one pull request, and deciding how a change splits is the plan's job, not this skill's.
+Stack only when the layers are worth reviewing apart. Deciding how a change splits is the plan's job (#93), not this skill's.
 
-## 1. Give every layer its own issue
+## 0. Find out which path applies
 
-A layer is a pull request, so it answers an issue and its branch carries that issue's number, as `branch-naming.md` requires. Layers of one plan are usually sub-issues of the same parent. Create each branch from the issue, so the two are linked:
-
-```sh
-gh issue develop <issue> --name <type>/<issue>-<slug> --base <parent-branch>
-```
-
-The bottom layer's `--base` is trunk. Every other layer's is the branch beneath it.
-
-## 2. Open each layer against the one beneath it
+Ask the forge, rather than assuming:
 
 ```sh
-gh pr create --base <parent-branch> --title "<type>: <subject>" --body "Closes #<issue>"
+gh api graphql -f query='{ __type(name: "PullRequestStack") { name } }' -q '.data.__type.name'
 ```
 
-The base is what makes it a layer. `stacked-pull-requests.md` condition 1 checks that the base is an open pull request's branch, so a layer opened against a branch nobody has a pull request for fails as a wrong base.
+`PullRequestStack` means native stacks: take steps 1 to 6. An empty answer, or a forge without `gh`, means the framework runs the stack: take steps 1 to 3, then 7 and 8.
 
-`pr-quality.md` holds each layer to the same body and title conditions as any pull request. Close each layer's own issue in its own body. A layer that closes its parent's issue closes it the moment that layer lands, which may be before the parent does.
+## 1. One issue per layer
 
-## 3. Review and land from the bottom
+Every layer is a pull request, so each answers its own issue, written with `opening-issues`. The layers of one plan are sub-issues of the plan. Take ownership of each when its work starts, with `gh issue edit <n> --add-assignee @me`.
 
-Each layer is reviewed against its parent, which is its base. Land the bottom first, by squash, which is the only method the forge offers. A higher layer cannot reach trunk before it: merging it would land it on its parent's branch. Do not collapse a layer into its parent to save a restack. The layer's `Closes` would never reach trunk, and its issue would stay open.
+## 2. Name every branch `type/N-slug`
 
-## 4. Restack the next layer
+`branch-naming.md` holds every layer to it. On the native path, pass the name to `gh stack init` and `gh stack add`, and never let `gh stack add -m` pick one: it generates a date and a slug, such as `03-24-add_login`, that carries no issue number. On the other path, create each branch from the one below it.
 
-When the bottom lands, trunk has one new squash commit and the next layer's branch still holds the bottom's original commits. `stacked-pull-requests.md` condition 3 fails the layer until they are gone. Note the landed branch's last commit before anything else, then:
+## 3. Each body closes its own layer's issue
+
+`Closes #<its-issue>`, and never the parent's or the plan's. The title is the layer's trunk subject, held to `pr-quality.md` like any pull request's.
+
+## 4. Native: build the stack with `gh stack`
+
+Install GitHub's extension, and its skill, which covers every command and the flags to pass when nothing can prompt:
+
+```sh
+gh extension install github/gh-stack
+gh skill install github/gh-stack --agent claude-code --scope user
+```
+
+Open each layer against the one below it, then link them, bottom to top:
+
+```sh
+gh pr create --base <branch-below> --title "<type>: <subject>" --body-file <body.md>
+gh stack link <bottom-pr> <next-pr> <top-pr>
+```
+
+`gh stack submit --auto` also works, but it opens drafts with generated titles that fail `pr-quality.md`, so fix each with `gh pr edit` afterwards.
+
+## 5. Native: keep it current
+
+`gh stack sync` fetches, rebases each layer onto the one below, and pushes. When a layer merges, the forge retargets and rebases the layers above it. You do nothing.
+
+## 6. Native: land it through the stack
+
+From the stack on github.com, or with `gh stack merge <top-ready-pr> --yes --squash`. That lands the chosen layer and every unmerged one below it, in order, each closing its own issue. Never `gh pr merge` a single layer.
+
+## 7. Framework-run: chain the bases
+
+Open the bottom against trunk and each layer against the branch below it, with `gh pr create --base <branch-below>` or the forge's own CLI. The base is what makes it a layer. `stacked-pull-requests.md` checks that each base is an open pull request's branch and that the chain reaches trunk.
+
+## 8. Framework-run: land the bottom, then restack the next
+
+Land the bottom alone, by squash. Before it lands, note its branch's last commit. Then move the next layer onto trunk past it:
 
 ```sh
 git fetch origin
 git rebase --onto origin/main <landed-tip> <layer-branch>
 git push --force-with-lease
-```
-
-Then point the layer at trunk, unless GitHub already did because the landed branch was deleted:
-
-```sh
 gh pr edit <layer-number> --base main
 ```
 
-The layer is now the bottom. Any review given before the restack was of a different diff, so it is given again.
+Skip the last line if the forge already moved the base, as GitHub does when the landed branch is deleted on merge. The layer is now the bottom, and any review given before the restack is given again. Repeat up the stack. `stacked-pull-requests.md` condition 3 fails a layer until its restack is done.
 
-## 5. Repeat up the stack
+## Either way
 
-Each landing is followed by one restack of the layer above it, and nothing above that layer moves until its own parent lands. If a restack conflicts, the conflict is between the layer and what landed. Resolve it on the layer's branch. Trunk stays untouched.
+Never merge a layer into its parent's branch to save a restack. Its `Closes` would never reach trunk, and its issue would stay open.
 
 ## When this skill does not apply
 
-A single pull request against trunk is not a stack, and none of this is needed for it. A change split into branches that were never opened as pull requests is not a stack either, because nothing here can read a chain that has no pull requests in it.
+A single pull request against trunk is not a stack, and none of this applies to it. Neither does a change that has not been split: how to split one is the plan's question (#93).

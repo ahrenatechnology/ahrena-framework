@@ -1,8 +1,9 @@
 # ADR-006: A stack is read from its bases
 
-- **Status:** accepted
+- **Status:** superseded
 - **Date:** 2026-09-27
 - **Issue:** #58
+- **Superseded by:** ADR-008
 
 ## Context
 

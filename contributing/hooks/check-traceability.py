@@ -37,8 +37,8 @@ RULE = "traceability"
 # The closing keywords are pr-quality's, read from its hook rather than
 # restated. The body is what lands on trunk (protected-trunk condition 1), so
 # it is the record of what a pull request closes. GitHub's own list is empty
-# until the pull request is based on the default branch, which a layer of a
-# stack is not.
+# for a layer of a stack, even once the layer is based on the default branch,
+# and fills only when it merges.
 _spec = importlib.util.spec_from_file_location(
     "check_pull_request", Path(__file__).resolve().parent / "check-pull-request.py"
 )
