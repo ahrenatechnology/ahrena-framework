@@ -33,7 +33,7 @@ Each of these is decided by `hooks/check-stack.py`.
 
 **The detector reads GitHub's API on both paths.** On a forge that does not speak it, all three conditions are unchecked, and the skill is what still runs: the agent follows the framework-run path with that forge's own CLI.
 
-**How to decompose a change into layers is not here.** When one change should become several, and in what order, is the plan's question. `ADR-004` gives the plan its own sub-issue, and the planning work (#93) owns the decomposition checklist.
+**How to decompose a change into layers is not here.** When one change should become several, and in what order, is the plan's question. `ADR-011` makes each unit its own sub-issue, and `skills/planning-changes` owns the decomposition checklist.
 
 **Nothing here orders the merges, but one way of merging costs an issue.** Each layer lands on trunk through its own merge, native stacks from the stack, framework-run stacks bottom first. A layer merged into its parent's branch instead never closes its issue. GitHub closes an issue from a pull request only on a merge into the default branch, and the parent's squash is written from the parent's body alone.
 

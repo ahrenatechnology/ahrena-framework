@@ -88,4 +88,4 @@ gh api -X POST repos/<owner>/<repo>/branches/<old-name>/rename -f new_name=<type
 
 ## When this skill does not apply
 
-The shape of acceptance criteria is `writing-acceptance-criteria`. Splitting one issue into a plan of several is the planning work (#93). This skill writes one issue well.
+The shape of acceptance criteria is `writing-acceptance-criteria`. Splitting one issue into a plan of several is `planning-changes`. This skill writes one issue well.

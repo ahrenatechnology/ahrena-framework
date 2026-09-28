@@ -11,13 +11,14 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-001](ADR-001-pull-requests-land-as-a-squash.md) | Pull requests land on trunk as a squash |
 | [ADR-002](ADR-002-enforcement-admits-a-forge-tier.md) | Enforcement admits a forge tier |
 | [ADR-003](ADR-003-idd-builds-the-specification-system.md) | Issue-driven development builds the specification system |
-| [ADR-004](ADR-004-a-plan-is-an-artifact.md) | A plan is an artifact, held in a sub-issue |
+| [ADR-004](ADR-004-a-plan-is-an-artifact.md) | A plan is an artifact, held in a sub-issue. Superseded by ADR-011 |
 | [ADR-005](ADR-005-github-holds-the-work-inventory.md) | GitHub holds the work inventory, and `ROADMAP.md` is retired |
 | [ADR-006](ADR-006-a-stack-is-read-from-its-bases.md) | A stack is read from its bases, and no tool or flag is adopted. Superseded by ADR-008 |
 | [ADR-007](ADR-007-acceptance-criteria-live-in-the-issue.md) | Acceptance criteria live in the issue, and a test names the one it covers |
 | [ADR-008](ADR-008-native-stacks-first-the-framework-runs-the-rest.md) | Native stacks where the forge has them, and the framework runs the stack where it does not |
 | [ADR-009](ADR-009-two-gates-and-a-person-lands-the-change.md) | Two gates, scope and quality, and a person lands the change |
 | [ADR-010](ADR-010-a-fork-syncs-through-a-merge-commit.md) | A fork syncs its parent through a merge commit, and the gates judge only what the fork brings |
+| [ADR-011](ADR-011-a-plan-is-its-units-as-sub-issues.md) | A plan is its units, as sub-issues ordered by the forge's native dependencies |
 
 ## Decided, as rows
 

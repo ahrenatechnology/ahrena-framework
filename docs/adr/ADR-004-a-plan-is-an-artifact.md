@@ -1,8 +1,9 @@
 # ADR-004: A plan is an artifact, held in a sub-issue
 
-- **Status:** accepted
+- **Status:** superseded
 - **Date:** 2026-09-26
 - **Issue:** #45
+- **Superseded by:** ADR-011
 
 ## Context
 

@@ -86,6 +86,9 @@ jobs:
       - name: Test the traceability hook
         run: python3 contributing/hooks/test-check-traceability.py
 
+      - name: Test the plan hook
+        run: python3 contributing/hooks/test-check-plan.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
 
@@ -198,6 +201,14 @@ jobs:
             export PARENT_TRUNK=refs/remotes/parent/trunk
           fi
           python3 contributing/hooks/check-traceability.py
+
+      # A plan closes when its units have, and in the order its dependencies
+      # say. ADR-011.
+      - name: Check the plan
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 contributing/hooks/check-plan.py
 
       # Not gated on the event: the merge settings and the rulesets are wrong
       # on a pull request exactly when they are wrong on trunk, and a push to
