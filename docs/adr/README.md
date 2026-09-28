@@ -19,6 +19,7 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-009](ADR-009-two-gates-and-a-person-lands-the-change.md) | Two gates, scope and quality, and a person lands the change |
 | [ADR-010](ADR-010-a-fork-syncs-through-a-merge-commit.md) | A fork syncs its parent through a merge commit, and the gates judge only what the fork brings |
 | [ADR-011](ADR-011-a-plan-is-its-units-as-sub-issues.md) | A plan is its units, as sub-issues ordered by the forge's native dependencies |
+| [ADR-012](ADR-012-work-items-are-typed-and-templated.md) | Work items are typed, epic, user story, tech task, spike or bug, and each has a template |
 
 ## Decided, as rows
 

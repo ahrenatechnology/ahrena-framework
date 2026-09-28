@@ -29,4 +29,4 @@ An issue is where work starts. `branch-naming.md` makes a branch carry the numbe
 
 **Issue-first is not stated here.** That work starts from an issue is enforced by `branch-naming.md`, whose name needs the number, and by `pr-quality.md`, which checks the issue exists and is open. Restating it would be a third place to change it.
 
-**Templates are not required.** An issue form turns these conditions into fields, and a project may add one. The rule is about what the issue says, and a template filled in with nothing passes a form while failing all three.
+**A template is how an issue meets these, not a substitute for them.** Every issue has a type, epic, user story, tech task, spike or bug, and `skills/opening-issues` writes each to its type's template, which carries a section for each condition (`ADR-012`). The rule is about what the issue says. A template filled in with nothing has every heading and fails all three.
