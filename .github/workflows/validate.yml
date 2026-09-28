@@ -141,11 +141,32 @@ jobs:
           BRANCH: ${{ github.head_ref }}
         run: python3 contributing/hooks/check-branch-name.py "$BRANCH"
 
+      # A fork's pull request can carry its parent's commits: that is what a
+      # sync is. They passed the parent's gates when they landed there, and
+      # the fork cannot re-sign or re-word them without leaving the parent's
+      # history (ADR-010). A fork says so by setting the repository variable
+      # PARENT_REPOSITORY to `owner/name`. GitHub's own fork flag is not read,
+      # because a repository that syncs through a plain remote never has it.
+      # Then the parent's trunk is fetched, and the two checks that read the
+      # pull request's commits leave it out. Without the variable nothing is
+      # fetched and both run exactly as before.
+      - name: Fetch the parent's trunk
+        if: github.event_name == 'pull_request' && vars.PARENT_REPOSITORY != ''
+        env:
+          PARENT_REPOSITORY: ${{ vars.PARENT_REPOSITORY }}
+          SERVER: ${{ github.server_url }}
+        run: git fetch --no-tags "$SERVER/$PARENT_REPOSITORY.git" "+HEAD:refs/remotes/parent/trunk"
+
       - name: Check the commits on this pull request
         if: github.event_name == 'pull_request'
         env:
           RANGE: ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
-        run: python3 contributing/hooks/check-commit-message.py "$RANGE"
+        run: |
+          exclude=()
+          if git rev-parse -q --verify refs/remotes/parent/trunk >/dev/null; then
+            exclude=(^refs/remotes/parent/trunk)
+          fi
+          python3 contributing/hooks/check-commit-message.py "$RANGE" "${exclude[@]}"
 
       # The forge-tier checks, which read GitHub rather than the tree and so
       # take the default token. Without one they report unchecked, not failed.
@@ -172,7 +193,11 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python3 contributing/hooks/check-traceability.py
+        run: |
+          if git rev-parse -q --verify refs/remotes/parent/trunk >/dev/null; then
+            export PARENT_TRUNK=refs/remotes/parent/trunk
+          fi
+          python3 contributing/hooks/check-traceability.py
 
       # Not gated on the event: the merge settings and the rulesets are wrong
       # on a pull request exactly when they are wrong on trunk, and a push to
@@ -180,4 +205,5 @@ jobs:
       - name: Check trunk
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          PARENT_REPOSITORY: ${{ vars.PARENT_REPOSITORY }}
         run: python3 contributing/hooks/check-trunk.py

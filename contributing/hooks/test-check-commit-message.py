@@ -182,6 +182,28 @@ CASES = [
         ["HEAD"],
         ["3 commit(s), 2 failure(s)", "condition 2", "condition 4"],
     ),
+    # --- a fork's sync excludes the parent's trunk (#115/AC-1)
+    (
+        "commits the parent's trunk already carries are not judged, signed or not",
+        [
+            Spec("docs: the parent's first\n", signature=UNSIGNED),
+            Spec("docs: the parent's second\n", signature=UNSIGNED),
+            Spec("chore: the fork's own\n"),
+        ],
+        ["1 commit(s), 0 failure(s)"],
+        True,
+        ["HEAD", "^HEAD~1"],
+    ),
+    ranged(
+        "without the exclusion the same range fails on the parent's commits",
+        [
+            Spec("docs: the parent's first\n", signature=UNSIGNED),
+            Spec("docs: the parent's second\n", signature=UNSIGNED),
+            Spec("chore: the fork's own\n"),
+        ],
+        ["HEAD"],
+        ["3 commit(s), 2 failure(s)", "condition 6"],
+    ),
 ]
 
 

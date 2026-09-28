@@ -12,6 +12,12 @@ every event. Condition 3 reads a push, so it is decided only when the event is
 a push to trunk; a pull request has not reached trunk yet. All three read the
 forge, and without a token each is reported unchecked rather than failed.
 
+A fork is a repository whose workflow sets PARENT_REPOSITORY, the repository
+it syncs from, whether or not GitHub records it as a fork. There a merge
+commit is how the parent's trunk comes in (ADR-010), so condition 1 leaves
+`allow_merge_commit` undecided and condition 3 also accepts the merge commit
+of a merged pull request.
+
 Usage:
     python3 contributing/hooks/check-trunk.py [event.json]
 
@@ -22,6 +28,7 @@ clone, which is what a checkout with full history has.
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -51,6 +58,13 @@ MERGE_SETTINGS = (
 # The subject GitHub gives a squash commit ends in ` (#<number>)`.
 SQUASH_SUBJECT = re.compile(r" \(#(?P<number>[1-9][0-9]*)\)$")
 
+# The subject GitHub gives the merge commit of a pull request. Only a fork
+# reads it, because only a fork lands anything that way (ADR-010).
+MERGE_SUBJECT = re.compile(r"^Merge pull request #(?P<number>[1-9][0-9]*) from ")
+
+# The one setting a fork may hold either way: its sync needs the merge commit.
+FORK_UNDECIDED = frozenset({"allow_merge_commit"})
+
 # What a push reports as `before` when it creates the branch.
 NO_COMMIT = "0" * 40
 
@@ -74,9 +88,16 @@ def push_to_trunk(event: dict) -> Push | None:
     return Push(trunk, event.get("before") or NO_COMMIT, event["after"])
 
 
+def is_fork() -> bool:
+    return bool(os.environ.get("PARENT_REPOSITORY", "").strip())
+
+
 def settings_failures(repository: dict) -> tuple[list[Finding], list[Unchecked]]:
     findings = []
+    undecided = FORK_UNDECIDED if is_fork() else frozenset()
     for field, wanted, why in MERGE_SETTINGS:
+        if field in undecided:
+            continue
         if field not in repository:
             reason = f"the token cannot see {field}; an owner reads it under Settings, General"
             return [], [Unchecked(RULE, 1, reason)]
@@ -131,8 +152,8 @@ def pushed(push: Push) -> list[tuple[str, str]]:
     return [tuple(line.split(" ", 1)) if " " in line else (line, "") for line in lines]
 
 
-def commit_failure(sha: str, subject: str, forge: Forge) -> Finding | None:
-    match = SQUASH_SUBJECT.search(subject)
+def commit_failure(sha: str, subject: str, forge: Forge, fork: bool) -> Finding | None:
+    match = SQUASH_SUBJECT.search(subject) or (MERGE_SUBJECT.match(subject) if fork else None)
     if match is None:
         return Finding(RULE, 3, sha[:7], f"{subject!r} reached trunk without a pull request's squash: it carries no (#N)")
     number = int(match.group("number"))
@@ -142,11 +163,11 @@ def commit_failure(sha: str, subject: str, forge: Forge) -> Finding | None:
     return Finding(RULE, 3, sha[:7], f"the subject names #{number}, whose merge is not this commit")
 
 
-def lands_through_pull_requests(forge: Forge, push: Push) -> tuple[list[Finding], list[Unchecked]]:
+def lands_through_pull_requests(forge: Forge, push: Push, fork: bool) -> tuple[list[Finding], list[Unchecked]]:
     findings = []
     for sha, subject in pushed(push):
         try:
-            finding = commit_failure(sha, subject, forge)
+            finding = commit_failure(sha, subject, forge, fork)
         except Unreachable as error:
             return findings, [Unchecked(RULE, 3, str(error))]
         if finding is not None:
@@ -158,7 +179,7 @@ def judge(event: dict, forge: Forge) -> tuple[list[Finding], list[Unchecked]]:
     results = [merges_by_squash_only(forge), requires_pull_request(forge, trunk_of(event))]
     push = push_to_trunk(event)
     if push is not None:
-        results.append(lands_through_pull_requests(forge, push))
+        results.append(lands_through_pull_requests(forge, push, is_fork()))
     findings = [finding for found, _ in results for finding in found]
     unchecked = [skip for _, skipped in results for skip in skipped]
     return findings, unchecked

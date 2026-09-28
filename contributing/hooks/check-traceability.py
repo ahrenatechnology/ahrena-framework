@@ -18,11 +18,18 @@ Usage:
 With no argument the payload is the one GitHub Actions names in
 GITHUB_EVENT_PATH. Run from the root of a checkout of the pull request's head
 with full history, which is what the workflow has.
+
+In a fork, PARENT_TRUNK names the parent's trunk as fetched into the checkout.
+A sync brings the parent's tests in, and their tokens name the parent's issues,
+so condition 3 then reads only the tests the pull request's own commits change:
+those the parent's trunk does not reach, with a merge commit counting only for
+the files it resolved (ADR-010).
 """
 
 from __future__ import annotations
 
 import importlib.util
+import os
 import re
 import subprocess
 import sys
@@ -154,6 +161,17 @@ def git(args: list[str]) -> str:
     return result.stdout
 
 
+def changed_paths(pr: PullRequest) -> list[str]:
+    """The files the pull request changes, less what arrives from the parent's trunk in a fork."""
+    parent = os.environ.get("PARENT_TRUNK", "")
+    if not parent:
+        return git(["diff", "--name-only", f"{pr.base_sha}...{pr.head_sha}"]).splitlines()
+    # dense-combined lists a file under a merge only when the merge left it
+    # unlike every parent, which is a file the merge itself resolved.
+    own = git(["log", "--format=", "--name-only", "--diff-merges=dense-combined", f"{pr.base_sha}..{pr.head_sha}", f"^{parent}"])
+    return sorted({path for path in own.splitlines() if path})
+
+
 def is_test(path: str) -> bool:
     parts = PurePosixPath(path).parts
     return any(part in TEST_DIRS for part in parts[:-1]) or TEST_NAME.match(parts[-1]) is not None
@@ -244,12 +262,12 @@ def dangling(pr: PullRequest, changed: dict[str, set[tuple[int, int]]], issues: 
 def judge(pr: PullRequest, forge: Forge) -> tuple[list[Finding], list[Unchecked]]:
     issues = Issues(forge)
     everything = tokens_in(git(["ls-files"]).splitlines())
-    changed_paths = git(["diff", "--name-only", f"{pr.base_sha}...{pr.head_sha}"]).splitlines()
+    changed = changed_paths(pr)
     try:
         closed = {n: issues.criteria(n) for n in closed_issues(pr, forge)}
         named = set().union(*everything.values()) if everything else set()
         findings = [*shape_failures(pr, closed), *untraced(pr, closed, named)]
-        findings.extend(dangling(pr, {p: t for p, t in everything.items() if p in changed_paths}, issues))
+        findings.extend(dangling(pr, {p: t for p, t in everything.items() if p in changed}, issues))
     except Unreachable as error:
         return [], [Unchecked(RULE, n, str(error)) for n in (1, 2, 3)]
     return findings, []
