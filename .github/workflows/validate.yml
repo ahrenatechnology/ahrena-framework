@@ -68,6 +68,9 @@ jobs:
       - name: Test the branch-name hook
         run: python3 contributing/hooks/test-check-branch-name.py
 
+      - name: Test the push guard
+        run: python3 contributing/hooks/test-guard-push.py
+
       - name: Test the commit-message hook
         run: python3 contributing/hooks/test-check-commit-message.py
 
