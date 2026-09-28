@@ -16,6 +16,7 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-006](ADR-006-a-stack-is-read-from-its-bases.md) | A stack is read from its bases, and no tool or flag is adopted. Superseded by ADR-008 |
 | [ADR-007](ADR-007-acceptance-criteria-live-in-the-issue.md) | Acceptance criteria live in the issue, and a test names the one it covers |
 | [ADR-008](ADR-008-native-stacks-first-the-framework-runs-the-rest.md) | Native stacks where the forge has them, and the framework runs the stack where it does not |
+| [ADR-009](ADR-009-two-gates-and-a-person-lands-the-change.md) | Two gates, scope and quality, and a person lands the change |
 
 ## Decided, as rows
 
