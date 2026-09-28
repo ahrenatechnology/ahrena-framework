@@ -15,7 +15,7 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-005](ADR-005-github-holds-the-work-inventory.md) | GitHub holds the work inventory, and `ROADMAP.md` is retired |
 | [ADR-006](ADR-006-a-stack-is-read-from-its-bases.md) | A stack is read from its bases, and no tool or flag is adopted. Superseded by ADR-008 |
 | [ADR-007](ADR-007-acceptance-criteria-live-in-the-issue.md) | Acceptance criteria live in the issue, and a test names the one it covers |
-| [ADR-008](ADR-008-stacks-are-githubs-native-stacks.md) | Stacks are GitHub's native stacks, operated with `gh stack` |
+| [ADR-008](ADR-008-native-stacks-first-the-framework-runs-the-rest.md) | Native stacks where the forge has them, and the framework runs the stack where it does not |
 
 ## Decided, as rows
 

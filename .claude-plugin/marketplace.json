@@ -54,7 +54,7 @@
     },
     {
       "name": "ahrena-contributing",
-      "description": "From the issue to trunk as decidable states: how an issue is opened, the issue number a branch name carries, the Conventional Commits subject and signature a commit holds, acceptance criteria traced to tests, how a pull request closes its issues, stacks as GitHub's native stacks, and a trunk only a squash can reach.",
+      "description": "From the issue to trunk as decidable states: how an issue is opened, the issue number a branch name carries, the Conventional Commits subject and signature a commit holds, acceptance criteria traced to tests, how a pull request closes its issues, stacks native where the forge has them and run by the framework where it does not, and a trunk only a squash can reach.",
       "version": "0.1.0",
       "source": {
         "source": "git-subdir",
