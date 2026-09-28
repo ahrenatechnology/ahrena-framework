@@ -1,67 +1,76 @@
 ---
 name: stacking-pull-requests
-description: Open, land and restack a stack of pull requests with git and gh alone. Use when a change has been split into layers that should be reviewed separately and land in order, when the bottom of a stack has just merged and the next layer must move onto trunk, or when a check reports that a pull request carries commits that already landed.
+description: Build, submit and land a GitHub stack of pull requests with gh stack, under this framework's rules. Use when a change has been split into layers that should be reviewed apart and land in order, when layers already opened by hand need to become a stack, or when a stack is ready to merge.
 type: skill
 clade: contributing
 references:
   - rules/stacked-pull-requests.md
   - rules/branch-naming.md
   - rules/pr-quality.md
-  - docs/stacked-pull-requests.md
+  - skills/opening-issues/SKILL.md
 ---
 
 # Stacking pull requests
 
-A stack is a chain of pull requests, each based on the branch of the one beneath it. No tool is required and none is assumed; every step below is `git` and `gh`. [`docs/stacked-pull-requests.md`](../../docs/stacked-pull-requests.md) draws the chain before and after a layer lands, and is worth reading once.
+A stack is GitHub's own: an ordered set of pull requests, each based on the one below, linked as one stack on the forge. GitHub's `gh stack` does the mechanics. This skill adds what `gh stack` does not know: the rules every layer is still held to. [`docs/stacked-pull-requests.md`](../../docs/stacked-pull-requests.md) has what the first stack here showed.
 
-Stack only when the layers are worth reviewing apart. Most changes are one pull request, and deciding how a change splits is the plan's job, not this skill's.
+Stack only when the layers are worth reviewing apart. Deciding how a change splits is the plan's job (#93), not this skill's.
 
-## 1. Give every layer its own issue
-
-A layer is a pull request, so it answers an issue and its branch carries that issue's number, as `branch-naming.md` requires. Layers of one plan are usually sub-issues of the same parent. Create each branch from the issue, so the two are linked:
+## 1. Install GitHub's extension, and its skill for agents
 
 ```sh
-gh issue develop <issue> --name <type>/<issue>-<slug> --base <parent-branch>
+gh extension install github/gh-stack
+gh skill install github/gh-stack --agent claude-code --scope user
 ```
 
-The bottom layer's `--base` is trunk. Every other layer's is the branch beneath it.
+GitHub's skill covers every `gh stack` command and the flags to pass when nothing can prompt: `submit --auto`, `merge --yes`. Read it for the commands. This skill only says what to add.
 
-## 2. Open each layer against the one beneath it
+## 2. One issue per layer
+
+Every layer is a pull request, so each answers its own issue, written with `opening-issues`. The layers of one plan are sub-issues of the plan. Take ownership of each when its work starts: `gh stack` creates the branches, so `gh issue develop` does not, and nothing assigns anyone.
+
+## 3. Name every branch yourself
+
+Pass the name to `gh stack init` and `gh stack add`, in the shape `branch-naming.md` requires:
 
 ```sh
-gh pr create --base <parent-branch> --title "<type>: <subject>" --body "Closes #<issue>"
+gh stack init feat/98-acceptance-criteria
+gh stack add feat/99-trace-criteria
 ```
 
-The base is what makes it a layer. `stacked-pull-requests.md` condition 1 checks that the base is an open pull request's branch, so a layer opened against a branch nobody has a pull request for fails as a wrong base.
+Never let `gh stack add -m` pick the name. It generates a date and a slug, such as `03-24-add_login`, which carries no issue number and fails the branch check on every layer.
 
-`pr-quality.md` holds each layer to the same body and title conditions as any pull request. Close each layer's own issue in its own body. A layer that closes its parent's issue closes it the moment that layer lands, which may be before the parent does.
+## 4. Open each layer as a pull request the rules accept
 
-## 3. Review and land from the bottom
-
-Each layer is reviewed against its parent, which is its base. Land the bottom first, by squash, which is the only method the forge offers. A higher layer cannot reach trunk before it: merging it would land it on its parent's branch. Do not collapse a layer into its parent to save a restack. The layer's `Closes` would never reach trunk, and its issue would stay open.
-
-## 4. Restack the next layer
-
-When the bottom lands, trunk has one new squash commit and the next layer's branch still holds the bottom's original commits. `stacked-pull-requests.md` condition 3 fails the layer until they are gone. Note the landed branch's last commit before anything else, then:
+`gh stack submit --auto` opens drafts with generated titles, and those fail `pr-quality.md`. Either open each layer yourself and link them, which is the path that gets every title and body right the first time:
 
 ```sh
-git fetch origin
-git rebase --onto origin/main <landed-tip> <layer-branch>
-git push --force-with-lease
+gh pr create --base <branch-below> --title "<type>: <subject>" --body-file <body.md>
+gh stack link <bottom-pr> <next-pr> <top-pr>
 ```
 
-Then point the layer at trunk, unless GitHub already did because the landed branch was deleted:
+Or submit, then fix each title and body with `gh pr edit`. Each body closes its own layer's issue, `Closes #<its-issue>`, and never its parent's.
+
+## 5. Keep the stack current
+
+After a change on any layer, or when trunk moves:
 
 ```sh
-gh pr edit <layer-number> --base main
+gh stack sync
 ```
 
-The layer is now the bottom. Any review given before the restack was of a different diff, so it is given again.
+It fetches, rebases every layer onto the one below, and pushes. When a layer below merges, GitHub retargets and rebases the rest itself. `stacked-pull-requests.md` condition 3 exists for a branch that slipped out of that.
 
-## 5. Repeat up the stack
+## 6. Land it through the stack
 
-Each landing is followed by one restack of the layer above it, and nothing above that layer moves until its own parent lands. If a restack conflicts, the conflict is between the layer and what landed. Resolve it on the layer's branch. Trunk stays untouched.
+From the stack on github.com, or:
+
+```sh
+gh stack merge <top-ready-pr> --yes --squash
+```
+
+That lands the chosen layer and every unmerged one below it, in order, each as its own squash, each closing its own issue. Never merge a layer with `gh pr merge`, and never into its parent's branch. A layer merged into its parent never closes its issue.
 
 ## When this skill does not apply
 
-A single pull request against trunk is not a stack, and none of this is needed for it. A change split into branches that were never opened as pull requests is not a stack either, because nothing here can read a chain that has no pull requests in it.
+A single pull request against trunk is not a stack. Neither is a chain of branches that was never put in a stack. `stacked-pull-requests.md` fails such a chain, and step 4's `gh stack link` is how to fix it.

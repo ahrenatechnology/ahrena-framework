@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Tests for check-stack.py.
 
-Every condition is pinned by a stack that fails it and one it must not flag.
-Each case writes an event payload, serves the forge's answers from a local
+Every condition is pinned by a pull request that fails it and one it must not
+flag. Each case writes an event payload, serves the forge's answers from a local
 server, runs the hook as a subprocess, and asserts on the exit code and the
-message. The hook is pointed at the server through GITHUB_API_URL, the variable
-Actions sets, so it runs exactly as it runs in CI.
+message. The hook is pointed at the server through GITHUB_API_URL and
+GITHUB_GRAPHQL_URL, the variables Actions sets, so it runs exactly as it runs
+in CI.
 
-This repository had no stacked pull request when the rule was written, so the
-cases are built from GitHub's mechanics rather than from its history. The one
-exception was measured live: a commit on a branch that landed by squash stays
-associated with that pull request, which is what condition 3 reads.
+The stack answers are shaped like the ones GitHub gave for stack #103, the
+first stack in this repository, and the suite names #104's criteria beside the
+cases that cover them.
 
 Usage:
     python3 contributing/hooks/test-check-stack.py
@@ -39,111 +39,93 @@ def event(number: int = 90, base: str = "main") -> dict:
     }
 
 
-def pr(number: int, base: str, state: str = "open", merged: bool = False) -> dict:
-    return {"number": number, "state": state, "base": {"ref": base}, "merged_at": "2026-09-27T00:00:00Z" if merged else None}
+def pr(number: int, merged: bool = False) -> dict:
+    return {"number": number, "merged_at": "2026-09-28T00:00:00Z" if merged else None}
 
 
-def heads(branch: str, *pulls: dict) -> dict:
-    return {f"{API}/pulls?head=acme:{branch}&state=all&per_page=100": list(pulls)}
+def stack(number: int | None = 103, base: str = "main") -> dict:
+    """The GraphQL answer for the pull request's `stack` field; None when it is in no stack."""
+    found = None if number is None else {"number": number, "baseRefName": base}
+    return {"/graphql": {"data": {"repository": {"pullRequest": {"stack": found}}}}}
 
 
 def commits(number: int, owners: dict[str, list[dict]], page_two: dict[str, list[dict]] | None = None) -> dict:
     """The pull request's commits, and for each the pull requests it is associated with."""
-    first = [{"sha": sha} for sha in owners]
-    routes: dict[str, object] = {f"{API}/pulls/{number}/commits?per_page=100&page=1": first}
+    routes: dict[str, object] = {f"{API}/pulls/{number}/commits?per_page=100&page=1": [{"sha": s} for s in owners]}
     if page_two is not None:
-        routes[f"{API}/pulls/{number}/commits?per_page=100&page=2"] = [{"sha": sha} for sha in page_two]
+        routes[f"{API}/pulls/{number}/commits?per_page=100&page=2"] = [{"sha": s} for s in page_two]
     routes.update({f"{API}/commits/{sha}/pulls": pulls for sha, pulls in {**owners, **(page_two or {})}.items()})
     return routes
 
 
 def own(number: int = 90) -> dict:
     """One commit that belongs to this pull request and nothing else."""
-    return commits(number, {"a" * 40: [pr(number, "main")]})
+    return commits(number, {"a" * 40: [pr(number)]})
 
 
 def case(name: str, payload: dict, routes: dict | None, expect: list[str], ok: bool = False) -> tuple:
     return (name, payload, routes, expect, ok)
 
 
-HUNDRED_OWN = {f"{i:040x}": [pr(90, "main")] for i in range(100)}
+HUNDRED_OWN = {f"{i:040x}": [pr(90)] for i in range(100)}
 
 CASES = [
-    case("a pull request on trunk with its own commits passes", event(), own(), ["0 failure(s), 0 unchecked"], ok=True),
+    case("a pull request on trunk in no stack passes", event(), {**stack(None), **own()}, ["0 failure(s), 0 unchecked"], ok=True),
     case("an event with no pull request has nothing to decide", {"ref": "refs/heads/main"}, None, ["nothing to decide"], ok=True),
-    # --- condition 1: a base off trunk is an open pull request's branch
+    # --- condition 1: off trunk means in a GitHub stack (#104/AC-2)
     case(
-        "a layer on an open parent passes",
-        event(base="feat/1-bottom"),
-        {**heads("feat/1-bottom", pr(80, "main")), **own()},
+        "a layer in a GitHub stack on trunk passes, as #102 did in stack #103",
+        event(base="feat/98-criteria"),
+        {**stack(), **own()},
         ["0 failure(s)"],
         ok=True,
     ),
     case(
-        "a layer whose parent already landed fails, and says to restack",
+        "a pull request based off trunk and in no stack fails, and says how to stack it",
         event(base="feat/1-bottom"),
-        {**heads("feat/1-bottom", pr(80, "main", "closed", merged=True)), **own()},
-        ["[stacked-pull-requests] condition 1", "#80, which has already landed", "Retarget it to main"],
+        {**stack(None), **own()},
+        ["[stacked-pull-requests] condition 1", "in no GitHub stack", "gh stack link"],
     ),
     case(
-        "a layer whose parent was abandoned fails",
-        event(base="feat/1-bottom"),
-        {**heads("feat/1-bottom", pr(80, "main", "closed")), **own()},
-        ["[stacked-pull-requests] condition 1", "closed without merging"],
-    ),
-    case(
-        "a base that is no pull request's branch is a wrong base, not a stack",
-        event(base="develop"),
-        {**heads("develop"), **own()},
-        ["[stacked-pull-requests] condition 1", "opened against the wrong base"],
-    ),
-    # --- condition 2: the chain reaches trunk
-    case(
-        "a three-layer chain that reaches trunk passes",
-        event(base="feat/2-middle"),
-        {**heads("feat/2-middle", pr(81, "feat/1-bottom")), **heads("feat/1-bottom", pr(80, "main")), **own()},
-        ["0 failure(s)"],
-        ok=True,
-    ),
-    case(
-        "a chain that closes into a cycle fails",
-        event(base="feat/1-a"),
-        {**heads("feat/1-a", pr(80, "feat/2-b")), **heads("feat/2-b", pr(81, "feat/1-a")), **own()},
-        ["[stacked-pull-requests] condition 2", "is a cycle", "feat/1-a -> feat/2-b -> feat/1-a"],
-    ),
-    # --- condition 3: nothing already landed rides along
-    case(
-        "a branch still carrying a squashed parent's commits fails",
+        "the bottom of a stack is based on trunk and passes",
         event(),
-        commits(90, {"b" * 40: [pr(80, "main", "closed", merged=True), pr(90, "main")], "a" * 40: [pr(90, "main")]}),
-        ["[stacked-pull-requests] condition 3", "1 commit(s) of #80", "bbbbbbb", "Restack"],
+        {**stack(), **own()},
+        ["0 failure(s)"],
+        ok=True,
+    ),
+    # --- condition 2: the stack lands on trunk (#104/AC-3)
+    case(
+        "a stack based on another branch fails",
+        event(base="feat/1-bottom"),
+        {**stack(base="develop"), **own()},
+        ["[stacked-pull-requests] condition 2", "stack #103 is based on develop, not main"],
+    ),
+    # --- condition 3: nothing already landed rides along (#104/AC-4)
+    case(
+        "a branch still carrying a squashed pull request's commits fails",
+        event(),
+        {**stack(None), **commits(90, {"b" * 40: [pr(80, merged=True), pr(90)], "a" * 40: [pr(90)]})},
+        ["[stacked-pull-requests] condition 3", "1 commit(s) of #80", "bbbbbbb", "gh stack sync"],
     ),
     case(
-        "a commit shared with an open parent is how a stack looks, and passes",
+        "a commit shared with an open layer below is how a stack looks, and passes",
         event(base="feat/1-bottom"),
-        {**heads("feat/1-bottom", pr(80, "main")), **commits(90, {"b" * 40: [pr(80, "main"), pr(90, "feat/1-bottom")]})},
+        {**stack(), **commits(90, {"b" * 40: [pr(80), pr(90)]})},
         ["0 failure(s)"],
         ok=True,
     ),
     case(
         "a landed commit on the second page of commits is found",
         event(),
-        commits(90, HUNDRED_OWN, page_two={"c" * 40: [pr(80, "main", "closed", merged=True)]}),
+        {**stack(None), **commits(90, HUNDRED_OWN, page_two={"c" * 40: [pr(80, merged=True)]})},
         ["[stacked-pull-requests] condition 3", "#80"],
     ),
     # --- the forge tier
     case(
-        "without a token a layer's three conditions are unchecked, not failed",
+        "without a token all three conditions are unchecked, not failed",
         event(base="feat/1-bottom"),
         {},
         ["condition 1: unchecked", "condition 2: unchecked", "condition 3: unchecked", "0 failure(s), 3 unchecked"],
-        ok=True,
-    ),
-    case(
-        "without a token a pull request on trunk has only condition 3 to leave unchecked",
-        event(),
-        {},
-        ["condition 3: unchecked", "0 failure(s), 1 unchecked"],
         ok=True,
     ),
 ]
@@ -152,7 +134,7 @@ CASES = [
 class Handler(BaseHTTPRequestHandler):
     routes: dict = {}
 
-    def do_GET(self) -> None:
+    def answer(self) -> None:
         if self.path not in self.routes:
             self.send_error(500, f"no route for {self.path}")
             return
@@ -163,6 +145,13 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def do_GET(self) -> None:
+        self.answer()
+
+    def do_POST(self) -> None:
+        self.rfile.read(int(self.headers.get("Content-Length", 0)))
+        self.answer()
+
     def log_message(self, *args: object) -> None:
         pass
 
@@ -170,7 +159,8 @@ class Handler(BaseHTTPRequestHandler):
 def run(payload: dict, routes: dict | None, server: ThreadingHTTPServer) -> tuple[int, str]:
     Handler.routes = routes or {}
     url = f"http://127.0.0.1:{server.server_address[1]}"
-    env = {**os.environ, "GITHUB_API_URL": url, "GITHUB_REPOSITORY": REPO, "GITHUB_TOKEN": "test-token" if routes else ""}
+    env = {**os.environ, "GITHUB_API_URL": url, "GITHUB_GRAPHQL_URL": f"{url}/graphql", "GITHUB_REPOSITORY": REPO}
+    env["GITHUB_TOKEN"] = "test-token" if routes else ""
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "event.json"
         path.write_text(json.dumps(payload), encoding="utf-8")

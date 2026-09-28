@@ -3,7 +3,7 @@ id: stacked-pull-requests
 type: doc
 clade: contributing
 title: Stacked pull requests
-summary: Why stacking is a mode the rules detect rather than a practice they impose, how a stack lands on a squash-only trunk, and what was refused from the predecessor's six stacking artifacts.
+summary: What GitHub's native stacks do, what the first stack in this repository showed, why stacking stays a mode rather than a mandate, and what was dropped when the framework stopped reading stacks from base branches.
 references:
   - rules/stacked-pull-requests.md
   - rules/pr-quality.md
@@ -12,72 +12,52 @@ references:
 
 # Stacked pull requests
 
-The reference for `rules/stacked-pull-requests.md`. The rule states what is checked; this states why stacking is optional, how a stack lands, and what came across from the predecessor.
+The reference for `rules/stacked-pull-requests.md`. The rule states what is checked; this states what GitHub's stacks do, and what was measured here.
 
 ## A mode, not a mandate
 
-A stack is a way of splitting one change into layers that are reviewed separately and land in order. Each layer is a pull request whose base is the layer beneath it. Some changes want this and most do not. A repository that never stacks loses nothing under these rules, and a repository that does stack gains conditions for the failures stacking has.
+A stack splits one change into layers that are reviewed apart and land in order. Each layer is a pull request based on the layer below it, and the bottom is based on trunk. Some changes want this and most do not. A repository that never stacks loses nothing under these rules.
 
-So the framework imposes no stacking and asks for no declaration. The owner decided on #58 that a stack is **detected from base-branch chaining**: a pull request whose base is not trunk is read as a layer. That chain is GitHub's own record. Graphite, git-spice, Sapling and ghstack all produce it, and so does a person running `gh pr create --base <parent-branch>`. The framework reads the chain and adopts none of the tools. That follows the same line as the decision not to own MCP configuration, and as #22's state vocabulary being configuration.
+When a change does want it, the stack is GitHub's own. GitHub shipped stacked pull requests in public preview on 2026-07-30, with the `gh-stack` CLI extension and an agent skill. This repository's `ADR-008` adopts them, superseding `ADR-006`, which read stacks from base branches because the native module was believed not to exist.
 
-The cost of detection over declaration is ambiguity. A pull request opened against the wrong base has the same shape as a layer. Condition 1 of the rule settles it: a layer's base is the branch of an open pull request, and a wrong base is the branch of nothing.
+## What a GitHub stack is
 
-## The evidence, which is thin on purpose
+A stack is an object on the forge. A pull request carries a `stack` field, of GraphQL type `PullRequestStack`, with the stack's number, its base branch, and its entries in order. `gh stack submit` creates it with the pull requests. `gh stack link` creates it around pull requests that already exist, and so does github.com.
 
-On 2026-09-27 this repository had merged 25 pull requests and none of them was stacked. Every base was `main`. The rule therefore does not describe a practice; it is ready for one. Its conditions come from GitHub's mechanics rather than from failures observed here.
+Being in a stack is the declaration. There is no flag and nothing to infer: `check-stack` reads the field.
 
-One of those mechanics was checked against this repository's own history before a condition was built on it. The commits on #79's branch, which reached trunk as the single squash `75481ca`, are still returned as belonging to #79 by `GET /repos/{repo}/commits/{sha}/pulls`. Condition 3 depends on exactly that.
+## What the first stack showed
 
-## How a stack lands on a squash-only trunk
+Stack #103, on 2026-09-28, was #97 at the bottom, then #101, then #102. It was made by linking three pull requests that had been opened by hand on top of each other.
 
-`ADR-001` makes every pull request land as one squash commit, and `protected-trunk.md` makes the forge enforce it. Squash and stacking interact in one way that matters, and it is the reason condition 3 exists.
+**GitHub restacked it.** When #97 merged, GitHub moved #101's base to `main` and rebased it. #101's timeline shows `automatic_base_change_succeeded` and then `head_ref_force_pushed`, and the branch was left holding its own single commit, signed. The manual rebase this framework used to prescribe was never needed. The same happened to #102 when #101 merged.
 
-The stack before anything lands:
+**Each layer closed its own issue.** #101 closed #98 and #102 closed #99. That had been in doubt. While stacked, both showed an empty `closingIssuesReferences`, even after #101's base had become `main`, and saving the body again did not change it. GitHub lists nothing to close for a layer, and then closes what the body says when the layer merges.
 
-```
-main ── A1 ── A2          #80  feat/1-bottom  base main
-               └── B1     #81  feat/2-top     base feat/1-bottom
-```
+**The layers passed every other check.** `pr-quality`, `traceability` and the rest ran on each layer as on any pull request. #102 was the first pull request judged by `traceability`, and it passed.
 
-#80 lands. Trunk receives one new commit, `S`, holding A1 and A2's changes. `feat/2-top` still holds A1 and A2 as they were, because a squash rewrites nothing on other branches:
+## How a stack is merged
 
-```
-main ── S
-feat/2-top ── A1 ── A2 ── B1
-```
+From the stack, on github.com or with `gh stack merge <pr> --yes --squash`. Merging a layer from the stack lands it and every unmerged layer below it, in order, all or nothing. The layers above stay open, and GitHub retargets and rebases them.
 
-If #81 is now pointed at trunk as it stands, its diff shows A1 and A2 again. Their content is already in `S`, so at best they are noise the reviewer has to ignore and at worst they conflict. Condition 3 fails the pull request and names #80 as the source of the commits it still carries. The restack drops them:
-
-```sh
-git fetch origin
-git rebase --onto origin/main <tip-of-feat/1-bottom> feat/2-top
-git push --force-with-lease
-```
-
-`<tip-of-feat/1-bottom>` is A2, the last commit #80 had. After the rebase `feat/2-top` is `S ── B1'`, and #81's diff is B1 alone.
-
-The base has to move too. GitHub retargets the pull requests based on a branch when that branch is deleted after its pull request merges. This repository turned on `delete_branch_on_merge` on 2026-09-27, so landing #80 deletes `feat/1-bottom` and GitHub moves #81 to `main` by itself. A repository with it off keeps the branch, #81 stays based on it, and condition 1 fails #81 with "already landed. Retarget it to main"; `gh pr edit 81 --base main` fixes that by hand.
-
-Then #81 is the bottom, and the same steps repeat up the stack.
+Not with `gh pr merge` on a layer, and never into a parent's branch. A layer merged into its parent's branch never closes its issue: GitHub closes issues only on merges into the default branch, and the parent's squash is written from the parent's body alone.
 
 ## Reviewing a layer
 
-A layer is reviewed against its parent, not trunk. `engineering/skills/reviewing-diffs` step 1 already fixes the base as the commit the change merges into, and for a layer that is the parent's branch. A finding on a line the layer did not touch belongs to the layer that did, and is raised there. Once a layer's parent lands and the layer is restacked, its base is trunk and its diff has changed, so a verdict given before the restack is given again.
+A layer is reviewed against its parent, which is its base. `engineering/skills/reviewing-diffs` step 1 fixes the base as the commit the change merges into. A finding on a line the layer did not touch belongs to the layer that did. After the layer below lands and GitHub rebases this one onto trunk, the diff has changed, and a verdict given before is given again.
 
-## Refused from the predecessor
+## Dropped
 
-The predecessor carried six stacking artifacts, 1,523 lines: `codex-stacked-prs`, `kata-stacked-pr-create`, `kata-stacked-pr-merge`, `kata-stacked-pr-rebase`, `cry-new-stacked-pr` and `codex-git-spice`.
+**Reading a stack from base branches.** `ADR-006` did it, and it needed an inference, a layer's base must be an open pull request's branch, with an ambiguity the rule had to admit. The `stack` field removes both.
 
-**git-spice as the mechanism.** `codex-git-spice` alone was 321 lines. git-spice is already refused, as maintainer infrastructure (#16), and the owner's decision to read the chain rather than adopt a tool refuses it again for its own reason. What a stack needs from any tool is an order of operations, and that order is tool-independent: `skills/stacking-pull-requests` states it with `git` and `gh` alone.
+**The manual restack.** `git rebase --onto` past a landed layer, then `gh pr edit --base`. GitHub does both.
 
-**Stack metadata in the pull-request body**, which some tools write, ghstack among them. A list of the stack's layers in each body is a second record of what the bases already record, and it drifts on every restack. The chain is read from the bases, so there is nothing to keep in sync.
+**The cycle condition.** A GitHub stack is an ordered list of entries and cannot close into a ring.
 
-**A separate decomposition checklist.** The predecessor built "when does one change become several" twice, for plans and for stacks, and the two drifted. Here it is built once, by the planning work in #45 that `ADR-004` gives its own sub-issue, and stacking cites it.
+**The predecessor's six artifacts and git-spice.** The predecessor carried 1,523 lines of stacking, 321 of them for git-spice, which is refused as maintainer infrastructure (#16). The native module needs nothing the forge does not already provide.
 
 ## Where this stops
 
-**The rule is untested against a real stack.** Every condition is pinned by cases built from GitHub's documented and measured behaviour, and none has yet fired on a stack in this repository, because there has not been one. The first real stack is the rule's first real test, and whatever it finds is a new case in the suite.
+**The feature is in public preview**, and so is the field this reads. Its behaviour was measured once, on one stack of three, in one repository. Anything above that GitHub changes can change under these rules without warning.
 
-**The retargeting behaviour was not reproduced here.** That GitHub retargets dependents when a merged branch is deleted comes from GitHub's own behaviour as documented, not from a measurement in this repository. The rule does not depend on it: whether or not the retarget happens, condition 1 names the state the pull request is left in.
-
-**The forge is GitHub.** Other forges record a stack in their own way. The detector reads GitHub's API, and on another forge all three conditions report unchecked.
+**The forge is GitHub.** Other forges have their own stacking, or none. There, all three conditions report unchecked.
