@@ -66,6 +66,8 @@ Condition 6 takes the first. The second and third both require key distribution 
 
 ## Where this stops
 
+**A fork's sync is judged on the fork's own commits.** A repository that declares its parent in the Actions variable `PARENT_REPOSITORY` has the parent's trunk fetched, and the range is passed with `^refs/remotes/parent/trunk`. The parent's commits passed the parent's gates when they landed there, and the fork cannot re-sign them without leaving the parent's history. So they are not walked again. This repository's `ADR-010` records the decision.
+
 **31 of the 38 commits on trunk fail condition 6, and the reason has since been found.** Every commit written in this project's agent container carries an SSH `gpgsig` header. The versions that land on `main` are re-authored copies when the pull request is rebase-merged, and a rebase does not re-sign; a squash merge, built on the forge's side, is signed there. The merge method decides it, and nothing else does: the seven signed commits on trunk are the four earliest and three squash merges. So the rule cannot be enforced against trunk's history without failing on work nobody can now fix, and it is enforced against a pull request's own commits instead.
 
 This repository records that finding as `ADR-001` in its decision log and has since configured the forge to offer no merge method but the squash, which is where the fix lives — a rule that ships to a consumer cannot reach their repository's settings, and this one does not pretend to. Two things follow for a consumer. The backlog stops growing only once their own merge method is settled, whatever this rule says; and the condition is worth keeping either way, because it catches the commit that was never signed at all.

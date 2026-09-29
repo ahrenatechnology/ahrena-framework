@@ -64,10 +64,15 @@ def git(repo: Path, *args: str) -> str:
 
 
 def scratch_repository(root: Path) -> dict[str, str]:
-    """base, then a squash of #5, then a commit pushed straight to trunk."""
+    """base, a squash of #5, a commit pushed straight to trunk, then #6 landed as a merge commit."""
     git(root, "init", "-q", "-b", "main")
     shas = {}
-    for key, subject in (("base", "chore: start"), ("squash", "feat: the widget (#5)"), ("direct", "fix: straight to trunk")):
+    for key, subject in (
+        ("base", "chore: start"),
+        ("squash", "feat: the widget (#5)"),
+        ("direct", "fix: straight to trunk"),
+        ("merge", "Merge pull request #6 from acme/chore/5-sync-upstream"),
+    ):
         git(root, "commit", "-q", "--allow-empty", "-m", subject)
         shas[key] = git(root, "rev-parse", "HEAD")
     return shas
@@ -76,6 +81,10 @@ def scratch_repository(root: Path) -> dict[str, str]:
 def cases(shas: dict[str, str]) -> list[tuple]:
     merged_5 = {5: {"number": 5, "merge_commit_sha": shas["squash"]}}
     squash_push = push_event(shas["base"], shas["squash"])
+    merged_6 = {6: {"number": 6, "merge_commit_sha": shas["merge"]}}
+    merge_push = push_event(shas["direct"], shas["merge"])
+    merge_on = {**SQUASH_ONLY, "allow_merge_commit": True}
+    parent = "acme/upstream"
     return [
         ("a squash-only forge that requires a pull request passes", pull_event(), forge(), ["0 failure(s), 0 unchecked"], True),
         # --- condition 1
@@ -158,6 +167,53 @@ def cases(shas: dict[str, str]) -> list[tuple]:
             ["0 failure(s)"],
             True,
         ),
+        # --- a fork syncs its parent through a merge commit (ADR-010)
+        (
+            "a fork may keep the merge commit on (#115/AC-3)",
+            pull_event(),
+            forge(settings=merge_on),
+            ["0 failure(s), 0 unchecked"],
+            True,
+            parent,
+        ),
+        (
+            "a fork is still held to every other merge setting (#115/AC-3)",
+            pull_event(),
+            forge(settings={**merge_on, "allow_rebase_merge": True}),
+            ["[protected-trunk] condition 1", "allow_rebase_merge is True", "1 failure(s)"],
+            False,
+            parent,
+        ),
+        (
+            "a repository that is not a fork still may not merge with a merge commit (#115/AC-5)",
+            pull_event(),
+            forge(settings=merge_on),
+            ["[protected-trunk] condition 1", "allow_merge_commit is True"],
+            False,
+        ),
+        (
+            "a fork's trunk accepts the merge commit of a merged pull request (#115/AC-4)",
+            merge_push,
+            forge(settings=merge_on, pulls=merged_6),
+            ["0 failure(s), 0 unchecked"],
+            True,
+            parent,
+        ),
+        (
+            "a fork's merge commit naming a pull request that merged as something else fails (#115/AC-4)",
+            merge_push,
+            forge(settings=merge_on, pulls={6: {"number": 6, "merge_commit_sha": shas["base"]}}),
+            ["[protected-trunk] condition 3", "names #6, whose merge is not this commit"],
+            False,
+            parent,
+        ),
+        (
+            "the same merge commit on a trunk that is not a fork fails (#115/AC-5)",
+            merge_push,
+            forge(pulls=merged_6),
+            ["[protected-trunk] condition 3", "reached trunk without a pull request's squash"],
+            False,
+        ),
         # --- the forge tier
         (
             "without a token every condition is unchecked, not failed",
@@ -187,10 +243,11 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
-def run(event: dict, routes: dict, server: ThreadingHTTPServer, repo: Path) -> tuple[int, str]:
+def run(event: dict, routes: dict, server: ThreadingHTTPServer, repo: Path, parent: str = "") -> tuple[int, str]:
     Handler.routes = routes
     url = f"http://127.0.0.1:{server.server_address[1]}"
     env = {**os.environ, "GITHUB_API_URL": url, "GITHUB_REPOSITORY": REPO, "GITHUB_TOKEN": "test-token" if routes else ""}
+    env["PARENT_REPOSITORY"] = parent
     path = repo.parent / "event.json"
     path.write_text(json.dumps(event), encoding="utf-8")
     result = subprocess.run([sys.executable, str(HOOK), str(path)], capture_output=True, text=True, env=env, cwd=repo)
@@ -215,8 +272,8 @@ def main() -> int:
         repo = Path(tmp) / "repo"
         repo.mkdir()
         all_cases = cases(scratch_repository(repo))
-        for name, event, routes, expect, ok in all_cases:
-            code, output = run(event, routes, server, repo)
+        for name, event, routes, expect, ok, *parent in all_cases:
+            code, output = run(event, routes, server, repo, *parent)
             problems = problems_for(expect, ok, code, output)
             if not problems:
                 print(f"ok    {name}")

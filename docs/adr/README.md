@@ -17,6 +17,7 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-007](ADR-007-acceptance-criteria-live-in-the-issue.md) | Acceptance criteria live in the issue, and a test names the one it covers |
 | [ADR-008](ADR-008-native-stacks-first-the-framework-runs-the-rest.md) | Native stacks where the forge has them, and the framework runs the stack where it does not |
 | [ADR-009](ADR-009-two-gates-and-a-person-lands-the-change.md) | Two gates, scope and quality, and a person lands the change |
+| [ADR-010](ADR-010-a-fork-syncs-through-a-merge-commit.md) | A fork syncs its parent through a merge commit, and the gates judge only what the fork brings |
 
 ## Decided, as rows
 

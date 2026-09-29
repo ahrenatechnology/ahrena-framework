@@ -27,6 +27,8 @@ Each of these is decided by `hooks/check-traceability.py`.
 
 ## Where this stops
 
+**A fork's sync answers only for the tests it changes itself.** A sync brings in the parent's tests, and their tokens name the parent's issues, which resolve against the fork. Where the repository declares its parent in `PARENT_REPOSITORY`, condition 3 reads only the tests changed by the pull request's own commits, meaning those the parent's trunk does not reach. A merge commit counts only for the files it resolved. This repository's `ADR-010` records the decision.
+
 **A name is not a proof.** The token says which criterion a test is meant to cover. Whether the test asserts the behaviour the criterion describes, or passes at all, is not read here. The quality gate runs the tests; a reviewer judges whether they prove the criterion.
 
 **`(checked by review)` is the author's claim.** It is how a criterion no test can decide leaves the trace honestly: a decision recorded, a document written, a gate passed. It is also how a criterion somebody did not want to test leaves it. The detector cannot tell those apart, and a reviewer can.

@@ -29,6 +29,8 @@ Each of these is decided by `hooks/check-trunk.py`.
 
 ## Where this stops
 
+**A fork keeps the merge commit.** A fork syncs its parent through a merge commit, because a squash leaves the merge base where it was, and every later sync then conflicts on the same lines again. Where the repository declares its parent in `PARENT_REPOSITORY`, condition 1 leaves `allow_merge_commit` undecided and holds every other setting. Condition 3 also accepts the merge commit of a merged pull request, which GitHub writes as `Merge pull request #N from …`. The forge cannot tell a sync from any other pull request, so the choice of method is left to review. This repository's `ADR-010` records the decision.
+
 **Condition 3 detects; conditions 1 and 2 prevent.** A push that fails condition 3 is already on trunk, and the red run on trunk is how anybody learns of it. That is why the configuration is checked on every event: with conditions 1 and 2 passing, the only way to fail condition 3 is to bypass a ruleset, and that leaves a trace on the forge too.
 
 **Condition 3 judges what a push adds, never the history.** The rebase-merged commits already on trunk cannot be re-made as squashes without rewriting trunk, and a condition that fails forever on them fails correct work from then on. The history is measured in the doc and left alone.

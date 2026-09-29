@@ -50,8 +50,15 @@ def forge(issues: dict[int, str | None], linked: tuple[int, ...] = ()) -> dict:
 
 
 def case(name: str, head: dict[str, str], routes: dict | None, expect: list[str], ok: bool = False, **extra: object) -> tuple:
-    """`head` is the tree the pull request brings; `base` (in extra) is what it starts from."""
-    return (name, extra.get("base", {}), head, routes, extra.get("body", "Closes #1"), expect, ok)
+    """`head` is the tree the pull request brings; `base` (in extra) is what it starts from.
+
+    `parent` (in extra) makes the pull request a fork's sync: the parent's trunk
+    adds those files on a branch of its own, and `head` is the merge of it,
+    carrying whatever the merge resolved. `fork=False` builds the same history
+    without telling the hook where the parent's trunk is.
+    """
+    sync = (extra["parent"], extra.get("fork", True)) if "parent" in extra else None
+    return (name, extra.get("base", {}), head, routes, extra.get("body", "Closes #1"), expect, ok, sync)
 
 
 CASES = [
@@ -153,6 +160,30 @@ CASES = [
         ok=True,
         base={"tests/test_old.py": "# covers " + ac(7, 1) + "\n"},
     ),
+    # --- a fork's sync with its parent (#115/AC-2)
+    case(
+        "a test the parent's trunk brings in is not the sync's to answer for",
+        COVERED,
+        forge({1: CRITERIA, 7: None}),
+        ["0 failure(s)"],
+        ok=True,
+        parent={"tests/test_upstream.py": "# covers " + ac(7, 1) + "\n"},
+    ),
+    case(
+        "a test the merge itself resolves is still read",
+        {**COVERED, "tests/test_extra.py": "# covers " + ac(1, 9) + "\n"},
+        forge({1: CRITERIA}),
+        ["[traceability] condition 3", "tests/test_extra.py", "names " + ac(1, 9)],
+        parent={"tests/test_upstream.py": "# the parent's own test\n"},
+    ),
+    case(
+        "without the parent's trunk the same sync is judged as before (#115/AC-5)",
+        COVERED,
+        forge({1: CRITERIA, 7: None}),
+        ["[traceability] condition 3", "tests/test_upstream.py", "names " + ac(7, 1)],
+        parent={"tests/test_upstream.py": "# covers " + ac(7, 1) + "\n"},
+        fork=False,
+    ),
     # --- what counts as closed (#99/AC-1)
     case(
         "a layer of a stack is read from its body, since GitHub lists nothing to close",
@@ -231,11 +262,20 @@ def commit(repo: Path, files: dict[str, str], message: str) -> str:
 
 
 def run(entry: tuple, server: ThreadingHTTPServer, tmp: Path) -> tuple[int, str]:
-    _, base, head, routes, body, _, _ = entry
+    _, base, head, routes, body, _, _, sync = entry
     repo = tmp / "repo"
     repo.mkdir()
     git(repo, "init", "-q", "-b", "main")
-    base_sha, head_sha = commit(repo, base, "base"), commit(repo, head, "head")
+    base_sha = commit(repo, base, "base")
+    parent_sha = ""
+    if sync is None:
+        head_sha = commit(repo, head, "head")
+    else:
+        git(repo, "checkout", "-q", "-b", "parent")
+        parent_sha = commit(repo, sync[0], "the parent's trunk")
+        git(repo, "checkout", "-q", "main")
+        git(repo, "merge", "-q", "--no-ff", "--no-commit", "parent")
+        head_sha = commit(repo, head, "Merge the parent's trunk")
     event = {"ref": "refs/heads/main"} if body is None else {
         "pull_request": {"number": 90, "body": body, "base": {"sha": base_sha}, "head": {"sha": head_sha}},
         "repository": {"full_name": REPO, "default_branch": "main"},
@@ -245,6 +285,9 @@ def run(entry: tuple, server: ThreadingHTTPServer, tmp: Path) -> tuple[int, str]
     url = f"http://127.0.0.1:{server.server_address[1]}"
     env = {**os.environ, "GITHUB_API_URL": url, "GITHUB_GRAPHQL_URL": f"{url}/graphql", "GITHUB_REPOSITORY": REPO}
     env["GITHUB_TOKEN"] = "test-token" if routes else ""
+    env.pop("PARENT_TRUNK", None)
+    if sync is not None and sync[1]:
+        env["PARENT_TRUNK"] = parent_sha
     result = subprocess.run([sys.executable, str(HOOK), str(tmp / "event.json")], capture_output=True, text=True, env=env, cwd=repo)
     return result.returncode, result.stdout + result.stderr
 
