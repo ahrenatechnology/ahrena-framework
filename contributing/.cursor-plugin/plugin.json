@@ -2,12 +2,12 @@
   "name": "ahrena-contributing",
   "displayName": "Ahrena Contributing",
   "version": "0.1.0",
-  "description": "From the issue to trunk, through two gates and a person landing the change: how an issue is opened, the issue number a branch name carries, the Conventional Commits subject and signature a commit holds, acceptance criteria traced to tests, how a pull request closes its issues, stacks native where the forge has them and run by the framework where it does not, and a trunk only a squash can reach.",
+  "description": "From the issue to trunk, through two gates and a person landing the change: how an issue is opened and a change planned, the issue number a branch name carries, the Conventional Commits subject and signature a commit holds, acceptance criteria traced to tests, how a pull request closes its issues, stacks native where the forge has them and run by the framework where it does not, and a trunk only a squash can reach.",
   "author": { "name": "Ahrena Technology" },
   "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/contributing",
   "repository": "https://github.com/ahrenatechnology/ahrena-framework",
   "license": "MIT",
-  "keywords": ["git", "branch-naming", "conventional-commits", "signed-commits", "pull-requests", "stacked-pull-requests", "acceptance-criteria", "traceability", "quality-gate", "protected-branches", "contributing"],
+  "keywords": ["git", "branch-naming", "conventional-commits", "signed-commits", "pull-requests", "stacked-pull-requests", "acceptance-criteria", "traceability", "quality-gate", "planning", "protected-branches", "contributing"],
   "skills": "./skills/",
   "commands": "./commands/"
 }

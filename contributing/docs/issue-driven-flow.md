@@ -11,6 +11,7 @@ references:
   - rules/pr-quality.md
   - rules/protected-trunk.md
   - rules/stacked-pull-requests.md
+  - rules/planning.md
 ---
 
 # The issue-driven flow
@@ -23,7 +24,7 @@ Every change in a repository that adopts this plugin runs the same path. This do
 |---|---|---|
 | 1. Issue | Find the issue that owns the work, or open one with evidence, criteria and what it leaves to others | `issue-quality.md`, `skills/opening-issues`, `skills/writing-acceptance-criteria` |
 | **Gate 1** | **A person asks for the issue to be worked. Its criteria are what they approved** | `gates.md` condition 1 |
-| 2. Plan | When the change is more than one pull request: a plan sub-issue, and a stack when the units land in order | `ADR-004`, the planning work (#93), `stacked-pull-requests.md` |
+| 2. Plan | When the change is more than one pull request: its units as sub-issues, ordered by the forge's `blocked by`, and a stack when they land in that order | `planning.md`, `skills/planning-changes`, `stacked-pull-requests.md` |
 | 3. Branch | Created from the issue, `type/N-slug`, and the author takes ownership | `branch-naming.md`, `skills/opening-issues` step 5 |
 | 4. Build | Commits that pass `commit-format.md`; tests that name the criteria they cover | `commit-format.md`, `skills/writing-acceptance-criteria` step 5 |
 | **Gate 2** | **Every check runs and passes, with its output shown** | `gates.md` condition 2, `skills/running-the-quality-gate` |

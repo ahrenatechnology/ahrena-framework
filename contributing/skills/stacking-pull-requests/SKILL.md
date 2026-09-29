@@ -14,7 +14,7 @@ references:
 
 A stack is a set of pull requests, each based on the one below, landing on trunk in order. Where the forge has native stacks, the forge does the mechanics and this skill adds the framework's rules. Where it has none, you run the stack yourself, and this skill is the procedure. [`docs/stacked-pull-requests.md`](../../docs/stacked-pull-requests.md) draws both.
 
-Stack only when the layers are worth reviewing apart. Deciding how a change splits is the plan's job (#93), not this skill's.
+Stack only when the layers are worth reviewing apart. Deciding how a change splits is `planning-changes`, not this skill.
 
 ## 0. Find out which path applies
 
@@ -87,4 +87,4 @@ Never merge a layer into its parent's branch to save a restack. Its `Closes` wou
 
 ## When this skill does not apply
 
-A single pull request against trunk is not a stack, and none of this applies to it. Neither does a change that has not been split: how to split one is the plan's question (#93).
+A single pull request against trunk is not a stack, and none of this applies to it. Neither does a change that has not been split: how to split one is `planning-changes`.

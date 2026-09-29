@@ -60,4 +60,4 @@ Edit the issue. Its edit history is the record of the change, and a pull request
 
 ## When this skill does not apply
 
-A plan sub-issue lists the units of a change, not their criteria. Each unit's own issue carries the criteria that unit must meet (#93). Writing the rest of an issue, including its evidence and what it leaves to others, is `opening-issues`.
+A plan's parent states the strategy, not the criteria. Each unit's own issue carries the criteria that unit must meet (`planning-changes`). Writing the rest of an issue, including its evidence and what it leaves to others, is `opening-issues`.
