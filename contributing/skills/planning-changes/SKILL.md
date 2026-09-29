@@ -1,6 +1,6 @@
 ---
 name: planning-changes
-description: Decide whether a change needs a plan, split it into units, order them and make them on the forge. Use when an issue is too large for one pull request, when an epic needs its work broken down, or when the order between pieces of work has to be recorded.
+description: Decide whether a change needs a plan, split it into typed units, order them and make them on the forge, one epic or a whole backlog of them at a time. Use when an issue is too large for one pull request, when a backlog of epics has to become user stories, tech tasks, spikes and bugs, or when the order between pieces of work has to be recorded.
 type: skill
 clade: contributing
 references:
@@ -12,7 +12,9 @@ references:
 
 # Planning changes
 
-A plan is the issue it plans, its units as sub-issues, and their order as the forge's `blocked by`. This repository's `ADR-011` records the model. This skill owns the decomposition checklist; `stacked-pull-requests.md` and the flow cite it.
+A plan is the issue it plans, its units as sub-issues, and their order as the forge's `blocked by`. This repository's `ADR-011` records the model. Every unit is typed and written from its type's template: the repository's own, or Ahrena's default where it has none (`opening-issues`, `ADR-012`). This skill owns the decomposition checklist; `stacked-pull-requests.md` and the flow cite it.
+
+Steps 1 to 8 plan one change. When what arrives is a backlog of epics, start at step 9, which runs steps 2 to 8 for every epic at once.
 
 ## 1. Decide whether a plan is needed
 
@@ -37,13 +39,22 @@ None of these holds: write one issue with `opening-issues`, and stop here.
 
 Say which strategy you chose and why. That sentence goes into the plan, and nothing else records it.
 
+Then give each unit its type:
+
+- **User story** when someone can see the unit's behaviour: **for an API** when the one who sees it is a client of an interface, **for the frontend** when it is a person on a screen. Slice it vertically, so each story works end to end on its own; a story that only makes sense with the next one is half a story.
+- **Feature request** when a capability is asked for but not yet understood well enough to write as stories. It becomes stories once it is.
+- **Tech task** when nothing a user sees changes: the schema, the job runner, the migration, the pipeline. It usually blocks the stories that need it.
+- **Spike** when something is not known well enough to plan or build: whether an approach works, what a system can take, which option to pick. It comes first and blocks every unit that waits on its answer, and it is timeboxed.
+- **Bug** when the unit fixes something that does not do what was specified.
+- **Plan** when a story, a bug or a tech task is itself too large for one pull request: its executable units are plans, as its sub-issues.
+
 ## 3. Confirm the whole decomposition first
 
-Write every unit down, with its title, what it produces and what it waits on, and put the whole set in front of the person who asked for the work. Create nothing until they confirm it. That is gate 1 of `gates.md`, applied to the plan. A plan confirmed one unit at a time drifts halfway through, and the units already created no longer fit the ones that follow.
+Write every unit down, with its type, its title, what it produces and what it waits on, and put the whole set in front of the person who asked for the work. Create nothing until they confirm it. That is gate 1 of `gates.md`, applied to the plan. A plan confirmed one unit at a time drifts halfway through, and the units already created no longer fit the ones that follow.
 
 ## 4. Make the units
 
-Each unit is an issue in its own right, written with `opening-issues`, with acceptance criteria from `writing-acceptance-criteria`. Make each one a sub-issue of the parent (`opening-issues` step 3 has the command).
+Each unit is an issue in its own right, written with `opening-issues` to its type's template, with its native type set and acceptance criteria from `writing-acceptance-criteria`. Make each one a sub-issue of the parent (`opening-issues` step 5 has the command).
 
 ## 5. Record the order on the forge
 
@@ -69,6 +80,25 @@ Stack them when each builds on the code of the one before and they should land i
 ## 8. Close the parent when the last unit closes
 
 No pull request closes the parent, because `planning.md` condition 1 fails one that tries while a unit is open. Each unit's pull request says `Part of #<parent>` beside its own `Closes`. When the last unit lands, close the parent by hand, with a comment naming what landed.
+
+## 9. From a backlog of epics
+
+A backlog arrives as a list of epics, some written well and some a single line. Plan all of it before creating any of it: an item under one epic often waits on an item under another, and that only shows when the whole set is on the table.
+
+1. **Bring every epic to its template.** Each has an outcome, the evidence it is worth doing, and what is in and out of scope (`opening-issues`: the repository's epic template, or Ahrena's). Where an epic has none of that, draft it and flag what you had to assume. An epic whose outcome cannot be stated is a spike first.
+2. **Run steps 2 and the typing above for every epic.** Pick each one's strategy, and list its items with their type.
+3. **Look across epics.** Mark each item that waits on an item under another epic, and each spike whose answer changes more than one epic. Two epics that need the same tech task share one, under the epic that needs it first, and the other waits on it.
+4. **Present the whole backlog at once**, one table per epic, before creating anything:
+
+   | # | Type | Title | Produces | Blocked by |
+   |---|---|---|---|---|
+   | 1 | Spike | Can the ledger take 5,000 writes a second? | a decision | — |
+   | 2 | Tech task | Partition the ledger table by month | the new schema | 1 |
+   | 3 | User story, API | Pay an invoice by bank transfer | the payment endpoint | 2 |
+   | 4 | User story, frontend | See a bank transfer's status | the payment screen | 3 |
+
+   List the assumptions you made, and the questions only the person can answer. This is gate 1 for the whole backlog. Create nothing until it is confirmed.
+5. **Create what was confirmed:** each epic's text updated to its template, then its items with `opening-issues`, as sub-issues of their epic, then every dependency, including the ones that cross epics, with step 5. Then write each epic's `## Plan` (step 6).
 
 ## When this skill does not apply
 
