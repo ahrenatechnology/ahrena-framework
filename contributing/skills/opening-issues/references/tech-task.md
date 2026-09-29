@@ -1,32 +1,101 @@
-# Tech task
+<!-- Generated from issue-forms/tech-task.yml by scripts/render_issue_forms.py. Edit the form, then rerun it. -->
 
-Work with no behaviour a user sees: an enabling change, a refactor, a dependency, CI, documentation, maintenance. Native type: `Task`.
+# Tech Task ♻️
 
-Title: the change, in the imperative. "Move payment retries into the job runner".
+Well-defined small task: chore, refactoring, maintenance, documentation fix, CI change
+
+Native issue type: `Task`. Title: `{{ brief task summary }}`.
+
+Use this template for small, well-scoped tasks that do not justify a full feature request, epic, or user story.
+Per Ahrena's `issue-quality` rule, every issue states why, what done looks like, and what it leaves to other issues.
+
+## Sections, in order
+
+Write each as a `### <label>` heading, as GitHub does when the form is filled in.
+
+### Why
+
+State the motivation. What problem does this solve, what gap does it close, what risk does it remove?
+
+Starts as:
 
 ```markdown
-## Why
-
-The problem it solves or the risk it removes, with evidence: the slow query,
-the flaky run, the deprecation notice, the line that is wrong. Where there is
-none, say so.
-
-## What
-
-What changes, and what explicitly does not.
-
-## Acceptance criteria
-
-- AC-1: <observable result: a check that starts passing, a number that moves, a file that exists>
-- AC-2: <no regression: the suite that must still pass, or the behaviour that must not change>
-
-## How
-
-The approach, if it is not obvious or was argued over. Optional.
-
-## Left to other issues
-
-- <each by number>
+Why is this task needed?
 ```
 
-A tech task that enables a user story is a blocker of that story: set it with `planning-changes` step 5.
+For example:
+
+> e.g. The tech-task template is referenced by the contribution guide but does not exist, so contributors cannot follow it.
+
+Required.
+
+### What
+
+State the objective and scope. What changes? What stays out? Be specific enough that a reviewer can tell when the task is done.
+
+Starts as:
+
+```markdown
+What needs to change?
+```
+
+For example:
+
+> e.g. Add tech-task.yml under .github/ISSUE_TEMPLATE/ with Why/What/How sections; do not change existing templates.
+
+Required.
+
+### How
+
+State the implementation approach or definition of done. List concrete steps, files involved, or success criteria.
+
+Starts as:
+
+```markdown
+How will this be implemented or verified?
+```
+
+For example:
+
+> e.g. Create the markdown source under framework/templates/contributing_templates/, then the GitHub Issue Form .yml.
+
+Required.
+
+### Task Type
+
+Select the dominant type of this task (a project may map it to its own labels).
+
+One of:
+
+- evolvability ♻️ — refactoring, clean code, framework maintenance
+- documentation 📃 — docs improvements or additions
+- ci 🏗️ — CI/CD pipeline enhancements
+- enhancement 🔝 — incremental improvement to existing feature
+
+Required.
+
+### Acceptance criteria
+
+One observable behaviour per line, numbered AC-1 upward and never renumbered, so a test can name it as #<issue>/AC-<n>. End a criterion no test can decide with (checked by review).
+
+Starts as:
+
+```markdown
+- AC-1: 
+```
+
+Required.
+
+### Left to other issues
+
+Decisions already made, work blocked elsewhere, and parts another issue owns, each by number.
+
+Optional.
+
+### Additional Context
+
+Screenshots, links, related issues, or any other relevant context.
+
+Optional.
+
+> To track progress, follow this issue right here on GitHub.

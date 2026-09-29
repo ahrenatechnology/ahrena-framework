@@ -92,6 +92,12 @@ jobs:
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
 
+      # The default issue forms are the single source; the guides an agent
+      # reads are generated from them. A form edited without regenerating
+      # its guide fails here. ADR-012.
+      - name: Check the issue-form guides are current
+        run: python3 contributing/skills/opening-issues/scripts/render_issue_forms.py --check
+
       # The third contributing hook is not gated on the event, because unlike
       # the two below it judges files rather than refs. There is nothing about
       # a decision log that is only true on a pull request: a gap, a duplicate
