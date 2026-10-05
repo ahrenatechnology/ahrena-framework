@@ -386,7 +386,7 @@ def _split_ref(ref: str) -> tuple[str, str]:
     """A reference as (plugin name, plugin-relative path).
 
     The name is empty when the reference is unqualified, which is every
-    reference inside one plugin. `ahrena-engineering:docs/simplicity.md` is the
+    reference inside one plugin. `ahrena-engineering-fundamentals:docs/simplicity.md` is the
     qualified form and the only way to name an artifact in another plugin.
     """
     name, sep, path = ref.partition(":")
