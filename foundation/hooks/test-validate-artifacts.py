@@ -157,6 +157,14 @@ def qualified(ref: str) -> str:
     return GOOD_RULE.replace("  - docs/reference.md", f"  - {ref}")
 
 
+def doc_body(body: str) -> dict[str, str]:
+    """The passing doc with its body replaced, for the cases about headings."""
+    return {"p/docs/reference.md": GOOD_DOC.split("\n# Reference", 1)[0] + "\n" + body}
+
+
+STOPS = "## Where this stops\n\nIt does not reach the fixture next door.\n"
+
+
 def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) -> tuple:
     return (name, files, expect, ok)
 
@@ -646,6 +654,60 @@ CASES = [
             )
         },
         ["'## Where this stops' is missing"],
+    ),
+    # --- completeness, conditions 5 and 6: the outline (#95)
+    case(
+        "a heading with nothing before the next one at its level fails (#95/AC-1)",
+        doc_body("# Reference\n\n## Background\n\n" + STOPS),
+        ["'## Background' has nothing under it"],
+    ),
+    case(
+        "a heading with nothing before the end of the file fails (#95/AC-1)",
+        doc_body("# Reference\n\n" + STOPS + "\n## Afterword\n\n"),
+        ["reference.md:15", "'## Afterword' has nothing under it"],
+    ),
+    case(
+        "a subsection with nothing before its parent's next sibling fails (#95/AC-1)",
+        doc_body("# Reference\n\n## Background\n\nText.\n\n### Detail\n\n" + STOPS),
+        ["'### Detail' has nothing under it"],
+    ),
+    case(
+        "a heading whose only content is its subsections passes (#95/AC-2)",
+        doc_body("# Reference\n\n## Background\n\n### Detail\n\nText.\n\n" + STOPS),
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a section whose only content is a code block passes (#95/AC-2)",
+        doc_body("# Reference\n\n## Example\n\n```\n## not a heading\n```\n\n" + STOPS),
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a body with no '#' title fails once (#95/AC-3)",
+        doc_body(STOPS),
+        ["1 failure(s)", "the body has no '#' title"],
+    ),
+    case(
+        "a second '#' title fails (#95/AC-3)",
+        doc_body("# Reference\n\nText.\n\n# Appendix\n\nText.\n\n" + STOPS),
+        ["'# Appendix' is a second '#' title"],
+    ),
+    case(
+        "a heading before the '#' title fails (#95/AC-3)",
+        doc_body("## Preface\n\nText.\n\n# Reference\n\n" + STOPS),
+        ["'##' heading comes before the '#' title"],
+    ),
+    case(
+        "a heading two levels below the one before it fails (#95/AC-4)",
+        doc_body("# Reference\n\n### Detail\n\nText.\n\n" + STOPS),
+        ["'###' heading follows a '#'", "one level deeper at a time"],
+    ),
+    case(
+        "a heading that climbs back several levels passes (#95/AC-4)",
+        doc_body("# Reference\n\n## A\n\n### B\n\n#### C\n\nText.\n\n" + STOPS),
+        ["no failures"],
+        ok=True,
     ),
     case(
         "a broken body link fails",

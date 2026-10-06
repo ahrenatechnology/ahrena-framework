@@ -3,7 +3,7 @@ id: completeness
 type: rule
 clade: foundation
 title: Artifact completeness
-statement: An artifact carries no unfilled marker or placeholder, and every section its type requires.
+statement: An artifact carries no unfilled marker or placeholder, every section its type requires, one title, and no empty or skipped heading.
 enforcement: hook
 enforced-by: hooks/validate-artifacts.py
 references:
@@ -34,6 +34,12 @@ Headings are matched outside code, so an example of a heading is not a heading.
 
 These are the sections that carry the artifact's boundary. `Where this stops` is what separates a rule from dogma; `When this skill does not apply` is what stops a skill being reached for in the wrong situation; `What it does not do` is what keeps an agent from absorbing its neighbours. `docs/artifact-model.md` argues the case.
 
+## The outline
+
+The body opens with one `#` title, and every heading below it goes one level deeper than the heading before it, or climbs back any number. A `####` straight under a `##` is a level the reader was never given.
+
+Every heading has something under it before the next heading at its own level or above, or before the end of the file. Subsections count, and so does a code block. A heading with nothing under it is a section that was started and not written, which is the same defect as a marker, without the marker.
+
 ## Conditions
 
 Each of these is decided by `hooks/validate-artifacts.py`.
@@ -42,10 +48,12 @@ Each of these is decided by `hooks/validate-artifacts.py`.
 2. No body line outside code contains a marker or an angle-bracket placeholder.
 3. Every section required for the artifact's type is present as an `##` heading outside code.
 4. A skill has at least one numbered `##` step.
+5. The body has exactly one `#` heading outside code, before any other heading.
+6. No heading outside code is more than one level deeper than the heading before it, and none is followed by another at its own level or above, or by the end of the file, with nothing between.
 
 ## Where this stops
 
-**Presence, not substance.** A `Where this stops` section reading "nothing to say here" satisfies condition 3. The gate checks that the reader was given the section; only a reviewer checks that it was given an answer.
+**Presence, not substance.** A `Where this stops` section reading "nothing to say here" satisfies conditions 3 and 6. The gate checks that the reader was given the section and that something is in it; only a reviewer checks that it was given an answer.
 
 **The marker list is closed.** `TODO`, `TBD`, `FIXME` and `XXX` are caught because they are conventional and unambiguous in uppercase. A lowercase "todo" in a sentence is not, and chasing it would reject English prose.
 

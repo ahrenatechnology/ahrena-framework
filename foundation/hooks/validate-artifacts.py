@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Gate for the Ahrena artifact corpus.
 
-Decides the conditions stated in the three foundation rules:
+Decides the conditions stated in the five foundation rules:
 
-    foundation/rules/pilars.md       types, authority, references
-    foundation/rules/naming.md       names and paths
-    foundation/rules/frontmatter.md  required and undeclared fields
+    foundation/rules/pilars.md                 types, authority, references
+    foundation/rules/naming.md                 names and paths
+    foundation/rules/frontmatter.md            required and undeclared fields
+    foundation/rules/completeness.md           markers, sections, the outline
+    foundation/rules/progressive-disclosure.md code blocks, reachable material
 
 Standard library only, on purpose. A consumer who installs the plugin can run
 the same gate the repository runs, without installing anything to do it.
@@ -82,6 +84,7 @@ REQUIRED_SECTIONS = {
     "command": ("What runs",),
 }
 NUMBERED_STEP = re.compile(r"^\d+\.")
+HEADING = re.compile(r"^(#{1,6})\s+\S")
 
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 KEY = re.compile(r"^[a-z][a-z0-9-]*$")
@@ -537,6 +540,57 @@ def check_sections(a: Artifact, findings: list[Finding]) -> None:
         )
 
 
+def _outline(body: str) -> list[tuple[int, int]]:
+    """Every non-blank body line as (offset, heading level), with 0 for content.
+
+    A fenced block is one piece of content, so a heading inside it is not a
+    heading and a section holding only code is not empty.
+    """
+    outline, in_fence = [], False
+    for offset, line in enumerate(body.splitlines()):
+        if FENCE.match(line):
+            if not in_fence:
+                outline.append((offset, 0))
+            in_fence = not in_fence
+            continue
+        if in_fence or not line.strip():
+            continue
+        found = HEADING.match(line)
+        outline.append((offset, len(found.group(1)) if found else 0))
+    return outline
+
+
+def check_structure(a: Artifact, findings: list[Finding]) -> None:
+    """One title, headings that descend a level at a time, and no empty section."""
+    outline = _outline(a.body)
+    lines = a.body.splitlines()
+    titled = any(level == 1 for _, level in outline)
+    if not titled:
+        findings.append(Finding(a.rel, "completeness", "the body has no '#' title"))
+    # Without a title, a '##' is the top and is reported once, above.
+    previous = 0 if titled else 1
+    for i, (offset, level) in enumerate(outline):
+        if not level:
+            continue
+        where = f"{a.rel}:{a.body_start + offset}"
+        heading = lines[offset].strip()
+        if level == 1 and previous:
+            findings.append(Finding(where, "completeness", f"'{heading}' is a second '#' title; the body has one"))
+        elif level > previous + 1:
+            above = f"follows a '{'#' * previous}'" if previous else "comes before the '#' title"
+            findings.append(
+                Finding(
+                    where,
+                    "completeness",
+                    f"'{'#' * level}' heading {above}; a heading goes one level deeper at a time",
+                )
+            )
+        following = outline[i + 1] if i + 1 < len(outline) else None
+        if following is None or 0 < following[1] <= level:
+            findings.append(Finding(where, "completeness", f"'{heading}' has nothing under it"))
+        previous = level
+
+
 def check_disclosure(a: Artifact, findings: list[Finding]) -> None:
     """The 10-line cap on code blocks in a body that loads on every trigger."""
     if a.kind not in BODY_TIERED:
@@ -652,6 +706,7 @@ def check_artifact(a: Artifact, index: dict[str, str], names: set[str], findings
     check_references(a, index, names, findings)
     check_completeness(a, findings)
     check_sections(a, findings)
+    check_structure(a, findings)
     check_disclosure(a, findings)
     check_reachability(a, findings)
     check_links(a, findings)
