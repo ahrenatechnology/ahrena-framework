@@ -1,0 +1,96 @@
+# Ahrena's default labels. A project that keeps its own .github/labels.yml
+# gets that file instead of this one, whole.
+#
+# The type of an issue is not a label: it is the forge's native issue type,
+# declared in issue-types.yml. This file holds the rest: status, size,
+# quality and security, and GitHub's own defaults with their colours set.
+#
+# Reconciling creates and updates, and never deletes. A label a project adds
+# outside this file, such as client:<name>, is left as it is.
+#
+# Each item is name, color (six hex digits) and description. It is the shape
+# crazy-max/ghaction-github-labeler reads, so a file kept for that action
+# works here unchanged.
+
+# --- status: where a work item is. One at a time, moved by whoever moves the work.
+- name: "status: todo"
+  color: "ededed"
+  description: "Planned, not started"
+- name: "status: development"
+  color: "0E8A16"
+  description: "In development"
+- name: "status: to review"
+  color: "FBCA04"
+  description: "Ready for review"
+- name: "status: to release"
+  color: "0052CC"
+  description: "Approved, waiting to be released"
+- name: "status: done"
+  color: "5319E7"
+  description: "Merged and released"
+- name: "blocked"
+  color: "E99695"
+  description: "Cannot move until something else does; the issue names what"
+
+# --- size: how large a pull request's diff is
+- name: "size/XS"
+  color: "0E8A16"
+  description: "0-9 lines changed"
+- name: "size/S"
+  color: "7FB800"
+  description: "10-29 lines changed"
+- name: "size/M"
+  color: "FBCA04"
+  description: "30-99 lines changed"
+- name: "size/L"
+  color: "EF9F27"
+  description: "100-499 lines changed"
+- name: "size/XL"
+  color: "E24B4A"
+  description: "500-999 lines changed"
+- name: "size/XXL"
+  color: "A32D2D"
+  description: "1000 or more lines changed"
+
+# --- quality and security
+- name: "security"
+  color: "B60205"
+  description: "A security concern"
+- name: "vulnerability"
+  color: "7A0000"
+  description: "A vulnerability has been detected"
+- name: "breaking change"
+  color: "B60205"
+  description: "Breaks a published contract; needs a major version"
+- name: "ci"
+  color: "0E8A16"
+  description: "Continuous integration and delivery"
+- name: "release"
+  color: "5319E7"
+  description: "A release pull request: version bump, tagged on merge"
+- name: "evolvability"
+  color: "5319E7"
+  description: "Refactoring and maintenance"
+
+# --- GitHub's defaults, with their colours set
+- name: "documentation"
+  color: "0075CA"
+  description: "Improvements or additions to documentation"
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+- name: "invalid"
+  color: "e4e669"
+  description: "This does not seem right"
+- name: "question"
+  color: "d876e3"
+  description: "Further information is requested"
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"

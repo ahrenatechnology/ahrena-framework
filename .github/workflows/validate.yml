@@ -89,6 +89,11 @@ jobs:
       - name: Test the plan hook
         run: python3 contributing/hooks/test-check-plan.py
 
+      # The reconciler of labels and issue types, against a fake `gh`, so no
+      # repository or organisation is read or written. #80.
+      - name: Test the vocabulary reconciler
+        run: python3 contributing/skills/reconciling-forge-vocabulary/scripts/test-reconcile-vocabulary.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
 

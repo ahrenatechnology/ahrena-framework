@@ -74,7 +74,7 @@ gh issue create --type <type> --title "<title>" --body-file <body.md>
 
 The type is the template's own `type`. Check that the organisation has it, `gh api orgs/<org>/issue-types -q '.[].name'`, and use the nearest otherwise: `Feature` for an epic, a feature request or a story, `Task` for a tech task, a plan or a spike, `Bug` for a bug. Where the forge has no issue types, drop `--type` and open the body with one line, `**Type:** <type>`.
 
-Leave the assignee empty. An owner named when the issue is filed, before anyone has started, is an owner nobody is holding to anything. Labels are the project's own configuration (#80), and this skill applies none unless the repository's template does.
+Leave the assignee empty. An owner named when the issue is filed, before anyone has started, is an owner nobody is holding to anything. Labels are declared in the project's `.github/labels.yml`, or in Ahrena's default when it has none, and `reconciling-forge-vocabulary` makes the forge match. This skill applies none unless the repository's template does.
 
 ## 6. Place it
 

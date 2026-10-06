@@ -39,7 +39,7 @@ The body is read as GitHub reads it. Fenced code, inline code and HTML comments 
 
 **Conditions 4 and 5 are judged when CI runs, not at the moment of merge.** An issue closed by somebody else after the last run passes condition 4 and is closed again by the merge, harmlessly. A link added in the sidebar after the last run escapes condition 5 until the pull request is next touched. The workflow reruns the check when the body is edited, which is when a body's claims change; a sidebar edit fires no event the workflow listens to.
 
-**Nothing here checks labels.** A size label that matches the diff, and exactly one state label from a closed axis, are both detectable and both left out. The state vocabulary is configuration each consuming project owns (#22), so the framework cannot name the labels, and a condition over labels nobody has defined is a detector that does not exist.
+**Nothing here checks labels.** A size label that matches the diff, and exactly one status label from the status family, are both detectable and both left out. The vocabulary is declared in `labels.yml`: the project's own in `.github/`, or the default `ahrena-contributing` ships when it has none. A condition can name the labels it reads from that file, and the conditions that consume the vocabulary are #39's, not this rule's.
 
 **Nothing here reads the body for substance.** A body that names the right issue, closes it correctly and describes a different change passes every condition. Whether the description matches the diff, whether the verification section shows anything was verified, and whether the pull request is one change are the reviewer's questions, and `docs/pull-requests-and-trunk.md` states them where a condition would have been.
 
