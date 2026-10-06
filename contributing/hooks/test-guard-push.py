@@ -10,6 +10,8 @@ asserts on the exit code (0 runs the command, 2 refuses it) and on stderr.
 The harness-generated names that reached barte-ai-services/gatekeeper on
 2026-09-28 (#222 to #224) are cases, because they are why the guard exists.
 
+The suite is the one #113/AC-4 asks for, and CI runs it.
+
 Usage:
     python3 contributing/hooks/test-guard-push.py
 """
@@ -34,6 +36,7 @@ def case(name: str, branch: str, command: str, *refused_with: str) -> tuple:
 
 
 CASES = [
+    # #113/AC-1: a push from a failing branch is refused, naming the branch
     case("a harness-generated name is refused", HARNESS, "git push -u origin",
          HARNESS, "[branch-naming] condition 1", "git branch -m"),
     case("a bare push reads the current branch", HARNESS, "git push", HARNESS),
@@ -50,8 +53,10 @@ CASES = [
          "[branch-naming] condition 2"),
     case("refs/heads/ is stripped from the destination", GOOD,
          f"git push origin +HEAD:refs/heads/{GOOD}"),
+    # #113/AC-3: a passing branch pushes, and the commands below that are not a push run untouched
     case("a passing branch pushes", GOOD, "git push -u origin"),
     case("git -C reads the branch in that directory", GOOD, "git -C {repo} push"),
+    # #113/AC-2: trunk, release/ and HEAD sit outside the rule through check-branch-name's own outside()
     case("trunk is outside the rule", "main", "git push origin main"),
     case("a release branch is outside the rule", "release/1.4", "git push"),
     case("a delete creates no branch", HARNESS, "git push origin --delete old-name"),
