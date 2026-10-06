@@ -50,6 +50,9 @@ sys.exit(answer.get("code", 0))
 
 
 def load_module():
+    # A __pycache__ written beside the script would sit in the skill's body,
+    # unnamed by its SKILL.md, and the artifact gate fails on it.
+    sys.dont_write_bytecode = True
     spec = importlib.util.spec_from_file_location("reconcile_vocabulary", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
