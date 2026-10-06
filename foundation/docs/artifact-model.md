@@ -58,7 +58,7 @@ Three consequences are worth naming.
 
 **A rule references only a doc, and only for rationale.** Nothing may contradict a rule, so a rule that leans on a skill would invert the hierarchy: the guardrail would depend on the thing it constrains.
 
-**A rule carries no rationale of its own.** Rationale is what makes a rule long, and a long rule is one nobody loads. The rule states the condition and links here. This document is that link for the three foundation rules.
+**A rule carries no rationale of its own.** Rationale is what makes a rule long, and a long rule is one nobody loads. The rule states the condition and links here. This document is that link for four of the five foundation rules.
 
 ## Why references are untyped
 
