@@ -62,7 +62,18 @@ gh stack link <bottom-pr> <next-pr> <top-pr>
 
 ## 6. Native: land it through the stack
 
-From the stack on github.com, or with `gh stack merge <top-ready-pr> --yes --squash`. That lands the chosen layer and every unmerged one below it, in order, each closing its own issue. Never `gh pr merge` a single layer.
+A person lands it, never the agent (`gates.md` condition 3). Two ways, each layer closing its own issue.
+
+**Layer by layer, each on its own green checks**, with `scripts/land-stack.py`. Bottom to top, it waits for each layer's base to become the stack's, waits for its checks and stops at the first red, stops at the first layer not `APPROVED`, and merges through the async merge API. A rerun skips what already landed. Run it without `--go` and hand the person the list it prints and the command:
+
+```sh
+python3 scripts/land-stack.py <owner/repo> <stack>
+python3 scripts/land-stack.py <owner/repo> <stack> --go [--admin] [--method merge|squash|rebase]
+```
+
+`gh pr merge` refuses a layer: a stacked pull request lands only through `PUT /repos/{o}/{r}/pulls/{n}/merge-async`, whose status is read from `merge-async/{details.uuid}`. A merge the branch rules refuse comes back `failed` there, not on the `PUT`. The async API's admin override is `bypass_rules=true`, which `--admin` sends, as `--admin` does on `gh pr merge`. The method defaults to the one the repository allows and lands with, never a fixed squash. `scripts/test-land-stack.py` pins all of this.
+
+**The whole stack in one operation**, from the stack on github.com, or with `gh stack merge <top-ready-pr> --yes --squash`. That lands the chosen layer and every unmerged one below it, in order, without waiting on each layer's checks.
 
 ## 7. Framework-run: chain the bases
 

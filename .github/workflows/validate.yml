@@ -89,6 +89,9 @@ jobs:
       - name: Test the plan hook
         run: python3 contributing/hooks/test-check-plan.py
 
+      - name: Test the stack-landing script
+        run: python3 contributing/skills/stacking-pull-requests/scripts/test-land-stack.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
 
