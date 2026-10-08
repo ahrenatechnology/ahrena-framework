@@ -16,6 +16,7 @@ references:
   - rules/aggregates.md
   - rules/cross-cutting-concerns.md
   - rules/debt-markers.md
+  - rules/specification-homes.md
   - docs/patterns.md
   - docs/review-findings.md
   - skills/detecting-contract-breaks/SKILL.md
@@ -40,7 +41,7 @@ For a layer of a stack the base is its parent's branch, not trunk, so the diff i
 
 ## 2. Sort the changed paths into routes
 
-The thirteen rules do not all reach every change, and reading all of them against every diff spends attention on conditions that cannot fire. Each changed path selects a set; a path can be in several.
+The fourteen rules do not all reach every change, and reading all of them against every diff spends attention on conditions that cannot fire. Each changed path selects a set; a path can be in several.
 
 | What the path is | Read against it |
 |---|---|
@@ -48,6 +49,7 @@ The thirteen rules do not all reach every change, and reading all of them agains
 | a `.py` file | the same set, with the mechanical conditions decided by the detector in step 3 instead of by reading |
 | a module under a bounded context's `domain/` directory | add `rules/domain-model.md` and `rules/aggregates.md` |
 | a module under `adapters/`, `infrastructure/` or `persistence/`, or any handler, client or job entry point | add `rules/cross-cutting-concerns.md` |
+| a file under `docs/`, in a context's `entities/` or in a directory named for a specification kind | `rules/specification-homes.md`, all seven conditions decided by `hooks/check-specifications.py`; what the specification says is then read against `rules/domain-model.md` and `rules/aggregates.md` in step 4 |
 | a contract document, an event definition, a schema migration, or a module's exported surface | hand to `skills/detecting-contract-breaks/SKILL.md`, which needs the base version of the surface and not the diff |
 | a new interface, abstract base, port, registry, generic parameter or configuration switch, anywhere | condition 1 of `rules/yagni.md`, and `docs/patterns.md` through `rules/pattern-selection.md` |
 
@@ -102,10 +104,10 @@ Hand the set to `skills/publishing-review-verdicts/SKILL.md`. Do not publish fro
 
 ## When this skill does not apply
 
-**An artifact of this framework** — a rule, doc, skill, agent or command — is not source code and none of these thirteen rules is about it. The foundation plugin carries the procedure for reviewing those, and it asks different questions.
+**An artifact of this framework** — a rule, doc, skill, agent or command — is not source code and none of these fourteen rules is about it. The foundation plugin carries the procedure for reviewing those, and it asks different questions.
 
 **A Python distribution's import graph, namespace layout or module boundaries.** Those conditions live in the Python plugin and its own detector decides them.
 
 **Whether the change is wanted.** This procedure decides whether the code satisfies the conditions, not whether the feature should exist, whether the approach is the right one, or whether the effort was worth it. Those are the reviewer's to raise as questions and the owner's to settle.
 
-**A change with no diff to read.** A rename-only change, a merge commit, a vendored dependency bump and a generated file refresh have no authored lines, and running thirteen rules over them produces noise. Say what the change is and stop.
+**A change with no diff to read.** A rename-only change, a merge commit, a vendored dependency bump and a generated file refresh have no authored lines, and running fourteen rules over them produces noise. Say what the change is and stop.
