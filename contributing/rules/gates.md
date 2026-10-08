@@ -29,6 +29,6 @@ The flow has two gates. Gate 1 is scope, a person's approval of what will be bui
 
 **Gate 2 is only as strong as the ruleset.** If the ruleset on trunk does not require the checks, a person can land a pull request with a red run. Whether it does is an owner's setting.
 
-**This does not say who reviews.** A review is a reader's judgment of the change: Argos through `engineering/skills/reviewing-diffs`, a person, or both. It is not a gate here, because on a shared account an agent can approve as easily as it can comment. What a review produces is findings, and the author answers them before the person lands the change.
+**This does not say who reviews.** A review is a reader's judgment of the change: Argos through `engineering/fundamentals/skills/reviewing-diffs`, a person, or both. It is not a gate here, because on a shared account an agent can approve as easily as it can comment. What a review produces is findings, and the author answers them before the person lands the change.
 
 **Asking is not approving everything that follows.** A person who asks for issue #N has approved #N's criteria. Work the issue does not describe, found along the way, is a new issue, opened with `opening-issues` and started only when asked for.

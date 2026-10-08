@@ -23,16 +23,16 @@
       "keywords": ["authoring", "conventions", "naming", "templates", "scaffolding"]
     },
     {
-      "name": "ahrena-engineering",
+      "name": "ahrena-engineering-fundamentals",
       "description": "Language-agnostic engineering fundamentals: what justifies an abstraction, which structure must come out regardless, and the complexity signals a script can decide.",
       "version": "0.1.0",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
-        "path": "engineering",
+        "path": "engineering/fundamentals",
         "ref": "main"
       },
-      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering",
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/fundamentals",
       "repository": "https://github.com/ahrenatechnology/ahrena-framework",
       "license": "MIT",
       "keywords": ["solid", "kiss", "yagni", "abstraction", "cohesion", "code-quality"]
@@ -44,10 +44,10 @@
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
-        "path": "engineering-python",
+        "path": "engineering/python",
         "ref": "main"
       },
-      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering-python",
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/python",
       "repository": "https://github.com/ahrenatechnology/ahrena-framework",
       "license": "MIT",
       "keywords": ["python", "imports", "circular-imports", "layering", "packaging", "namespace-packages"]

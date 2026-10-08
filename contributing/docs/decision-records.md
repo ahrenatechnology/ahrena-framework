@@ -30,7 +30,7 @@ The answer matters because both obvious answers are wrong. "Every decision gets 
 7   8   11   13   15   27   29        52   53   59   111
 ```
 
-There is a clean empty span between 29 and 52, and four rows sit above it. That is the same shape of evidence [the engineering plugin's clean-code doc](../../engineering/docs/clean-code.md) uses when it places a threshold at the bottom of a gap rather than at the top of the data, and it gives a tripwire worth having: **a consequence cell running past about thirty words has outgrown the table.** Row 10 is 111 words of prose in a two-column cell and nobody reads it there.
+There is a clean empty span between 29 and 52, and four rows sit above it. That is the same shape of evidence [the engineering plugin's clean-code doc](../../engineering/fundamentals/docs/clean-code.md) uses when it places a threshold at the bottom of a gap rather than at the top of the data, and it gives a tripwire worth having: **a consequence cell running past about thirty words has outgrown the table.** Row 10 is 111 words of prose in a two-column cell and nobody reads it there.
 
 The tripwire is an alarm, not the criterion. It tells you to ask the three questions below; it does not answer them. One of the eleven is short precisely because its consequences were never written down, and length would have let it through.
 

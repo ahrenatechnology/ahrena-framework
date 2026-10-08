@@ -24,11 +24,11 @@ python3 foundation/hooks/validate-artifacts.py
 
 The gate takes no dependencies, so the check CI runs is the check a consumer runs.
 
-`ahrena-engineering` is the second plugin and the first consumer of that core: SOLID, KISS and YAGNI alongside nine more, written as detectable conditions with a single arbitration between them, plus the reviewer that applies them to a pull request.
+`ahrena-engineering-fundamentals` is the second plugin and the first consumer of that core: SOLID, KISS and YAGNI alongside nine more, written as detectable conditions with a single arbitration between them, plus the reviewer that applies them to a pull request.
 
 `ahrena-engineering-python` is what is specific to one language — a dependency direction a script proves acyclic, and the typing a checker decides. `ahrena-contributing` governs the repository rather than the code in it, as one flow from issue to trunk with two gates and a person landing the change: how an issue is opened, a change planned and its acceptance criteria traced to tests, what a branch is called, what a commit message carries, how a pull request closes its issues, how a stack of them lands, natively or run by the framework, and what may reach trunk, with a detector for each that can have one.
 
-A plugin may reference another by the name the marketplace gives it, as `ahrena-engineering:docs/simplicity.md`, and that graph is acyclic. Everything else is tracked in the issues of this repository.
+A plugin may reference another by the name the marketplace gives it, as `ahrena-engineering-fundamentals:docs/simplicity.md`, and that graph is acyclic. Everything else is tracked in the issues of this repository.
 
 ## License
 

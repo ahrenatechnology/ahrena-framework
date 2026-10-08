@@ -143,6 +143,18 @@ TWO_PLUGINS = json.dumps(
 )
 MARKETPLACE_PATH = ".claude-plugin/marketplace.json"
 
+# The engineering plugins sit one level down, as engineering/fundamentals and
+# engineering/python, so a source.path is a path and not a directory name.
+NESTED_PLUGINS = json.dumps(
+    {
+        "name": "fixture",
+        "plugins": [
+            {"name": "fixture-plugin", "source": {"path": "group/p"}},
+            {"name": "other-plugin", "source": {"path": "group/q"}},
+        ],
+    }
+)
+
 NEIGHBOUR_DOC = GOOD_DOC.replace("id: reference", "id: neighbour").replace(
     "title: Reference", "title: Neighbour"
 )
@@ -782,6 +794,29 @@ CASES = [
             "p/rules/bounded.md": qualified("docs/neighbour.md"),
         },
         ["reference 'docs/neighbour.md' does not exist"],
+    ),
+    # #121/AC-1
+    case(
+        "a plugin whose source.path is nested below a parent directory resolves",
+        {
+            MARKETPLACE_PATH: NESTED_PLUGINS,
+            "group/p/docs/reference.md": GOOD_DOC,
+            "group/p/rules/bounded.md": GOOD_RULE,
+            "group/q/docs/neighbour.md": NEIGHBOUR_DOC,
+        },
+        ["3 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #121/AC-2
+    case(
+        "a qualified reference between two plugins nested under one parent passes",
+        {
+            MARKETPLACE_PATH: NESTED_PLUGINS,
+            "group/q/docs/neighbour.md": NEIGHBOUR_DOC,
+            "group/p/rules/bounded.md": qualified("other-plugin:docs/neighbour.md"),
+        },
+        ["2 artifact(s), no failures"],
+        ok=True,
     ),
     case(
         "two plugins that reference each other fail as a cycle",

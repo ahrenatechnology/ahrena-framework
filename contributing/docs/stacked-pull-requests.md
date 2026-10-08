@@ -65,7 +65,7 @@ Then #81 is the bottom, and the same steps repeat up the stack. With `delete_bra
 
 ## Reviewing a layer
 
-A layer is reviewed against its parent, which is its base. `engineering/skills/reviewing-diffs` step 1 fixes the base as the commit the change merges into. A finding on a line the layer did not touch belongs to the layer that did. After the layer below lands and GitHub rebases this one onto trunk, the diff has changed, and a verdict given before is given again.
+A layer is reviewed against its parent, which is its base. `engineering/fundamentals/skills/reviewing-diffs` step 1 fixes the base as the commit the change merges into. A finding on a line the layer did not touch belongs to the layer that did. After the layer below lands and GitHub rebases this one onto trunk, the diff has changed, and a verdict given before is given again.
 
 ## Dropped
 

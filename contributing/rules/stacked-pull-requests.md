@@ -39,4 +39,4 @@ Each of these is decided by `hooks/check-stack.py`.
 
 **A layer shows nothing to close until it lands.** Measured on stack #103: #101 and #102 had an empty `closingIssuesReferences` while stacked, even after #101's base became `main`. Each still closed its own issue when it merged. `traceability.md` reads what a pull request closes from its body for that reason.
 
-**The review of a layer is not here.** Reviewing a layer against its parent rather than trunk is step 1 of `engineering/skills/reviewing-diffs`.
+**The review of a layer is not here.** Reviewing a layer against its parent rather than trunk is step 1 of `engineering/fundamentals/skills/reviewing-diffs`.
