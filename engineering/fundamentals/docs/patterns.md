@@ -177,6 +177,8 @@ Each entry is also marked **adds** or **removes**, because condition 3 gates the
 
 **It carries only part of the domain vocabulary, and the split is now by what a condition can hold.** Aggregate, entity, value object and domain event are a vocabulary for modelling rather than for structure, so they are stated as conditions elsewhere rather than as entries here: the consistency boundary and the event are `rules/aggregates.md`, the entity contract is `rules/domain-model.md`, and the mechanical half of value object is `rules/value-semantics.md`. Domain service joined them as `rules/domain-services.md`, because behaviour sitting in the wrong layer is a state a condition can name. Specification and Factory did not: each was drafted as a rule and refused, and the two entries above are what they became. `docs/domain-services.md` carries the measurements behind both refusals.
 
+**The Specification entry is the pattern, not the document.** A specification in the other sense — the file that says what an entity is before code does — has a home and a template, and `rules/specification-homes.md` states both. The two share a word and nothing else.
+
 **The rest of the tactical set is still absent.** Layered supertype, module and the remainder of Evans' and Fowler's vocabulary have no entry and no rule, and that absence means the same thing the missing classical patterns above mean: this plugin has nothing useful to say about when to reach for them, not that they are wrong.
 
 **It cannot arbitrate a pattern against a measurement.** Every entry trades indirection for changeability, and a profile beats the catalog. `docs/solid.md` takes the same position and for the same reason.
