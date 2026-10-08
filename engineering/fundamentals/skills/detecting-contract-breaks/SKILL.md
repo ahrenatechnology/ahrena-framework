@@ -9,6 +9,7 @@ references:
   - rules/aggregates.md
   - docs/contract-first.md
   - docs/review-findings.md
+  - skills/comparing-published-contracts/SKILL.md
 ---
 
 # Detecting contract breaks
@@ -82,7 +83,7 @@ Apply the tests in `docs/review-findings.md`.
 
 **Question** is the case step 5 ends on: a removal or rename whose consumers are outside this repository, where the reviewer can see the change but not who it breaks. Name the symbol, name the base version, and say what would settle it — the consumer list, or a statement that the surface was never published.
 
-**Unchecked** is a surface whose base version step 2 could not fetch, and conditions 2, 3 and 4 of `rules/contract-first.md` whenever execution was not permitted — the served-description diff, the test per declared operation and the envelope validation inside it all need the service running.
+**Unchecked** is a surface whose base version step 2 could not fetch, and conditions 2, 3 and 4 of `rules/contract-first.md` whenever execution was not permitted — the served-description diff, the test per declared operation and the envelope validation inside it all need the service running. Where execution was permitted, the served-description diff is `skills/comparing-published-contracts/SKILL.md`, and its outcome replaces the `unchecked` for condition 2.
 
 **Deferrable** is rare here and worth stating: a break that is already live, introduced by an earlier commit and merely carried along by this diff, is not this change's to fix.
 
