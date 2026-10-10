@@ -3,50 +3,51 @@ id: review-verdicts
 type: doc
 clade: engineering
 subclade: quality
-title: The paper trail and the verdict it permits
-summary: Why a reviewer may approve only after having itself requested changes, the four rows that follow from that, why one comment per commit and the earlier one is left standing, why the marker is readable rather than hashed, and why the reviewer never edits the change.
+title: The verdict a review publishes
+summary: Why the verdict follows the findings alone, what an approval on the first pass asserts and what makes it worth something, the three rows, why one comment per commit and the earlier one is left standing, why the marker is readable, and why the reviewer never edits the change.
 references:
   - docs/review-findings.md
 ---
 
-# The paper trail and the verdict it permits
+# The verdict a review publishes
 
-This is the companion to the publication procedure in `skills/publishing-review-verdicts/SKILL.md`. That skill says what to do; this says why the approval rule is shaped the way it is, what the four rows of the decision table are each protecting, and what the comment marker buys.
+This is the companion to the publication procedure in `skills/publishing-review-verdicts/SKILL.md`. That skill says what to do; this says why the verdict is assigned the way it is, what each of the three rows protects, and what the comment marker buys.
 
-The severity levels the table reads are defined in [`docs/review-findings.md`](review-findings.md). Nothing here re-decides them.
+The severity levels the table reads are defined in [`docs/review-findings.md`](review-findings.md). Nothing here re-decides them. This repository's `ADR-013` records the decision this document argues, and the rule it replaced.
 
-## An automated reviewer that can approve on sight is worth nothing
+## The verdict follows the findings
 
-The failure this rule exists for is specific. An automated reviewer runs on a pull request, finds nothing, approves, and the approval is indistinguishable from the approval it would have produced if it had been misconfigured, pointed at the wrong base, given an empty diff, or unable to read the changed files at all. Every one of those failures is silent and every one of them produces the same green mark.
+One axis: the highest severity present now.
 
-A human reviewer has the same failure mode and a different defence against it: their approval carries their name, and a reviewer who approves everything is noticed. An automated one is not noticed, because nobody reads a stream of approvals looking for the one that should not be there.
+| Findings now | Verdict |
+|---|---|
+| at least one **blocking** | request changes |
+| no blocking, but at least one question or unchecked | comment |
+| deferrable only, or nothing at all | approve |
 
-So the reviewer is required to have disagreed at least once, on this pull request, before it is allowed to agree. The rule reads:
+**Row one stops the change.** A blocking finding is a numbered condition violated on a line this change introduces or edits, and the author owes a fix or an argument.
 
-> The reviewer may approve a pull request only when it has itself previously requested changes on that same pull request. Cold-start approval is forbidden.
+**Row two is a review that has not finished.** A question is addressed to the author and the answer may turn it into a blocking finding. An unchecked condition is a part of the change nobody read. Approving over either is approving over a hole, so neither approves, however clean the rest is.
 
-**What this buys is a signal with content.** An approval now means something specific and checkable: this reviewer found problems on this change, said so, and those problems are gone. A first-pass clean result is still published — it is just published as a comment, which records that the review happened and claims nothing more than that.
+**Row three is the approval, and it can arrive on the first pass.** Deferrable findings do not hold it back: each is a real violation on a line the change did not touch, recorded for the next person, and by its own definition not this pull request's to fix.
 
-**What it costs is an approval on a change that was correct from the first commit.** That case exists and this rule declines it. The cost is one missing green mark on a change that needs no fixing; the alternative is approvals whose meaning depends on whether the reviewer happened to be working, which is not a signal at all. The clean first pass is recorded in a comment, so the reader still sees that the reviewer ran and found nothing.
+## What an approval on the first pass is worth
 
-## The four rows
+The failure an approving reviewer has to answer for is specific. An automated reviewer runs on a pull request, finds nothing, approves, and that approval is indistinguishable from the one it would have produced if it had been pointed at the wrong base, given an empty diff, or unable to read the change. A person who approves everything is noticed. An automated reviewer is not, because nobody reads a stream of approvals looking for the one that should not be there.
 
-Two axes: the highest severity present now, and whether this reviewer has itself previously requested changes on this pull request.
+The predecessor of this rule answered by forbidding the first approval: the reviewer could approve only after having itself requested changes on the same pull request. That made an approval mean "what I objected to is gone", and it declined every change that was right from the first commit.
 
-| Findings now | Prior request for changes by this reviewer | Verdict |
-|---|:---:|---|
-| at least one **blocking** | either | request changes |
-| no blocking, but at least one deferrable, question or unchecked | either | comment |
-| nothing at all | no | comment, recording the first clean pass |
-| nothing at all | yes | approve, resolving the earlier refusal |
+The answer here is that the approval carries its own evidence. A review states the base and the head it read, the routes that fired, the skills no route selected, the paths nothing but the baseline reached, and every condition it did not decide. A reviewer pointed at an empty diff reports no routes. One that could not run a check reports it unchecked, and by row two does not approve.
 
-**Row one does not consult the history.** A blocking finding is a blocking finding whether or not the reviewer has been here before. Letting prior approval soften a present blocker would make the verdict depend on the order the commits arrived in.
+**So an approval asserts this, and no more:** over the commit named in the marker, every routed condition was decided and none is violated by a line the change touched. It does not assert that the change is wanted, or that nothing outside the routes is wrong.
 
-**Row two is where most reviews land, and it is deliberately not an approval.** A review carrying a question has not finished — the question is addressed to the author and the answer may turn it into a blocking finding. A review carrying an `unchecked` axis has a hole in it, and approving over a hole is the silent failure this whole rule is about. Deferrable findings alone do not block the change, and they also do not earn agreement.
+**What that costs is the second chance.** Under the old rule a person merged every change, and could notice what the review missed. An approval now lands the change, through `skills/landing-approved-changes`, and what a miss meets is CI on trunk and the revert. A repository that cannot afford that requires a named person's approval in its ruleset, and the forge holds the merge.
 
-**Row three is the one people try to delete.** It looks like ceremony: nothing is wrong, so why not approve. The answer is that the second axis has no other way to become true. Without row three, a reviewer that never finds anything never establishes the history that row four reads, and row four is the only place an approval comes from. Row three is what makes the paper trail a trail rather than a condition that can never be met.
+## When the forge refuses the approval
 
-**Row four is the only approval.** It resolves the earlier refusal, and the thing it asserts is narrow: what this reviewer objected to is no longer there. It does not assert that the change is correct, that it is wanted, or that it may be merged. Where the repository requires a named owner's approval to merge, this one is an additional signal beside theirs and not a substitute for it.
+GitHub does not let an account approve its own pull request. Where the reviewer publishes through the author's account, the approving review is refused.
+
+The verdict does not change. It is published as a comment whose verdict line reads approve, and the comment says the forge refused the review and why. Landing reads the verdict, not the review's state on the forge. Where the ruleset requires an approving review, the merge is then refused too, and the pull request waits for a person, which is the ruleset doing what it was set to do.
 
 ## One comment per commit, and the earlier ones stay
 
@@ -58,7 +59,7 @@ The marker does two things. It makes a re-run on the same commit idempotent: the
 
 The first is that it is not stale. It is an accurate review of a commit that existed, and the fact that a later commit fixed three of its findings is information a reader wants, not noise to clean up.
 
-The second is the one that actually forces it: the second axis of the table is read out of this reviewer's own published history. The request for changes that row four consults is a comment sitting on the pull request. A reviewer that tidied up after itself by replacing its earlier verdicts would delete the evidence that permits it to approve, and would then be unable to approve anything — or, worse, would keep a record that no longer matches what it published.
+The second is that the trail is the record of what the reviewer said at each commit. An approval that follows two requests for changes reads differently from one that arrived alone, and a reader can see that only while the earlier comments stand.
 
 **Re-running on the same commit is the one case where content is replaced**, and the marker is what makes it safe: the verdict being overwritten is a verdict about the same commit, so nothing about a different state of the change is lost.
 
@@ -72,16 +73,16 @@ The hash buys one property, which is a fixed length, and the marker is not store
 
 ## Why the reviewer never changes the pull request
 
-The reviewer publishes exactly one thing: its review. It does not commit, push, rebase, re-target, label, assign, request other reviewers, resolve threads, close or merge.
+The reviewer publishes its review, and after an approval asks the forge to land the commit it reviewed. It does not commit, push, rebase, re-target, label, assign, request other reviewers, resolve threads or close.
 
-A reviewer that fixes what it finds has stopped being a reviewer of that change, because the next thing it reviews includes its own work, and nobody reviews that. The separation is the whole value of a second party looking, and it survives only while the second party's output is words.
+A reviewer that fixes what it finds has stopped being a reviewer of that change, because the next thing it reviews includes its own work, and nobody reviews that. The separation is the whole value of a second party looking, and it survives only while the second party leaves the content of the change alone. Landing does not touch the content: it merges the commit that was read, named by its hash, and a head that moved since the review is not landed.
 
 There is a second reason, smaller and more practical. A fix-up commit from the reviewer moves the head, which invalidates the marker of the review that proposed it, which turns one comment into two about the same state. The mechanism and the principle point the same way.
 
 ## Where this stops
 
-**Nothing here decides who may merge.** The verdict is one input to that decision and this document has no opinion on branch protection, required approvals or who owns the surface.
+**Nothing here decides what a ruleset requires.** Required approvals, required checks and who owns a surface are the repository's settings, and an approval here does not stand in for any of them.
 
 **Nothing here covers other reviewers.** A pull request usually carries comments from people and from other automated reviewers. Reading, aggregating or answering those is outside this procedure: this reviewer publishes its own verdict and leaves everyone else's threads alone.
 
-**The rule does not survive a reviewer with no history.** A repository where this reviewer's earlier comments were deleted, or one where it publishes under an identity that changes between runs, has no second axis, and the table collapses to rows one to three — no approval, ever. That is the correct degradation and it is also a warning: the identity the reviewer publishes under is the thing the whole rule is built on, and an unstable one silently removes the approval path.
+**The approval is only as good as the coverage statement beside it.** A review whose routes missed the part of the change that mattered approves a change it did not read, and says which routes fired. Reading that list is what a person checking an approval does.

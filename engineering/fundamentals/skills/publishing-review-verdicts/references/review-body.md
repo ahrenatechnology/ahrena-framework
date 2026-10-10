@@ -1,6 +1,6 @@
 # Review comment body
 
-The skeleton step 5 copies, followed by a filled example. Everything between
+The skeleton step 4 copies, followed by a filled example. Everything between
 the rules is the body; the rules themselves are not part of it.
 
 The order is fixed. A reader scanning three reviews should find the marker,

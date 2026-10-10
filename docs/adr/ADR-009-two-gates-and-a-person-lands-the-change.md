@@ -1,8 +1,9 @@
 # ADR-009: Two gates, and a person lands the change
 
-- **Status:** accepted
+- **Status:** superseded
 - **Date:** 2026-09-28
 - **Issue:** #100
+- **Superseded by:** ADR-013
 
 ## Context
 

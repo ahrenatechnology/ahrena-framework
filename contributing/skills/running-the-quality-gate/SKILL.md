@@ -71,4 +71,4 @@ CI runs everything again. If it disagrees with the local run, CI is right, and t
 
 ## When this skill does not apply
 
-Reviewing the change is `engineering/fundamentals/skills/reviewing-diffs`, and it comes after this. Merging is a person's act (`gates.md` condition 3), and no step here merges.
+Reviewing the change is `engineering/fundamentals/skills/reviewing-diffs`, and it comes after this. Landing follows an approving review (`gates.md` condition 3), and no step here merges.
