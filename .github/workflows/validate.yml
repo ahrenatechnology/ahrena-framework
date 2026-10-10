@@ -68,6 +68,15 @@ jobs:
       - name: Test the typing hook
         run: python3 engineering/python/hooks/test-check-typing.py
 
+      # Not hooks: the two scripts the contract-first skills ship, which a
+      # consuming project runs with its own documents as arguments. Their
+      # suites run here for the reason every suite does.
+      - name: Test the contract check
+        run: python3 engineering/fundamentals/skills/authoring-contracts/scripts/test-check-contract.py
+
+      - name: Test the contract comparison
+        run: python3 engineering/fundamentals/skills/comparing-published-contracts/scripts/test-diff-contract.py
+
       - name: Test the branch-name hook
         run: python3 contributing/hooks/test-check-branch-name.py
 

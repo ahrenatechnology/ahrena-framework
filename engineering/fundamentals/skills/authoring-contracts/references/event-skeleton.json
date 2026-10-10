@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/order-placed.json",
+  "title": "An order was placed",
+  "description": "One event type, as a CloudEvents 1.0 envelope in structured JSON mode. Replace the type and the data, keep the envelope.",
+  "type": "object",
+  "required": ["specversion", "id", "source", "type", "data"],
+  "properties": {
+    "specversion": { "const": "1.0" },
+    "id": { "type": "string", "minLength": 1 },
+    "source": { "type": "string", "format": "uri-reference", "minLength": 1 },
+    "type": { "const": "com.example.order.placed" },
+    "datacontenttype": { "const": "application/json" },
+    "data": {
+      "type": "object",
+      "required": ["order_id", "placed_at"],
+      "properties": {
+        "order_id": { "type": "string" },
+        "placed_at": { "type": "string", "format": "date-time" },
+        "sku": { "type": "string" },
+        "quantity": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

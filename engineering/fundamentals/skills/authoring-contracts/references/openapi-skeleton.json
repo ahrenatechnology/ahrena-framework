@@ -1,0 +1,119 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Orders",
+    "version": "1.0.0",
+    "description": "Placing an order and reading it back. Replace the resource, keep the shape."
+  },
+  "paths": {
+    "/orders": {
+      "post": {
+        "operationId": "placeOrder",
+        "summary": "Place an order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OrderRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The order was placed.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Order" }
+              }
+            }
+          },
+          "422": { "$ref": "#/components/responses/Problem" }
+        }
+      },
+      "get": {
+        "operationId": "listOrders",
+        "summary": "List orders",
+        "responses": {
+          "200": {
+            "description": "The orders, possibly none.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Order" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{order_id}": {
+      "get": {
+        "operationId": "getOrder",
+        "summary": "Read one order",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The order.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Order" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrderRequest": {
+        "type": "object",
+        "required": ["sku", "quantity"],
+        "properties": {
+          "sku": { "type": "string", "minLength": 1 },
+          "quantity": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "required": ["order_id", "sku", "quantity", "status"],
+        "properties": {
+          "order_id": { "type": "string" },
+          "sku": { "type": "string" },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "status": { "type": "string", "enum": ["placed", "cancelled"] }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "required": ["type", "title"],
+        "properties": {
+          "type": { "type": "string", "format": "uri-reference" },
+          "title": { "type": "string" },
+          "status": { "type": "integer" },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "The request was refused, and the body says why.",
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/Problem" }
+          }
+        }
+      }
+    }
+  }
+}
