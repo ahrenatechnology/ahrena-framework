@@ -6,10 +6,10 @@
 One page per agent under artifacts/<page>/, generated from the repo's own
 engineering/quality (and sibling) files and a shared template. Each page has two
 tabs: the prompt composition (layers, routes, the text of each artifact) and the
-orchestration (how the agents run together). An entry whose file is absent on
-the current checkout is skipped, so the same build runs against main or a branch.
-The page only carries the drawing and the texts; publishing is the ahrena-artifacts
-skill's job, and it is the one that writes artifact.json.
+orchestration (a diagram and prose focused on how THAT agent operates). An entry
+whose file is absent on the current checkout is skipped, so the same build runs
+against main or a branch. The page only carries the drawing and the texts;
+publishing is the ahrena-artifacts skill's job.
 """
 
 from __future__ import annotations
@@ -23,41 +23,107 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 Q = "engineering/quality"
 
-ORCHESTRATION = """\
-## How the two agents run together
 
-The framework defines the flow; an outside orchestrator only drives it. Argos reviews, and when it approves it asks the forge to land the change. Erodos — a separate agent, so the reviewer never reads its own edit — applies the findings that are mechanically applicable, and hands the pull request back for Argos to review again. Nothing merges until a review is clean.
+def node(x, y, w, h, lb, sub="", cls="nd", rx=8):
+    cx = x + w / 2
+    t = f'<rect class="{cls}" x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}"/>'
+    if sub:
+        t += f'<text class="lb" x="{cx}" y="{y+h/2-2}" text-anchor="middle">{lb}</text>'
+        t += f'<text class="sub" x="{cx}" y="{y+h/2+15}" text-anchor="middle">{sub}</text>'
+    else:
+        t += f'<text class="lb" x="{cx}" y="{y+h/2+5}" text-anchor="middle">{lb}</text>'
+    return f"<g>{t}</g>"
 
-- **Request changes** when a blocking finding stands; the author, or Erodos, resolves it.
-- **Comment** when only a question or an unchecked condition is left — the review has not finished.
-- **Approve, then land** when nothing stops the change; the forge squash-merges the exact commit that was read, once its checks pass.
 
-The fix–review cycle is bounded: whatever is still blocking after the attempt limit goes to a person. A person also lands four kinds of change whatever the review says — a decision record, a layer of a stack, a draft, and a pull request from an external fork. `ADR-013` and `ADR-014` record why the reviewer approves on a clean pass and why the fixer is a second agent.
+def svg(viewbox, body):
+    return (f'<svg viewBox="{viewbox}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:720px">'
+            '<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" '
+            'orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--dim)"/></marker></defs>'
+            + body + '</svg>')
 
-## Where an external orchestrator fits
 
-Argos and Erodos are addressable agents with a fixed contract: Argos publishes a structured verdict and findings; Erodos consumes applicable findings and returns a commit. An orchestrator — a scheduler, a CI job, a graph of calls — sequences `review → fix → review → land` and decides retries and parallelism across pull requests. It does not re-decide a verdict or a merge: those stay in the agents and the gate. The two agents work the same whether a person runs them by hand or an orchestrator does.
+# Argos: the reviewer's own pipeline, with the verdict and its hand-offs.
+ARGOS_FLOW = svg("0 0 720 512", "".join([
+    '<path class="ed" d="M300,54 V78"/>',
+    '<path class="ed" d="M300,136 V160"/>',
+    '<path class="ed" d="M300,218 V250"/>',
+    '<path class="ed" d="M300,296 V322"/>',
+    '<path class="ed" d="M300,372 V404"/>',
+    '<path class="ed" d="M255,273 L205,322"/>',           # verd -> pede mudanca (left)
+    '<path class="ed" d="M345,273 L470,300"/>',           # verd -> comentario (right)
+    '<path class="ed ed-d" d="M330,296 C420,330 430,360 470,378"/>',  # verd -> pessoa (dashed)
+    '<path class="ed" d="M25,430 H12 V107 H175"/>',    # erodos commit loops back to Argos
+    '<text class="el" transform="translate(16,250) rotate(-90)" text-anchor="middle">o commit do Erodos volta para revisar</text>',
+    '<text class="el" x="230" y="300" text-anchor="middle">bloqueante</text>',
+    '<text class="el" x="312" y="314" text-anchor="start">limpo</text>',
+    '<text class="el" x="408" y="282" text-anchor="middle">pergunta</text>',
+    node(235, 14, 130, 40, "Pull request"),
+    node(175, 78, 250, 58, "Argos revisa", "fixa base e head · roda o roteador"),
+    node(175, 160, 250, 58, "disciplinas produzem achados", "segurança · prompts · linguagem · contrato"),
+    node(195, 250, 210, 46, "consolida e decide o veredito", cls="nd b"),
+    node(25, 322, 180, 50, "pede mudança", "achado bloqueante"),
+    node(25, 404, 180, 52, "Erodos corrige", "outro agente, em separado", cls="nd d"),
+    node(460, 278, 200, 46, "comentário", "pergunta / unchecked"),
+    node(460, 360, 210, 58, "uma pessoa mescla", "registro · stack · draft · fork", cls="nd d"),
+    node(235, 322, 130, 46, "aprova", "nada trava"),
+    node(190, 404, 220, 50, "pede ao forge: squash-merge", "do commit revisado, checks verdes"),
+    node(240, 474, 120, 34, "trunk", cls="nd a", rx=17),
+]))
+
+# Erodos: the fixer's own procedure, start to hand-back.
+ERODOS_FLOW = svg("0 0 720 452", "".join([
+    '<path class="ed" d="M300,56 V80"/>',
+    '<path class="ed" d="M300,140 V166"/>',
+    '<path class="ed" d="M300,214 V240"/>',
+    '<path class="ed" d="M300,288 V314"/>',
+    '<path class="ed" d="M300,362 V388"/>',
+    '<path class="ed ed-d" d="M430,109 H470"/>',          # seleciona -> nao aplicavel (right)
+    '<path class="ed ed-d" d="M430,189 H470"/>',          # aplica -> segredo note (right)
+    '<path class="ed ed-d" d="M400,411 H470"/>',          # devolve -> Argos (right)
+    node(200, 16, 200, 40, "achados do Argos", cls="nd b"),
+    node(170, 80, 260, 60, "seleciona os aplicáveis", "bloqueante/deferrable · correção concreta"),
+    node(470, 80, 220, 60, "não aplicável → uma pessoa", "pergunta · unchecked · decisão", cls="nd d"),
+    node(160, 166, 280, 48, "aplica só o que o achado nomeia"),
+    node(470, 160, 230, 60, "segredo", "conserta no código · rotação humana", cls="nd d"),
+    node(190, 240, 220, 48, "confere com os testes"),
+    node(210, 314, 180, 48, "commita e dá push"),
+    node(220, 388, 160, 46, "devolve o PR"),
+    node(470, 388, 230, 46, "Argos revisa de novo", cls="nd d"),
+    '<text class="el" x="360" y="446" text-anchor="middle">nunca revisa · nunca mescla</text>',
+]))
+
+ARGOS_ORCH = """\
+## Como o Argos opera
+
+O Argos é o revisor. Numa passada ele fixa a base e o head, roda o roteador (um script que lê a mudança contra a tabela de rotas e diz quais disciplinas tocam o diff), delega a cada disciplina selecionada, junta os achados e decide **um** veredito a partir deles — sem olhar a história:
+
+- um achado **bloqueante** → pede mudança;
+- uma **pergunta** ou condição **unchecked**, sem bloqueante → comentário (a revisão não terminou);
+- nada que trave → **aprova**.
+
+Ao aprovar, ele pede ao forge (o GitHub) para fazer o **squash-merge do commit exato que revisou**, só com os checks verdes. Ele não dá push na trunk nem decide sozinho: quem mescla é o forge, pelas regras dele.
+
+A mudança bloqueante vai para o **Erodos** — um agente separado, para que o Argos nunca leia a própria edição — e o commit que o Erodos devolve volta a esta mesma revisão. Quatro casos ele deixa para uma pessoa, aconteça o que acontecer: registro de decisão, camada de stack, draft e pull request de fork externo. `ADR-013` registra por que a revisão limpa aprova e mescla.
 """
 
-FLOW = """flowchart TD
-  PR([Pull request]) --> ARGOS[Argos reviews]
-  ARGOS -->|router selects disciplines| DISC[Discipline skills:\\nsecurity, prompts, language, contract...]
-  DISC --> VERDICT{Verdict from the findings}
-  VERDICT -->|blocking| RC[Request changes]
-  VERDICT -->|question / unchecked| COMMENT[Comment: not finished]
-  VERDICT -->|nothing stops it| APPROVE[Approve]
-  RC --> ERODOS[Erodos applies the applicable fixes]
-  ERODOS -->|new commit, bounded attempts| ARGOS
-  APPROVE --> LAND[Argos asks the forge to squash-merge the reviewed commit]
-  LAND --> TRUNK([Trunk])
-  VERDICT -.decision record / stack / draft / fork.-> PERSON([A person lands it])
+ERODOS_ORCH = """\
+## Como o Erodos opera
+
+O Erodos é o corretor, e só entra depois que o Argos publicou os achados. Ele nunca revisa e nunca mescla — aplica o que já foi achado e devolve, para o Argos revisar de novo. O procedimento:
+
+1. **Seleciona os aplicáveis:** achado `blocking` ou `deferrable`, com correção que é uma instrução concreta, numa disciplina onde aplicar muda só o que o achado nomeou. `question` e `unchecked`, e qualquer correção que exija uma decisão, ficam para uma pessoa.
+2. **Aplica a menor mudança** que cada achado nomeia — nada além disso.
+3. **Segredo tem ressalva:** ele troca o literal por leitura do cofre, mas a credencial que entrou no histórico precisa de **rotação**, que é ação humana e segura o merge até ser feita.
+4. **Confere** com os testes do projeto (quando pode executar), **commita e dá push**, e **devolve o pull request**.
+
+Num fork externo ele não aplica nada — rodaria o código do autor na máquina —, igual à recusa do Argos. O ciclo é limitado: o que não fecha depois do limite de tentativas vai para uma pessoa. `ADR-014` registra por que o corretor é um agente à parte do revisor.
 """
 
 PAGES = {
     "argos-system-prompts": {
         "title": "Argos System Prompts",
         "eyebrow": "Ahrena · agente revisor",
-        "lead": "O Argos não tem um prompt único. O que ele lê numa revisão é montado em camadas: o agente está sempre lá, e o resto só entra quando a mudança pede. A aba Orquestração mostra como ele e o Erodos rodam juntos.",
+        "lead": "O Argos não tem um prompt único. O que ele lê numa revisão é montado em camadas: o agente está sempre lá, e o resto só entra quando a mudança pede. A aba Orquestração mostra como ele opera.",
         "layers": [
             ("Agente", "`agents/argos.md` diz o que o Argos é, quais skills ele orquestra e o que ele se recusa a fazer.", "sempre"),
             ("Roteador", "`route-review.py` lê a mudança contra `routes.json` e imprime as rotas que dispararam. É um script: não gasta contexto.", "sempre"),
@@ -65,6 +131,8 @@ PAGES = {
             ("Checklists e regras", "As condições ficam em `references/` e nas regras do `fundamentals`. Cada arquivo só abre pela rota que o nomeia.", "por rota"),
         ],
         "routes": True,
+        "flow": ARGOS_FLOW,
+        "orchestration": ARGOS_ORCH,
         "entries": [
             ("Agente", "argos", f"{Q}/agents/argos.md", "O revisor. Diz o que ele é, quais skills orquestra e o que não faz."),
             ("Toda revisão", "reviewing-diffs", f"{Q}/skills/reviewing-diffs/SKILL.md", "Sempre, e primeiro. Fixa base e head, roda o roteador e lê as regras de engenharia."),
@@ -91,13 +159,15 @@ PAGES = {
     "erodos-system-prompts": {
         "title": "Erodos System Prompts",
         "eyebrow": "Ahrena · agente corretor",
-        "lead": "O Erodos aplica as correções que a revisão achou e devolve o pull request — nunca revisa nem mescla. Seu contexto é curto: o agente, o procedimento, e o documento de achados que ele lê. A aba Orquestração mostra onde ele entra no ciclo.",
+        "lead": "O Erodos aplica as correções que a revisão achou e devolve o pull request — nunca revisa nem mescla. Seu contexto é curto: o agente, o procedimento, e o documento de achados que ele lê. A aba Orquestração mostra como ele opera.",
         "layers": [
             ("Agente", "`agents/erodos.md` diz que ele aplica o que o Argos achou, commita e devolve, e que não revisa nem mescla.", "sempre"),
             ("Procedimento", "`applying-fixes` seleciona os achados aplicáveis, aplica a menor mudança que cada um nomeia, confere e committa.", "sempre"),
             ("Contrato de entrada", "`review-findings` define o que torna um achado aplicável — campo a campo — e o que fica para uma pessoa.", "sempre"),
         ],
         "routes": False,
+        "flow": ERODOS_FLOW,
+        "orchestration": ERODOS_ORCH,
         "entries": [
             ("Agente", "erodos", f"{Q}/agents/erodos.md", "O corretor. Aplica as correções, commita e devolve; nunca revisa nem mescla."),
             ("Procedimento", "applying-fixes", f"{Q}/skills/applying-fixes/SKILL.md", "Seleciona os achados aplicáveis, aplica, confere, committa e devolve."),
@@ -143,10 +213,11 @@ def build_page(name: str, spec: dict, template: str) -> int:
     data = {"title": spec["title"], "eyebrow": spec["eyebrow"], "lead": spec["lead"],
             "commit": git("rev-parse", "--short", "HEAD"), "branch": git("rev-parse", "--abbrev-ref", "HEAD"),
             "layers": [{"name": n, "body": b, "when": w} for n, b, w in spec["layers"]],
-            "routes": routes, "entries": entries, "orchestration": ORCHESTRATION, "flow": FLOW}
+            "routes": routes, "entries": entries, "orchestration": spec["orchestration"]}
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     out = HERE / name / "index.html"
-    out.write_text(template.replace("/*__DATA__*/null", payload).replace("<!--TITLE-->", spec["title"]), encoding="utf-8")
+    html = template.replace("/*__DATA__*/null", payload).replace("<!--TITLE-->", spec["title"]).replace("<!--FLOW-->", spec["flow"])
+    out.write_text(html, encoding="utf-8")
     return len(entries)
 
 
