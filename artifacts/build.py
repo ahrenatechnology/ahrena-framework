@@ -14,8 +14,8 @@ publishing is the ahrena-artifacts skill's job.
 
 from __future__ import annotations
 
+import datetime
 import json
-import subprocess
 import sys
 from pathlib import Path
 
@@ -188,12 +188,6 @@ def body_of(text: str) -> tuple[str, str]:
     return described, body.lstrip("\n")
 
 
-def git(*args: str) -> str:
-    try:
-        return subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True, check=True).stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "desconhecido"
-
 
 def build_page(name: str, spec: dict, template: str) -> int:
     entries = []
@@ -209,7 +203,7 @@ def build_page(name: str, spec: dict, template: str) -> int:
         table = json.loads((ROOT / Q / "skills/reviewing-diffs/references/routes.json").read_text(encoding="utf-8"))
         routes = table["routes"]
     data = {"title": spec["title"], "eyebrow": spec["eyebrow"], "lead": spec["lead"],
-            "commit": git("rev-parse", "--short", "HEAD"),
+            "generated": datetime.date.today().isoformat(),
             "layers": [{"name": n, "body": b, "when": w} for n, b, w in spec["layers"]],
             "routes": routes, "entries": entries, "orchestration": spec["orchestration"]}
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
