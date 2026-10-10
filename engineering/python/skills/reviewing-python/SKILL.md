@@ -7,15 +7,15 @@ subclade: quality
 references:
   - rules/typing.md
   - rules/module-boundaries.md
-  - ahrena-engineering-fundamentals:docs/review-findings.md
-  - ahrena-engineering-fundamentals:docs/review-routes.md
+  - ahrena-engineering-quality:docs/review-findings.md
+  - ahrena-engineering-quality:docs/review-routes.md
 ---
 
 # Reviewing Python
 
-The language-agnostic pass in `ahrena-engineering-fundamentals:skills/reviewing-diffs/SKILL.md` has already read the change against the rules that hold in any language, and `hooks/check-structure.py` has decided the mechanical conditions over the changed Python. This skill reads what is left: the defects that need a Python reader.
+The language-agnostic pass in `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md` has already read the change against the rules that hold in any language, and `hooks/check-structure.py` has decided the mechanical conditions over the changed Python. This skill reads what is left: the defects that need a Python reader.
 
-The conditions are checklists in `references/`, identified by a prefix and a number. A finding cites the identifier. Severity and route follow `ahrena-engineering-fundamentals:docs/review-findings.md`.
+The conditions are checklists in `references/`, identified by a prefix and a number. A finding cites the identifier. Severity and route follow `ahrena-engineering-quality:docs/review-findings.md`.
 
 ## 1. Take the route, and read the repository first
 
@@ -47,9 +47,9 @@ Read each condition's `Exempt` line and drop what it excludes. Python has an idi
 
 ## 5. Write the findings
 
-Each finding carries the four fields in `ahrena-engineering-fundamentals:docs/review-findings.md`, with the condition identifier where the rule and condition number go, and a correction that is an instruction: the line, what to replace, and with what.
+Each finding carries the four fields in `ahrena-engineering-quality:docs/review-findings.md`, with the condition identifier where the rule and condition number go, and a correction that is an instruction: the line, what to replace, and with what.
 
-Hand the set back to step 7 of `ahrena-engineering-fundamentals:skills/reviewing-diffs/SKILL.md`. Do not publish from here, and do not edit the change.
+Hand the set back to step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md`. Do not publish from here, and do not edit the change.
 
 ## When this skill does not apply
 
