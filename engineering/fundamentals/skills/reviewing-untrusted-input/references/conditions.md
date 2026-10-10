@@ -1,10 +1,6 @@
 # Untrusted input
 
-Opened by step 1 of `SKILL.md` when the `untrusted-input` route fires: an added line reaches a query, a command, a path, a URL, a template or a deserialiser.
-
-The party who gains is whoever controls a value that arrives from outside. Outside is wider than the request: a queue message, an uploaded file, a webhook, a third party's response and a stored field another user wrote are all outside. A value read from the system's own database is outside when somebody else put it there.
-
-Every condition here is decided on a pair from step 3: where the value enters and where it lands. A sink with no outside value reaching it is not a finding.
+The conditions `reviewing-untrusted-input` applies. Each gives the state, how it is detected, what exempts it, and the correction. Every one is decided on a pair: where the value enters and where it lands. The party who gains is whoever controls the value.
 
 ### INP-1 A query built from text
 

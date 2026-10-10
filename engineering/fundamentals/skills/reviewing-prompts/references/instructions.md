@@ -99,7 +99,7 @@ Each condition gives the state, how it is detected, what exempts it and the corr
 - **State:** a prompt built in code where interpolated material, such as a document, a record or a user's message, sits among the instructions with nothing marking where it starts and ends.
 - **Detect:** the reconstructed text from step 2. Ask whether the reader could tell the author's sentences from the inserted ones.
 - **Exempt:** a short interpolated value from a closed set.
-- **Correct:** put each kind of material in its own labelled block, and the instructions outside them. That outside text can also address the model is LLM-1 in `skills/reviewing-security/SKILL.md`.
+- **Correct:** put each kind of material in its own labelled block, and the instructions outside them. That outside text can also address the model is LLM-1 in `skills/reviewing-model-use/SKILL.md`.
 
 ### PRM-14 A format the instruction asks against
 

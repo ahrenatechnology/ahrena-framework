@@ -55,6 +55,6 @@ Hand the set back to step 7 of `ahrena-engineering-fundamentals:skills/reviewing
 
 **The experience of a React or browser UI.** Accessibility, component and state architecture, rendering performance and design-system use are a front-end discipline, not this skill, which reads the language. When the framework ships that discipline it owns them; until then this skill stays inside the type system, async and the module surface.
 
-**Security of the change.** XSS through `dangerouslySetInnerHTML`, a URL built from input, a secret in a bundle: that is `ahrena-engineering-fundamentals:skills/reviewing-security/SKILL.md`, whose checklists carry the TypeScript sinks.
+**Security of the change.** XSS through `dangerouslySetInnerHTML`, a URL built from input, a secret in a bundle: that is the security disciplines (`reviewing-untrusted-input`, `reviewing-secrets`, `reviewing-sensitive-data`, `reviewing-model-use`), whose conditions carry those sinks.
 
 **Another language.** A `.py`, `.go` or `.rs` file in the same change is read by that language's skill.
