@@ -1,0 +1,23 @@
+{
+  "name": "ahrena-engineering-security",
+  "displayName": "Ahrena Engineering Security",
+  "version": "0.1.0",
+  "description": "Application security as review disciplines: secrets and supply chain, untrusted input, access and sensitive data, and the use of language models and agents.",
+  "author": {
+    "name": "Ahrena Technology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/security",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "secrets",
+    "untrusted-input",
+    "access",
+    "cryptography",
+    "llm",
+    "code-review"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

@@ -2,10 +2,11 @@
 name: reviewing-model-use
 description: Use when a change under review builds a prompt, calls a language model, acts on a completion, defines a tool, changes retrieval or memory, or edits an agent, skill, command or instruction file, and the question is what the model can be made to do - follow an attacker's text, read another owner's data, cause an action unvalidated, run with more authority than the asker.
 type: skill
-clade: quality
+clade: security
 references:
-  - docs/review-findings.md
-  - docs/review-routes.md
+  - ahrena-engineering-quality:docs/review-findings.md
+  - ahrena-engineering-quality:docs/review-routes.md
+
 ---
 
 # Reviewing model use

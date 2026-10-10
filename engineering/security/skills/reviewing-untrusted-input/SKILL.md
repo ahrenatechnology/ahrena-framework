@@ -2,10 +2,11 @@
 name: reviewing-untrusted-input
 description: Use when a change under review adds a line where a value from outside - a request, a queue message, an upload, a webhook, a third party's response, a field another user wrote - reaches a query, a command, a filesystem path, a URL, a template, a deserialiser, a response or a log, and the question is what the party who controls that value can make happen.
 type: skill
-clade: quality
+clade: security
 references:
-  - docs/review-findings.md
-  - docs/review-routes.md
+  - ahrena-engineering-quality:docs/review-findings.md
+  - ahrena-engineering-quality:docs/review-routes.md
+
 ---
 
 # Reviewing untrusted input

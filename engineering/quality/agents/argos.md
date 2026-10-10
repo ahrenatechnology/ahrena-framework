@@ -7,12 +7,6 @@ clade: quality
 references:
   - skills/reviewing-diffs/SKILL.md
   - skills/detecting-contract-breaks/SKILL.md
-  - skills/reviewing-secrets/SKILL.md
-  - skills/reviewing-supply-chain/SKILL.md
-  - skills/reviewing-untrusted-input/SKILL.md
-  - skills/reviewing-access/SKILL.md
-  - skills/reviewing-sensitive-data/SKILL.md
-  - skills/reviewing-model-use/SKILL.md
   - skills/reviewing-prompts/SKILL.md
   - skills/publishing-review-verdicts/SKILL.md
   - skills/landing-approved-changes/SKILL.md

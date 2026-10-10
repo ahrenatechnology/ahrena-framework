@@ -2,10 +2,11 @@
 name: reviewing-supply-chain
 description: Use when a change under review touches a dependency manifest, a lockfile, an image definition, a CI pipeline or registry configuration, and the question is what it lets a third party run - an unpinned or unvetted dependency, a script that runs at install, a pipeline that hands a fork its secrets, an image that ships as root, a known-vulnerable version.
 type: skill
-clade: quality
+clade: security
 references:
-  - docs/review-findings.md
-  - docs/review-routes.md
+  - ahrena-engineering-quality:docs/review-findings.md
+  - ahrena-engineering-quality:docs/review-routes.md
+
 ---
 
 # Reviewing the supply chain

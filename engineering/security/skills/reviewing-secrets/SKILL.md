@@ -2,10 +2,11 @@
 name: reviewing-secrets
 description: Use on every change under review to sweep the lines it adds for a credential - an API key, a token, a password, a private key, a connection string - written as a literal, travelling into a log or a URL, baked into an artefact, or defaulted so the system starts without it. The baseline security discipline; it runs on every authored file.
 type: skill
-clade: quality
+clade: security
 references:
-  - docs/review-findings.md
-  - docs/review-routes.md
+  - ahrena-engineering-quality:docs/review-findings.md
+  - ahrena-engineering-quality:docs/review-routes.md
+
 ---
 
 # Reviewing secrets
