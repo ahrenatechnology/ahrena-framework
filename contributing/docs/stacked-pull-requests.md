@@ -40,6 +40,8 @@ Stack #103, on 2026-09-28, was #97 at the bottom, then #101, then #102. It was m
 
 From the stack, on github.com or with `gh stack merge <pr> --yes --squash`. Merging a layer from the stack lands it and every unmerged layer below it, in order, all or nothing. The layers above stay open, and GitHub retargets and rebases them.
 
+Or one layer at a time, each only once its own checks are green, which is how stack 110 of `barte-ai-services/barte-ai-platform-monkey` landed on 2026-09-29, thirteen layers with merge commits. `gh pr merge` refuses a stacked layer, saying it must be merged using the asynchronous merge REST API. That API answers the `PUT` with `pending` and an id in `details.uuid`, and the merge's real outcome is read from the status under that id: a merge the branch rules refuse comes back `failed` there, with the forge's reason. Its admin override is `bypass_rules=true`. `skills/stacking-pull-requests` ships the script that does this.
+
 Not with `gh pr merge` on a layer, and never into a parent's branch. A layer merged into its parent's branch never closes its issue: GitHub closes issues only on merges into the default branch, and the parent's squash is written from the parent's body alone.
 
 ## Where the forge has no native stacks
