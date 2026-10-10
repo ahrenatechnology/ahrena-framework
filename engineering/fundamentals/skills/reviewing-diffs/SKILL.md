@@ -1,6 +1,6 @@
 ---
 name: reviewing-diffs
-description: Use when a pull request or a working diff needs reviewing against this plugin's rules. Routes the changed paths to the conditions that reach them; every finding names file, line and rule.
+description: Use when a pull request or a working diff needs reviewing. Routes the change to the review skills and rules it calls for, reads the engineering rules against the changed lines; every finding names file, line and condition.
 type: skill
 clade: engineering
 subclade: quality
@@ -18,8 +18,12 @@ references:
   - rules/debt-markers.md
   - docs/patterns.md
   - docs/review-findings.md
+  - docs/review-routes.md
   - skills/detecting-contract-breaks/SKILL.md
+  - skills/reviewing-security/SKILL.md
+  - skills/reviewing-prompts/SKILL.md
   - skills/publishing-review-verdicts/SKILL.md
+  - ahrena-foundation:skills/reviewing-artifacts/SKILL.md
 ---
 
 # Reviewing diffs
@@ -38,20 +42,27 @@ For a layer of a stack the base is its parent's branch, not trunk, so the diff i
 
 **Whether execution is permitted.** It is permitted when the head is a branch in the same repository as the base. It is not permitted when the head is an external fork, because building the project runs the change author's code — the dependency manifest, the build script, an install hook and every transitive dependency they name — on this machine. When it is not permitted, record one `unchecked` finding naming each condition step 5 will not decide and this reason, and carry on. Every other step in this procedure only reads.
 
-## 2. Sort the changed paths into routes
+## 2. Route the change to the skills and files it calls for
 
-The thirteen rules do not all reach every change, and reading all of them against every diff spends attention on conditions that cannot fire. Each changed path selects a set; a path can be in several.
+```sh
+python3 engineering/fundamentals/hooks/route-review.py --changed <base>...<head>
+```
 
-| What the path is | Read against it |
-|---|---|
-| any source file, in any language | `rules/yagni.md`, `rules/solid.md`, `rules/kiss.md`, `rules/clean-code.md`, `rules/duplication.md`, `rules/value-semantics.md`, `rules/pattern-selection.md` |
-| a `.py` file | the same set, with the mechanical conditions decided by the detector in step 3 instead of by reading |
-| a module under a bounded context's `domain/` directory | add `rules/domain-model.md` and `rules/aggregates.md` |
-| a module under `adapters/`, `infrastructure/` or `persistence/`, or any handler, client or job entry point | add `rules/cross-cutting-concerns.md` |
-| a contract document, an event definition, a schema migration, or a module's exported surface | hand to `skills/detecting-contract-breaks/SKILL.md`, which needs the base version of the surface and not the diff |
-| a new interface, abstract base, port, registry, generic parameter or configuration switch, anywhere | condition 1 of `rules/yagni.md`, and `docs/patterns.md` through `rules/pattern-selection.md` |
+The router reads `references/routes.json` and prints each route that fires, the skill it selects, the files that skill opens for it, and the path or line that fired it. Which pattern drives which route is in that table and nowhere else; [`docs/review-routes.md`](../../docs/review-routes.md) says what the three drivers read.
 
-A path that matches nothing below the first row falls through to the language-agnostic set. That is the weaker route and the review says so rather than implying the file was covered.
+Load the skills the output names and no others. A skill that no route selected is not run, and the review says which were not selected, because not selected is different from clean.
+
+| Routes | Skill | What it is handed |
+|---|---|---|
+| `source`, `python`, `domain`, `edges`, `abstraction` | this one | the rules each route opens, read in steps 3 to 6 |
+| `contract` | `skills/detecting-contract-breaks/SKILL.md` | the surface, which it reads at the base version and not from the diff |
+| `secrets`, `supply-chain`, `untrusted-input`, `access`, `language-models`, `agent-authority` | `skills/reviewing-security/SKILL.md` | the checklists the routes open, and the lines that fired them |
+| `instruction-files`, `agent-definitions`, `prompts-in-code` | `skills/reviewing-prompts/SKILL.md` | the same |
+| `framework-artifacts` | `ahrena-foundation:skills/reviewing-artifacts/SKILL.md` | the changed artifacts |
+
+Three recurring failures at this step. A path printed as `unrouted` was reached by the secret sweep and nothing else; say so in the review and do not imply the file was covered. The router exits 2 when it cannot read the table or resolve the change, and that exit selected nothing, so fix the range and run it again before reading on. And a firing route is where to look, not a finding: the line that fired `untrusted-input` is usually fine.
+
+A reviewer may open a skill no route selected when the pull request's description calls for it, and records in the review that it did and why.
 
 ## 3. Run the shipped detector over the changed Python files
 
@@ -98,11 +109,13 @@ Apply the four tests in `docs/review-findings.md` in order: is the violated line
 
 Then write the finding with all four fields — file and line, rule and condition number, the state observed, and the change that resolves it. Drop anything you cannot give all four to. An impression with the reasoning missing is not a finding at a lower severity; it is a question, and it is written as one or not at all.
 
+Add the findings the other selected skills handed back. Two findings with one cause are one finding, kept under the skill whose condition names the cause and at the higher severity; two causes on one line stay two.
+
 Hand the set to `skills/publishing-review-verdicts/SKILL.md`. Do not publish from here, and do not commit, push or edit the change at any point in this procedure.
 
 ## When this skill does not apply
 
-**An artifact of this framework** — a rule, doc, skill, agent or command — is not source code and none of these thirteen rules is about it. The foundation plugin carries the procedure for reviewing those, and it asks different questions.
+**An artifact of this framework** — a rule, doc, skill, agent or command — is not source code and none of these thirteen rules is about it. Step 2 routes it to the foundation plugin's `reviewing-artifacts`, which asks different questions; steps 3 to 6 here do not run on it.
 
 **A Python distribution's import graph, namespace layout or module boundaries.** Those conditions live in the Python plugin and its own detector decides them.
 

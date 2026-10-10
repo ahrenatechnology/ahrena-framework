@@ -59,6 +59,9 @@ jobs:
       - name: Test the structure hook
         run: python3 engineering/fundamentals/hooks/test-check-structure.py
 
+      - name: Test the review router
+        run: python3 engineering/fundamentals/hooks/test-route-review.py
+
       - name: Test the boundaries hook
         run: python3 engineering/python/hooks/test-check-boundaries.py
 
