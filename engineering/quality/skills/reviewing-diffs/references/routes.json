@@ -132,19 +132,19 @@
     },
     {
       "id": "secrets",
-      "skill": "skills/reviewing-secrets/SKILL.md",
+      "skill": "ahrena-engineering-security:skills/reviewing-secrets/SKILL.md",
       "why": "every added line of every file type is swept for a credential",
       "opens": [
-        "skills/reviewing-secrets/references/conditions.md"
+        "ahrena-engineering-security:skills/reviewing-secrets/references/conditions.md"
       ],
       "baseline": true
     },
     {
       "id": "supply-chain",
-      "skill": "skills/reviewing-supply-chain/SKILL.md",
+      "skill": "ahrena-engineering-security:skills/reviewing-supply-chain/SKILL.md",
       "why": "a dependency manifest, an image definition, a pipeline or registry configuration",
       "opens": [
-        "skills/reviewing-supply-chain/references/conditions.md"
+        "ahrena-engineering-security:skills/reviewing-supply-chain/references/conditions.md"
       ],
       "paths": [
         "(^|/)(pyproject\\.toml|setup\\.(py|cfg)|Pipfile|package\\.json|go\\.mod|Cargo\\.toml|Gemfile|pom\\.xml|composer\\.json)$",
@@ -156,10 +156,10 @@
     },
     {
       "id": "untrusted-input",
-      "skill": "skills/reviewing-untrusted-input/SKILL.md",
+      "skill": "ahrena-engineering-security:skills/reviewing-untrusted-input/SKILL.md",
       "why": "an added line reaches a query, a command, a path, a URL, a template or a deserialiser",
       "opens": [
-        "skills/reviewing-untrusted-input/references/conditions.md"
+        "ahrena-engineering-security:skills/reviewing-untrusted-input/references/conditions.md"
       ],
       "paths": [
         "\\.(py|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php|sh|bash)$"
@@ -177,10 +177,10 @@
     },
     {
       "id": "access",
-      "skill": "skills/reviewing-access/SKILL.md",
+      "skill": "ahrena-engineering-security:skills/reviewing-access/SKILL.md",
       "why": "an added line authenticates, authorises, scopes by owner, receives a webhook or sets a cross-origin rule",
       "opens": [
-        "skills/reviewing-access/references/conditions.md"
+        "ahrena-engineering-security:skills/reviewing-access/references/conditions.md"
       ],
       "paths": [
         "\\.(py|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php)$"
@@ -191,10 +191,10 @@
     },
     {
       "id": "sensitive-data",
-      "skill": "skills/reviewing-sensitive-data/SKILL.md",
+      "skill": "ahrena-engineering-security:skills/reviewing-sensitive-data/SKILL.md",
       "why": "an added line logs, builds a response, stores a credential, or calls a hash, cipher, signing or random primitive",
       "opens": [
-        "skills/reviewing-sensitive-data/references/conditions.md"
+        "ahrena-engineering-security:skills/reviewing-sensitive-data/references/conditions.md"
       ],
       "paths": [
         "\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php)$"
@@ -208,10 +208,10 @@
     },
     {
       "id": "language-models",
-      "skill": "skills/reviewing-model-use/SKILL.md",
+      "skill": "ahrena-engineering-security:skills/reviewing-model-use/SKILL.md",
       "why": "an added line builds a prompt, calls a model, acts on a completion or defines a tool",
       "opens": [
-        "skills/reviewing-model-use/references/conditions.md"
+        "ahrena-engineering-security:skills/reviewing-model-use/references/conditions.md"
       ],
       "paths": [
         "\\.(py|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php)$"
@@ -225,10 +225,10 @@
     },
     {
       "id": "agent-authority",
-      "skill": "skills/reviewing-model-use/SKILL.md",
+      "skill": "ahrena-engineering-security:skills/reviewing-model-use/SKILL.md",
       "why": "an agent, skill, command or instruction file a model reads, which decides what the model may cause",
       "opens": [
-        "skills/reviewing-model-use/references/conditions.md"
+        "ahrena-engineering-security:skills/reviewing-model-use/references/conditions.md"
       ],
       "paths": [
         "(^|/)(CLAUDE|AGENTS|GEMINI)\\.md$",

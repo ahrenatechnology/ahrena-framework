@@ -7,7 +7,6 @@ references:
   - docs/review-findings.md
   - docs/review-routes.md
   - skills/reviewing-diffs/SKILL.md
-  - skills/reviewing-model-use/SKILL.md
 ---
 
 # Reviewing prompts

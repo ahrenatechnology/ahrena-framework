@@ -2,10 +2,11 @@
 name: reviewing-access
 description: Use when a change under review adds or edits an entry point, a token or session, a permission or role check, an ownership predicate, a webhook receiver or a cross-origin rule, and the question is who can now reach or act on what they should not - an anonymous caller, a user of another tenant, a user of the same tenant without the role.
 type: skill
-clade: quality
+clade: security
 references:
-  - docs/review-findings.md
-  - docs/review-routes.md
+  - ahrena-engineering-quality:docs/review-findings.md
+  - ahrena-engineering-quality:docs/review-routes.md
+
 ---
 
 # Reviewing access

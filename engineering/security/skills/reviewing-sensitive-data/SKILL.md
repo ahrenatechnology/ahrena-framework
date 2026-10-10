@@ -2,10 +2,11 @@
 name: reviewing-sensitive-data
 description: Use when a change under review logs, serialises into a response, stores or transmits data, or chooses a cryptographic primitive, and the question is who can read a datum they should not - a secret or personal field in a log or trace, a whole record returned by default, a password stored recoverably, a hand-rolled cipher, data sent to a new recipient.
 type: skill
-clade: quality
+clade: security
 references:
-  - docs/review-findings.md
-  - docs/review-routes.md
+  - ahrena-engineering-quality:docs/review-findings.md
+  - ahrena-engineering-quality:docs/review-routes.md
+
 ---
 
 # Reviewing sensitive data
