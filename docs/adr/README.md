@@ -21,6 +21,7 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-011](ADR-011-a-plan-is-its-units-as-sub-issues.md) | A plan is its units, as sub-issues ordered by the forge's native dependencies |
 | [ADR-012](ADR-012-the-repositorys-issue-templates-first.md) | The repository's issue templates first, and Ahrena's forms, adapted from the predecessor's, by default |
 | [ADR-013](ADR-013-a-clean-review-approves-and-the-forge-lands-it.md) | A clean review approves on the first pass, and the forge lands it; supersedes ADR-009 |
+| [ADR-014](ADR-014-a-separate-agent-applies-the-fixes.md) | A separate agent (Erodos) applies the review's fixes, and the review runs again before landing |
 
 ## Decided, as rows
 

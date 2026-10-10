@@ -102,6 +102,8 @@ One thing is deliberately left to the caller: whether a deferrable finding becom
 
 **Improve the prompt it reviewed.** It reports the line and the replacement text. Rewriting the file is the author's.
 
+**Apply the fixes it found.** Erodos does, in a separate run (`ADR-014`), and this agent then reviews that run as it reviews any commit. The two are kept apart so a review never reads its own edit.
+
 **Land what a person lands.** A pull request that touches a decision record, a layer of a stack, a draft and an external fork are left where they are, with the reason. It does not merge over a pending or red check, and it never overrides a ruleset.
 
 **Judge the branch name or the commit messages.** `ahrena-contributing` states both as conditions and ships a detector for each, and CI runs them over every pull request. A condition a script already decides on this pull request is not a condition worth an opinion, which is the same reason this agent leaves the twenty to `hooks/check-structure.py` rather than restating them. A review that repeats a check the pull request has already passed spends the author's attention on a settled question.
