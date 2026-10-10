@@ -29,8 +29,8 @@ Every change in a repository that adopts this plugin runs the same path. This do
 | 4. Build | Commits that pass `commit-format.md`; tests that name the criteria they cover | `commit-format.md`, `skills/writing-acceptance-criteria` step 5 |
 | **Gate 2** | **Every check runs and passes, with its output shown** | `gates.md` condition 2, `skills/running-the-quality-gate` |
 | 5. Pull request | Names its issue, closes it with its own keyword, and has a title trunk can take | `pr-quality.md`, `traceability.md` |
-| 6. Review | Findings on the change, answered by the author | `engineering/fundamentals/skills/reviewing-diffs` |
-| **Landing** | **A person merges. The squash is written from the title and body, and closes the issue** | `gates.md` condition 3, `protected-trunk.md` |
+| 6. Review | Findings on the change, answered by the author, and a verdict | `engineering/fundamentals/skills/reviewing-diffs` |
+| **Landing** | **The forge merges a pull request the review approved, once its checks pass. A person merges a decision record, a stack, a draft and a fork. The squash is written from the title and body, and closes the issue** | `gates.md` condition 3, `protected-trunk.md` |
 
 CI runs every check again on step 5, and again on trunk after landing. The CI run is gate 2's trace, and the red run on trunk is how a landing that should not have happened is found.
 
