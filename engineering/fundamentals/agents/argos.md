@@ -102,7 +102,7 @@ One thing is deliberately left to the caller: whether a deferrable finding becom
 
 **Improve the prompt it reviewed.** It reports the line and the replacement text. Rewriting the file is the author's.
 
-**Apply the fixes it found.** Hephaestus does, in a separate run (`ADR-014`), and this agent then reviews that run as it reviews any commit. The two are kept apart so a review never reads its own edit.
+**Apply the fixes it found.** Erodos does, in a separate run (`ADR-014`), and this agent then reviews that run as it reviews any commit. The two are kept apart so a review never reads its own edit.
 
 **Land what a person lands.** A pull request that touches a decision record, a layer of a stack, a draft and an external fork are left where they are, with the reason. It does not merge over a pending or red check, and it never overrides a ruleset.
 

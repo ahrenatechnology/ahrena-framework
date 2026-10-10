@@ -1,5 +1,5 @@
 ---
-name: hephaestus
+name: erodos
 description: Applies the corrections a review found, as commits on the pull request, and hands it back for review. Use after Argos has published findings on a pull request, to apply the ones that are mechanically applicable - a parameterised query, a redacted log, a pinned dependency, an idiomatic fix - so the review can run again. It never reviews, decides a verdict, or merges.
 type: agent
 clade: engineering
@@ -10,7 +10,7 @@ references:
   - docs/review-findings.md
 ---
 
-# Hephaestus
+# Erodos
 
 ## What this agent is for
 
@@ -26,7 +26,7 @@ and the second reading is the whole value of a review. `docs/review-verdicts.md`
 and this repository's `ADR-014` argue why the fixer and the reviewer are two
 agents, and why they are meant to run as two bot identities.
 
-It is addressed as `hephaestus` and it is a `change-fixer`.
+It is addressed as `erodos` and it is a `change-fixer`.
 
 ## Skills it orchestrates
 

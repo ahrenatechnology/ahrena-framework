@@ -36,7 +36,7 @@ and not a promise.
 A distinct agent applies the fixes a review found, and the review runs again
 before anything lands.
 
-**The fixer is its own agent.** `engineering/fundamentals/agents/hephaestus.md`,
+**The fixer is its own agent.** `engineering/fundamentals/agents/erodos.md`,
 role `change-fixer`, orchestrates `skills/applying-fixes`. It is not Argos, it
 does not review, and it does not merge.
 
@@ -49,13 +49,13 @@ reviewers, clean-code, and `reviewing-secrets` under the caveat below. A
 correction that can be made without a decision.
 
 **The cycle is review, fix, review, land.** Argos reviews and publishes its
-findings. Hephaestus applies the applicable ones as a commit and pushes. Argos
+findings. Erodos applies the applicable ones as a commit and pushes. Argos
 reviews the new commit as it reviews any — it is a second party reading a commit
 a different agent wrote. `skills/landing-approved-changes` merges only if that
 review is clean. The fixer runs a bounded number of times on one pull request;
 whatever is still blocking after the bound goes to a person.
 
-**Secrets are fixed in the code and rotated by a person.** Hephaestus applies
+**Secrets are fixed in the code and rotated by a person.** Erodos applies
 `reviewing-secrets`' code change — a literal becomes a read from the secret
 store — but a credential that reached a commit is live in history, and rotating
 it is an action outside the diff that the fixer does not perform. The finding's
@@ -70,7 +70,7 @@ finding did not state.
 
 A fixable finding reaches trunk without the author typing the fix, and the
 second reading that `ADR-013` protects is intact because a different agent did
-the fixing. The forge shows it: Hephaestus authored the fix commit, Argos
+the fixing. The forge shows it: Erodos authored the fix commit, Argos
 approved, and `landing-approved-changes` merged.
 
 The cycle can fail to converge. A fix that does not clear its finding, or that
