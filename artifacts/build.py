@@ -43,31 +43,29 @@ def svg(viewbox, body):
 
 
 # Argos: the reviewer's own pipeline, with the verdict and its hand-offs.
-ARGOS_FLOW = svg("0 0 720 512", "".join([
-    '<path class="ed" d="M300,54 V78"/>',
-    '<path class="ed" d="M300,136 V160"/>',
-    '<path class="ed" d="M300,218 V250"/>',
-    '<path class="ed" d="M300,296 V322"/>',
-    '<path class="ed" d="M300,372 V404"/>',
-    '<path class="ed" d="M255,273 L205,322"/>',           # verd -> pede mudanca (left)
-    '<path class="ed" d="M345,273 L470,300"/>',           # verd -> comentario (right)
-    '<path class="ed ed-d" d="M330,296 C420,330 430,360 470,378"/>',  # verd -> pessoa (dashed)
-    '<path class="ed" d="M25,430 H12 V107 H175"/>',    # erodos commit loops back to Argos
-    '<text class="el" transform="translate(16,250) rotate(-90)" text-anchor="middle">o commit do Erodos volta para revisar</text>',
-    '<text class="el" x="230" y="300" text-anchor="middle">bloqueante</text>',
-    '<text class="el" x="312" y="314" text-anchor="start">limpo</text>',
-    '<text class="el" x="408" y="282" text-anchor="middle">pergunta</text>',
-    node(235, 14, 130, 40, "Pull request"),
-    node(175, 78, 250, 58, "Argos revisa", "fixa base e head · roda o roteador"),
-    node(175, 160, 250, 58, "disciplinas produzem achados", "segurança · prompts · linguagem · contrato"),
-    node(195, 250, 210, 46, "consolida e decide o veredito", cls="nd b"),
-    node(25, 322, 180, 50, "pede mudança", "achado bloqueante"),
-    node(25, 404, 180, 52, "Erodos corrige", "outro agente, em separado", cls="nd d"),
-    node(460, 278, 200, 46, "comentário", "pergunta / unchecked"),
-    node(460, 360, 210, 58, "uma pessoa mescla", "registro · stack · draft · fork", cls="nd d"),
-    node(235, 322, 130, 46, "aprova", "nada trava"),
-    node(190, 404, 220, 50, "pede ao forge: squash-merge", "do commit revisado, checks verdes"),
-    node(240, 474, 120, 34, "trunk", cls="nd a", rx=17),
+ARGOS_FLOW = svg("0 0 720 440", "".join([
+    '<path class="ed" d="M360,66 V96"/>',
+    '<text class="el" x="360" y="173" text-anchor="middle">o roteador seleciona quais disciplinas rodam</text>',
+    '<path class="ed" d="M360,148 L74,184"/>',
+    '<path class="ed" d="M360,148 L214,184"/>',
+    '<path class="ed" d="M360,148 L354,184"/>',
+    '<path class="ed" d="M360,148 L494,184"/>',
+    '<path class="ed" d="M360,148 L634,184"/>',
+    '<path class="ed" d="M74,242 L350,292"/>',
+    '<path class="ed" d="M214,242 L355,292"/>',
+    '<path class="ed" d="M354,242 L360,292"/>',
+    '<path class="ed" d="M494,242 L365,292"/>',
+    '<path class="ed" d="M634,242 L370,292"/>',
+    '<path class="ed" d="M360,344 V372"/>',
+    node(220, 14, 280, 52, "argos — agente revisor", "orquestra as skills abaixo, na ordem", cls="nd b"),
+    node(230, 96, 260, 52, "reviewing-diffs", "fixa base e head · roda o roteador"),
+    node(8, 184, 132, 58, "contrato", "contract-breaks"),
+    node(148, 184, 132, 58, "segurança", "6 disciplinas"),
+    node(288, 184, 132, 58, "prompts", "reviewing-prompts"),
+    node(428, 184, 132, 58, "linguagem", "4 revisores"),
+    node(568, 184, 132, 58, "artefatos", "reviewing-artifacts"),
+    node(220, 292, 280, 52, "publishing-review-verdicts", "decide e publica o veredito"),
+    node(210, 372, 300, 52, "landing-approved-changes", "só após approve · pede o squash-merge"),
 ]))
 
 # Erodos: the fixer's own procedure, start to hand-back.
@@ -211,7 +209,7 @@ def build_page(name: str, spec: dict, template: str) -> int:
         table = json.loads((ROOT / Q / "skills/reviewing-diffs/references/routes.json").read_text(encoding="utf-8"))
         routes = table["routes"]
     data = {"title": spec["title"], "eyebrow": spec["eyebrow"], "lead": spec["lead"],
-            "commit": git("rev-parse", "--short", "HEAD"), "branch": git("rev-parse", "--abbrev-ref", "HEAD"),
+            "commit": git("rev-parse", "--short", "HEAD"),
             "layers": [{"name": n, "body": b, "when": w} for n, b, w in spec["layers"]],
             "routes": routes, "entries": entries, "orchestration": spec["orchestration"]}
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
