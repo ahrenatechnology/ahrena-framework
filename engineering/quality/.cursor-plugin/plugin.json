@@ -1,0 +1,23 @@
+{
+  "name": "ahrena-engineering-quality",
+  "displayName": "Ahrena Engineering Quality",
+  "version": "0.1.0",
+  "description": "The code-review system: the reviewer and the fixer, the per-discipline review skills, the path router, and the findings and verdict docs they share.",
+  "author": {
+    "name": "Ahrena Technology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/quality",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "code-review",
+    "review",
+    "security",
+    "findings",
+    "verdict",
+    "autofix",
+    "quality"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

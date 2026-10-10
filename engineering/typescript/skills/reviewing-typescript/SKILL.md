@@ -5,15 +5,15 @@ type: skill
 clade: engineering
 subclade: quality
 references:
-  - ahrena-engineering-fundamentals:docs/review-findings.md
-  - ahrena-engineering-fundamentals:docs/review-routes.md
+  - ahrena-engineering-quality:docs/review-findings.md
+  - ahrena-engineering-quality:docs/review-routes.md
 ---
 
 # Reviewing TypeScript
 
-The language-agnostic pass in `ahrena-engineering-fundamentals:skills/reviewing-diffs/SKILL.md` has read the change against the rules that hold in any language. This skill reads what needs a TypeScript reader: the places the type system was told to stop checking, the async mistakes, and the surface others compile against.
+The language-agnostic pass in `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md` has read the change against the rules that hold in any language. This skill reads what needs a TypeScript reader: the places the type system was told to stop checking, the async mistakes, and the surface others compile against.
 
-The conditions are checklists in `references/`, identified by a prefix and a number. A finding cites the identifier. Severity and route follow `ahrena-engineering-fundamentals:docs/review-findings.md`.
+The conditions are checklists in `references/`, identified by a prefix and a number. A finding cites the identifier. Severity and route follow `ahrena-engineering-quality:docs/review-findings.md`.
 
 ## 1. Take the route, and read the repository first
 
@@ -45,9 +45,9 @@ Read each condition's `Exempt` line. A cast at a true boundary and an `any` on g
 
 ## 5. Write the findings
 
-Each finding carries the four fields in `ahrena-engineering-fundamentals:docs/review-findings.md`, with the condition identifier and a correction that is an instruction.
+Each finding carries the four fields in `ahrena-engineering-quality:docs/review-findings.md`, with the condition identifier and a correction that is an instruction.
 
-Hand the set back to step 7 of `ahrena-engineering-fundamentals:skills/reviewing-diffs/SKILL.md`. Do not publish from here, and do not edit the change.
+Hand the set back to step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md`. Do not publish from here, and do not edit the change.
 
 ## When this skill does not apply
 

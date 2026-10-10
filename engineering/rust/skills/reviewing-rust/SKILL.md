@@ -5,15 +5,15 @@ type: skill
 clade: engineering
 subclade: quality
 references:
-  - ahrena-engineering-fundamentals:docs/review-findings.md
-  - ahrena-engineering-fundamentals:docs/review-routes.md
+  - ahrena-engineering-quality:docs/review-findings.md
+  - ahrena-engineering-quality:docs/review-routes.md
 ---
 
 # Reviewing Rust
 
-The language-agnostic pass in `ahrena-engineering-fundamentals:skills/reviewing-diffs/SKILL.md` has read the change against the rules that hold in any language. The Rust compiler and the borrow checker have already decided more than most languages' do. This skill reads what is left to a Rust reader: the panics a library should not take, the `unsafe` that has to earn its place, the ownership choices the compiler accepts but a reader questions, and the API surface.
+The language-agnostic pass in `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md` has read the change against the rules that hold in any language. The Rust compiler and the borrow checker have already decided more than most languages' do. This skill reads what is left to a Rust reader: the panics a library should not take, the `unsafe` that has to earn its place, the ownership choices the compiler accepts but a reader questions, and the API surface.
 
-The conditions are checklists in `references/`, identified by a prefix and a number. A finding cites the identifier. Severity and route follow `ahrena-engineering-fundamentals:docs/review-findings.md`.
+The conditions are checklists in `references/`, identified by a prefix and a number. A finding cites the identifier. Severity and route follow `ahrena-engineering-quality:docs/review-findings.md`.
 
 ## 1. Take the route, and read the repository first
 
@@ -41,9 +41,9 @@ Read each condition's `Exempt` line. An `unwrap` on an invariant the code guaran
 
 ## 5. Write the findings
 
-Each finding carries the four fields in `ahrena-engineering-fundamentals:docs/review-findings.md`, with the condition identifier and a correction that is an instruction.
+Each finding carries the four fields in `ahrena-engineering-quality:docs/review-findings.md`, with the condition identifier and a correction that is an instruction.
 
-Hand the set back to step 7 of `ahrena-engineering-fundamentals:skills/reviewing-diffs/SKILL.md`. Do not publish from here, and do not edit the change.
+Hand the set back to step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md`. Do not publish from here, and do not edit the change.
 
 ## When this skill does not apply
 

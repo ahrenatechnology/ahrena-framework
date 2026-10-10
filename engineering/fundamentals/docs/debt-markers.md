@@ -7,7 +7,6 @@ title: Why a deferral has to name a number
 summary: Why the reference must be an issue number rather than something trackable, what the detector is handed and why the change is an input rather than an inference, why the diff it reads is pinned and parsed as a hostile input, the tangential-finding protocol that replaces the marker, and the two trees the framework's two marker rules govern.
 references:
   - rules/debt-markers.md
-  - docs/review-findings.md
   - docs/simplicity.md
 ---
 
