@@ -1,0 +1,12 @@
+{
+  "pages": {
+    "argos-system-prompts": {
+      "file": "index.html",
+      "title": "Argos System Prompts",
+      "files": [],
+      "links": { "max": "https://claude.ai/artifact/Wyckdx83RzuradbCLhnPnE" },
+      "capabilities": {}
+    }
+  },
+  "publishOrder": ["argos-system-prompts"]
+}

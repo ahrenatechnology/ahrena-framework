@@ -1,0 +1,16 @@
+{
+  "pages": {
+    "erodos-system-prompts": {
+      "file": "index.html",
+      "title": "Erodos System Prompts",
+      "files": [],
+      "links": {
+        "max": "https://claude.ai/artifact/YWR9KjZhS48sHPHDSZuU7n"
+      },
+      "capabilities": {}
+    }
+  },
+  "publishOrder": [
+    "erodos-system-prompts"
+  ]
+}
