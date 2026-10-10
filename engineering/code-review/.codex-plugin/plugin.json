@@ -1,0 +1,21 @@
+{
+  "name": "ahrena-engineering-code-review",
+  "version": "0.1.0",
+  "description": "The code-review engine: the orchestrator that routes a change to the review lenses it calls for, merges their findings into one verdict, drives the fix-and-re-review loop, and hands an approval to the merge decision.",
+  "author": {
+    "name": "Ahrena Technology",
+    "url": "https://github.com/ahrenatechnology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/code-review",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "code-review",
+    "review",
+    "orchestrator",
+    "routing",
+    "verdict",
+    "findings"
+  ],
+  "agents": "./agents/"
+}
