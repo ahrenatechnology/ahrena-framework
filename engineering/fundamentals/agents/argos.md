@@ -36,13 +36,14 @@ It is addressed as `argos` and it is a `pull-request-reviewer`. The naming rule 
 | `detecting-contract-breaks` | when the `contract` route fires: a published contract, event definition, schema migration or exported surface changed, and it needs the base version of that surface, which the diff does not contain |
 | `reviewing-security` | on every authored change for the secret sweep, and for each checklist a route opens: dependencies, untrusted input, access and sensitive data, language models |
 | `reviewing-prompts` | when a route fires on an instruction file, an agent, skill or command definition, or a source line that writes instructions for a model |
+| `ahrena-engineering-<lang>:reviewing-<lang>` | when a language route fires: `python`, `typescript`, `go` or `rust`, each reading its own files for what is specific to the language |
 | `ahrena-foundation:reviewing-artifacts` | when the `framework-artifacts` route fires: the changed file is a rule, doc, skill, agent or command that declares a clade |
 | `publishing-review-verdicts` | always, after the review skills, exactly once, when the destination is a pull request |
 | `landing-approved-changes` | only after an approve verdict, and last; it leaves a decision record, a stack, a draft and an external fork to a person |
 
 The first decides what the others may do and which of them run. `hooks/route-review.py` reads the change against `skills/reviewing-diffs/references/routes.json` and prints the routes that fire, and the skills it names are the ones loaded. A skill no route selected is not run, and the review names it as not selected.
 
-The four review skills are independent of each other and read the same base and head. Publishing reads the severity levels they assigned, which do not exist before they have run. Landing reads the verdict that was published and the checks on the commit it names.
+The review skills are independent of each other and read the same base and head. Publishing reads the severity levels they assigned, which do not exist before they have run. Landing reads the verdict that was published and the checks on the commit it names.
 
 The contract one is the one that gets skipped, and skipping it is the expensive mistake. A breaking change looks like an ordinary edit in a diff — a field deleted from a schema is one removed line — and it is only visible as a break against the version consumers are already coded against.
 

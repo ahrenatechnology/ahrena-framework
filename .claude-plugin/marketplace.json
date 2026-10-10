@@ -20,7 +20,13 @@
       "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/foundation",
       "repository": "https://github.com/ahrenatechnology/ahrena-framework",
       "license": "MIT",
-      "keywords": ["authoring", "conventions", "naming", "templates", "scaffolding"]
+      "keywords": [
+        "authoring",
+        "conventions",
+        "naming",
+        "templates",
+        "scaffolding"
+      ]
     },
     {
       "name": "ahrena-engineering-fundamentals",
@@ -35,7 +41,14 @@
       "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/fundamentals",
       "repository": "https://github.com/ahrenatechnology/ahrena-framework",
       "license": "MIT",
-      "keywords": ["solid", "kiss", "yagni", "abstraction", "cohesion", "code-quality"]
+      "keywords": [
+        "solid",
+        "kiss",
+        "yagni",
+        "abstraction",
+        "cohesion",
+        "code-quality"
+      ]
     },
     {
       "name": "ahrena-engineering-python",
@@ -50,7 +63,80 @@
       "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/python",
       "repository": "https://github.com/ahrenatechnology/ahrena-framework",
       "license": "MIT",
-      "keywords": ["python", "imports", "circular-imports", "layering", "packaging", "namespace-packages"]
+      "keywords": [
+        "python",
+        "imports",
+        "circular-imports",
+        "layering",
+        "packaging",
+        "namespace-packages"
+      ]
+    },
+    {
+      "name": "ahrena-engineering-typescript",
+      "description": "What is specific to TypeScript and the Node and browser code written in it: the type holes a compiler in loose mode lets through, the async mistakes, and the module surface others import.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/typescript",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/typescript",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "typescript",
+        "ts",
+        "types",
+        "frontend",
+        "node",
+        "code-quality"
+      ]
+    },
+    {
+      "name": "ahrena-engineering-go",
+      "description": "What is specific to Go: errors that are ignored or wrapped wrong, goroutines and contexts that leak, and the interface and nil traps the compiler does not catch.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/go",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/go",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "go",
+        "golang",
+        "goroutine",
+        "concurrency",
+        "errors",
+        "code-quality"
+      ]
+    },
+    {
+      "name": "ahrena-engineering-rust",
+      "description": "What is specific to Rust: the panics a library should not take, the unsafe that has to justify itself, the ownership and concurrency choices, and the Result and error surface.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/rust",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/rust",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "rust",
+        "ownership",
+        "unsafe",
+        "result",
+        "panic",
+        "code-quality"
+      ]
     },
     {
       "name": "ahrena-contributing",
@@ -65,7 +151,22 @@
       "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/contributing",
       "repository": "https://github.com/ahrenatechnology/ahrena-framework",
       "license": "MIT",
-      "keywords": ["git", "branch-naming", "conventional-commits", "signed-commits", "pull-requests", "stacked-pull-requests", "acceptance-criteria", "traceability", "quality-gate", "planning", "user-stories", "issue-templates", "protected-branches", "contributing"]
+      "keywords": [
+        "git",
+        "branch-naming",
+        "conventional-commits",
+        "signed-commits",
+        "pull-requests",
+        "stacked-pull-requests",
+        "acceptance-criteria",
+        "traceability",
+        "quality-gate",
+        "planning",
+        "user-stories",
+        "issue-templates",
+        "protected-branches",
+        "contributing"
+      ]
     }
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "name": "ahrena-engineering-go",
+  "displayName": "Ahrena Engineering Go",
+  "version": "0.1.0",
+  "description": "What is specific to Go: errors that are ignored or wrapped wrong, goroutines and contexts that leak, and the interface and nil traps the compiler does not catch.",
+  "author": {
+    "name": "Ahrena Technology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/go",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "go",
+    "golang",
+    "goroutine",
+    "concurrency",
+    "errors"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

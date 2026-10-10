@@ -1,0 +1,19 @@
+{
+  "name": "ahrena-engineering-rust",
+  "version": "0.1.0",
+  "description": "What is specific to Rust: the panics a library should not take, the unsafe that has to justify itself, the ownership and concurrency choices, and the Result and error surface.",
+  "author": {
+    "name": "Ahrena Technology",
+    "url": "https://github.com/ahrenatechnology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/rust",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "rust",
+    "ownership",
+    "unsafe",
+    "result",
+    "panic"
+  ]
+}

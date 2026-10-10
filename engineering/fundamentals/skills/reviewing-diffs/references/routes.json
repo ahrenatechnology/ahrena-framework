@@ -24,11 +24,39 @@
       "paths": ["\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|kts|cs|rb|php|swift|scala|c|h|cc|cpp|hpp|sh|bash)$"]
     },
     {
-      "id": "python",
+      "id": "python-structure",
       "skill": "skills/reviewing-diffs/SKILL.md",
       "why": "the shipped detector decides the mechanical conditions over Python, so step 3 runs",
       "opens": ["hooks/check-structure.py"],
       "paths": ["\\.pyi?$"]
+    },
+    {
+      "id": "python",
+      "skill": "ahrena-engineering-python:skills/reviewing-python/SKILL.md",
+      "why": "a Python source file, read for what is specific to Python",
+      "opens": [],
+      "paths": ["\\.pyi?$"]
+    },
+    {
+      "id": "typescript",
+      "skill": "ahrena-engineering-typescript:skills/reviewing-typescript/SKILL.md",
+      "why": "a TypeScript or JavaScript source file, read for what is specific to it",
+      "opens": [],
+      "paths": ["\\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$"]
+    },
+    {
+      "id": "go",
+      "skill": "ahrena-engineering-go:skills/reviewing-go/SKILL.md",
+      "why": "a Go source file, read for what is specific to Go",
+      "opens": [],
+      "paths": ["\\.go$"]
+    },
+    {
+      "id": "rust",
+      "skill": "ahrena-engineering-rust:skills/reviewing-rust/SKILL.md",
+      "why": "a Rust source file, read for what is specific to Rust",
+      "opens": [],
+      "paths": ["\\.rs$"]
     },
     {
       "id": "domain",

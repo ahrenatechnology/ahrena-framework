@@ -1,0 +1,20 @@
+{
+  "name": "ahrena-engineering-typescript",
+  "version": "0.1.0",
+  "description": "What is specific to TypeScript and the Node and browser code written in it: the type holes a compiler in loose mode lets through, the async mistakes, and the module surface others import.",
+  "author": {
+    "name": "Ahrena Technology",
+    "url": "https://github.com/ahrenatechnology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/typescript",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "typescript",
+    "ts",
+    "tsx",
+    "types",
+    "frontend",
+    "node"
+  ]
+}
