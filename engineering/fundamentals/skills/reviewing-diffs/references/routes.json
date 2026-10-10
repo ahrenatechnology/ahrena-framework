@@ -1,0 +1,208 @@
+{
+  "ignore": [
+    "(^|/)(node_modules|vendor|dist|build|out|target|__pycache__|\\.venv|\\.terraform)/",
+    "(^|/)(package-lock\\.json|npm-shrinkwrap\\.json|yarn\\.lock|pnpm-lock\\.yaml|poetry\\.lock|uv\\.lock|Pipfile\\.lock|Cargo\\.lock|Gemfile\\.lock|composer\\.lock|go\\.sum)$",
+    "\\.min\\.(js|css)$",
+    "\\.(snap|map)$",
+    "(^|/)__snapshots__/"
+  ],
+  "routes": [
+    {
+      "id": "source",
+      "skill": "skills/reviewing-diffs/SKILL.md",
+      "why": "authored source in any language is read against the language-agnostic rules",
+      "opens": [
+        "rules/yagni.md",
+        "rules/solid.md",
+        "rules/kiss.md",
+        "rules/clean-code.md",
+        "rules/duplication.md",
+        "rules/value-semantics.md",
+        "rules/pattern-selection.md",
+        "rules/debt-markers.md"
+      ],
+      "paths": ["\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|kts|cs|rb|php|swift|scala|c|h|cc|cpp|hpp|sh|bash)$"]
+    },
+    {
+      "id": "python",
+      "skill": "skills/reviewing-diffs/SKILL.md",
+      "why": "the shipped detector decides the mechanical conditions over Python, so step 3 runs",
+      "opens": ["hooks/check-structure.py"],
+      "paths": ["\\.pyi?$"]
+    },
+    {
+      "id": "domain",
+      "skill": "skills/reviewing-diffs/SKILL.md",
+      "why": "a module under a bounded context's domain directory",
+      "opens": ["rules/domain-model.md", "rules/aggregates.md", "rules/domain-services.md"],
+      "paths": ["(^|/)domain/.+\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|kts|cs|rb|php|swift|scala)$"]
+    },
+    {
+      "id": "edges",
+      "skill": "skills/reviewing-diffs/SKILL.md",
+      "why": "an adapter, a persistence module or an entry point, where a cross-cutting concern is written",
+      "opens": ["rules/cross-cutting-concerns.md"],
+      "paths": [
+        "(^|/)(adapters|infrastructure|persistence)/.+\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|kts|cs|rb|php|swift|scala)$",
+        "(^|/)[^/]*(handler|client|job|worker|consumer|controller|route)s?\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|kts|cs|rb|php|swift|scala)$",
+        "(^|/)(handlers|clients|jobs|workers|consumers|controllers|routes)/.+\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|kts|cs|rb|php|swift|scala)$"
+      ]
+    },
+    {
+      "id": "abstraction",
+      "skill": "skills/reviewing-diffs/SKILL.md",
+      "why": "the change adds an interface, an abstract base, a port or a generic parameter",
+      "opens": ["rules/yagni.md", "rules/pattern-selection.md", "docs/patterns.md"],
+      "lines": [
+        "^\\s*class \\w+\\(.*\\b(ABC|Protocol)\\b",
+        "@(abc\\.)?abstractmethod",
+        "^\\s*(export\\s+)?(abstract\\s+class|interface)\\s+\\w+",
+        "\\b(Generic\\[|TypeVar\\()",
+        "^\\s*(pub\\s+)?trait\\s+\\w+"
+      ]
+    },
+    {
+      "id": "contract",
+      "skill": "skills/detecting-contract-breaks/SKILL.md",
+      "why": "a published contract, an event definition, a schema migration or an exported surface",
+      "opens": ["rules/contract-first.md"],
+      "paths": [
+        "(^|/)[^/]*(openapi|swagger|asyncapi)[^/]*\\.(ya?ml|json)$",
+        "\\.(proto|avsc|graphql|gql|xsd|wsdl)$",
+        "(^|/)(migrations|alembic)/.+",
+        "(^|/)(schemas?|contracts?|events?)/.+\\.(json|ya?ml)$",
+        "(^|/)(__init__\\.py|index\\.(ts|js|mjs)|mod\\.rs)$"
+      ]
+    },
+    {
+      "id": "secrets",
+      "skill": "skills/reviewing-security/SKILL.md",
+      "why": "every added line of every file type is swept for a credential",
+      "opens": ["skills/reviewing-security/references/secrets-and-supply-chain.md"],
+      "baseline": true
+    },
+    {
+      "id": "supply-chain",
+      "skill": "skills/reviewing-security/SKILL.md",
+      "why": "a dependency manifest, an image definition, a pipeline or registry configuration",
+      "opens": ["skills/reviewing-security/references/secrets-and-supply-chain.md"],
+      "paths": [
+        "(^|/)(pyproject\\.toml|setup\\.(py|cfg)|Pipfile|package\\.json|go\\.mod|Cargo\\.toml|Gemfile|pom\\.xml|composer\\.json)$",
+        "(^|/)requirements[^/]*\\.(txt|in)$",
+        "(^|/)build\\.gradle(\\.kts)?$",
+        "(^|/)(Dockerfile[^/]*|[^/]*\\.dockerfile|\\.npmrc|\\.pypirc|pip\\.conf)$",
+        "(^|/)\\.github/(workflows|actions)/.+\\.ya?ml$"
+      ]
+    },
+    {
+      "id": "untrusted-input",
+      "skill": "skills/reviewing-security/SKILL.md",
+      "why": "an added line reaches a query, a command, a path, a URL, a template or a deserialiser",
+      "opens": ["skills/reviewing-security/references/untrusted-input.md"],
+      "paths": ["\\.(py|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php|sh|bash)$"],
+      "lines": [
+        "\\b(execute|executemany|raw|query|exec_driver_sql)\\(",
+        "\\b(SELECT|INSERT INTO|UPDATE|DELETE FROM)\\b.*(\\{|%s|\\+|\\$\\{)",
+        "\\b(subprocess\\.|os\\.system|os\\.popen|child_process|exec\\.Command|Runtime\\.getRuntime)",
+        "\\b(eval|exec|Function)\\(",
+        "\\b(pickle\\.loads?|yaml\\.load|marshal\\.loads?|ObjectInputStream|unserialize)\\(",
+        "(innerHTML|dangerouslySetInnerHTML|render_template_string|\\|\\s*safe\\b|v-html)",
+        "\\b(requests|httpx|urllib\\.request|axios|http\\.Get)\\b.*\\(|\\bfetch\\(|\\burlopen\\(",
+        "\\b(open|send_file|sendFile|readFile|os\\.path\\.join|path\\.join)\\("
+      ]
+    },
+    {
+      "id": "access",
+      "skill": "skills/reviewing-security/SKILL.md",
+      "why": "an added line authenticates, authorises, scopes by owner, or handles sensitive data",
+      "opens": ["skills/reviewing-security/references/access-and-sensitive-data.md"],
+      "paths": ["\\.(py|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php)$"],
+      "lines": [
+        "(?i)\\b(auth[a-z]*|permission|role|scope|tenant|owner_id|session|cookie|jwt|bearer|csrf|cors|webhook|signature)\\w*",
+        "(?i)\\b(password|passwd|secret|token|api[_-]?key|private[_-]?key|credential)\\w*",
+        "(?i)\\b(md5|sha1|hashlib|hmac|encrypt|decrypt|cipher|random\\.|Math\\.random|verify\\s*=\\s*False)",
+        "(?i)\\b(log(ger|ging)?|console)\\.(debug|info|warn|warning|error|exception|log)\\("
+      ]
+    },
+    {
+      "id": "language-models",
+      "skill": "skills/reviewing-security/SKILL.md",
+      "why": "an added line builds a prompt, calls a model, acts on a completion or defines a tool",
+      "opens": ["skills/reviewing-security/references/language-models.md"],
+      "paths": ["\\.(py|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php)$"],
+      "lines": [
+        "(?i)\\b(anthropic|openai|bedrock|vertexai|genai|litellm|langchain|langgraph|llama_index|ollama|mistralai|cohere)\\b",
+        "(?i)(system_prompt|\\.messages\\.create|chat\\.completions|tool_use|tool_choice|function_call|embeddings?\\b)",
+        "(?i)\\b(prompt|completion)\\w*\\s*(=|:)",
+        "\"role\"\\s*:\\s*\"(system|assistant|tool)\""
+      ]
+    },
+    {
+      "id": "agent-authority",
+      "skill": "skills/reviewing-security/SKILL.md",
+      "why": "an agent, skill, command or instruction file a model reads, which decides what the model may cause",
+      "opens": ["skills/reviewing-security/references/language-models.md"],
+      "paths": [
+        "(^|/)(CLAUDE|AGENTS|GEMINI)\\.md$",
+        "(^|/)\\.(claude|cursor|codex|agents)/.+",
+        "(^|/)\\.mcp\\.json$",
+        "(^|/)agents/[^/]+\\.md$",
+        "(^|/)skills/[^/]+/SKILL\\.md$",
+        "(^|/)commands/[^/]+\\.md$"
+      ]
+    },
+    {
+      "id": "instruction-files",
+      "skill": "skills/reviewing-prompts/SKILL.md",
+      "why": "a file whose text a model reads as instructions",
+      "opens": ["skills/reviewing-prompts/references/instructions.md"],
+      "paths": [
+        "(^|/)(CLAUDE|AGENTS|GEMINI)\\.md$",
+        "(^|/)\\.github/copilot-instructions\\.md$",
+        "(^|/)\\.cursor/rules/.+",
+        "(^|/)skills/[^/]+/references/.+\\.md$",
+        "(^|/)prompts?/.+\\.(md|txt|ya?ml|json|j2|jinja2?|mustache|hbs)$",
+        "\\.(prompt|prompty)(\\.[a-z0-9]+)?$",
+        "(^|/)[^/]*(system[_-]?prompt|instructions)[^/]*\\.(md|txt|ya?ml|json|j2|jinja2?)$"
+      ]
+    },
+    {
+      "id": "agent-definitions",
+      "skill": "skills/reviewing-prompts/SKILL.md",
+      "why": "an agent, skill or command definition, which a platform loads by its description",
+      "opens": [
+        "skills/reviewing-prompts/references/instructions.md",
+        "skills/reviewing-prompts/references/agent-definitions.md"
+      ],
+      "paths": [
+        "(^|/)agents/[^/]+\\.md$",
+        "(^|/)skills/[^/]+/SKILL\\.md$",
+        "(^|/)commands/[^/]+\\.md$"
+      ]
+    },
+    {
+      "id": "prompts-in-code",
+      "skill": "skills/reviewing-prompts/SKILL.md",
+      "why": "an added line writes instructions for a model inside source code",
+      "opens": ["skills/reviewing-prompts/references/instructions.md"],
+      "paths": ["\\.(py|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php)$"],
+      "lines": [
+        "(?i)\\b(system[_-]?prompt|system[_-]?message|instructions)\\w*\\s*(=|:)",
+        "\"role\"\\s*:\\s*\"system\"",
+        "\\bYou are (a|an|the)\\b",
+        "(?i)\\bsystem\\s*=\\s*f?[\"']"
+      ]
+    },
+    {
+      "id": "framework-artifacts",
+      "skill": "ahrena-foundation:skills/reviewing-artifacts/SKILL.md",
+      "why": "a rule, doc, skill, agent or command of this framework, which declares a clade",
+      "opens": [],
+      "paths": [
+        "(^|/)(rules|docs|agents|commands)/[^/]+\\.md$",
+        "(^|/)skills/[^/]+/SKILL\\.md$"
+      ],
+      "contains": ["(?m)^clade:\\s*\\S"]
+    }
+  ]
+}
