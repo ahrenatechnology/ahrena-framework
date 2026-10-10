@@ -54,8 +54,9 @@ Load the skills the output names and no others. A skill that no route selected i
 
 | Routes | Skill | What it is handed |
 |---|---|---|
-| `source`, `python`, `domain`, `edges`, `abstraction` | this one | the rules each route opens, read in steps 3 to 6 |
+| `source`, `python-structure`, `domain`, `edges`, `abstraction` | this one | the rules each route opens, read in steps 3 to 6 |
 | `contract` | `skills/detecting-contract-breaks/SKILL.md` | the surface, which it reads at the base version and not from the diff |
+| `python`, `typescript`, `go`, `rust` | `ahrena-engineering-<lang>:skills/reviewing-<lang>/SKILL.md` | the changed files in that language, read for what is specific to it |
 | `secrets`, `supply-chain`, `untrusted-input`, `access`, `language-models`, `agent-authority` | `skills/reviewing-security/SKILL.md` | the checklists the routes open, and the lines that fired them |
 | `instruction-files`, `agent-definitions`, `prompts-in-code` | `skills/reviewing-prompts/SKILL.md` | the same |
 | `framework-artifacts` | `ahrena-foundation:skills/reviewing-artifacts/SKILL.md` | the changed artifacts |
