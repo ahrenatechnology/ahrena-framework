@@ -51,6 +51,6 @@ Hand the set back to step 7 of `ahrena-engineering-fundamentals:skills/reviewing
 
 **A language-agnostic defect.** Function length, nesting, duplication, a premature interface with one implementation (that last is `rules/yagni.md` in the fundamentals, which Go makes easy to violate): those are `reviewing-diffs`.
 
-**Security of the change.** Untrusted input reaching `exec.Command`, SQL built by hand, a path from a request: that is `ahrena-engineering-fundamentals:skills/reviewing-security/SKILL.md`.
+**Security of the change.** Untrusted input reaching `exec.Command`, SQL built by hand, a path from a request: that is the security disciplines (`reviewing-untrusted-input`, `reviewing-secrets`, `reviewing-sensitive-data`, `reviewing-model-use`).
 
 **Another language.** A `.py`, `.ts` or `.rs` file in the same change is read by that language's skill.

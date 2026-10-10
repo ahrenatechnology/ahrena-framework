@@ -20,7 +20,12 @@ references:
   - docs/review-findings.md
   - docs/review-routes.md
   - skills/detecting-contract-breaks/SKILL.md
-  - skills/reviewing-security/SKILL.md
+  - skills/reviewing-secrets/SKILL.md
+  - skills/reviewing-supply-chain/SKILL.md
+  - skills/reviewing-untrusted-input/SKILL.md
+  - skills/reviewing-access/SKILL.md
+  - skills/reviewing-sensitive-data/SKILL.md
+  - skills/reviewing-model-use/SKILL.md
   - skills/reviewing-prompts/SKILL.md
   - skills/publishing-review-verdicts/SKILL.md
   - ahrena-foundation:skills/reviewing-artifacts/SKILL.md
@@ -57,7 +62,7 @@ Load the skills the output names and no others. A skill that no route selected i
 | `source`, `python-structure`, `domain`, `edges`, `abstraction` | this one | the rules each route opens, read in steps 3 to 6 |
 | `contract` | `skills/detecting-contract-breaks/SKILL.md` | the surface, which it reads at the base version and not from the diff |
 | `python`, `typescript`, `go`, `rust` | `ahrena-engineering-<lang>:skills/reviewing-<lang>/SKILL.md` | the changed files in that language, read for what is specific to it |
-| `secrets`, `supply-chain`, `untrusted-input`, `access`, `language-models`, `agent-authority` | `skills/reviewing-security/SKILL.md` | the checklists the routes open, and the lines that fired them |
+| `secrets`, `supply-chain`, `untrusted-input`, `access`, `sensitive-data`, `language-models`, `agent-authority` | the security discipline the route names (`reviewing-secrets`, `reviewing-supply-chain`, `reviewing-untrusted-input`, `reviewing-access`, `reviewing-sensitive-data`, `reviewing-model-use`) | that discipline's conditions, and the lines that fired them |
 | `instruction-files`, `agent-definitions`, `prompts-in-code` | `skills/reviewing-prompts/SKILL.md` | the same |
 | `framework-artifacts` | `ahrena-foundation:skills/reviewing-artifacts/SKILL.md` | the changed artifacts |
 

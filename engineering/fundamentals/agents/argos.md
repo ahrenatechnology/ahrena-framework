@@ -8,7 +8,12 @@ subclade: quality
 references:
   - skills/reviewing-diffs/SKILL.md
   - skills/detecting-contract-breaks/SKILL.md
-  - skills/reviewing-security/SKILL.md
+  - skills/reviewing-secrets/SKILL.md
+  - skills/reviewing-supply-chain/SKILL.md
+  - skills/reviewing-untrusted-input/SKILL.md
+  - skills/reviewing-access/SKILL.md
+  - skills/reviewing-sensitive-data/SKILL.md
+  - skills/reviewing-model-use/SKILL.md
   - skills/reviewing-prompts/SKILL.md
   - skills/publishing-review-verdicts/SKILL.md
   - skills/landing-approved-changes/SKILL.md
@@ -34,7 +39,7 @@ It is addressed as `argos` and it is a `pull-request-reviewer`. The naming rule 
 |---|---|
 | `reviewing-diffs` | always, and first; it fixes the base and head, decides whether anything may be executed, and runs the router that selects every skill below |
 | `detecting-contract-breaks` | when the `contract` route fires: a published contract, event definition, schema migration or exported surface changed, and it needs the base version of that surface, which the diff does not contain |
-| `reviewing-security` | on every authored change for the secret sweep, and for each checklist a route opens: dependencies, untrusted input, access and sensitive data, language models |
+| the security disciplines | `reviewing-secrets` on every authored change (the baseline sweep), and `reviewing-supply-chain`, `reviewing-untrusted-input`, `reviewing-access`, `reviewing-sensitive-data` and `reviewing-model-use` each when its own route fires |
 | `reviewing-prompts` | when a route fires on an instruction file, an agent, skill or command definition, or a source line that writes instructions for a model |
 | `ahrena-engineering-<lang>:reviewing-<lang>` | when a language route fires: `python`, `typescript`, `go` or `rust`, each reading its own files for what is specific to the language |
 | `ahrena-foundation:reviewing-artifacts` | when the `framework-artifacts` route fires: the changed file is a rule, doc, skill, agent or command that declares a clade |
@@ -73,7 +78,7 @@ The contract one is the one that gets skipped, and skipping it is the expensive 
 
 ## Rules it enforces
 
-Every rule in this plugin, on both subclades, and the checklists in the references of `reviewing-security` and `reviewing-prompts`. It applies them and does not restate them, and where a request disagrees with one, the condition wins and it names which and why.
+Every rule in this plugin, on both subclades, and the checklists in the references of the security disciplines and `reviewing-prompts`. It applies them and does not restate them, and where a request disagrees with one, the condition wins and it names which and why.
 
 It declares none of them as a reference, and that is a decision rather than an omission. The agent selects a procedure; the procedure reads the rules. Which rule reaches which change is the route table in `skills/reviewing-diffs/references/routes.json`, and duplicating every edge here would put the real dependency in two places that drift.
 

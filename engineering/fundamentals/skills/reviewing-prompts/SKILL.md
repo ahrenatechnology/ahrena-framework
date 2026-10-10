@@ -8,7 +8,7 @@ references:
   - docs/review-findings.md
   - docs/review-routes.md
   - skills/reviewing-diffs/SKILL.md
-  - skills/reviewing-security/SKILL.md
+  - skills/reviewing-model-use/SKILL.md
 ---
 
 # Reviewing prompts
@@ -27,7 +27,7 @@ The conditions are checklists in `references/`, identified by a prefix and a num
 | `prompts-in-code` | an added source line that writes instructions for a model | `references/instructions.md` |
 | `agent-definitions` | an agent, skill or command definition | `references/instructions.md` and `references/agent-definitions.md` |
 
-The same file usually fires `agent-authority` in `skills/reviewing-security/SKILL.md` too. That skill decides what the model may cause. This one decides whether the model will understand what it is asked.
+The same file usually fires `agent-authority` in `skills/reviewing-model-use/SKILL.md` too. That skill decides what the model may cause. This one decides whether the model will understand what it is asked.
 
 ## 2. Establish who reads the prompt, and when
 
@@ -77,7 +77,7 @@ Hand the set back to step 7 of `skills/reviewing-diffs/SKILL.md`. Do not publish
 
 **An artifact of this framework.** A rule, doc, skill, agent or command that declares a clade is routed to `ahrena-foundation:skills/reviewing-artifacts/SKILL.md`, which asks whether it is the right type and whether its conditions can be decided. An agent or skill of the framework fires both routes, and both run: that one reads the artifact's shape, this one reads the text a model will follow.
 
-**What the model is allowed to cause.** Tool grants, permissions and injected instructions are `skills/reviewing-security/SKILL.md`, conditions LLM-1 to LLM-11.
+**What the model is allowed to cause.** Tool grants, permissions and injected instructions are `skills/reviewing-model-use/SKILL.md`, conditions LLM-1 to LLM-11.
 
 **Writing or improving a prompt.** This reads one that exists and reports. Rewriting it is the author's work, from the findings.
 

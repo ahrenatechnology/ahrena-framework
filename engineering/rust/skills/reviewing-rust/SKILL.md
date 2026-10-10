@@ -51,6 +51,6 @@ Hand the set back to step 7 of `ahrena-engineering-fundamentals:skills/reviewing
 
 **What the compiler already rejects.** A use-after-move, an aliased mutable borrow, a missing lifetime: the borrow checker decides these and the change would not compile. This skill reads what compiles and is still wrong.
 
-**Security of the change.** Untrusted input reaching a command or a query, a secret, deserialisation of hostile data: that is `ahrena-engineering-fundamentals:skills/reviewing-security/SKILL.md`.
+**Security of the change.** Untrusted input reaching a command or a query, a secret, deserialisation of hostile data: that is the security disciplines (`reviewing-untrusted-input`, `reviewing-secrets`, `reviewing-sensitive-data`, `reviewing-model-use`).
 
 **Another language.** A `.py`, `.ts` or `.go` file in the same change is read by that language's skill.

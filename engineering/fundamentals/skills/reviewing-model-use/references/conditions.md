@@ -1,13 +1,6 @@
 # Language models and agents
 
-Opened by step 1 of `SKILL.md` when the `language-models` route fires on a line that builds a prompt, calls a model, acts on a completion or defines a tool, and when the `agent-authority` route fires on an agent, skill, command or instruction file.
-
-Two parties gain here and nowhere else in this skill.
-
-- **Whoever writes text the model will read.** Not only the person in the conversation. The author of a web page, a document, an email, a ticket, a code comment, a tool's result or a stored field can address the model without any access to the system.
-- **The requesting user, through the model.** A user who may not do something asks an agent that may.
-
-**The assumption that orders this file:** at some point the model follows the attacker's text. No delimiter and no instruction prevents that reliably. So the conditions that bound the damage are the ones about what a model's output may cause (LLM-4 to LLM-8). The ones about what goes in (LLM-1 to LLM-3) lower the frequency. A change that corrects only the prompt has not resolved a finding from the first group.
+The conditions `reviewing-model-use` applies. Each gives the state, how it is detected, what exempts it, and the correction. The conditions that bound the damage (LLM-4 to LLM-8) carry the weight; LLM-1 to LLM-3 lower the frequency.
 
 ## What goes in
 
@@ -37,7 +30,7 @@ Two parties gain here and nowhere else in this skill.
 ### LLM-4 Model output that becomes an action unvalidated
 
 - **State:** text from a model used as a query, a shell command, code to evaluate, a file path, a URL to fetch, or the name and arguments of a function, with nothing between the model and the effect.
-- **Detect:** follow the completion from where it is received to every use. Treat it as a request body from an anonymous caller and apply the conditions in `untrusted-input.md`.
+- **Detect:** follow the completion from where it is received to every use. Treat it as a request body from an anonymous caller and apply the `reviewing-untrusted-input` conditions.
 - **Exempt:** output that is only displayed, as text, through an escaping renderer.
 - **Correct:** parse the output into a declared schema and reject what does not fit; choose actions from a closed set; bind values as parameters.
 
@@ -53,7 +46,7 @@ Two parties gain here and nowhere else in this skill.
 - **State:** a tool that runs with the service's own credentials and applies no check of the requesting user's permission; a tool that takes an owner or user identifier as an argument the model fills in.
 - **Detect:** each tool definition and its handler. Ask where the handler learns who is asking.
 - **Exempt:** a tool that reads data public to every user.
-- **Correct:** pass the authenticated identity to the handler from the server, outside the model's arguments, and check permission in the handler as any endpoint would (ACC-4, ACC-5).
+- **Correct:** pass the authenticated identity to the handler from the server, outside the model's arguments, and check permission in the handler as any endpoint would (`reviewing-access` ACC-4, ACC-5).
 
 ### LLM-7 An irreversible action with nobody in between
 

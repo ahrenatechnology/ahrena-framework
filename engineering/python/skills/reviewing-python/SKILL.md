@@ -57,6 +57,6 @@ Hand the set back to step 7 of `ahrena-engineering-fundamentals:skills/reviewing
 
 **The import graph of a distribution.** Whether a package's layers depend only downward and the graph is acyclic is `rules/module-boundaries.md` and its own hook, not a reading.
 
-**Security of a Python change.** Untrusted input reaching a query or a command, a secret, a call to a model: that is `ahrena-engineering-fundamentals:skills/reviewing-security/SKILL.md`, whose checklists carry the Python sinks.
+**Security of a Python change.** Untrusted input reaching a query or a command, a secret, a call to a model: that is the security disciplines (`reviewing-untrusted-input`, `reviewing-secrets`, `reviewing-sensitive-data`, `reviewing-model-use`), whose conditions carry those sinks.
 
 **Another language.** A `.ts`, `.go` or `.rs` file in the same change is read by that language's skill.

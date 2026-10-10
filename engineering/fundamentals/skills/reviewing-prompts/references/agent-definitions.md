@@ -71,7 +71,7 @@ A definition has two readers. The first is whatever decides whether to load it, 
 - **State:** the definition declares tools the body never uses, or the body tells the model to do something no declared tool can do.
 - **Detect:** list the actions the body asks for and the tools the frontmatter grants, and compare.
 - **Exempt:** a platform where an omitted tool list means the caller's tools, when the body relies on that and says so.
-- **Correct:** make the two lists agree. Whether a granted tool is too powerful is LLM-8 in `skills/reviewing-security/SKILL.md`.
+- **Correct:** make the two lists agree. Whether a granted tool is too powerful is LLM-8 in `skills/reviewing-model-use/SKILL.md`.
 
 ### DEF-10 A model or effort setting with no reason
 

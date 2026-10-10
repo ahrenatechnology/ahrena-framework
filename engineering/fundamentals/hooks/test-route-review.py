@@ -211,7 +211,7 @@ CASES = [
         {"svc/agent.py": 'SYSTEM_PROMPT = "You are a billing assistant"\nclient = anthropic.Anthropic()\n'},
         None,
         0,
-        ["route  language-models  ->  skills/reviewing-security/SKILL.md", "route  prompts-in-code", "route  source"],
+        ["route  language-models  ->  skills/reviewing-model-use/SKILL.md", "route  prompts-in-code", "route  source"],
         ["route  framework-artifacts", "route  contract"],
     ),
     (
