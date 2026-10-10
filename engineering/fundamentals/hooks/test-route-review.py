@@ -7,8 +7,8 @@ cases use a small table written for the case, so each pins one behaviour. The
 last ones read the table the plugin ships, because a route that names a file
 nobody wrote selects a skill that cannot be loaded.
 
-The cases name the acceptance criteria of #128 they decide: AC-1, AC-2, AC-3,
-AC-4, AC-5 and AC-6.
+The cases name the acceptance criterion of #128 each decides, as `#128/AC-1`
+through `#128/AC-6`.
 
 Usage:
     python3 engineering/fundamentals/hooks/test-route-review.py
@@ -80,7 +80,7 @@ def run(repo: Path, table: dict | None, *extra: str) -> tuple[int, str]:
 CASES = [
     # (name, base files, head files, table, exit code, must appear, must not appear)
     (
-        "AC-1 a route that fires is printed with its skill, what it opens and where it fired",
+        "#128/AC-1 a route that fires is printed with its skill, what it opens and where it fired",
         {},
         {"app/service.py": "x = 1\n"},
         TABLE,
@@ -89,7 +89,7 @@ CASES = [
         ["route  model", "route  framed"],
     ),
     (
-        "AC-1 the skills line lists each selected skill once",
+        "#128/AC-1 the skills line lists each selected skill once",
         {},
         {"a.py": "x = 1\n", "b.py": "y = 2\n"},
         TABLE,
@@ -98,7 +98,7 @@ CASES = [
         ["skills/prompting"],
     ),
     (
-        "AC-2 a line route fires on a line the change adds, with its number",
+        "#128/AC-2 a line route fires on a line the change adds, with its number",
         {"agent.py": "import os\n"},
         {"agent.py": "import os\nanswer = call_model(text)\n"},
         TABLE,
@@ -107,7 +107,7 @@ CASES = [
         [],
     ),
     (
-        "AC-2 a line route does not fire on a line that was already in the file",
+        "#128/AC-2 a line route does not fire on a line that was already in the file",
         {"agent.py": "answer = call_model(text)\n"},
         {"agent.py": "answer = call_model(text)\nprint(answer)\n"},
         TABLE,
@@ -116,7 +116,7 @@ CASES = [
         ["route  model"],
     ),
     (
-        "AC-1 a contains route reads the whole file, not only the added lines",
+        "#128/AC-1 a contains route reads the whole file, not only the added lines",
         {"rules/naming.md": "---\nclade: foundation\n---\nbody\n"},
         {"rules/naming.md": "---\nclade: foundation\n---\nbody\nmore\n"},
         TABLE,
@@ -125,7 +125,7 @@ CASES = [
         [],
     ),
     (
-        "AC-1 a contains route stays quiet on a file that lacks the text",
+        "#128/AC-1 a contains route stays quiet on a file that lacks the text",
         {},
         {"notes/naming.md": "body\n"},
         TABLE,
@@ -134,7 +134,7 @@ CASES = [
         ["route  framed"],
     ),
     (
-        "AC-3 a path only the baseline reaches is printed as unrouted",
+        "#128/AC-3 a path only the baseline reaches is printed as unrouted",
         {},
         {"Makefile": "all:\n"},
         TABLE,
@@ -143,7 +143,7 @@ CASES = [
         ["route  python"],
     ),
     (
-        "AC-3 a routed path is not printed as unrouted",
+        "#128/AC-3 a routed path is not printed as unrouted",
         {},
         {"a.py": "x = 1\n"},
         TABLE,
@@ -152,7 +152,7 @@ CASES = [
         ["unrouted"],
     ),
     (
-        "AC-4 a generated path selects no route, the baseline included",
+        "#128/AC-4 a generated path selects no route, the baseline included",
         {},
         {"dist/bundle.py": "x = 1\n", "poetry.lock": "x\n", "web/app.min.js": "x\n"},
         TABLE,
@@ -161,7 +161,7 @@ CASES = [
         ["route  "],
     ),
     (
-        "AC-1 a deleted file fires a path route and no line route",
+        "#128/AC-1 a deleted file fires a path route and no line route",
         {"old.py": "answer = call_model(text)\n"},
         {"old.py": None},
         TABLE,
@@ -170,7 +170,7 @@ CASES = [
         ["route  model"],
     ),
     (
-        "AC-5 an invalid regular expression exits 2 and names the route",
+        "#128/AC-5 an invalid regular expression exits 2 and names the route",
         {},
         {"a.py": "x = 1\n"},
         {"routes": [{"id": "broken", "skill": "s", "paths": ["("]}]},
@@ -179,7 +179,7 @@ CASES = [
         [],
     ),
     (
-        "AC-5 an unknown key exits 2 and names the route",
+        "#128/AC-5 an unknown key exits 2 and names the route",
         {},
         {"a.py": "x = 1\n"},
         {"routes": [{"id": "typo", "skill": "s", "path": ["a"]}]},
@@ -188,7 +188,7 @@ CASES = [
         [],
     ),
     (
-        "AC-5 a route with no driver exits 2 and names the route",
+        "#128/AC-5 a route with no driver exits 2 and names the route",
         {},
         {"a.py": "x = 1\n"},
         {"routes": [{"id": "idle", "skill": "s"}]},
@@ -197,7 +197,7 @@ CASES = [
         [],
     ),
     (
-        "AC-5 an id declared twice exits 2",
+        "#128/AC-5 an id declared twice exits 2",
         {},
         {"a.py": "x = 1\n"},
         {"routes": [{"id": "one", "skill": "s", "paths": ["a"]}, {"id": "one", "skill": "s", "paths": ["b"]}]},
@@ -206,7 +206,7 @@ CASES = [
         [],
     ),
     (
-        "AC-1 the shipped table sends a model call to security and to prompts",
+        "#128/AC-1 the shipped table sends a model call to security and to prompts",
         {},
         {"svc/agent.py": 'SYSTEM_PROMPT = "You are a billing assistant"\nclient = anthropic.Anthropic()\n'},
         None,
@@ -215,7 +215,7 @@ CASES = [
         ["route  framework-artifacts", "route  contract"],
     ),
     (
-        "AC-1 the shipped table sends a framework agent to the foundation's review and a plain one not",
+        "#128/AC-1 the shipped table sends a framework agent to the foundation's review and a plain one not",
         {},
         {
             "plugin/agents/argos.md": "---\nname: argos\nclade: engineering\n---\n",
@@ -227,7 +227,7 @@ CASES = [
         [],
     ),
     (
-        "AC-1 the shipped table keeps a plain source change away from the prompt and model routes",
+        "#128/AC-1 the shipped table keeps a plain source change away from the prompt and model routes",
         {},
         {"lib/money.py": "def add(a, b):\n    return a + b\n"},
         None,
@@ -248,7 +248,7 @@ def problems_for(expect: int, present: list[str], absent: list[str], code: int, 
 
 
 def missing_from_shipped_table() -> list[str]:
-    """AC-6: every skill and every file the shipped table names exists in the tree."""
+    """#128/AC-6: every skill and every file the shipped table names exists in the tree."""
     plugins = {p["name"]: ROOT / p["source"]["path"] for p in json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text())["plugins"]}
     missing = []
     for route in json.loads(SHIPPED.read_text(encoding="utf-8"))["routes"]:
@@ -269,7 +269,7 @@ def main() -> int:
             code, output = run(repo, table)
             problems = problems_for(expect, present, absent, code, output)
             failed += report(name, problems, output)
-    failed += report("AC-6 every skill and file the shipped table names exists", missing_from_shipped_table(), "")
+    failed += report("#128/AC-6 every skill and file the shipped table names exists", missing_from_shipped_table(), "")
 
     total = len(CASES) + 1
     print()
