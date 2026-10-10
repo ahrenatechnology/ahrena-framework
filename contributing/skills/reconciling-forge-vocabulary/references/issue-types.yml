@@ -1,0 +1,24 @@
+# Ahrena's default issue types. A project that keeps its own
+# .github/issue-types.yml gets that file instead of this one, whole.
+#
+# These are the forge's native issue types, not labels. GitHub keeps them on
+# the organisation and every repository in it inherits them, so creating one
+# needs an organisation admin. A token without that is reported, and the
+# labels are reconciled anyway.
+#
+# Each item is name, color and description. The color is one GitHub offers:
+# gray, blue, green, yellow, orange, red, pink or purple. These four are the
+# types Ahrena's issue forms set.
+
+- name: Task
+  color: yellow
+  description: "A specific piece of work: a tech task, a plan or a spike"
+- name: Bug
+  color: red
+  description: "Something that does not do what was specified"
+- name: Feature
+  color: blue
+  description: "A capability a user can see: a request or a story"
+- name: Epic
+  color: purple
+  description: "An outcome delivered by several issues under it"

@@ -57,7 +57,7 @@ Until both are done, `protected-trunk.md` fails in every run, on every pull requ
 
 ## Refused, with the reason
 
-**Size labels and state labels.** Both are detectable. A size label either matches the computed diff or it does not, and a work item either carries exactly one state from an axis or it does not. Both are left out because the labels are configuration: the owner decided that the state vocabulary belongs to each consuming project (#22), and all four places it could live, labels, a project field, the native issue type or nowhere on the forge, are valid. A condition over labels the framework cannot name has no detector. Once the configuration surface exists, both conditions can be written against it.
+**Size labels and state labels.** Both are detectable. A size label either matches the computed diff or it does not, and a work item either carries exactly one state from an axis or it does not. Both were left out while the labels had no declared home. They have one now: the labels are declared in `.github/labels.yml`, or in the default `labels.yml` of `skills/reconciling-forge-vocabulary` when the project keeps none, and status is a label family there. The type of an issue is the forge's native issue type, declared in `issue-types.yml` the same way. Both conditions can now be written against the file, and the rules that consume the vocabulary are #39's.
 
 **Every review thread has a reply.** Readable through the API, and left out, because a thread resolved without a reply is often the right answer to a nit. The condition would fail correct work.
 
