@@ -185,6 +185,28 @@
       ]
     },
     {
+      "name": "ahrena-engineering-code-review",
+      "description": "The code-review engine: the orchestrator that routes a change to the review lenses it calls for, merges their findings into one verdict, drives the fix-and-re-review loop, and hands an approval to the merge decision.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/code-review",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/code-review",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "code-review",
+        "review",
+        "orchestrator",
+        "routing",
+        "verdict",
+        "findings"
+      ]
+    },
+    {
       "name": "ahrena-contributing",
       "description": "From the issue to trunk, through two gates and a person landing the change: how a typed issue is opened from its template and a backlog of epics planned, the issue number a branch name carries, the Conventional Commits subject and signature a commit holds, acceptance criteria traced to tests, how a pull request closes its issues, stacks native where the forge has them and run by the framework where it does not, and a trunk only a squash can reach.",
       "version": "0.1.0",
