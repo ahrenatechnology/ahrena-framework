@@ -4,7 +4,9 @@
 name: "Frontend User Story"
 description: "Template for creating detailed frontend user stories with acceptance criteria, UI/UX specs, and metrics"
 title: "{{ brief feature summary }}"
-type: Feature
+type: User Story
+labels:
+  - "status: to refinement"
 
 body:
   - type: markdown

@@ -4,7 +4,7 @@
 
 Template for creating detailed frontend user stories with acceptance criteria, UI/UX specs, and metrics
 
-Native issue type: `Feature`. Title: `{{ brief feature summary }}`.
+Native issue type: `User Story`. Title: `{{ brief feature summary }}`.
 
 Fill in the fields below to register a frontend user story with full specs (aligned to fe-user-story template).
 

@@ -1,10 +1,10 @@
 <!-- Generated from issue-forms/spike.yml by scripts/render_issue_forms.py. Edit the form, then rerun it. -->
 
-# Spike 🔎
+# Spike
 
 A timeboxed question that must be answered before the work that depends on it can be planned or built
 
-Native issue type: `Task`. Title: `{{ the question, ending in a question mark }}`.
+Native issue type: `Spike`. Title: `{{ the question, ending in a question mark }}`.
 
 Use this template when something is not known well enough to plan or build: whether an approach works, what a system can take, which option to pick.
 A spike produces a decision, not a feature. It is timeboxed, and it blocks every item that waits on its answer.

@@ -1,10 +1,10 @@
 <!-- Generated from issue-forms/plan.yml by scripts/render_issue_forms.py. Edit the form, then rerun it. -->
 
-# Plan 📋
+# Plan
 
 Sub-issue representing an executable unit of work inside a parent Issue (User Story / Bug / Tech Task)
 
-Native issue type: `Task`. Title: `{{ brief plan summary }}`.
+Native issue type: `Plan`. Title: `{{ brief plan summary }}`.
 
 Use this template to file an executable unit of work as a sub-issue of a parent Issue (User Story, Bug, or Tech Task).
 A Plan is the atomic chunk that produces one or more PRs and closes when its scope is delivered. The parent Issue closes when all its Plans close.

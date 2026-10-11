@@ -1,6 +1,6 @@
 <!-- Generated from issue-forms/bug.yml by scripts/render_issue_forms.py. Edit the form, then rerun it. -->
 
-# Bug 🐞
+# Bug
 
 Report a defect: code, behavior, or documentation that does not match the declared specification
 
