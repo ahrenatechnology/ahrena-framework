@@ -34,8 +34,8 @@ Open a new issue beside an existing one only when the work is genuinely independ
 
 | Type | It is | Ahrena's default: guide, and form |
 |---|---|---|
+| Initiative | A problem framed, with the epics that solve it under it | [`references/initiative.md`](references/initiative.md), `references/issue-forms/initiative.yml` |
 | Epic | An outcome delivered by several items under it | [`references/epic.md`](references/epic.md), `references/issue-forms/epic.yml` |
-| Feature request | A capability asked for, before it is shaped into stories | [`references/feature-request.md`](references/feature-request.md), `references/issue-forms/feature-request.yml` |
 | User story, API | A behaviour a client of an API can see, in one pull request | [`references/user-story-for-api.md`](references/user-story-for-api.md), `references/issue-forms/user-story-for-api.yml` |
 | User story, frontend | A behaviour a person can see on a screen, in one pull request | [`references/user-story-for-frontend.md`](references/user-story-for-frontend.md), `references/issue-forms/user-story-for-frontend.yml` |
 | Tech task | Work with no behaviour a user sees: enabling, refactor, CI, docs | [`references/tech-task.md`](references/tech-task.md), `references/issue-forms/tech-task.yml` |
@@ -72,7 +72,7 @@ Write the body to a file, so it can be read back before it is sent. The title fo
 gh issue create --type <type> --title "<title>" --body-file <body.md>
 ```
 
-The type is the template's own `type`. Check that the organisation has it, `gh api orgs/<org>/issue-types -q '.[].name'`, and use the nearest otherwise: `Feature` for an epic, a feature request or a story, `Task` for a tech task, a plan or a spike, `Bug` for a bug. Where the forge has no issue types, drop `--type` and open the body with one line, `**Type:** <type>`.
+The type is the template's own `type`. Check that the organisation has it, `gh api orgs/<org>/issue-types -q '.[].name'`, and use the nearest otherwise: `Epic` for an initiative or an epic, `Feature` for a story, `Task` for a tech task, a plan or a spike, `Bug` for a bug. Where the forge has no issue types, drop `--type` and open the body with one line, `**Type:** <type>`.
 
 Leave the assignee empty. An owner named when the issue is filed, before anyone has started, is an owner nobody is holding to anything. Labels are the project's own configuration (#80), and this skill applies none unless the repository's template does.
 

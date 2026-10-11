@@ -1,10 +1,12 @@
 # Installed by Ahrena: ahrena-contributing, skills/installing-issue-forms.
 # New in Ahrena; the predecessor framework had no spike. The sections map to the
 # issue-quality rule, and `Acceptance criteria` is what the traceability check reads.
-name: "Spike 🔎"
+name: "Spike"
 description: "A timeboxed question that must be answered before the work that depends on it can be planned or built"
 title: "{{ the question, ending in a question mark }}"
-type: Task
+type: Spike
+labels:
+  - "status: to refinement"
 
 body:
   - type: markdown

@@ -1,12 +1,12 @@
 <!-- Generated from issue-forms/tech-task.yml by scripts/render_issue_forms.py. Edit the form, then rerun it. -->
 
-# Tech Task ♻️
+# Tech Task
 
 Well-defined small task: chore, refactoring, maintenance, documentation fix, CI change
 
-Native issue type: `Task`. Title: `{{ brief task summary }}`.
+Native issue type: `Tech Task`. Title: `{{ brief task summary }}`.
 
-Use this template for small, well-scoped tasks that do not justify a full feature request, epic, or user story.
+Use this template for small, well-scoped tasks that do not justify a full user story, epic, or initiative.
 Per Ahrena's `issue-quality` rule, every issue states why, what done looks like, and what it leaves to other issues.
 
 ## Sections, in order

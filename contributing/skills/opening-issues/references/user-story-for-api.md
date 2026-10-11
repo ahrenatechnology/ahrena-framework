@@ -4,7 +4,7 @@
 
 Template for creating detailed API user stories with acceptance criteria, API specs, and metrics
 
-Native issue type: `Feature`. Title: `{{ summarize the user story here }}`.
+Native issue type: `User Story`. Title: `{{ summarize the user story here }}`.
 
 ## Acceptance Criteria
 
