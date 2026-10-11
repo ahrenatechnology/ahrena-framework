@@ -1,10 +1,12 @@
 # Installed by Ahrena: ahrena-contributing, skills/installing-issue-forms.
 # Adapted from the predecessor framework's forms. The sections map to the
 # issue-quality rule, and `Acceptance criteria` is what the traceability check reads.
-name: "Bug 🐞"
+name: "Bug"
 description: "Report a defect: code, behavior, or documentation that does not match the declared specification"
 title: "{{ brief bug summary }}"
 type: Bug
+labels:
+  - "status: to refinement"
 
 body:
   - type: markdown

@@ -1,10 +1,12 @@
 # Installed by Ahrena: ahrena-contributing, skills/installing-issue-forms.
 # Adapted from the predecessor framework's forms. The sections map to the
 # issue-quality rule, and `Acceptance criteria` is what the traceability check reads.
-name: "Epic "
+name: "Epic"
 description: Register a new epic for the project
 title: "{{ brief epic summary }}"
-type: Feature
+type: Epic
+labels:
+  - "status: to refinement"
 
 body:
   - type: markdown

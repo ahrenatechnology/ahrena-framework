@@ -4,7 +4,9 @@
 name: "API User Story"
 description: "Template for creating detailed API user stories with acceptance criteria, API specs, and metrics"
 title: "{{ summarize the user story here }}"
-type: Feature
+type: User Story
+labels:
+  - "status: to refinement"
 
 body:
   - type: textarea

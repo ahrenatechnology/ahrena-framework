@@ -1,16 +1,18 @@
 # Installed by Ahrena: ahrena-contributing, skills/installing-issue-forms.
 # Adapted from the predecessor framework's forms. The sections map to the
 # issue-quality rule, and `Acceptance criteria` is what the traceability check reads.
-name: "Tech Task ♻️"
+name: "Tech Task"
 description: "Well-defined small task: chore, refactoring, maintenance, documentation fix, CI change"
 title: "{{ brief task summary }}"
-type: Task
+type: Tech Task
+labels:
+  - "status: to refinement"
 
 body:
   - type: markdown
     attributes:
       value: |
-        Use this template for small, well-scoped tasks that do not justify a full feature request, epic, or user story.
+        Use this template for small, well-scoped tasks that do not justify a full user story, epic, or initiative.
         Per Ahrena's `issue-quality` rule, every issue states why, what done looks like, and what it leaves to other issues.
 
   - type: textarea
