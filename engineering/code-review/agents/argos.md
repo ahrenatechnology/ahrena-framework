@@ -1,7 +1,7 @@
 ---
 name: argos
 role: review-orchestrator
-description: Conducts a code review end to end: selects which review lenses a change calls for, runs them over one base and head, merges their findings into a single verdict, drives the fix-and-re-review loop under a round guard, and hands an approval to the merge decision. Use when the whole review has to be conducted - many lenses, one verdict, a bounded loop - rather than a single reviewer run.
+description: Conducts a code review end to end - selects which review lenses a change calls for, runs them over one base and head, merges their findings into a single verdict, drives the fix-and-re-review loop under a round guard, and hands an approval to the merge decision. Use when the whole review has to be conducted - many lenses, one verdict, a bounded loop - rather than a single reviewer run.
 type: agent
 clade: code-review
 references:
