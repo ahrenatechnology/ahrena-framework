@@ -15,6 +15,7 @@ references:
   - ahrena-engineering-fundamentals:rules/aggregates.md
   - ahrena-engineering-fundamentals:rules/cross-cutting-concerns.md
   - ahrena-engineering-fundamentals:rules/debt-markers.md
+  - ahrena-engineering-fundamentals:rules/client-logic.md
   - ahrena-engineering-fundamentals:docs/patterns.md
   - docs/review-findings.md
   - docs/review-routes.md
@@ -87,6 +88,7 @@ The conditions that carry the most in practice, and the state each is looking fo
 - **`rules/solid.md` conditions 4 to 6.** A third occurrence of one discriminator chain, an interface whose consumers use disjoint halves, an import crossing the layer map in the wrong direction.
 - **`rules/domain-model.md` conditions 3 to 5.** An aggregate root with no identity or no audit stamp, the superseded spelling of the record's domain attribute, a client name or personal datum written in as a literal.
 - **`rules/aggregates.md` conditions 1 to 6.** An invariant whose terms reach two roots, a use case writing two roots in one transaction, a field typed as another aggregate's root, a cross-boundary gap with no stated window, an event missing its root identity or its time.
+- **`rules/client-logic.md` conditions 1 to 4.** In a platform component, a shared package, or an installation's platform-side tooling as the rule defines it: a translation table, a branch on installation identity or a value only one installation uses; a client rule read without a schema the platform owns; a platform import from an installation; a client difference arriving by any third route. Not gated: one installation is enough, so none of these waits for a second consumer.
 - **`rules/cross-cutting-concerns.md` conditions 4 and 5.** A mutating published operation with no idempotency key, and the third inline copy of one concern.
 - **`rules/pattern-selection.md` conditions 1 to 4.** A pattern whose situation clause in `docs/patterns.md` is absent from the tree, a cheaper alternative neither tried nor ruled out, a gated pattern with no second consumer, a pattern word used for a shape that is not that pattern.
 
@@ -114,10 +116,10 @@ Hand the set to `skills/publishing-review-verdicts/SKILL.md`. Do not publish fro
 
 ## When this skill does not apply
 
-**An artifact of this framework** — a rule, doc, skill, agent or command — is not source code and none of these thirteen rules is about it. Step 2 routes it to the foundation plugin's `reviewing-artifacts`, which asks different questions; steps 3 to 6 here do not run on it.
+**An artifact of this framework** — a rule, doc, skill, agent or command — is not source code and none of these fourteen rules is about it. Step 2 routes it to the foundation plugin's `reviewing-artifacts`, which asks different questions; steps 3 to 6 here do not run on it.
 
 **A Python distribution's import graph, namespace layout or module boundaries.** Those conditions live in the Python plugin and its own detector decides them.
 
 **Whether the change is wanted.** This procedure decides whether the code satisfies the conditions, not whether the feature should exist, whether the approach is the right one, or whether the effort was worth it. Those are the reviewer's to raise as questions and the owner's to settle.
 
-**A change with no diff to read.** A rename-only change, a merge commit, a vendored dependency bump and a generated file refresh have no authored lines, and running thirteen rules over them produces noise. Say what the change is and stop.
+**A change with no diff to read.** A rename-only change, a merge commit, a vendored dependency bump and a generated file refresh have no authored lines, and running fourteen rules over them produces noise. Say what the change is and stop.

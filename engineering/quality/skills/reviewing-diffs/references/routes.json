@@ -19,7 +19,8 @@
         "ahrena-engineering-fundamentals:rules/duplication.md",
         "ahrena-engineering-fundamentals:rules/value-semantics.md",
         "ahrena-engineering-fundamentals:rules/pattern-selection.md",
-        "ahrena-engineering-fundamentals:rules/debt-markers.md"
+        "ahrena-engineering-fundamentals:rules/debt-markers.md",
+        "ahrena-engineering-fundamentals:rules/client-logic.md"
       ],
       "paths": [
         "\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|kts|cs|rb|php|swift|scala|c|h|cc|cpp|hpp|sh|bash)$"
