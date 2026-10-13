@@ -1,9 +1,12 @@
-"""The cost comment of a pull request: one comment, one row per pass, updated in place.
+"""The cost comment of a pull request: one comment, one row per model, updated in place.
 
 A pass is one run that spent tokens on the pull request: a development session on somebody's
 machine, or a run of the pipeline in CI (review, auto-fix, release train). Each pass has a
 stable id, and publishing is a merge by that id, so publishing the same pass twice changes
 nothing.
+
+The visible table is the aggregate: one row per model and a total. The passes are not listed;
+how many there were and how long they were active is said once, above the table.
 
 The comment carries its own data. A hidden block holds every pass as JSON, so a publisher
 with no ledger, which is the CI case, reads the passes already there, adds or replaces its
@@ -36,17 +39,10 @@ MARKER = "<!-- ahrena-costs:passes -->"
 DATA_OPEN = "<!-- ahrena-costs:data"
 DATA = re.compile(r"<!-- ahrena-costs:data\s*(\{.*?\})\s*-->", re.DOTALL)
 BODY_LIMIT = 65000
-VISIBLE_ROWS = 40
 REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
-KIND_LABELS = {
-    "development": "desenvolvimento",
-    "review": "revisão",
-    "auto-fix": "auto-fix",
-    "release-train": "release train",
-}
 HEADER = (
-    "| Quando (UTC) | Passe | Quem rodou | Modelo | Entrada | Saída | Escrita de cache | Leitura de cache | Tempo ativo | Custo de tokens |\n"
-    "|---|---|---|---|--:|--:|--:|--:|--:|--:|"
+    "| Modelo | Entrada | Saída | Escrita de cache | Leitura de cache | Custo de tokens |\n"
+    "|---|--:|--:|--:|--:|--:|"
 )
 
 
@@ -109,16 +105,6 @@ def duration(seconds: float | None) -> str:
     return f"{minutes // 60}h {minutes % 60:02d}min" if minutes >= 60 else f"{minutes}min"
 
 
-def runner_label(entry: dict, repository: str) -> str:
-    if entry.get("runner") != "ci":
-        return f"sessão local `{str(entry['id']).split(':')[-1][:8]}`"
-    run = str(entry.get("run") or "")
-    number_part = run.split("-")[0]
-    if number_part.isdigit() and REPOSITORY.match(repository):
-        return f"CI, run [{run}](https://github.com/{repository}/actions/runs/{number_part})"
-    return f"CI, run `{run}`" if run else "CI"
-
-
 def token_cells(tokens: dict) -> list[str]:
     kinds = sum_kinds(tokens)
     written = kinds["cache_write_5m"] + kinds["cache_write_1h"]
@@ -131,15 +117,6 @@ def cost_cell(tokens: dict, table: PriceTable) -> str:
     return f"{text} (parcial)" if cost.unpriced else text
 
 
-def pass_row(entry: dict, repository: str, table: PriceTable) -> str:
-    when = str(entry.get("started_at") or "")[:16].replace("T", " ") or "sem registro"
-    kind = KIND_LABELS.get(str(entry.get("kind")), str(entry.get("kind") or "passe"))
-    models = "<br>".join(f"`{model}`" for model in sorted(entry["tokens"])) or "nenhum"
-    cells = [when, kind, runner_label(entry, repository), models, *token_cells(entry["tokens"])]
-    cells += [duration(entry.get("active_seconds")), cost_cell(entry["tokens"], table)]
-    return "| " + " | ".join(cells) + " |"
-
-
 def summed(passes: list[dict]) -> tuple[dict, float]:
     tokens: dict = {}
     seconds = 0.0
@@ -149,22 +126,23 @@ def summed(passes: list[dict]) -> tuple[dict, float]:
     return tokens, seconds
 
 
-def summary_row(label: str, passes: list[dict], table: PriceTable) -> str:
-    tokens, seconds = summed(passes)
-    count = f"{len(passes)} passe{'s' if len(passes) != 1 else ''}"
-    cells = [f"**{label}**", f"**{count}**", "", "", *token_cells(tokens), duration(seconds), f"**{cost_cell(tokens, table)}**"]
-    return "| " + " | ".join(cells) + " |"
+def model_row(label: str, tokens: dict, table: PriceTable) -> str:
+    return "| " + " | ".join([label, *token_cells(tokens), cost_cell(tokens, table)]) + " |"
 
 
-def table_lines(passes: list[dict], repository: str, table: PriceTable) -> list[str]:
-    """The table: the most recent passes one per row, older ones folded, then the total."""
-    older, shown = passes[:-VISIBLE_ROWS], passes[-VISIBLE_ROWS:]
+def table_lines(passes: list[dict], table: PriceTable) -> list[str]:
+    """The table: one row per model, then the total."""
+    tokens, _ = summed(passes)
     lines = [HEADER]
-    if older:
-        lines.append(summary_row("Passes anteriores", older, table))
-    lines += [pass_row(entry, repository, table) for entry in shown]
-    lines.append(summary_row("Total", passes, table))
+    lines += [model_row(f"`{model}`", {model: tokens[model]}, table) for model in sorted(tokens)]
+    lines.append(model_row("**Total**", tokens, table).replace(cost_cell(tokens, table), f"**{cost_cell(tokens, table)}**"))
     return lines
+
+
+def headline(passes: list[dict]) -> str:
+    _, seconds = summed(passes)
+    count = f"{len(passes)} passe{'s' if len(passes) != 1 else ''}"
+    return f"**{count}, {duration(seconds)} de tempo ativo.** Este comentário é atualizado a cada passe."
 
 
 def attribution_note(branch: str | None) -> str:
@@ -226,9 +204,9 @@ def render(payload: dict, repository: str, table: PriceTable) -> str:
         MARKER,
         "### Custo deste pull request",
         "",
-        "Cada linha é um passe: uma sessão de desenvolvimento ou uma execução do pipeline. Este comentário é atualizado a cada passe.",
+        headline(payload["passes"]),
         "",
-        *table_lines(payload["passes"], repository, table),
+        *table_lines(payload["passes"], table),
         "",
         *notes(payload, table),
         "",

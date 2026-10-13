@@ -8,6 +8,7 @@ stub first on PATH. No case touches the network.
 
 The criteria of #157 (carried from barte-ai-services/barte-forge#37) these cases cover:
 #157/AC-6 #157/AC-8 #157/AC-9 #157/AC-10
+and of #161 (carried from barte-ai-services/barte-forge#41): #161/AC-1 to #161/AC-4
 
 Run: python3 costs/runtime/test-publish.py
 """
@@ -87,15 +88,27 @@ class Merge(unittest.TestCase):
 
 
 class Render(unittest.TestCase):
-    """#157/AC-8: one comment, a row per pass, a running total, and the gaps said plainly."""
+    """#157/AC-8, #161/AC-1 to #161/AC-4: one comment, a row per model, a total, and the gaps said plainly."""
 
-    def test_a_row_per_pass_and_a_total(self) -> None:
+    def test_a_row_per_model_and_a_total(self) -> None:
+        """#161/AC-1, #161/AC-2."""
+        other = {"n": {"input": 10, "output": 5, "cache_write_5m": 0, "cache_write_1h": 0, "cache_read": 0}}
         ci = a_pass("ci:99-1:review", "2026-10-09T11:00:00Z", kind="review", runner="ci", run="99-1")
+        ci["tokens"] = {**ci["tokens"], **other}
         body = body_of([a_pass("session:abcdef123456"), ci])
         self.assertTrue(body.startswith(comment.MARKER))
-        self.assertIn("| 2026-10-09 10:00 | desenvolvimento | sessão local `abcdef12` | `m` | 1.000.000 | 100.000 | 0 | 0 | 30min | US$ 6,00 |", body)
-        self.assertIn("| 2026-10-09 11:00 | revisão | CI, run [99-1](https://github.com/acme/widgets/actions/runs/99) |", body)
-        self.assertIn("| **Total** | **2 passes** |  |  | 2.000.000 | 200.000 | 0 | 0 | 1h 00min | **US$ 12,00** |", body)
+        self.assertIn("**2 passes, 1h 00min de tempo ativo.**", body)
+        self.assertIn("| Modelo | Entrada | Saída | Escrita de cache | Leitura de cache | Custo de tokens |", body)
+        self.assertIn("| `m` | 2.000.000 | 200.000 | 0 | 0 | US$ 12,00 |", body)
+        self.assertIn("| **Total** | 2.000.010 | 200.005 | 0 | 0 | **US$ 12,00 (parcial)** |", body)
+
+    def test_the_passes_are_not_listed(self) -> None:
+        """#161/AC-3."""
+        ci = a_pass("ci:99-1:review", "2026-10-09T11:00:00Z", kind="review", runner="ci", run="99-1")
+        visible = body_of([a_pass("session:abcdef123456"), ci]).split(comment.DATA_OPEN)[0]
+        for gone in ("2026-10-09", "actions/runs", "sessão local", "revisão", "Quem rodou"):
+            self.assertNotIn(gone, visible)
+        self.assertEqual(len(comment.parse_payload(body_of([a_pass("session:abcdef123456"), ci]))["passes"]), 2)
 
     def test_rendering_is_deterministic(self) -> None:
         self.assertEqual(body_of([a_pass("session:a")]), body_of([a_pass("session:a")]))
@@ -124,12 +137,12 @@ class Render(unittest.TestCase):
         self.assertIn("o passe `ci:1:review` informou US$ 9,50 por conta própria; pela tabela de preços, os mesmos tokens dão US$ 6,00.",
                       body_of([a_pass("ci:1:review", reported_cost_usd=9.5)]))
 
-    def test_older_passes_fold_into_one_row_and_stay_in_the_total(self) -> None:
+    def test_many_passes_stay_one_row_per_model_and_all_in_the_data(self) -> None:
+        """#161/AC-1, #161/AC-3."""
         many = [a_pass(f"session:{n:03d}", f"2026-10-09T10:{n:02d}:00Z") for n in range(45)]
         body = body_of(many)
-        self.assertIn("| **Passes anteriores** | **5 passes** |", body)
-        self.assertIn("| **Total** | **45 passes** |", body)
-        self.assertEqual(body.count("sessão local"), 40)
+        self.assertIn("**45 passes, 22h 30min de tempo ativo.**", body)
+        self.assertEqual(body.split(comment.DATA_OPEN)[0].count("| `m` |"), 1)
         self.assertEqual(len(comment.parse_payload(body)["passes"]), 45)
 
     def test_a_comment_over_the_limit_is_refused(self) -> None:
@@ -222,7 +235,7 @@ class Publishers(unittest.TestCase):
         first = self.ci("900-1")
         self.assertIn("cost comment created on acme/widgets#5 for pass ci:900-1:review", first.stdout)
         body = self.comments()[0]["body"]
-        self.assertIn("| revisão | CI, run [900-1](https://github.com/acme/widgets/actions/runs/900) | `claude-opus-5-5` | 1.000 |", body)
+        self.assertIn("| `claude-opus-5-5` | 1.000 |", body)
         again = self.ci("900-1")
         self.assertIn("cost comment unchanged", again.stdout)
         self.assertEqual((len(self.comments()), self.comments()[0]["body"], self.writes()), (1, body, 1))

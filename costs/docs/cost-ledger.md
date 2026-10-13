@@ -109,7 +109,7 @@ Each pass has a stable id: `session:` and the session id for a local session, `c
 
 The comment carries its own data. A hidden block holds every pass as JSON, so a publisher with no ledger, which is CI, reads the passes already there, adds its own and rewrites the comment. A missing or malformed block is rebuilt from what the publisher has. The rendered text is recomputed from the passes on every write, with the publisher's price table, so a local pass and a CI pass are priced the same way.
 
-The visible text is Brazilian Portuguese, because that is the language the platform's pull requests are read in. It shows, per pass: when, what kind, who ran it, the models, tokens by kind, active time and token cost; then a total, the cost in reais when an exchange rate is known, the issue the branch is attributed to, every unpriced model, and any pass whose output is a lower bound. It never shows the hourly rate or the cost of a person's time: that is one person's rate, and a pull request is read by everyone with access to the repository.
+The visible text is Brazilian Portuguese, because that is the language the platform's pull requests are read in. It shows how many passes there were and their total active time, then one row per model with tokens by kind and token cost; then a total, the cost in reais when an exchange rate is known, the issue the branch is attributed to, every unpriced model, and any pass whose output is a lower bound. It never shows the hourly rate or the cost of a person's time: that is one person's rate, and a pull request is read by everyone with access to the repository.
 
 Where a CI run reports a cost of its own, the cost is still computed from the tokens. The run's figure appears only as a cross-check, when it differs by more than one percent.
 
@@ -169,7 +169,7 @@ The tokens come from the `modelUsage` of the run's final `result` message. The A
 
 **Two publishers can race.** Each reads the comment, merges and writes. If two do so at the same moment, one write can drop the other's pass, or each can create a comment. Two comments are merged into the older one on the next publish. A dropped local pass comes back with the next local publish, because the ledger still has it; a dropped CI pass comes back only if that run is published again.
 
-**The comment has a size limit.** The 40 most recent passes get a row each and older ones are folded into one row. The hidden data still holds every pass, and past roughly a hundred and fifty of them GitHub's limit on a comment is reached and publishing is refused and logged.
+**The comment has a size limit.** The visible table has one row per model, however many passes there were. The hidden data holds every pass, and past roughly a hundred and fifty of them GitHub's limit on a comment is reached and publishing is refused and logged.
 
 **What the price table leaves out.** Fast mode and US-only inference have no entries, so a response under either is reported as unpriced. Server-side tool requests such as web search are billed per request, not per token, and are not counted. Bedrock and Vertex have their own price lists, and none is in the table.
 
