@@ -6,8 +6,8 @@ The renderer and the merge are pure functions and are tested as such. The publis
 `publish.py` for CI and `record.py` for a developer's machine, run as subprocesses with the
 stub first on PATH. No case touches the network.
 
-The criteria of barte-ai-services/barte-forge#37 (origem deste plugin) these cases cover:
-#37/AC-6 #37/AC-8 #37/AC-9 #37/AC-10
+The criteria of #157 (carried from barte-ai-services/barte-forge#37) these cases cover:
+#157/AC-6 #157/AC-8 #157/AC-9 #157/AC-10
 
 Run: python3 costs/runtime/test-publish.py
 """
@@ -54,7 +54,7 @@ def body_of(passes: list[dict], **payload: object) -> str:
 
 
 class Merge(unittest.TestCase):
-    """#37/AC-8: one row per pass, and the same pass published twice changes nothing."""
+    """#157/AC-8: one row per pass, and the same pass published twice changes nothing."""
 
     def test_the_first_pass_creates_the_list(self) -> None:
         self.assertEqual([p["id"] for p in comment.merge_passes([], [a_pass("session:a")])], ["session:a"])
@@ -87,7 +87,7 @@ class Merge(unittest.TestCase):
 
 
 class Render(unittest.TestCase):
-    """#37/AC-8: one comment, a row per pass, a running total, and the gaps said plainly."""
+    """#157/AC-8: one comment, a row per pass, a running total, and the gaps said plainly."""
 
     def test_a_row_per_pass_and_a_total(self) -> None:
         ci = a_pass("ci:99-1:review", "2026-10-09T11:00:00Z", kind="review", runner="ci", run="99-1")
@@ -138,7 +138,7 @@ class Render(unittest.TestCase):
 
 
 class Execution(unittest.TestCase):
-    """#37/AC-9: the same record from the execution file claude-code-action leaves."""
+    """#157/AC-9: the same record from the execution file claude-code-action leaves."""
 
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
@@ -180,7 +180,7 @@ class Execution(unittest.TestCase):
 
 
 class Publishers(unittest.TestCase):
-    """#37/AC-8, #37/AC-9, #37/AC-10: both publishers, end to end, against a stub forge."""
+    """#157/AC-8, #157/AC-9, #157/AC-10: both publishers, end to end, against a stub forge."""
 
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
@@ -260,7 +260,7 @@ class Publishers(unittest.TestCase):
         self.assertEqual((self.writes(), len(self.comments())), (writes, 1))
 
     def test_a_pull_request_opened_later_gets_the_passes_recorded_before_it(self) -> None:
-        """#37/AC-10: offline, or before the pull request, it records; the next pass catches up."""
+        """#157/AC-10: offline, or before the pull request, it records; the next pass catches up."""
         self.session("early", "09")
         self.box.set_forge(fail=True)
         self.session("offline", "10")
@@ -311,7 +311,7 @@ class Publishers(unittest.TestCase):
         self.assertEqual(sorted(self.passes()), ["ci:900-1:review", "session:a", "session:b"])
 
     def test_no_text_of_the_run_or_the_session_reaches_the_comment(self) -> None:
-        """#37/AC-6, for the published record."""
+        """#157/AC-6, for the published record."""
         self.open_pull_request()
         self.ci("900-1")
         self.session("s1", "10")

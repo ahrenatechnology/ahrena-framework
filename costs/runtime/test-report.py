@@ -6,8 +6,8 @@ a repository.
 The ledger is written by `record.py` from synthetic transcripts, in a temporary directory, and
 `report.py` runs as a subprocess. `gh` is a stub; no case touches the network.
 
-The criteria of barte-ai-services/barte-forge#37 (origem deste plugin) these cases cover:
-#37/AC-2 #37/AC-4 #37/AC-5
+The criteria of #157 (carried from barte-ai-services/barte-forge#37) these cases cover:
+#157/AC-2 #157/AC-4 #157/AC-5
 
 Run: python3 costs/runtime/test-report.py
 """
@@ -46,7 +46,7 @@ MILLION = {"input": 1_000_000, "output": 1_000_000, "cache_write_5m": 1_000_000,
 
 
 class PriceTable(unittest.TestCase):
-    """#37/AC-4: the price table is data, and every price names its source and its date."""
+    """#157/AC-4: the price table is data, and every price names its source and its date."""
 
     def setUp(self) -> None:
         self.data = json.loads((HERE / "prices.json").read_text())
@@ -70,7 +70,7 @@ class PriceTable(unittest.TestCase):
 
 
 class Money(unittest.TestCase):
-    """#37/AC-4: cost from the table; a missing price or rate is said, never zero."""
+    """#157/AC-4: cost from the table; a missing price or rate is said, never zero."""
 
     def setUp(self) -> None:
         self.table = money.PriceTable(
@@ -106,7 +106,7 @@ class Money(unittest.TestCase):
 
 
 class Report(unittest.TestCase):
-    """#37/AC-5: one issue or every issue of a repository, and the unattributed part of the total."""
+    """#157/AC-5: one issue or every issue of a repository, and the unattributed part of the total."""
 
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
@@ -172,7 +172,7 @@ class Report(unittest.TestCase):
         self.assertEqual((cost["token_brl"], cost["time_usd"]), (None, None))
 
     def test_an_unattributed_branch_is_resolved_through_its_pull_request(self) -> None:
-        """#37/AC-2, the second rung: the pull request of the branch and the issues it closes."""
+        """#157/AC-2, the second rung: the pull request of the branch and the issues it closes."""
         pull = {"number": 77, "state": "MERGED", "closingIssuesReferences": [{"number": 15}, {"number": 12}]}
         self.box.set_forge(pulls={REPO: {"feat/review-agent": [pull]}})
         found = {row["issue"]: row for row in self.data()["issues"]}

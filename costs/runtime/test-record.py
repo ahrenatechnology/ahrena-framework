@@ -5,8 +5,8 @@ and what it does when anything goes wrong.
 Every case runs `record.py` as a subprocess, the way Claude Code runs it, against a transcript
 written by hand and a ledger in a temporary directory. No network, no `gh`, no real session.
 
-The criteria of barte-ai-services/barte-forge#37 (origem deste plugin) these cases cover:
-#37/AC-1 #37/AC-2 #37/AC-3 #37/AC-6 #37/AC-7 #37/AC-10
+The criteria of #157 (carried from barte-ai-services/barte-forge#37) these cases cover:
+#157/AC-1 #157/AC-2 #157/AC-3 #157/AC-6 #157/AC-7 #157/AC-10
 
 Run: python3 costs/runtime/test-record.py
 """
@@ -66,7 +66,7 @@ class Case(unittest.TestCase):
 
 
 class Usage(Case):
-    """#37/AC-1: tokens by model and by kind, sub-agents included, nothing counted twice."""
+    """#157/AC-1: tokens by model and by kind, sub-agents included, nothing counted twice."""
 
     def test_tokens_are_recorded_by_model_and_kind(self) -> None:
         t = support.Transcript().prompt("2026-10-09T10:00:00.000Z")
@@ -117,7 +117,7 @@ class Usage(Case):
 
 
 class Attribution(Case):
-    """#37/AC-2: the issue comes from the branch name, or the segment is unattributed. Never a guess."""
+    """#157/AC-2: the issue comes from the branch name, or the segment is unattributed. Never a guess."""
 
     def test_the_issue_is_the_number_the_branch_name_carries(self) -> None:
         record = self.recorded(support.Transcript(branch="fix/412-rounding").response("2026-10-09T10:00:10.000Z", "m1", ONE))
@@ -163,7 +163,7 @@ class Attribution(Case):
 
 
 class Time(Case):
-    """#37/AC-3: wall-clock, and active time that leaves out gaps above the stated threshold."""
+    """#157/AC-3: wall-clock, and active time that leaves out gaps above the stated threshold."""
 
     def script(self) -> "support.Transcript":
         t = support.Transcript().prompt("2026-10-09T10:00:00.000Z")
@@ -190,7 +190,7 @@ class Time(Case):
 
 
 class Privacy(Case):
-    """#37/AC-6: no prompt, no response, no tool input or output, no file content, no path."""
+    """#157/AC-6: no prompt, no response, no tool input or output, no file content, no path."""
 
     def test_nothing_from_the_conversation_reaches_the_ledger(self) -> None:
         t = support.Transcript(cwd="/home/someone/private-project").prompt("2026-10-09T10:00:00.000Z")
@@ -209,7 +209,7 @@ class Privacy(Case):
 
 
 class NeverHurts(Case):
-    """#37/AC-7: standard library only, and no input makes the hook fail the session."""
+    """#157/AC-7: standard library only, and no input makes the hook fail the session."""
 
     def test_every_bad_input_exits_zero_and_is_logged(self) -> None:
         missing = json.dumps({"session_id": "s", "transcript_path": str(self.root / "absent.jsonl")})
@@ -238,7 +238,7 @@ class NeverHurts(Case):
         self.assertTrue(target.exists())
 
     def test_without_gh_the_session_is_recorded_and_nothing_fails(self) -> None:
-        """#37/AC-10, the offline half: no `gh` on PATH, the record is still written."""
+        """#157/AC-10, the offline half: no `gh` on PATH, the record is still written."""
         clone = self.box.clone("clone", "git@github.com:acme/widgets.git", "feat/37-x")
         t = support.Transcript(cwd=str(clone), branch="feat/37-x").response("2026-10-09T10:00:10.000Z", "m1", ONE)
         self.assertEqual(self.tokens(self.recorded(t)), {OPUS: ONE})
