@@ -92,6 +92,15 @@ jobs:
       - name: Test the plan hook
         run: python3 contributing/hooks/test-check-plan.py
 
+      - name: Test the costs plugin's record step
+        run: python3 costs/runtime/test-record.py
+
+      - name: Test the costs plugin's report step
+        run: python3 costs/runtime/test-report.py
+
+      - name: Test the costs plugin's publish step
+        run: python3 costs/runtime/test-publish.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
 

@@ -1,0 +1,152 @@
+{
+  "currency": "USD",
+  "unit": "per million tokens",
+  "basis": "Anthropic first-party API list price, standard speed, global routing",
+  "models": {
+    "claude-fable-5-1": {
+      "input": "10",
+      "cache_write_5m": "12.50",
+      "cache_write_1h": "20",
+      "cache_read": "0.25",
+      "output": "50",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-fable-5": {
+      "input": "10",
+      "cache_write_5m": "12.50",
+      "cache_write_1h": "20",
+      "cache_read": "1",
+      "output": "50",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-opus-5-5": {
+      "input": "4",
+      "cache_write_5m": "5",
+      "cache_write_1h": "8",
+      "cache_read": "0.20",
+      "output": "20",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-opus-5": {
+      "input": "5",
+      "cache_write_5m": "6.25",
+      "cache_write_1h": "10",
+      "cache_read": "0.50",
+      "output": "25",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-opus-4-8": {
+      "input": "5",
+      "cache_write_5m": "6.25",
+      "cache_write_1h": "10",
+      "cache_read": "0.50",
+      "output": "25",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-opus-4-7": {
+      "input": "5",
+      "cache_write_5m": "6.25",
+      "cache_write_1h": "10",
+      "cache_read": "0.50",
+      "output": "25",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-opus-4-6": {
+      "input": "5",
+      "cache_write_5m": "6.25",
+      "cache_write_1h": "10",
+      "cache_read": "0.50",
+      "output": "25",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-opus-4-5": {
+      "input": "5",
+      "cache_write_5m": "6.25",
+      "cache_write_1h": "10",
+      "cache_read": "0.50",
+      "output": "25",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-sonnet-5-5": {
+      "input": "2",
+      "cache_write_5m": "2.50",
+      "cache_write_1h": "4",
+      "cache_read": "0.10",
+      "output": "10",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-sonnet-5": {
+      "input": "2",
+      "cache_write_5m": "2.50",
+      "cache_write_1h": "4",
+      "cache_read": "0.20",
+      "output": "10",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-sonnet-4-6": {
+      "input": "3",
+      "cache_write_5m": "3.75",
+      "cache_write_1h": "6",
+      "cache_read": "0.30",
+      "output": "15",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-sonnet-4-5": {
+      "input": "3",
+      "cache_write_5m": "3.75",
+      "cache_write_1h": "6",
+      "cache_read": "0.30",
+      "output": "15",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-haiku-5-5": {
+      "input": "0.10",
+      "cache_write_5m": "0.125",
+      "cache_write_1h": "0.20",
+      "cache_read": "0.01",
+      "output": "0.50",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-haiku-5-5:over-100k": {
+      "input": "0.50",
+      "cache_write_5m": "0.625",
+      "cache_write_1h": "1",
+      "cache_read": "0.05",
+      "output": "2.50",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    },
+    "claude-haiku-4-5": {
+      "input": "1",
+      "cache_write_5m": "1.25",
+      "cache_write_1h": "2",
+      "cache_read": "0.10",
+      "output": "5",
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+      "read_on": "2026-10-09"
+    }
+  },
+  "aliases": {
+    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+    "claude-sonnet-4-5-20250929": "claude-sonnet-4-5"
+  },
+  "prompt_tiers": {
+    "claude-haiku-5-5": {
+      "over_tokens": 100000,
+      "key": "claude-haiku-5-5:over-100k"
+    }
+  }
+}
