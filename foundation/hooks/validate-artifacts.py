@@ -638,9 +638,35 @@ def plugin_paths(root: Path) -> list[tuple[str, Path]]:
             raise SystemExit(f"plugin '{name}' declares no source.path in the marketplace")
         path = root / subdir
         if not path.is_dir():
+            # A plugin hosted in another repository is listed here so the
+            # marketplace can install it, but it lives — and is validated — in
+            # that repository. A source that names a `url` says where, so this
+            # gate skips it rather than failing on a directory that is not ours.
+            # An entry with no such source and no directory is still a mistake.
+            if entry.get("source", {}).get("url"):
+                continue
             raise SystemExit(f"plugin '{name}' points at '{subdir}', which is not a directory")
         plugins.append((name, path))
-    return plugins
+    return plugins + uncatalogued(root, plugins)
+
+
+def uncatalogued(root: Path, catalogued: list[tuple[str, Path]]) -> list[tuple[str, Path]]:
+    """Plugins the tree carries that the marketplace does not list.
+
+    A fork keeps its parent's plugins in the tree for its own gates while
+    another marketplace publishes them. They are still validated, and still
+    resolve a qualified reference, under the name their own manifest gives.
+    """
+    names = {name for name, _ in catalogued}
+    paths = {path.resolve() for _, path in catalogued}
+    found = []
+    for manifest in sorted([*root.glob("*/.claude-plugin/plugin.json"), *root.glob("*/*/.claude-plugin/plugin.json")]):
+        path = manifest.parent.parent
+        name = json.loads(manifest.read_text(encoding="utf-8")).get("name")
+        if name and name not in names and path.resolve() not in paths:
+            found.append((name, path))
+            names.add(name)
+    return found
 
 
 def check_artifact(a: Artifact, index: dict[str, str], names: set[str], findings: list[Finding]) -> None:
