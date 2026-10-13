@@ -1021,7 +1021,16 @@ COLOURED = [("color.diff", "always")]
 EXTERNAL_DRIVER = [("diff.external", "/bin/true")]
 NO_PREFIX = [("diff.noprefix", "true")]
 
-GIT_IDENTITY = ("-c", "user.email=gate@example.invalid", "-c", "user.name=gate")
+GIT_IDENTITY = (
+    "-c",
+    "user.email=gate@example.invalid",
+    "-c",
+    "user.name=gate",
+    "-c",
+    "commit.gpgSign=false",
+    "-c",
+    "tag.gpgSign=false",
+)
 
 # --- the one property no repository can demonstrate ------------------------
 
