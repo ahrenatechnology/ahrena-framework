@@ -827,6 +827,44 @@ CASES = [
         },
         ["plugins depend in a cycle", "fixture-plugin -> other-plugin -> fixture-plugin"],
     ),
+    # #159/AC-1
+    case(
+        "a plugin hosted in another repository is catalogued, not validated here",
+        {
+            MARKETPLACE_PATH: json.dumps(
+                {
+                    "name": "fixture",
+                    "plugins": [
+                        {"name": "fixture-plugin", "source": {"path": "p"}},
+                        {
+                            "name": "external-plugin",
+                            "source": {
+                                "source": "git-subdir",
+                                "url": "https://example.com/other.git",
+                                "path": "elsewhere",
+                            },
+                        },
+                    ],
+                }
+            ),
+            **VALID_CORPUS,
+        },
+        ["5 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #159/AC-2
+    case(
+        "an entry with no directory and no source url still fails",
+        {
+            MARKETPLACE_PATH: json.dumps(
+                {
+                    "name": "fixture",
+                    "plugins": [{"name": "fixture-plugin", "source": {"path": "missing"}}],
+                }
+            ),
+        },
+        ["points at 'missing', which is not a directory"],
+    ),
 ]
 
 
