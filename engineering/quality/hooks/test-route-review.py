@@ -250,6 +250,9 @@ def problems_for(expect: int, present: list[str], absent: list[str], code: int, 
 def missing_from_shipped_table() -> list[str]:
     """#128/AC-6: every skill and every file the shipped table names exists in the tree."""
     plugins = {p["name"]: ROOT / p["source"]["path"] for p in json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text())["plugins"]}
+    # A fork may carry a plugin without cataloguing it, so the manifests in the tree also name plugins.
+    for manifest in ROOT.glob("**/.claude-plugin/plugin.json"):
+        plugins.setdefault(json.loads(manifest.read_text(encoding="utf-8"))["name"], manifest.parent.parent)
     missing = []
     for route in json.loads(SHIPPED.read_text(encoding="utf-8"))["routes"]:
         for name in [route["skill"], *route.get("opens", [])]:

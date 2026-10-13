@@ -143,6 +143,10 @@ TWO_PLUGINS = json.dumps(
 )
 MARKETPLACE_PATH = ".claude-plugin/marketplace.json"
 
+# A fork carries its parent's plugins without cataloguing them, so a plugin can
+# be named by its own manifest alone.
+ONE_PLUGIN = json.dumps({"name": "fixture", "plugins": [{"name": "fixture-plugin", "source": {"path": "p"}}]})
+
 # The engineering plugins sit one level down, as engineering/fundamentals and
 # engineering/python, so a source.path is a path and not a directory name.
 NESTED_PLUGINS = json.dumps(
@@ -864,6 +868,29 @@ CASES = [
             ),
         },
         ["points at 'missing', which is not a directory"],
+    ),
+    # #159/AC-6
+    case(
+        "a plugin the tree carries but the marketplace does not list resolves a qualified reference",
+        {
+            MARKETPLACE_PATH: ONE_PLUGIN,
+            "q/.claude-plugin/plugin.json": json.dumps({"name": "other-plugin"}),
+            "q/docs/neighbour.md": NEIGHBOUR_DOC,
+            "p/rules/bounded.md": qualified("other-plugin:docs/neighbour.md"),
+        },
+        ["2 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #159/AC-6
+    case(
+        "a plugin the tree carries but the marketplace does not list is still validated",
+        {
+            MARKETPLACE_PATH: ONE_PLUGIN,
+            "q/.claude-plugin/plugin.json": json.dumps({"name": "other-plugin"}),
+            "q/docs/neighbour.md": NEIGHBOUR_DOC.replace("summary: A doc that passes.", "summary: TODO <fill this in>"),
+            **VALID_CORPUS,
+        },
+        ["1 failure(s)", "field 'summary' still carries the marker 'TODO'"],
     ),
 ]
 
