@@ -1,0 +1,24 @@
+{
+  "name": "ahrena-costs",
+  "version": "0.1.0",
+  "description": "What each issue cost to build: a hook that records a session's tokens and time when it ends, a ledger outside every repository, a price table kept as data, a report per issue in tokens, hours and money, and one cost comment per pull request that local sessions and the CI pipeline both keep up to date.",
+  "author": {
+    "name": "Ahrena Technology",
+    "url": "https://github.com/ahrenatechnology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/costs",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "cost",
+    "tokens",
+    "usage",
+    "pricing",
+    "hooks",
+    "issues",
+    "pull-requests",
+    "ci",
+    "claude-code"
+  ],
+  "hooks": "./runtime/hooks.json"
+}
