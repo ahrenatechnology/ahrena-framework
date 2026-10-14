@@ -1,0 +1,66 @@
+# A worked component map, showing every top-level key in full.
+# This is an illustration of the schema, not a map any project must adopt.
+# A real project states only what differs from the framework defaults;
+# an absent key or entry is silence, and silence resolves to the default.
+# The schema itself is defined in docs/component-map.md.
+
+# glossary: canonical framework term -> this project's word.
+# The left side is the framework's term; the right side is what the
+# project's code and stakeholders actually say. Resolve to the right side.
+glossary:
+  use_case: workflow
+  aggregate: record
+  repository: store
+  domain_event: signal
+
+# components: the parts of the system. Match by concern and paths before
+# reading conventions or stack, so you read the slice that applies.
+components:
+  - name: api
+    concern: backend          # backend | frontend | data
+    paths: [services/api]
+    language: pt-BR            # natural language of the domain vocabulary
+    stack: [nestjs, prisma]
+  - name: web
+    concern: frontend
+    paths: [apps/web]
+    language: pt-BR
+    stack: [next, react]
+  - name: warehouse
+    concern: data
+    paths: [data/warehouse]
+    language: en
+    stack: [dbt, bigquery]
+
+# conventions: layout and naming, written in the project's translated terms.
+# `folders` is the sanctioned set — a folder not listed is one you do not invent.
+conventions:
+  layout: feature-first
+  folders: [workflows, records, stores, signals]
+  naming: snake_case
+
+# testing: per-lane philosophy and tools. Overridable defaults — a stated
+# entry replaces the framework default for this project, it does not merge.
+# Lanes: contract, workbench, visual, e2e, a11y, quality.
+testing:
+  contract:
+    philosophy: author the contract, test the service against it
+    tools: [pact]
+  workbench:
+    philosophy: isolate each unit, no network
+    tools: [jest]
+  visual:
+    philosophy: snapshot the components that carry brand
+    tools: [chromatic]
+  e2e:
+    philosophy: critical paths only, run before release
+    tools: [playwright]
+  a11y:
+    philosophy: WCAG 2.1 AA on every public page
+    tools: [axe]
+  quality:
+    philosophy: lint and type-check block the merge
+    tools: [eslint, tsc]
+
+# delivery: the primary surface. One of rest | grpc | graphql | cli | tui.
+delivery: rest
