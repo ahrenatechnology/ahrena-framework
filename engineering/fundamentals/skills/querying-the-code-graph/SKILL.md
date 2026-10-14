@@ -7,6 +7,7 @@ subclade: architecture
 references:
   - docs/code-graph.md
   - docs/component-map.md
+  - skills/provisioning-the-code-graph/SKILL.md
 ---
 
 # Querying the code graph
@@ -90,16 +91,21 @@ decoupled, which is what you want to confirm before asserting they are.
 ## 5. Read the overview with `explain`
 
 To read the macro shape — god nodes, communities, and a plain-language account
-of a node — use `explain`, which draws on the Graphify macro tier.
+of a node — use `explain`, which draws on the Graphify macro tier. Because that
+tier is optional, ensure it first through the doctor
+([`skills/provisioning-the-code-graph`](../provisioning-the-code-graph/SKILL.md)),
+which builds it when Graphify is present and reports exactly what it needs when
+it is not.
 
 ```sh
 python3 scripts/graph.py explain <node>
 ```
 
 This is the planning-time question, paid once and amortised across a plan. When
-the macro tier is unavailable, `explain` says so rather than failing;
-`references/commands.md` gives the exact output in that case and when to fall
-back to reading the component map.
+the macro tier is unavailable, `explain` does not fail — it names the doctor and
+`/graph-doctor` as the way to provision it, and the guaranteed light floor keeps
+answering `locate`/`deps`/`path` meanwhile; `references/commands.md` gives the
+exact output in that case and when to fall back to reading the component map.
 
 ## When this skill does not apply
 

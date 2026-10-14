@@ -28,6 +28,25 @@ per-language index (always available, Python via the standard-library scan), the
 tree-sitter grammars (present or absent), and the Graphify macro tier (present
 or absent).
 
+## Provisioning
+
+The `doctor` command is the provisioning path for the optional macro tier. It
+is driven by the `provisioning-the-code-graph` skill and by `/graph-doctor`, and
+it **ensures-or-reports**: it readies the macro tier where it safely can, and
+otherwise prints exactly how to enable it. It never installs Graphify, which is
+a personal skill rather than a package, and it never hard-fails on an absent
+tier.
+
+| Command | What it does |
+|---|---|
+| `doctor` | Prints the two-tier status and changes nothing. The **light tier** is reported ready (stdlib floor), with tree-sitter grammar availability per language found in the tree; the **macro tier** reports whether `graphify` is on PATH *and* whether a build (`graphify-out/graph.json`, or the commit cache's `graphify/graph.json`) exists, plus `to enable` lines when it does not. |
+| `doctor --build` | When `graphify` is on PATH, (re)builds the macro graph via `graphify update <root>` (no network, no LLM). When it is absent, reports how to enable Graphify and builds nothing. |
+| `doctor --install-grammars` | Installs the tree-sitter grammar distributions the detected non-Python languages lack, via `python3 -m pip install`, when pip is importable. When pip is absent, degrades to printing the exact `pip install` line to run elsewhere. Python needs no grammar; a Python-only tree installs nothing. |
+
+`doctor` exits 0 whether or not the macro tier is available — the absent tier is
+a reported status, not a failure. A malformed invocation (an unknown flag) exits
+2. The flags compose: `doctor --build --install-grammars` provisions both.
+
 ## Queries
 
 Every query runs `refresh` implicitly first, so a query is always answered
@@ -50,9 +69,10 @@ against a current cache.
 
 ## Degradation, per tier
 
-- **Graphify absent.** `locate`, `deps` and `path` answer from the light index.
-  `explain` reports the macro tier unavailable and suggests reading the component
-  map for the declared structure.
+- **Graphify absent, or present with no build yet.** `locate`, `deps` and `path`
+  answer from the light index. `explain` reports the macro tier unavailable,
+  points at `doctor` / `/graph-doctor` to provision it, and suggests reading the
+  component map for the declared structure meanwhile.
 - **tree-sitter absent.** The light tier uses the standard-library scan. Python
   is fully indexed through the `ast` module. A file in a language no indexer
   covers is recorded as present but unindexed, and a query over it returns the

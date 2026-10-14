@@ -26,6 +26,7 @@ Degradation is deliberate and reported, never silent:
 Usage:
     python3 scripts/graph.py refresh
     python3 scripts/graph.py --check
+    python3 scripts/graph.py doctor [--build] [--install-grammars]
     python3 scripts/graph.py locate <path-or-symbol>
     python3 scripts/graph.py deps <path-or-module>
     python3 scripts/graph.py path <from> <to>
@@ -66,6 +67,32 @@ CACHE_ROOT = (".ahrena", "graph")
 # is, `locate` simply omits the component. Reading the map properly is the
 # reading-the-component-map skill's job; this is a convenience, not that skill.
 MAP_NAMES = ("component-map.yaml", "component-map.yml", "ahrena.yaml", "ahrena.yml")
+
+# The languages the doctor reports tree-sitter grammar availability for, keyed by
+# file extension. Python is special: the stdlib `ast` scan covers it with zero
+# install, so a grammar is never needed for it. For every other language the
+# macro tier and a richer light index want a tree-sitter grammar, whose import
+# module is the value here; its pip distribution is the module with underscores
+# turned to hyphens (tree_sitter_go -> tree-sitter-go).
+LANGUAGE_GRAMMARS = {
+    ".py": ("python", "tree_sitter_python"),
+    ".js": ("javascript", "tree_sitter_javascript"),
+    ".jsx": ("javascript", "tree_sitter_javascript"),
+    ".mjs": ("javascript", "tree_sitter_javascript"),
+    ".ts": ("typescript", "tree_sitter_typescript"),
+    ".tsx": ("typescript", "tree_sitter_typescript"),
+    ".go": ("go", "tree_sitter_go"),
+    ".rs": ("rust", "tree_sitter_rust"),
+    ".rb": ("ruby", "tree_sitter_ruby"),
+    ".java": ("java", "tree_sitter_java"),
+    ".c": ("c", "tree_sitter_c"),
+    ".h": ("c", "tree_sitter_c"),
+    ".cc": ("cpp", "tree_sitter_cpp"),
+    ".cpp": ("cpp", "tree_sitter_cpp"),
+    ".hpp": ("cpp", "tree_sitter_cpp"),
+    ".cs": ("c_sharp", "tree_sitter_c_sharp"),
+    ".php": ("php", "tree_sitter_php"),
+}
 
 
 # --- the repository the run is keyed to ------------------------------------
@@ -413,14 +440,151 @@ def _shortest_path(index: dict, start: str, goal: str) -> list[str] | None:
     return None
 
 
-def cmd_explain(tiers: Tiers, node: str) -> int:
-    if not tiers.graphify:
-        print(f"the macro tier is unavailable (Graphify is not on PATH), so '{node}' cannot be")
-        print("explained from the overview. Read the component map for the declared structure,")
-        print("or query locate/deps/path on the light index instead.")
+def cmd_explain(root: Path, tiers: Tiers, node: str) -> int:
+    if not tiers.graphify or macro_build(root) is None:
+        why = "Graphify is not on PATH" if not tiers.graphify else "no macro graph is built yet"
+        print(f"the macro tier is unavailable ({why}), so '{node}' cannot be explained from the")
+        print("overview. Run the doctor to provision it or read exactly what it needs:")
+        print("  python3 scripts/graph.py doctor        (report what the macro tier needs)")
+        print("  python3 scripts/graph.py doctor --build (build it, when Graphify is present)")
+        print("Meanwhile the light floor still answers: query locate/deps/path, or read the")
+        print("component map for the declared structure.")
         return 0
     done = subprocess.run(["graphify", "explain", node])
     return done.returncode
+
+
+# --- the doctor: provisioning the macro tier, ensure-or-report -------------
+
+
+def macro_build(root: Path) -> Path | None:
+    """Where the macro tier's build is, or None when none exists yet.
+
+    Graphify writes under the commit's cache directory, and its personal-skill
+    form writes `graphify-out/` at the repository root. Either counts as a build.
+    """
+    for graph_json in (
+        cache_dir(root, head_sha(root)) / "graphify" / "graph.json",
+        root / "graphify-out" / "graph.json",
+    ):
+        if graph_json.is_file():
+            return graph_json.parent
+    return None
+
+
+def languages_present(root: Path) -> dict[str, str]:
+    """The languages the tree holds, mapped to their tree-sitter grammar module."""
+    found: dict[str, str] = {}
+    for path in root.rglob("*"):
+        if not path.is_file() or not SKIP_DIRS.isdisjoint(path.relative_to(root).parts):
+            continue
+        entry = LANGUAGE_GRAMMARS.get(path.suffix)
+        if entry:
+            found[entry[0]] = entry[1]
+    return dict(sorted(found.items()))
+
+
+def grammar_lines(languages: dict[str, str]) -> list[str]:
+    """One report line per language found: how its grammar stands."""
+    if not languages:
+        return ["  languages   : none detected in the tree"]
+    lines = []
+    for language, module in languages.items():
+        if language == "python":
+            note = "covered by stdlib ast (no grammar needed)"
+        elif importlib.util.find_spec(module) is not None:
+            note = f"grammar present ({module})"
+        else:
+            note = f"grammar absent ({module.replace('_', '-')})"
+        lines.append(f"  - {language:<12}: {note}")
+    return lines
+
+
+def missing_grammar_dists(languages: dict[str, str], have_tree_sitter: bool) -> list[str]:
+    """The pip distributions `--install-grammars` would install, in order.
+
+    Python is excluded: the stdlib `ast` scan covers it. The tree-sitter runtime
+    leads the list only when a grammar actually needs it — on a Python-only tree
+    there is nothing to install and the runtime alone would buy nothing.
+    """
+    grammars = [
+        module.replace("_", "-")
+        for language, module in languages.items()
+        if language != "python" and importlib.util.find_spec(module) is None
+    ]
+    if grammars and not have_tree_sitter:
+        return ["tree-sitter", *grammars]
+    return grammars
+
+
+def provision_grammars(dists: list[str]) -> int:
+    """Install the grammar distributions when pip is here; otherwise report how.
+
+    Opt-in and safe: tree-sitter grammars are published pip packages. This never
+    touches Graphify, which is a personal skill and never a thing to install.
+    """
+    print()
+    if not dists:
+        print("  install-grammars: nothing to install; every detected language is covered")
+        return 0
+    if importlib.util.find_spec("pip") is None:
+        print("  install-grammars: pip is not available here, so this can only report.")
+        print(f"  run this where pip is present: python3 -m pip install {' '.join(dists)}")
+        return 0
+    print(f"  install-grammars: python3 -m pip install {' '.join(dists)}")
+    done = subprocess.run([sys.executable, "-m", "pip", "install", *dists])
+    print(f"  install-grammars: {'done' if done.returncode == 0 else 'pip exited ' + str(done.returncode)}")
+    return 0
+
+
+def provision_macro(root: Path, tiers: Tiers) -> int:
+    """(Re)build the macro graph when Graphify is present; otherwise report how."""
+    print()
+    if not tiers.graphify:
+        print("  build: Graphify is not on PATH, so the macro tier cannot be built here.")
+        print("  Graphify is a personal skill, never an installed package. Enable it by")
+        print("  installing the skill at ~/.claude/skills/graphify/ and putting `graphify`")
+        print("  on PATH; this doctor detects it and never installs it for you.")
+        return 0
+    print(f"  build: graphify update {root}")
+    done = subprocess.run(["graphify", "update", str(root)], cwd=str(root))
+    print(f"  build: {'done' if done.returncode == 0 else 'graphify exited ' + str(done.returncode)}")
+    return 0
+
+
+def cmd_doctor(root: Path, tiers: Tiers, build: bool, install_grammars: bool) -> int:
+    sha = head_sha(root)
+    cache = cache_dir(root, sha)
+    state = "fresh" if is_fresh(cache, freshness_key(root, sha)) else "stale"
+    languages = languages_present(root)
+    build_dir = macro_build(root)
+
+    print("code-graph doctor")
+    print(f"  repo  : {root}")
+    print(f"  cache : {cache} ({state})")
+    print()
+    print("light tier (the guaranteed floor, zero install)")
+    print("  index       : ready, Python via stdlib ast; locate/deps/path always answer")
+    print(f"  tree-sitter : {'present' if tiers.tree_sitter else 'absent (stdlib ast still answers for Python)'}")
+    for line in grammar_lines(languages):
+        print(line)
+    print()
+    print("macro tier (optional Graphify enrichment, provisioned here)")
+    where = shutil.which("graphify")
+    print(f"  graphify    : {'on PATH at ' + where if where else 'not on PATH'}")
+    print(f"  build       : {'present at ' + str(build_dir) if build_dir else 'absent'}")
+    ready = tiers.graphify and build_dir is not None
+    print(f"  status      : {'ready' if ready else 'unavailable'}")
+    if not ready:
+        print("  to enable   : Graphify is the owner's personal skill, not a package. This")
+        print("                doctor never installs it. Put `graphify` on PATH (install the")
+        print("                skill at ~/.claude/skills/graphify/), then run `doctor --build`.")
+
+    if build:
+        provision_macro(root, tiers)
+    if install_grammars:
+        provision_grammars(missing_grammar_dists(languages, tiers.tree_sitter))
+    return 0
 
 
 # --- entry point -----------------------------------------------------------
@@ -467,8 +631,15 @@ def main(argv: list[str]) -> int:
         return cmd_refresh(root, tiers)
 
     command, rest = args[0], args[1:]
+    if command == "doctor":
+        flags = set(rest)
+        unknown = flags - {"--build", "--install-grammars"}
+        if unknown:
+            print(f"usage: graph.py doctor [--build] [--install-grammars]", file=sys.stderr)
+            return 2
+        return cmd_doctor(root, tiers, "--build" in flags, "--install-grammars" in flags)
     if command == "explain":
-        return cmd_explain(tiers, rest[0]) if _needs(rest, 1, "explain <node>") else 2
+        return cmd_explain(root, tiers, rest[0]) if _needs(rest, 1, "explain <node>") else 2
 
     # Every other query is answered against a current cache.
     _, _, _ = ensure_fresh(root)
