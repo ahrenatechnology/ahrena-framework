@@ -4,3 +4,8 @@ __pycache__/
 # Parallel agents run in isolated worktrees here. Each is a full checkout of
 # this repository whose .git file points at a path that exists on one machine.
 .claude/worktrees/
+
+# The code graph is a cache regenerated at the point of use, keyed by commit.
+# It is a derived tree, so it is never committed (ADR-016).
+.ahrena/
+graphify-out/
