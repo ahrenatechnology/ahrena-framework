@@ -9,6 +9,7 @@ references:
   - skills/designing-wireframes/SKILL.md
   - skills/testing-frontend/SKILL.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
+  - ahrena-engineering-fundamentals:skills/querying-the-code-graph/SKILL.md
   - ahrena-contributing:skills/stacking-pull-requests/SKILL.md
 ---
 
@@ -21,6 +22,8 @@ A feature is built from the outside in, in four layers that nest: the wireframe 
 Before naming or creating anything, run [`ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md`](../../../fundamentals/skills/reading-the-component-map/SKILL.md). Take the project's words, its sanctioned folders, the frontend component's stack, and — this is the one this clade leans on hardest — its `testing` lane.
 
 The recurring failure is building in this clade's default vocabulary. The tools named in `testing-frontend` are framework defaults the project's map overrides; a folder the project has not sanctioned is a folder you do not invent. If you did not read the map, you have not earned the right to name a folder.
+
+Beside the map, query the actual structure through [`ahrena-engineering-fundamentals:skills/querying-the-code-graph/SKILL.md`](../../../fundamentals/skills/querying-the-code-graph/SKILL.md): `locate` the paths this feature will touch to find which existing component owns them, and `deps` to read what they depend on and what depends on them, so the change is placed and scoped before a line is written. The map is the structure the project declares; the graph is the structure that is. Where the two disagree, surface the drift rather than resolving it here.
 
 ## 2. Lead with the behaviour scenario
 

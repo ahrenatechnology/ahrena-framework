@@ -7,6 +7,7 @@ subclade: delivery
 references:
   - docs/clef-decision-gate.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
+  - ahrena-engineering-fundamentals:skills/querying-the-code-graph/SKILL.md
 ---
 
 # Routing a concern
@@ -31,6 +32,8 @@ kind: "schema | mart | pipeline"       -> data
 ```
 
 Keep the table's own rules short and decidable. A longer worked table, with multi-signal rows and the cross-concern cases, is in [`references/route-table.example.yaml`](references/route-table.example.yaml); open it when a concern carries more than one signal or spans two components.
+
+Ground the table's path rows in the actual structure, not a glob alone. Through [`ahrena-engineering-fundamentals:skills/querying-the-code-graph/SKILL.md`](../../../fundamentals/skills/querying-the-code-graph/SKILL.md), `locate` each path the concern changes to the component that owns it, and route to that component's concern. This strengthens the deterministic tier — not Clef — by mapping a path to a clade by what actually imports it. A path the graph places in one component and the table's globs place in another is drift to surface, not a tie to hand to Clef.
 
 ## 3. Consult the Clef gate when the table is inconclusive
 

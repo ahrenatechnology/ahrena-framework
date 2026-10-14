@@ -8,6 +8,7 @@ references:
   - skills/driving-with-tdd/SKILL.md
   - skills/specifying-with-bdd/SKILL.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
+  - ahrena-engineering-fundamentals:skills/querying-the-code-graph/SKILL.md
   - ahrena-engineering-fundamentals:rules/aggregates.md
   - ahrena-engineering-fundamentals:rules/domain-model.md
   - ahrena-engineering-fundamentals:rules/contract-first.md
@@ -23,6 +24,8 @@ A capability is built from the inside out, in four layers that nest: the domain 
 Before naming or creating anything, run [`ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md`](../../../fundamentals/skills/reading-the-component-map/SKILL.md). Take the project's words, its sanctioned folders, the backend component's stack, and its `testing` lanes.
 
 The recurring failure is building in this clade's default vocabulary. The use case, the aggregate, the port and the repository are canonical terms; the project's glossary overrides them, and if the project calls a use case a `workflow`, that is the word and the folder. A directory the project has not sanctioned — a `use_cases/` you invented — is condition 3 of the ubiquitous-language rule failing. If you did not read the map, you have not earned the right to name a folder.
+
+Beside the map, query the actual structure through [`ahrena-engineering-fundamentals:skills/querying-the-code-graph/SKILL.md`](../../../fundamentals/skills/querying-the-code-graph/SKILL.md): `locate` the paths this capability will touch to find which existing component owns them, and `deps` to read what they depend on and what depends on them, so the change is placed and scoped before a line is written. The map is the structure the project declares; the graph is the structure that is. Where the two disagree, surface the drift rather than resolving it here.
 
 ## 2. Lead with the behaviour scenario
 
