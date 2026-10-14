@@ -30,7 +30,7 @@ All three no means a line in the decision log, and you are finished. So does the
 ls docs/adr/ADR-*.md | tail -1
 ```
 
-Add one and pad to three digits. Numbers are never reused and never skipped, so if two of you are writing at once, agree who takes which before either writes a file — condition 2 fails a duplicate and a gap alike, and it fails them for whoever pulls next rather than for whoever caused it.
+Add one and pad to three digits. Numbers are never reused and never skipped, so if two of you are writing at once, agree who takes which before either writes a file — condition 2 fails a duplicate and a gap alike, and it fails them for whoever pulls next rather than for whoever caused it. When coordination fails and two branches take the same number, step 6 recovers it.
 
 ## 3. Copy the template and fill it
 
@@ -60,7 +60,19 @@ python3 contributing/hooks/check-decision-records.py docs/adr
 
 It decides the seven conditions in `rules/decision-records.md` over the whole directory and everything under it, not just the new file, which is how it catches the half-written supersession and the gap a deletion left. CI runs the same hook with no argument, against `docs/adr`.
 
-## 6. Put the entry in the log and point it at the record
+## 6. When the number collides
+
+The gate in step 5 reads one tree, so it cannot see a number two open branches both take: each branch holds only its own new record and passes alone, and the collision surfaces only once both reach one tree, at rebase or at land. The forge-tier `check-decision-records-numbers.py` catches it earlier, on the pull request before merge, where it sees trunk and every other open branch at once — a number this branch introduces that trunk already carries, or that another open branch also introduces.
+
+The fix is the same edit every time, so it is a script. Point it at the record that has to move:
+
+```sh
+python3 contributing/skills/writing-decision-records/scripts/renumber-decision-record.py docs/adr/ADR-nnn-slug.md
+```
+
+It takes the next free number and moves the file, its heading, its index row in the directory's README and every slug-qualified reference with it. A bare `ADR-nnn` — the number with no slug — it leaves alone and lists at the end, because the number alone does not say which of the two colliding records is meant; a new record has none. The edit is mechanical, so the forge check's finding names this script and the fixer applies it; `scripts/test-renumber-decision-record.py` holds its cases.
+
+## 7. Put the entry in the log and point it at the record
 
 The record does not replace the log entry. Every decision keeps its one line in the project's decision log, and a line whose decision earned a record cites it by number.
 
