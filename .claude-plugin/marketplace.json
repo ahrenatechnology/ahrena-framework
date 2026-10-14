@@ -98,6 +98,30 @@
       ]
     },
     {
+      "name": "ahrena-engineering-data",
+      "description": "Data built source→product, contract-first: four layers that stack as stacked pull requests — schema, medallion, expectations, marts — the data contract authored first and the later layers evolving from it, every mart reconciled to its source, all conforming to the project's component map.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/data",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/data",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "data",
+        "medallion",
+        "data-contracts",
+        "dbt",
+        "great-expectations",
+        "bronze-silver-gold",
+        "marts",
+        "contract-first"
+      ]
+    },
+    {
       "name": "ahrena-engineering-python",
       "description": "What is specific to Python: a distribution per layer under a PEP 420 namespace root, a dependency direction that only runs downward, and an import graph a script proves acyclic.",
       "version": "0.1.0",

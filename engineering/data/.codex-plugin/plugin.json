@@ -1,0 +1,12 @@
+{
+  "name": "ahrena-engineering-data",
+  "version": "0.1.0",
+  "description": "Data built source→product, contract-first: four layers that stack as stacked pull requests — schema, medallion, expectations, marts — the data contract authored first and the later layers evolving from it, every mart reconciled to its source, all conforming to the project's component map.",
+  "author": { "name": "Ahrena Technology", "url": "https://github.com/ahrenatechnology" },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/data",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": ["data", "medallion", "data-contracts", "dbt", "great-expectations", "bronze-silver-gold", "marts", "contract-first"],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}
