@@ -1,0 +1,23 @@
+{
+  "name": "ahrena-engineering-observability",
+  "version": "0.1.0",
+  "description": "Observability as a review discipline: whether a failure leaves a log a human can act on, a critical operation emits a metric or event, a log line carries the what and where to diagnose it, and a service edge carries a correlation id - without ever logging sensitive data.",
+  "author": {
+    "name": "Ahrena Technology",
+    "url": "https://github.com/ahrenatechnology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/observability",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "observability",
+    "logging",
+    "metrics",
+    "tracing",
+    "telemetry",
+    "correlation-id",
+    "code-review"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

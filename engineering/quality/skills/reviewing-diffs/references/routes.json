@@ -208,6 +208,43 @@
       ]
     },
     {
+      "id": "reliability",
+      "skill": "ahrena-engineering-reliability:skills/reviewing-reliability/SKILL.md",
+      "why": "an added line makes an outbound call, retries, acquires a resource, leans on a dependency, or alters a schema destructively",
+      "opens": [
+        "ahrena-engineering-reliability:skills/reviewing-reliability/references/conditions.md"
+      ],
+      "paths": [
+        "\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php|sql)$",
+        "(^|/)(migrations|alembic)/.+"
+      ],
+      "lines": [
+        "(?i)\\b(requests|httpx|aiohttp|urllib|urlopen|axios|fetch|boto3|session)\\b.*\\(|\\bhttp\\.(get|post|request|client)\\b",
+        "(?i)\\b(execute|executemany|cursor|query|connect|createconnection|connectionpool|getconnection)\\s*\\(",
+        "(?i)\\b(try|except|catch|rescue|recover|finally)\\b",
+        "(?i)\\b(timeout|deadline|retr(y|ies)|backoff|circuit|fallback|degrade|idempoten)\\w*",
+        "(?i)\\b(open|socket|connect|acquire|dial|lock)\\s*\\(",
+        "(?i)(drop\\s+(table|column|index)|truncate\\s+table|alter\\s+table\\b.*\\bdrop|delete\\s+from|drop_column|drop_table|drop_index|remove_column)"
+      ]
+    },
+    {
+      "id": "observability",
+      "skill": "ahrena-engineering-observability:skills/reviewing-observability/SKILL.md",
+      "why": "an added line logs, emits a metric or a trace, or handles an error where one of those belongs",
+      "opens": [
+        "ahrena-engineering-observability:skills/reviewing-observability/references/conditions.md"
+      ],
+      "paths": [
+        "\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php)$"
+      ],
+      "lines": [
+        "(?i)\\b(log(ger|ging)?|console|slog|zap|logrus|winston|pino|structlog)\\.(trace|debug|info|warn|warning|error|exception|fatal|critical|log)\\b",
+        "(?i)\\b(metrics?|counter|gauge|histogram|statsd|prometheus|telemetry|opentelemetry|otel|datadog|sentry)\\b",
+        "(?i)\\b(tracer?|span|trace[_-]?id|correlation[_-]?id|request[_-]?id)\\w*",
+        "(?i)\\b(except|catch|rescue|recover)\\b"
+      ]
+    },
+    {
       "id": "language-models",
       "skill": "ahrena-engineering-security:skills/reviewing-model-use/SKILL.md",
       "why": "an added line builds a prompt, calls a model, acts on a completion or defines a tool",
