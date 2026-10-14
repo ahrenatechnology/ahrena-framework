@@ -91,7 +91,7 @@ ready or names its cost. Whether a given plan needs the overview at all is a
 judgment the planning step makes, not a step this skill takes on its behalf.
 
 **Changing what the graph is.** The tiers, the cache and the guarantee split are
-fixed by [`docs/code-graph.md`](../../docs/code-graph.md) and `ADR-015`. This
+fixed by [`docs/code-graph.md`](../../docs/code-graph.md) and `ADR-016`. This
 skill provisions within that shape; it does not amend it.
 
 <!--

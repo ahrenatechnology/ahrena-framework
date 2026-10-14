@@ -79,7 +79,7 @@ dependency this framework installs, so the macro tier is provisioned at work
 time by the doctor (`scripts/graph.py doctor`, run through
 [`skills/provisioning-the-code-graph`](../skills/provisioning-the-code-graph/SKILL.md)
 or `/graph-doctor`), which readies it where Graphify is present and otherwise
-reports exactly how to enable it while the floor keeps answering. `ADR-015`
+reports exactly how to enable it while the floor keeps answering. `ADR-016`
 holds the architecture decision behind this; the doctor only provisions within
 its shape.
 
