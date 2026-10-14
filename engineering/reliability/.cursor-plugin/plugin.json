@@ -1,0 +1,23 @@
+{
+  "name": "ahrena-engineering-reliability",
+  "displayName": "Ahrena Engineering Reliability",
+  "version": "0.1.0",
+  "description": "Reliability as a review discipline: the timeout a call needs to survive a slow peer, the retry that needs a backoff and a bound, the effect that must stay idempotent under redelivery, the resource that must be released, the dependency that owes a degradation, and the destructive change that must carry a reversal.",
+  "author": {
+    "name": "Ahrena Technology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/reliability",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "reliability",
+    "resilience",
+    "timeout",
+    "retry",
+    "idempotency",
+    "fallback",
+    "code-review"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}
