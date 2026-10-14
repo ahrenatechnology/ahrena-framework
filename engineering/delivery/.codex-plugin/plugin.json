@@ -1,0 +1,12 @@
+{
+  "name": "ahrena-engineering-delivery",
+  "version": "0.1.0",
+  "description": "Delivery orchestrated issue→stacked-PRs: Athena, the tech-lead, plans a change, routes each concern deterministic-first — a route table, then the Clef decision gate, then a human — delegates to the build clades, runs the develop→Argos loop before each layer opens, and escalates when it is exhausted.",
+  "author": { "name": "Ahrena Technology", "url": "https://github.com/ahrenatechnology" },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/delivery",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": ["delivery", "orchestration", "tech-lead", "routing", "stacked-prs", "planning", "escalation"],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}
