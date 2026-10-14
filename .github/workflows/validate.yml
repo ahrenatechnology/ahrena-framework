@@ -80,6 +80,9 @@ jobs:
       - name: Test the decision-record renumber script
         run: python3 contributing/skills/writing-decision-records/scripts/test-renumber-decision-record.py
 
+      - name: Test the decision-record-numbers hook
+        run: python3 contributing/hooks/test-check-decision-records-numbers.py
+
       - name: Test the pull-request hook
         run: python3 contributing/hooks/test-check-pull-request.py
 
@@ -210,6 +213,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python3 contributing/hooks/check-stack.py
+
+      # The forge-tier companion to the decision-records check above: a number
+      # this pull request introduces that trunk already carries, or that
+      # another open pull request also introduces. The tree check cannot see
+      # it; both read one tree, and a collision lives across two.
+      - name: Check the decision-record numbers across pull requests
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 contributing/hooks/check-decision-records-numbers.py
 
       # The criteria of every issue this pull request closes, read from the
       # issues, against the tests in this checkout. ADR-007.
