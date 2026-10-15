@@ -70,6 +70,19 @@ Collapsing the two into one tier makes the cheap, constant question pay the
 expensive, rare question's price on every call, which is the cost profile a
 build agent can least afford.
 
+The two tiers carry different guarantees, and the split is deliberate. The light
+tier is the **always-available floor**: it is standard-library only, needs zero
+install, and `locate`, `deps` and `path` answer over Python on any bare
+checkout — nothing has to be provisioned for it to work. The macro tier is
+**optional enrichment**: Graphify is the owner's personal skill rather than a
+dependency this framework installs, so the macro tier is provisioned at work
+time by the doctor (`scripts/graph.py doctor`, run through
+[`skills/provisioning-the-code-graph`](../skills/provisioning-the-code-graph/SKILL.md)
+or `/graph-doctor`), which readies it where Graphify is present and otherwise
+reports exactly how to enable it while the floor keeps answering. `ADR-016`
+holds the architecture decision behind this; the doctor only provisions within
+its shape.
+
 ## How a session refreshes the graph
 
 Freshness is self-healing: the capability maintains it, rather than a gate

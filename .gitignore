@@ -6,6 +6,7 @@ __pycache__/
 .claude/worktrees/
 
 # The code graph is a cache regenerated at the point of use, keyed by commit.
-# It is a derived tree, so it is never committed (ADR-016).
+# It is a derived tree, so it is never committed (ADR-016). `.ahrena/` holds the
+# light-tier index; `graphify-out/` is the macro-tier build the doctor writes.
 .ahrena/
 graphify-out/
