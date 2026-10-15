@@ -6,7 +6,8 @@
 // each red→green test step as its own row rather than a coarse "build frontend".
 //
 // The shape it encodes is the portable spec (skills/orchestrating-delivery):
-//   plan the issue -> for each routed layer, run that builder's test-step arc
+//   ensure the issue (find-or-create) -> plan it -> for each routed layer, run
+//   that builder's test-step arc
 //   (mirroring the clade's testing skill) then the Argos<=3 review loop -> stack.
 // It writes no production code itself; every agent() call delegates to a
 // specialist — Iris/Apollo/Clio for the steps, Argos/Erodos for the loop —
@@ -31,7 +32,7 @@ export const meta = {
   name: 'athena-delivery',
   description: "Athena's loop: plan, then per routed layer run the builder's test-step arc + Argos<=3 loop, then stack",
   phases: [
-    { title: 'Plan', detail: 'decompose the issue into typed, ordered, routed layers' },
+    { title: 'Plan', detail: 'ensure the issue (find-or-create), then decompose it into typed, ordered, routed layers' },
     { title: 'Iris · Wireframe', detail: 'designer + Playwright e2e skeleton (red)' },
     { title: 'Iris · Components', detail: 'storybook, snapshot, visual regression, axe' },
     { title: 'Iris · State', detail: 'interaction + unit' },
@@ -63,6 +64,15 @@ const STEP_SCHEMA = {
     },
   },
   required: ['lane', 'status'],
+}
+
+const ISSUE_SCHEMA = {
+  type: 'object',
+  properties: {
+    issue: { type: 'string' }, // the number the branch and every PR carry
+    opened: { type: 'boolean' }, // true when opening-issues created it
+  },
+  required: ['issue'],
 }
 
 const PLAN_SCHEMA = {
@@ -223,11 +233,22 @@ const BUILDERS = {
   },
 }
 
-// --- 1. Plan the issue into typed, ordered, routed layers -------------------
+// --- 1. Ensure the issue exists, then plan it into routed layers ------------
 
 phase('Plan')
 
-const issue = args && args.issue ? args.issue : '(none supplied)'
+// Issue-first: the branch and every PR carry the issue number, so the issue
+// precedes the plan. Athena takes the received issue, or opens one via
+// opening-issues (find-or-create) when work arrived without — before planning.
+const received = args && args.issue ? args.issue : null
+const ensured = await agent(
+  received
+    ? `Confirm issue ${received} owns this work via opening-issues, then return its number.`
+    : `No issue received: open one via opening-issues (find-or-create), then return its number.`,
+  { label: 'athena:issue:ensure', phase: 'Plan', schema: ISSUE_SCHEMA },
+)
+const issue = (ensured && ensured.issue) || received || '(none supplied)'
+
 let planned = args && Array.isArray(args.layers) ? args.layers : null
 if (!planned) {
   const result = await agent(
