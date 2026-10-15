@@ -122,6 +122,29 @@
       ]
     },
     {
+      "name": "ahrena-engineering-delivery",
+      "description": "Delivery orchestrated issue→stacked-PRs: Athena, the tech-lead, plans a change, routes each concern deterministic-first — a route table, then the Clef decision gate, then a human — delegates to the build clades, runs the develop→Argos loop before each layer opens, and escalates when it is exhausted.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/delivery",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/delivery",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "delivery",
+        "orchestration",
+        "tech-lead",
+        "routing",
+        "stacked-prs",
+        "planning",
+        "escalation"
+      ]
+    },
+    {
       "name": "ahrena-engineering-python",
       "description": "What is specific to Python: a distribution per layer under a PEP 420 namespace root, a dependency direction that only runs downward, and an import graph a script proves acyclic.",
       "version": "0.1.0",

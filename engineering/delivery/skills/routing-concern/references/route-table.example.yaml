@@ -1,0 +1,71 @@
+# A worked route table for the deterministic stage of routing-concern.
+#
+# This is an example, not a schema a project must adopt. A real table lives in
+# the project's own configuration, reads the project's component paths, and is
+# authored by a person. Every row maps decidable signals — the concern's kind
+# and the paths it touches — to one clade, or marks the concern for a split.
+#
+# Rows are tried top to bottom. The first row whose every declared signal
+# matches decides, and routing stops there. A concern that matches no row, or
+# matches two rows that name different clades, is INCONCLUSIVE: it does not fall
+# through to a looser row, it goes to the Clef gate (step 3 of the skill).
+
+routes:
+  # --- single-signal rows: the common, cheap case ---
+  - id: frontend-by-path
+    when:
+      paths: ["web/**", "ui/**", "app/**/*.tsx", "components/**"]
+    route: frontend
+    why: a change under the project's user-facing surface
+
+  - id: backend-by-path
+    when:
+      paths: ["api/**", "src/server/**", "services/**", "**/migrations/**"]
+    route: backend
+    why: a change under the project's service or persistence surface
+
+  - id: data-by-path
+    when:
+      paths: ["models/**", "dbt/**", "marts/**", "pipelines/**"]
+    route: data
+    why: a change under the project's data-product surface
+
+  - id: frontend-by-kind
+    when:
+      kind: ["screen", "component", "wireframe", "interaction"]
+    route: frontend
+    why: a concern stated in the frontend's vocabulary, no matter its path
+
+  - id: data-by-kind
+    when:
+      kind: ["schema", "mart", "expectation", "pipeline", "data-contract"]
+    route: data
+    why: a concern stated in the data layer's vocabulary
+
+  # --- multi-signal rows: narrow a concern two single rows would disagree on ---
+  - id: backend-contract-over-frontend
+    when:
+      kind: ["contract", "endpoint"]
+      paths: ["api/**"]
+    route: backend
+    why: an API contract is owned by the backend even when a screen consumes it
+
+  # --- split rows: a concern that genuinely spans clades ---
+  - id: full-stack-feature
+    when:
+      paths: ["web/**", "api/**"]
+    route: split
+    split: [frontend, backend]
+    why: a feature touching both surfaces is planned as layers, not routed whole
+
+  - id: feature-with-new-data-product
+    when:
+      paths: ["web/**", "marts/**"]
+    route: split
+    split: [frontend, data]
+    why: a screen backed by a new mart is two layers in a stack, lowest first
+
+# A concern that reaches here unmatched, or that matches rows naming different
+# single clades (not a declared split), is inconclusive. Hand it to Clef with
+# the candidate clades those rows named; do not invent a catch-all row, which is
+# the route-table equivalent of a tolerance widened until it cannot fail.
