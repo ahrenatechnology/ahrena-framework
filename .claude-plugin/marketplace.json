@@ -73,6 +73,31 @@
       ]
     },
     {
+      "name": "ahrena-engineering-backend",
+      "description": "Backend built inside-out: four layers that stack as stacked pull requests — domain, use cases, OLTP, API — with unit TDD red-first at the domain and BDD acceptance tracing to its criteria at the API, all conforming to the project's component map.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/backend",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/backend",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "backend",
+        "inside-out",
+        "ddd",
+        "hexagonal",
+        "tdd",
+        "bdd",
+        "aggregates",
+        "use-cases",
+        "contract"
+      ]
+    },
+    {
       "name": "ahrena-engineering-python",
       "description": "What is specific to Python: a distribution per layer under a PEP 420 namespace root, a dependency direction that only runs downward, and an import graph a script proves acyclic.",
       "version": "0.1.0",
