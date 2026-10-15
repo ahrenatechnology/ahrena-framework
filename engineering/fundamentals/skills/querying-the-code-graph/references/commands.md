@@ -23,10 +23,11 @@ uncommitted changes. The cache directory is `.ahrena/graph/<sha>/`, and the
 `key` file inside it holds the full key the build was keyed to.
 
 `--check` exits 0 whether the cache is fresh or stale — it is a report, not a
-gate. It prints one of `fresh` or `stale`, then a line per tier: the light
-per-language index (always available, Python via the standard-library scan), the
-tree-sitter grammars (present or absent), and the Graphify macro tier (present
-or absent).
+gate. It prints `state : fresh` or `state : stale`, then one line per tier: the
+light per-language index (always available, Python via the standard-library scan,
+noting whether tree-sitter is present or the `ast` fallback is in use) and the
+Graphify macro tier (present or absent). The per-language and per-grammar detail
+is in `doctor`, not here.
 
 ## Provisioning
 

@@ -16,7 +16,7 @@ Each source→product layer owes a specific red-to-green test arc, and the arc c
 
 ## 1. Resolve the tools from the component map
 
-Run [`ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md`](../../../fundamentals/skills/reading-the-component-map/SKILL.md) and read the data component's `testing` lanes — the contract, transform-unit and quality lanes — and its `delivery` surface. [`ahrena-engineering-fundamentals:docs/component-map.md`](../../../fundamentals/docs/component-map.md) defines each lane and states the precedence: a lane the project fills replaces this clade's default for that lane, and is not run beside it.
+Run [`ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md`](../../../fundamentals/skills/reading-the-component-map/SKILL.md) and read the data component's `testing` lanes — the contract, workbench and quality lanes — and its `delivery` surface. [`ahrena-engineering-fundamentals:docs/component-map.md`](../../../fundamentals/docs/component-map.md) defines each lane and states the precedence: a lane the project fills replaces this clade's default for that lane, and is not run beside it.
 
 The defaults named in the steps below — dbt tests and a warehouse unit-test harness for the transforms, Great Expectations for the quality lane, a hand-written SQL assertion for reconciliation — apply only where the project's lane is silent. The recurring failure is running the default tool when the project named another; a stated lane wins every time.
 
