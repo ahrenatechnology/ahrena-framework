@@ -1,0 +1,10 @@
+{
+  "name": "ahrena-engineering-frontend",
+  "version": "0.1.0",
+  "description": "Frontend built outside-in: a validated wireframe before any code, four layers that stack as stacked pull requests, and a red-to-green test arc per layer, all conforming to the project's component map.",
+  "author": { "name": "Ahrena Technology", "url": "https://github.com/ahrenatechnology" },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/frontend",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": ["frontend", "outside-in", "wireframe", "bdd", "components", "accessibility"]
+}
