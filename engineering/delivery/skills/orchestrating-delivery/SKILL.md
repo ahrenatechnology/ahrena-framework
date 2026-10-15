@@ -7,6 +7,7 @@ subclade: delivery
 references:
   - skills/routing-concern/SKILL.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
+  - ahrena-engineering-fundamentals:skills/querying-the-code-graph/SKILL.md
   - ahrena-contributing:skills/planning-changes/SKILL.md
   - ahrena-contributing:skills/stacking-pull-requests/SKILL.md
 ---
@@ -22,6 +23,8 @@ Before splitting or placing anything, run [`ahrena-engineering-fundamentals:skil
 ## 2. Plan the issue into typed, ordered layers
 
 Turn the issue into a plan through [`ahrena-contributing:skills/planning-changes/SKILL.md`](../../../../contributing/skills/planning-changes/SKILL.md): decide whether it needs a plan at all, split it into typed units, order them by what each waits on, and confirm the whole decomposition with the person before creating anything. A small issue that is one pull request needs no plan, and the planning skill says so; do not manufacture layers an issue does not have.
+
+Order the layers against the real dependency structure, not an assumed one. Through [`ahrena-engineering-fundamentals:skills/querying-the-code-graph/SKILL.md`](../../../fundamentals/skills/querying-the-code-graph/SKILL.md), read `deps` and `path` over the paths the layers touch, and let the dependency direction set the stacking order — a layer others depend on lands lower in the stack. Impact analysis grounded in what actually imports what is what keeps the plan's order from inverting a real dependency.
 
 ## 3. Route each layer to the clade that owns it
 
