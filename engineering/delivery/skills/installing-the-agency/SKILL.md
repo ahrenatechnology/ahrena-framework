@@ -23,7 +23,9 @@ installs is [`skills/orchestrating-delivery/SKILL.md`](../orchestrating-delivery
 ## 1. Detect the platform and confirm the plugins are available
 
 Decide which platform this repository runs on, by the always-loaded file present:
-`CLAUDE.md` is Claude Code, `AGENTS.md` is Codex. Confirm the agency plugins —
+`CLAUDE.md` is Claude Code, `AGENTS.md` is Codex; when neither is present the
+install defaults to creating `CLAUDE.md`, and `--platform codex` steers a Codex
+repository that has not yet written its `AGENTS.md`. Confirm the agency plugins —
 delivery and the build clades it delegates to — are installed and discoverable;
 without them the directive would point at agents that do not exist. When a plugin
 is missing, report it rather than installing it, the way the graph doctor reports

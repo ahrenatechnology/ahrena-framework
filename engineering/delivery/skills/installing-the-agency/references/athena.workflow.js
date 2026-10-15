@@ -207,7 +207,7 @@ const BUILDERS = {
       {
         key: 'clio:medallion',
         phase: 'Clio · Medallion',
-        rungs: [[{ id: 'clio:medallion:transform-unit', lane: 'unit', who: 'dbt test', expect: 'green' }]],
+        rungs: [[{ id: 'clio:medallion:transform-unit', lane: 'workbench', who: 'dbt test', expect: 'green' }]],
       },
       {
         key: 'clio:expectations',

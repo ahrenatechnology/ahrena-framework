@@ -36,10 +36,11 @@ The graph lives under one gitignored root, keyed by the commit it describes.
     <sha>/          one directory per commit the graph was built for
       key           the freshness key the build was keyed to
       index.json    the light per-language index
-      graphify/     the macro tier's output, when it was built
+graphify-out/       the macro tier's build at the repo root, written by
+                    `doctor --build` (Graphify's personal-skill form writes here)
 ```
 
-`.ahrena/` is in the repository's root `.gitignore`, so nothing here reaches
+`.ahrena/` and `graphify-out/` are in the repository's root `.gitignore`, so nothing here reaches
 version control and nothing here can drift against the source. The directory is
 named for the commit's forty-character `HEAD` sha. The `key` file holds the full
 freshness key, which is the sha on a clean tree and the sha with a short digest
