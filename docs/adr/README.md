@@ -23,6 +23,7 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-013](ADR-013-a-clean-review-approves-and-the-forge-lands-it.md) | A clean review approves on the first pass, and the forge lands it; supersedes ADR-009 |
 | [ADR-014](ADR-014-a-separate-agent-applies-the-fixes.md) | A separate agent (Erodos) applies the review's fixes, and the review runs again before landing |
 | [ADR-015](ADR-015-reliability-and-observability-are-review-pillars.md) | Reliability and observability are the third and fourth review pillars, each its own plugin and lens |
+| [ADR-016](ADR-016-the-code-graph-is-a-cache-not-a-committed-tree.md) | The code graph is a gitignored, SHA-keyed cache in two tiers, consulted by a skill with self-healing freshness, not a committed tree or a CI gate |
 
 ## Decided, as rows
 
