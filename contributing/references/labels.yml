@@ -1,0 +1,41 @@
+# Ahrena's default labels, declared as code (issue #80, owner decision 2026-10-06).
+#
+# Shape: a list of mappings of scalar fields — `name`, `color` (6 hex digits, no
+# `#`), `description` — the same format a project's own `.github/labels.yml` uses,
+# so an existing file of that shape overrides this one unchanged. A project that
+# keeps its own file gets its own vocabulary and nothing else changes.
+#
+# The reconciler that creates/updates these on the forge (and never deletes), and
+# the skill that runs it, are the remaining Plans of #80; this file is the declared
+# vocabulary they reconcile against.
+#
+# `status:` is the state family. An issue carries exactly one status label at a
+# time; `blocked` is orthogonal and may sit beside any status.
+
+- name: "status: to refinement"
+  color: "c5def5"
+  description: "Filed, not yet refined into actionable scope."
+
+- name: "status: todo"
+  color: "ededed"
+  description: "Refined and ready to be picked up; not started."
+
+- name: "status: development"
+  color: "1d76db"
+  description: "Being worked on."
+
+- name: "status: to review"
+  color: "fbca04"
+  description: "Work done, awaiting review."
+
+- name: "status: to release"
+  color: "d93f0b"
+  description: "Reviewed and merged, awaiting release."
+
+- name: "status: done"
+  color: "0e8a16"
+  description: "Released; the work is complete."
+
+- name: "blocked"
+  color: "b60205"
+  description: "Cannot progress until a dependency is resolved; sits beside any status."

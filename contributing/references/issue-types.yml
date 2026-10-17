@@ -1,0 +1,39 @@
+# Ahrena's default issue types, declared as code (issue #80, owner decision 2026-10-06).
+#
+# Issue types are the forge's NATIVE issue types, not labels. Shape: a list of
+# mappings of scalar fields — `name`, `description`, `color` (one of the forge's
+# issue-type colors). These mirror the seven types the `opening-issues` skill
+# writes from and that the organisation already declares.
+#
+# The reconciler (a remaining Plan of #80) creates or updates these where the
+# token can, and reports rather than fails where the organisation's issue types
+# cannot be read or written. A project's own `.github/issue-types.yml` overrides
+# this file.
+
+- name: "Initiative"
+  color: "PURPLE"
+  description: "Defines a problem to solve; groups the epics that address it."
+
+- name: "Epic"
+  color: "BLUE"
+  description: "A milestone under an initiative; groups user stories, tech tasks and other issues."
+
+- name: "User Story"
+  color: "GREEN"
+  description: "A capability or feature that touches one or more components."
+
+- name: "Tech Task"
+  color: "GRAY"
+  description: "Day-to-day technical work: refactoring, planning, discovery, releases."
+
+- name: "Spike"
+  color: "YELLOW"
+  description: "A task to explore a new solution or idea."
+
+- name: "Plan"
+  color: "ORANGE"
+  description: "A specific, executable piece from a user story, tech task or bug."
+
+- name: "Bug"
+  color: "RED"
+  description: "An unexpected problem or behavior to fix."
