@@ -74,7 +74,7 @@ Steps + Definition of Done:
 For example:
 
 > e.g.
-> - Branch tech/{N}-rename-templates-add-bug-plan
+> - Branch chore/{N}-rename-templates-add-bug-plan
 > - git mv preserves history
 > - DoD: bug and plan templates render in the GitHub UI
 
