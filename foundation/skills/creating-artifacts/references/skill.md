@@ -1,6 +1,6 @@
 ---
 name: <directory-name, gerund first token, kebab-case>
-description: <what it does, then when to use it. This is the only text the platform reads when deciding whether to load the skill, so name the triggers explicitly.>
+description: { what it does, then when to use it. This is the only text the platform reads when deciding whether to load the skill, so name the triggers explicitly. }
 type: skill
 clade: <plugin-clade>
 subclade: <optional>

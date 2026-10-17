@@ -1,6 +1,6 @@
 ---
 name: <filename-without-md, kebab-case>
-description: <one line shown in the invocation list>
+description: { one line shown in the invocation list }
 type: command
 clade: <plugin-clade>
 subclade: <optional>
