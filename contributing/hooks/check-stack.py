@@ -14,6 +14,10 @@ pull request (ADR-008). Whether the forge has native stacks is read from its
 schema, not assumed. All three conditions read the forge, so without a token
 they are reported unchecked rather than failed.
 
+In a fork, PARENT_TRUNK names the parent's trunk as fetched into the checkout.
+A commit that trunk reaches came from the parent through a sync, not from a
+pull request below this one, so condition 3 leaves it out (ADR-010).
+
 Usage:
     python3 contributing/hooks/check-stack.py [event.json]
 
@@ -23,6 +27,8 @@ GITHUB_EVENT_PATH. An event that carries no pull request has nothing to decide.
 
 from __future__ import annotations
 
+import os
+import subprocess
 import sys
 import urllib.parse
 from dataclasses import dataclass
@@ -202,10 +208,19 @@ def commits_of(pr: PullRequest, forge: Forge) -> list[str]:
     return shas
 
 
+def from_parent(sha: str) -> bool:
+    parent = os.environ.get("PARENT_TRUNK", "")
+    if not parent:
+        return False
+    return subprocess.run(["git", "merge-base", "--is-ancestor", sha, parent], capture_output=True).returncode == 0
+
+
 def carries_no_landed_commit(pr: PullRequest, forge: Forge) -> tuple[list[Finding], list[Unchecked]]:
     carried: dict[int, list[str]] = {}
     try:
         for sha in commits_of(pr, forge):
+            if from_parent(sha):
+                continue
             for number in landed_elsewhere(pr, forge, sha):
                 carried.setdefault(number, []).append(sha[:7])
     except Unreachable as error:
