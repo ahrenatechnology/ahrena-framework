@@ -1,6 +1,6 @@
 ---
 name: <filename-without-md, kebab-case. A persona name is allowed here and only here.>
-description: <the specialism, then when to hand work to it. Written for the caller deciding whether this is the right specialist.>
+description: { the specialism, then when to hand work to it. Written for the caller deciding whether this is the right specialist. }
 type: agent
 clade: <plugin-clade>
 subclade: <optional>
