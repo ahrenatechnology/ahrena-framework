@@ -38,6 +38,7 @@ Open a new issue beside an existing one only when the work is genuinely independ
 | Epic | An outcome delivered by several items under it | [`references/epic.md`](references/epic.md), `references/issue-forms/epic.yml` |
 | User story, API | A behaviour a client of an API can see, in one pull request | [`references/user-story-for-api.md`](references/user-story-for-api.md), `references/issue-forms/user-story-for-api.yml` |
 | User story, frontend | A behaviour a person can see on a screen, in one pull request | [`references/user-story-for-frontend.md`](references/user-story-for-frontend.md), `references/issue-forms/user-story-for-frontend.yml` |
+| User story, CLI | A behaviour a user runs as a command (`delivery: cli` or `tui`), in one pull request | [`references/user-story-for-cli.md`](references/user-story-for-cli.md), `references/issue-forms/user-story-for-cli.yml` |
 | Tech task | Work with no behaviour a user sees: enabling, refactor, CI, docs | [`references/tech-task.md`](references/tech-task.md), `references/issue-forms/tech-task.yml` |
 | Plan | One executable unit of a larger item, as its sub-issue | [`references/plan.md`](references/plan.md), `references/issue-forms/plan.yml` |
 | Spike | A timeboxed question that must be answered before dependent work | [`references/spike.md`](references/spike.md), `references/issue-forms/spike.yml` |
