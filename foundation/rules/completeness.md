@@ -14,7 +14,7 @@ references:
 
 ## Nothing left unfilled
 
-No frontmatter field and no line of prose carries `TODO`, `TBD`, `FIXME`, `XXX`, or an unreplaced template placeholder in angle brackets.
+No frontmatter field and no line of prose carries `TODO`, `TBD`, `FIXME`, `XXX`, or an unreplaced template placeholder in angle brackets. A line of prose that is nothing but a brace placeholder `{ … }` is a leftover too; a brace in the middle of a line is not, because braces are ordinary in prose.
 
 The scan skips fenced blocks and inline code. `<plugin>` on a command line is what the reader substitutes, and a backticked `TODO` is prose about markers. Both are correct authoring, and both would be rejected by a scan that read code.
 
@@ -39,7 +39,7 @@ These are the sections that carry the artifact's boundary. `Where this stops` is
 Each of these is decided by `hooks/validate-artifacts.py`.
 
 1. No frontmatter value contains a marker or an angle-bracket placeholder.
-2. No body line outside code contains a marker or an angle-bracket placeholder.
+2. No body line outside code contains a marker, an angle-bracket placeholder, or a brace placeholder that is the whole line.
 3. Every section required for the artifact's type is present as an `##` heading outside code.
 4. A skill has at least one numbered `##` step.
 
@@ -50,3 +50,5 @@ Each of these is decided by `hooks/validate-artifacts.py`.
 **The marker list is closed.** `TODO`, `TBD`, `FIXME` and `XXX` are caught because they are conventional and unambiguous in uppercase. A lowercase "todo" in a sentence is not, and chasing it would reject English prose.
 
 **Angle brackets outside code are always a failure here**, even when an author meant one literally. That costs an author the occasional backtick and buys a detector with no judgment in it. If a literal angle bracket ever needs to sit in prose, the rule grows an exception then, with the case that forced it.
+
+**A brace is a leftover only when it is the whole line.** Angle brackets are read anywhere outside code, but braces are ordinary — in prose, in code, and in the `{{ … }}` title placeholder of [`opening-issues`](../../contributing/skills/opening-issues/SKILL.md) — so only a body line that is nothing but a single brace placeholder is read as unfilled, and a double brace never is. A brace placeholder in a frontmatter value never reaches this check: [`frontmatter.md`](frontmatter.md) rejects a value that opens with `{` as an inline collection first, so the field that #202 moved to the `{ … }` notation is already guarded.
