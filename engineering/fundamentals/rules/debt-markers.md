@@ -37,6 +37,8 @@ Consulting git for this is the same move [`../../../contributing/rules/branch-na
 
 **The two govern different trees, and this is the sentence that says so on this side.** This rule reaches a consumer's source. That rule reaches the five artifact types' own text. No file is judged by both: `foundation/hooks/validate-artifacts.py` reads artifact markdown and `hooks/check-structure.py` parses Python, and neither reads what the other reads. The other sentence belongs in that rule and is not this rule's to write.
 
+A third rule reads the same Python comment: [`comment-pointers.md`](comment-pointers.md) governs a prose comment a change adds with no pointer to an ADR or an issue. It delegates a comment carrying one of these four markers to this rule and this rule delegates nothing back, so the marker is decided here and the pointerless prose there, and no comment is judged by both.
+
 What the two do share is the token set and the escape. The four markers here are the four there, taken unchanged so that the framework cannot say two things about which tokens are markers, and a marker quoted in backticks is prose about markers in both — the same backtick, bought for the same reason, in a comment instead of a line of prose.
 
 ## The half no script decides
