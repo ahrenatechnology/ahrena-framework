@@ -38,14 +38,14 @@
       ]
     },
     {
-      "id": "python-comments",
+      "id": "comment-pointers",
       "skill": "skills/reviewing-diffs/SKILL.md",
-      "why": "the comment-pointer detector decides whether a comment the change adds points at an ADR or an issue, so the report-only step runs",
+      "why": "the comment-pointer detector decides whether a comment the change adds points at an ADR or an issue, across Python, TypeScript, JavaScript, shell and SQL, so the report-only step runs",
       "opens": [
         "ahrena-engineering-fundamentals:hooks/check-comments.py"
       ],
       "paths": [
-        "\\.pyi?$"
+        "\\.(pyi?|tsx?|jsx?|mjs|cjs|sh|bash|sql)$"
       ]
     },
     {
