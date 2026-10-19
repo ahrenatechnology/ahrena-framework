@@ -38,6 +38,17 @@
       ]
     },
     {
+      "id": "python-comments",
+      "skill": "skills/reviewing-diffs/SKILL.md",
+      "why": "the comment-pointer detector decides whether a comment the change adds points at an ADR or an issue, so the report-only step runs",
+      "opens": [
+        "ahrena-engineering-fundamentals:hooks/check-comments.py"
+      ],
+      "paths": [
+        "\\.pyi?$"
+      ]
+    },
+    {
       "id": "python",
       "skill": "ahrena-engineering-python:skills/reviewing-python/SKILL.md",
       "why": "a Python source file, read for what is specific to Python",

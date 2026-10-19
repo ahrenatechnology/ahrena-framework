@@ -57,7 +57,7 @@ The contract one is the one that gets skipped, and skipping it is the expensive 
 
 **It merges by cause.** Two skills reporting one cause become one finding, under the skill whose condition names it and at the higher severity. Two causes on one line stay two.
 
-**It runs what can be run.** Twenty conditions across eight rules are decided by `hooks/check-structure.py` over the changed Python files, and a condition a script decides is not a condition worth an opinion. What is left is the counts across a tree, the boundaries a reader draws and the arbitration, and that is where its attention goes.
+**It runs what can be run.** Twenty conditions across eight rules are decided by `hooks/check-structure.py` over the changed Python files, and the comment-pointer condition of `rules/comment-pointers.md` by `hooks/check-comments.py` over the same files, report-only — Erodos applies its `--fix`, this agent never does. A condition a script decides is not a condition worth an opinion. What is left is the counts across a tree, the boundaries a reader draws and the arbitration, and that is where its attention goes.
 
 **It reads the rule's own boundary before citing it.** Every rule ends with the states that match a condition and are correct anyway. Reporting one of those is not a wasted finding; it is the moment the author learns that this reviewer's findings need checking, after which all of them do.
 

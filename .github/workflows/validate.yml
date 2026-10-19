@@ -59,6 +59,9 @@ jobs:
       - name: Test the structure hook
         run: python3 engineering/fundamentals/hooks/test-check-structure.py
 
+      - name: Test the comments hook
+        run: python3 engineering/fundamentals/hooks/test-check-comments.py
+
       - name: Test the review router
         run: python3 engineering/quality/hooks/test-route-review.py
 
@@ -144,6 +147,24 @@ jobs:
       - name: Check the structure of the hooks
         run: |
           python3 engineering/fundamentals/hooks/check-structure.py \
+            $(ls */hooks/*.py */*/hooks/*.py | grep -v '/test-')
+
+      # The comment-pointer rule applies to the framework's own hooks too, but
+      # change-scoped: only a comment this pull request adds or edits is in scope,
+      # so existing prose is grandfathered and a brand-new hook is checked line by
+      # line. This is why the detector and its test carry their rationale in
+      # docstrings and their dividers without words. It is a pull-request check,
+      # because there is no change to scope to on a push to trunk. The range
+      # arrives through the environment rather than being interpolated into the
+      # command, the same safety the commit and branch checks take, and the hook
+      # reports a comment that points at nothing durable with condition 1 of
+      # engineering/fundamentals/rules/comment-pointers.md.
+      - name: Check the comments on this pull request
+        if: github.event_name == 'pull_request'
+        env:
+          RANGE: ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 engineering/fundamentals/hooks/check-comments.py --changed "$RANGE" \
             $(ls */hooks/*.py */*/hooks/*.py | grep -v '/test-')
 
       # The remaining two contributing hooks judge a pull request and

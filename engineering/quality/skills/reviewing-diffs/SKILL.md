@@ -16,6 +16,7 @@ references:
   - ahrena-engineering-fundamentals:rules/cross-cutting-concerns.md
   - ahrena-engineering-fundamentals:rules/debt-markers.md
   - ahrena-engineering-fundamentals:rules/client-logic.md
+  - ahrena-engineering-fundamentals:rules/comment-pointers.md
   - ahrena-engineering-fundamentals:docs/patterns.md
   - docs/review-findings.md
   - docs/review-routes.md
@@ -55,7 +56,7 @@ Load the skills the output names and no others. A skill that no route selected i
 
 | Routes | Skill | What it is handed |
 |---|---|---|
-| `source`, `python-structure`, `domain`, `edges`, `abstraction` | this one | the rules each route opens, read in steps 3 to 6 |
+| `source`, `python-structure`, `python-comments`, `domain`, `edges`, `abstraction` | this one | the rules each route opens, read in steps 3 to 6 |
 | `contract` | `skills/detecting-contract-breaks/SKILL.md` | the surface, which it reads at the base version and not from the diff |
 | `python`, `typescript`, `go`, `rust` | `ahrena-engineering-<lang>:skills/reviewing-<lang>/SKILL.md` | the changed files in that language, read for what is specific to it |
 | `secrets`, `supply-chain`, `untrusted-input`, `access`, `sensitive-data`, `language-models`, `agent-authority` | the security discipline the route names (`reviewing-secrets`, `reviewing-supply-chain`, `reviewing-untrusted-input`, `reviewing-access`, `reviewing-sensitive-data`, `reviewing-model-use`) | that discipline's conditions, and the lines that fired them |
@@ -78,6 +79,14 @@ It decides twenty conditions across eight rules in one pass and prints each find
 `--changed` is that same instruction for the twentieth condition, whose subject is a change rather than a file. Condition 1 of [`rules/debt-markers.md`](../../../fundamentals/rules/debt-markers.md) reaches a debt marker this change added or modified, and a path does not say which lines those are — so without the flag the detector reads every line it was handed and reports the consumer's whole marker backlog, which is the review nobody reads that the paragraph above is about. The spec is the base and the head fixed in step 1, written as the three-dot range, so that the detector and the reading agree on what "in the diff" means when step 7 applies the severity test. It takes a revision or a range, or `--cached` for a change that is staged and not yet committed; any other option it refuses rather than scoping the condition to nothing.
 
 Three recurring failures at this step. The detector parses Python only, so a change in any other language gets nothing from it and the conditions it would have decided move to step 4 by reading. A file the rules' boundary sections exclude by path — a generated parser table, a template directory, a fixture that commits and rolls back — will produce findings the rule itself says are not findings; step 6 is where they are removed, and removing them at step 3 by not running the detector loses the rest of the file. And the detector exits 2, not 1, when it cannot scope the change: a revision git cannot resolve, an unresolved merge, a directory outside the repository. That exit decided nothing, so it is an `unchecked` finding for condition 1 of `rules/debt-markers.md` under step 5's rule, and never a pass.
+
+When the `python-comments` route fired, run the comment-pointer detector over the same changed Python files, report-only:
+
+```sh
+python3 engineering/fundamentals/hooks/check-comments.py --changed <base>...<head> path/to/changed.py
+```
+
+It decides condition 1 of [`rules/comment-pointers.md`](../../../fundamentals/rules/comment-pointers.md): a comment this change adds or edits that carries no pointer to an ADR or an issue and is no permitted exemption. Run it without `--fix` here. The review reports the finding and no more; `--fix` removes the comment and belongs to the fixer agent (`ADR-014`) and to a pre-commit hook, never to this review, so a reviewer never reads its own edit. Its `--changed` scoping and its exit-2-on-an-unresolvable-change are the same as the structure detector's above, and are handled the same way.
 
 ## 4. Read the routed judgment conditions against the changed lines
 
