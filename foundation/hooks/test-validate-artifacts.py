@@ -742,6 +742,76 @@ CASES = [
         {"p/docs/reference.md": GOOD_DOC.replace("summary: A doc that passes.", "summary: TODO <fill this in>")},
         ["1 failure(s)", "field 'summary' still carries the marker 'TODO'"],
     ),
+    # --- brace placeholders ------------------------------------------------
+    # #200/#202 made `{ ... }` the placeholder for `description:`, because
+    # claude.ai strips `<`/`>` from the field it stores. A copied template that
+    # was never filled now leaves a brace placeholder, so the scan reads for one.
+    case(
+        # #205/AC-1 — A brace placeholder in a frontmatter value opens with `{`,
+        # which frontmatter.md already rejects as an inline collection, before
+        # the completeness scan runs. So the field side needs no brace scan: the
+        # copied `description: { what it does… }` from the template is blocked.
+        "a brace placeholder in a frontmatter value is rejected as an inline collection",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "description: Does things. Use when things need doing.",
+                "description: { what it does, then when to use it }",
+            ).replace("references:\n  - rules/bounded.md\n", "")
+        },
+        ["inline collections and block scalars are not allowed"],
+    ),
+    case(
+        # #205/AC-2 — The genuine gap: a brace placeholder on a body line, which
+        # no scan caught before, unlike its angle-bracket sibling.
+        "an unfilled brace placeholder on a body line fails",
+        {"p/docs/reference.md": GOOD_DOC + "\n{ describe the concept here }\n"},
+        ["body still carries the template placeholder '{ describe the concept here }'"],
+    ),
+    case(
+        # #205/AC-2 — The anchors tolerate surrounding whitespace, as a copied
+        # template line often carries.
+        "an indented brace-only body line fails",
+        {"p/docs/reference.md": GOOD_DOC + "\n   { describe the concept here }   \n"},
+        ["body still carries the template placeholder '{ describe the concept here }'"],
+    ),
+    case(
+        # #205/AC-3 — Empty braces are not a placeholder; the interior must hold
+        # something for a line to read as unfilled.
+        "an empty brace on a body line passes",
+        {"p/docs/reference.md": GOOD_DOC + "\n{ }\n"},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        # #205/AC-3 — Braces are legal in prose, unlike angle brackets, so only a
+        # line that is nothing but a brace placeholder is a leftover.
+        "a brace in the middle of a line of prose passes",
+        {"p/docs/reference.md": GOOD_DOC + "\nThe set { a, b } is closed under the operation.\n"},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        # #205/AC-3 — The opening-issues title convention; a double brace is not a
+        # leftover.
+        "a double-brace placeholder on its own line passes",
+        {"p/docs/reference.md": GOOD_DOC + "\n{{ brief summary }}\n"},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        # #205/AC-3
+        "a brace placeholder inside a code fence passes",
+        {"p/docs/reference.md": GOOD_DOC + '\n```json\n{ "key": "value" }\n```\n'},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        # #205/AC-3
+        "a brace placeholder inside inline code passes",
+        {"p/docs/reference.md": GOOD_DOC + "\n`{ fill me in }`\n"},
+        ["no failures"],
+        ok=True,
+    ),
     # --- references across plugins -----------------------------------------
     case(
         "a qualified reference into another plugin passes",

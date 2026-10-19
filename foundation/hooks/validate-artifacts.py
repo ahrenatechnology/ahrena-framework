@@ -71,8 +71,21 @@ BODY_DIRS = ("references", "scripts")
 # review are the parts of the template that were never filled.
 PLACEHOLDER_TOKEN = re.compile(r"\b(TODO|TBD|FIXME|XXX)\b")
 PLACEHOLDER_ANGLE = re.compile(r"<[A-Za-z][^<>:\n]{0,60}>")
+# A brace placeholder is a leftover only when a body line is nothing but one: a
+# single brace pair wrapping non-empty content, never a double brace. Braces are
+# legal in prose, in code and in the `{{ ... }}` issue-title convention, so,
+# unlike an angle bracket, a brace in the middle of a line is not a marker.
+# #200/#202 made `{ ... }` the placeholder for `description:` because claude.ai
+# strips `<`/`>` from the field it stores; this catches a copied template whose
+# brace placeholder was left in the body.
+PLACEHOLDER_BRACE = re.compile(r"^\s*\{(?!\{)(?=[^{}]*\S[^{}]*\})[^{}]*\}\s*$")
 INLINE_CODE = re.compile(r"`[^`\n]*`")
-LEFTOVER_SCANS = ((PLACEHOLDER_TOKEN, "marker"), (PLACEHOLDER_ANGLE, "template placeholder"))
+# Frontmatter values and body lines share the marker and angle scans. The brace
+# scan is body-only: frontmatter.md already rejects a value that opens with `{`
+# as an inline collection, before this check ever runs, so a brace placeholder
+# in a frontmatter value cannot reach here.
+FRONTMATTER_SCANS = ((PLACEHOLDER_TOKEN, "marker"), (PLACEHOLDER_ANGLE, "template placeholder"))
+BODY_SCANS = FRONTMATTER_SCANS + ((PLACEHOLDER_BRACE, "template placeholder"),)
 
 REQUIRED_SECTIONS = {
     "rule": ("Conditions", "Where this stops"),
@@ -477,15 +490,18 @@ def _outside_fences(body: str) -> list[tuple[int, str]]:
     return lines
 
 
-def _first_leftover(text: str) -> tuple[str, str] | None:
+def _first_leftover(text: str, scans: tuple) -> tuple[str, str] | None:
     """The first marker or template placeholder in `text`, as (label, matched text).
 
     Markers win ties, so a field carrying both is reported once, as the marker.
     """
-    for pattern, label in LEFTOVER_SCANS:
+    for pattern, label in scans:
         found = pattern.search(text)
         if found:
-            return label, found.group()
+            # Strip the surrounding whitespace the whole-line brace anchors
+            # capture; a marker or angle token carries none, so this is a no-op
+            # for them.
+            return label, found.group().strip()
     return None
 
 
@@ -494,7 +510,7 @@ def check_completeness(a: Artifact, findings: list[Finding]) -> None:
     for key in sorted(a.data):
         value = a.data[key]
         for item in [value] if isinstance(value, str) else value:
-            leftover = _first_leftover(item)
+            leftover = _first_leftover(item, FRONTMATTER_SCANS)
             if leftover is None:
                 continue
             label, text = leftover
@@ -505,7 +521,7 @@ def check_completeness(a: Artifact, findings: list[Finding]) -> None:
     # Code is skipped: <plugin> and <name> on a command line are what the reader
     # substitutes, and a backticked `TODO` is prose about markers, not a marker.
     for offset, line in _outside_fences(a.body):
-        leftover = _first_leftover(INLINE_CODE.sub("", line))
+        leftover = _first_leftover(INLINE_CODE.sub("", line), BODY_SCANS)
         if leftover is None:
             continue
         label, text = leftover
