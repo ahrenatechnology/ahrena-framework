@@ -13,19 +13,36 @@ A route marked `baseline` reaches every file and is not counted as coverage, so
 a path only baseline routes reach is printed as unrouted. A path matching an
 `ignore` expression selects nothing.
 
+An installed plugin adds its own review lenses by shipping a fragment — itself a
+`{routes, ignore?}` object, the same schema as the core table. Fragments are
+supplied explicitly, by `--plugin-routes <file>` (repeatable) and by the env var
+`ROUTE_REVIEW_FRAGMENTS` (an os.pathsep-separated list of files); there is no
+filesystem scan. The effective table is the core table first, then the fragments
+in a canonical order (sorted by resolved path), so the order they are supplied in
+does not change the result. `ignore` is the de-duplicated union of core and
+fragments, and a route `id` must be unique across the core and all fragments: a
+collision is an error, so no fragment silently overrides a core route. With no
+fragments the output is byte-for-byte what it was before fragments existed.
+
 Usage:
     python3 engineering/fundamentals/hooks/route-review.py --changed <base>...<head>
     python3 engineering/fundamentals/hooks/route-review.py --cached
     python3 engineering/fundamentals/hooks/route-review.py --changed <range> --json
     python3 engineering/fundamentals/hooks/route-review.py --changed <range> --routes table.json
+    python3 engineering/fundamentals/hooks/route-review.py --changed <range> --plugin-routes frag.json
+    ROUTE_REVIEW_FRAGMENTS=a.json:b.json python3 .../route-review.py --changed <range>
 
-Exit 0 when the change was routed, 2 when the table is malformed or git cannot
-resolve the change. It never exits 1: routing reports and decides no condition.
+`--routes` replaces the core table; fragments still merge on top of it.
+
+Exit 0 when the change was routed, 2 when the table or a fragment is malformed or
+git cannot resolve the change. It never exits 1: routing reports and decides no
+condition.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -106,12 +123,42 @@ def load_table(path: Path) -> Table:
     if not isinstance(raw, dict) or set(raw) - TABLE_KEYS or not isinstance(raw.get("routes"), list):
         raise Unroutable(f"{path}: a table is an object with 'routes' and an optional 'ignore'")
     routes = tuple(_route(entry, position) for position, entry in enumerate(raw["routes"], 1))
+    return Table(_compile("table", "ignore", raw.get("ignore", [])), routes)
+
+
+def effective_table(core: Path, fragments: list[Path]) -> Table:
+    """The core table with the fragments merged on top, in canonical path order.
+
+    Routes are the core's followed by each fragment's, with one uniqueness check
+    over the lot: an id shared by two routes, in the core or a fragment, is an
+    error, so no fragment overrides a core route. `ignore` is the union of the
+    core's and the fragments', order-stable and de-duplicated by expression.
+    """
+    tables = [load_table(core)] + [load_table(path) for path in fragments]
+    routes = tuple(route for table in tables for route in table.routes)
     seen: set[str] = set()
     for route in routes:
         if route.id in seen:
             raise Unroutable(f"route '{route.id}': the id is declared twice")
         seen.add(route.id)
-    return Table(_compile("table", "ignore", raw.get("ignore", [])), routes)
+    ignore, patterns = [], set()
+    for table in tables:
+        for expression in table.ignore:
+            if expression.pattern not in patterns:
+                patterns.add(expression.pattern)
+                ignore.append(expression)
+    return Table(tuple(ignore), routes)
+
+
+def fragment_paths(argv: list[str], environ: dict[str, str]) -> list[Path]:
+    """The fragment files named by `--plugin-routes` and `ROUTE_REVIEW_FRAGMENTS`.
+
+    De-duplicated by resolved path and returned in canonical (sorted) order, so
+    the order they are supplied in cannot change the effective table.
+    """
+    named = list(_options(argv, "--plugin-routes"))
+    named += [part for part in environ.get("ROUTE_REVIEW_FRAGMENTS", "").split(os.pathsep) if part]
+    return sorted({Path(name).resolve() for name in named})
 
 
 def _git(*args: str) -> str:
@@ -208,6 +255,20 @@ def _option(argv: list[str], name: str) -> str | None:
     return argv[position + 1]
 
 
+def _options(argv: list[str], name: str) -> list[str]:
+    """Every value of a repeatable option, in the order it was supplied."""
+    values, position = [], 0
+    while position < len(argv):
+        if argv[position] == name:
+            if position + 1 >= len(argv):
+                raise Unroutable(f"{name} takes a value")
+            values.append(argv[position + 1])
+            position += 2
+        else:
+            position += 1
+    return values
+
+
 def _change_spec(argv: list[str]) -> tuple[list[str], str]:
     """The arguments `git diff` takes for this change, and the revision its head is read at."""
     if "--cached" in argv:
@@ -220,7 +281,8 @@ def _change_spec(argv: list[str]) -> tuple[list[str], str]:
 
 def main(argv: list[str]) -> int:
     try:
-        table = load_table(Path(_option(argv, "--routes") or DEFAULT_TABLE))
+        core = Path(_option(argv, "--routes") or DEFAULT_TABLE)
+        table = effective_table(core, fragment_paths(argv, os.environ))
         result = route_change(table, read_change(*_change_spec(argv)))
     except Unroutable as error:
         print(f"route-review: {error}", file=sys.stderr)

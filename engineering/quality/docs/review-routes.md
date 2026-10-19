@@ -71,7 +71,22 @@ Add one object to the table, and when it opens a new file, write that file. `hoo
 
 A new review skill needs no change to the router and none to the agent's procedure: its routes select it. Its own step 1 lists the route identifiers it answers to.
 
-A consumer with a layout the patterns miss passes its own table with `--routes`. The router reads no configuration file.
+## A plugin declares its own routes
+
+A core route is for a lens every consumer wants. A consumer, or a plugin installed into one, has lenses of its own: a route for its SQL, its Terraform, its own contract files. Editing the core table to carry them is drift — the consumer's table and the framework's diverge, and the next framework change to the table has to be merged by hand.
+
+So a plugin that adds review lenses ships a **fragment** instead: a file `review-routes.json` at the plugin root, itself a `{routes, ignore?}` object, the same schema as the core table. Its routes' `skill` and `opens` are `plugin:path`-qualified, the cross-plugin reference form the rest of the framework uses, so a lens the fragment selects is loaded exactly like a core one. The merged routes feed the same review-findings set; a consumer's lens is not a second class of route.
+
+**The router merges the installed fragments with the core table at runtime.** Discovery is explicit — the router scans no directory:
+
+| Source | What it names |
+|---|---|
+| `--plugin-routes <file>` | one fragment; repeat the option for several |
+| `ROUTE_REVIEW_FRAGMENTS` | an `os.pathsep`-separated list of fragment files |
+
+The two sources are collected together and de-duplicated by resolved path. The **effective table** is the core table first, then the fragments in a canonical order — sorted by resolved path — so the order they are supplied in cannot change the result. `ignore` is the de-duplicated union of the core's and the fragments'. A route `id` must be unique across the core and every fragment: a collision is an error (exit 2, naming the id), so **no fragment silently overrides a core route**. A fragment that cannot be read or is malformed is the same error as a malformed core table (exit 2, naming the fragment).
+
+With no fragments — no flag, the env var unset or empty — the output is byte-for-byte what it was before fragments existed. `--routes` still replaces the core table; fragments merge on top of whichever base is in effect.
 
 ## Where this stops
 

@@ -8,7 +8,10 @@ last ones read the table the plugin ships, because a route that names a file
 nobody wrote selects a skill that cannot be loaded.
 
 The cases name the acceptance criterion of #128 each decides, as `#128/AC-1`
-through `#128/AC-6`.
+through `#128/AC-6`. The fragment-merge cases of #207 follow, as `#207/AC-1`
+through `#207/AC-6`: a plugin adds review routes by shipping a `{routes, ignore?}`
+fragment that the router merges with the core table, discovered through
+`--plugin-routes` and `ROUTE_REVIEW_FRAGMENTS`.
 
 Usage:
     python3 engineering/fundamentals/hooks/test-route-review.py
@@ -17,6 +20,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -263,6 +267,128 @@ def missing_from_shipped_table() -> list[str]:
     return missing
 
 
+# A plugin's fragment is itself a {routes, ignore?} object, with its skill and
+# what it opens qualified as `plugin:path` — the cross-plugin reference form.
+FRAG_SQL = {"routes": [{"id": "sql", "skill": "plugin:skills/reviewing-sql/SKILL.md", "opens": ["plugin:rules/sql.md"], "paths": ["\\.sql$"]}]}
+FRAG_TF = {"routes": [{"id": "tf", "skill": "plugin:skills/reviewing-tf/SKILL.md", "paths": ["\\.tf$"]}]}
+
+
+def write_json(path: Path, obj: dict) -> Path:
+    path.write_text(json.dumps(obj), encoding="utf-8")
+    return path
+
+
+def run_merged(repo: Path, routes: Path, plugin: tuple[Path, ...] = (), env: tuple[Path, ...] = ()) -> tuple[int, str]:
+    """Run the router with a core table and fragments named by flag and by env."""
+    args = [sys.executable, str(HOOK), "--changed", "HEAD~1...HEAD", "--routes", str(routes)]
+    for path in plugin:
+        args += ["--plugin-routes", str(path)]
+    environ = dict(os.environ)
+    if env:
+        environ["ROUTE_REVIEW_FRAGMENTS"] = os.pathsep.join(str(path) for path in env)
+    done = subprocess.run(args, cwd=repo, capture_output=True, text=True, env=environ)
+    return done.returncode, done.stdout + done.stderr
+
+
+def fragment_cases(tmp: Path) -> list[tuple[str, list[str], str]]:
+    """The #207 fragment-merge cases, each building its own scratch repository."""
+    results: list[tuple[str, list[str], str]] = []
+
+    def case(name: str, base: dict, head: dict, present: list[str], absent: list[str], expect: int, run):
+        repo = tmp / f"frag-{len(results)}"
+        scratch(repo, base, head)
+        core = write_json(repo.parent / f"{repo.name}-core.json", TABLE)
+        code, output = run(repo, core)
+        results.append((name, problems_for(expect, present, absent, code, output), output))
+
+    # AC-1: a fragment route fires on a matching change, alongside the core routes.
+    case(
+        "#207/AC-1 a fragment route fires and prints with its plugin-qualified skill",
+        {}, {"app/x.py": "x = 1\n", "db/q.sql": "select 1\n"},
+        ["route  python  ->  skills/reading/SKILL.md",
+         "route  sql  ->  plugin:skills/reviewing-sql/SKILL.md", "opens  plugin:rules/sql.md", "on     db/q.sql",
+         "plugin:skills/reviewing-sql/SKILL.md"],
+        [], 0,
+        lambda repo, core: run_merged(repo, core, plugin=(write_json(repo.parent / f"{repo.name}-sql.json", FRAG_SQL),)),
+    )
+
+    # AC-3: discovery via both --plugin-routes and ROUTE_REVIEW_FRAGMENTS; both merge.
+    case(
+        "#207/AC-3 fragments from the flag and the env both merge",
+        {}, {"db/q.sql": "select 1\n", "infra/main.tf": "resource {}\n"},
+        ["route  sql  ->  plugin:skills/reviewing-sql/SKILL.md", "route  tf  ->  plugin:skills/reviewing-tf/SKILL.md"],
+        [], 0,
+        lambda repo, core: run_merged(
+            repo, core,
+            plugin=(write_json(repo.parent / f"{repo.name}-sql.json", FRAG_SQL),),
+            env=(write_json(repo.parent / f"{repo.name}-tf.json", FRAG_TF),),
+        ),
+    )
+
+    # AC-5: an id colliding across core and a fragment exits 2 and names the id.
+    case(
+        "#207/AC-5 an id shared by the core and a fragment exits 2 naming it",
+        {}, {"app/x.py": "x = 1\n"},
+        ["route 'python'", "declared twice"], [], 2,
+        lambda repo, core: run_merged(
+            repo, core,
+            plugin=(write_json(repo.parent / f"{repo.name}-dup.json",
+                               {"routes": [{"id": "python", "skill": "plugin:s/SKILL.md", "paths": ["\\.sql$"]}]}),),
+        ),
+    )
+
+    # AC-6: a fragment ignore entry is unioned in, so a path it ignores selects nothing.
+    case(
+        "#207/AC-6 a fragment ignore is unioned in and the path selects no route",
+        {}, {"generated/model.py": "x = 1\n"},
+        ["ignored   generated/model.py", "skills: none"], ["route  python", "route  sql"], 0,
+        lambda repo, core: run_merged(
+            repo, core,
+            plugin=(write_json(repo.parent / f"{repo.name}-ig.json", {"ignore": ["(^|/)generated/"], "routes": []}),),
+        ),
+    )
+
+    # AC-2: with no fragment the output matches a plain core-only run on the same change.
+    repo = tmp / f"frag-{len(results)}"
+    scratch(repo, {}, {"app/x.py": "x = 1\n", "db/q.sql": "select 1\n"})
+    core = write_json(repo.parent / f"{repo.name}-core.json", TABLE)
+    bare = subprocess.run([sys.executable, str(HOOK), "--changed", "HEAD~1...HEAD", "--routes", str(core)],
+                          cwd=repo, capture_output=True, text=True)
+    code, output = run_merged(repo, core, env=())  # no flag, no env entries
+    problems = problems_for(0, [], [], code, output)
+    if output != (bare.stdout + bare.stderr) or bare.returncode != 0:
+        problems.append("output with no fragments differs from the core-only run")
+    results.append(("#207/AC-2 with no fragment the output is identical to a core-only run", problems, output))
+
+    # AC-4: determinism — same two fragments in either order print the same routes.
+    repo = tmp / f"frag-{len(results)}"
+    scratch(repo, {}, {"db/q.sql": "select 1\n", "infra/main.tf": "resource {}\n"})
+    core = write_json(repo.parent / f"{repo.name}-core.json", TABLE)
+    sql = write_json(repo.parent / f"{repo.name}-sql.json", FRAG_SQL)
+    tf = write_json(repo.parent / f"{repo.name}-tf.json", FRAG_TF)
+    code_a, out_a = run_merged(repo, core, plugin=(sql, tf))
+    code_b, out_b = run_merged(repo, core, plugin=(tf, sql))
+    code_c, out_c = run_merged(repo, core, plugin=(sql, tf))
+    problems = problems_for(0, ["route  sql", "route  tf"], [], code_a, out_a)
+    if out_a != out_b:
+        problems.append("fragments supplied in a different order printed different routes")
+    if out_a != out_c:
+        problems.append("two runs with the same fragments printed different output")
+    results.append(("#207/AC-4 fragment order and repeated runs are deterministic", problems, out_a))
+
+    # AC-5 (second half): a malformed fragment exits 2 and names the fragment.
+    repo = tmp / f"frag-{len(results)}"
+    scratch(repo, {}, {"app/x.py": "x = 1\n"})
+    core = write_json(repo.parent / f"{repo.name}-core.json", TABLE)
+    bad = repo.parent / f"{repo.name}-bad.json"
+    bad.write_text("{ not json", encoding="utf-8")
+    code, output = run_merged(repo, core, plugin=(bad,))
+    problems = problems_for(2, [bad.name, "cannot be read as JSON"], [], code, output)
+    results.append(("#207/AC-5 a malformed fragment exits 2 naming the fragment", problems, output))
+
+    return results
+
+
 def main() -> int:
     failed = 0
     with tempfile.TemporaryDirectory() as tmp:
@@ -272,9 +398,12 @@ def main() -> int:
             code, output = run(repo, table)
             problems = problems_for(expect, present, absent, code, output)
             failed += report(name, problems, output)
+        fragments = fragment_cases(Path(tmp))
+        for name, problems, output in fragments:
+            failed += report(name, problems, output)
     failed += report("#128/AC-6 every skill and file the shipped table names exists", missing_from_shipped_table(), "")
 
-    total = len(CASES) + 1
+    total = len(CASES) + len(fragments) + 1
     print()
     if failed:
         print(f"{failed} of {total} cases failed.")

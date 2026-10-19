@@ -49,6 +49,8 @@ python3 engineering/fundamentals/hooks/route-review.py --changed <base>...<head>
 
 The router reads `references/routes.json` and prints each route that fires, the skill it selects, the files that skill opens for it, and the path or line that fired it. Which pattern drives which route is in that table and nowhere else; [`docs/review-routes.md`](../../docs/review-routes.md) says what the three drivers read.
 
+A consumer or an installed plugin adds a review lens by shipping a `review-routes.json` fragment — not by copying this table. Point the router at it with `--plugin-routes <file>` (repeatable) or list the fragments in `ROUTE_REVIEW_FRAGMENTS`, and it merges them onto the core table for this run; `docs/review-routes.md` has the merge rules.
+
 Load the skills the output names and no others. A skill that no route selected is not run, and the review says which were not selected, because not selected is different from clean.
 
 | Routes | Skill | What it is handed |
