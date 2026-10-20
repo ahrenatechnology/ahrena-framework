@@ -17,6 +17,7 @@ references:
   - ahrena-engineering-fundamentals:rules/debt-markers.md
   - ahrena-engineering-fundamentals:rules/client-logic.md
   - ahrena-engineering-fundamentals:rules/comment-pointers.md
+  - ahrena-engineering-fundamentals:rules/backstage-language.md
   - ahrena-engineering-fundamentals:docs/patterns.md
   - docs/review-findings.md
   - docs/review-routes.md
@@ -56,7 +57,7 @@ Load the skills the output names and no others. A skill that no route selected i
 
 | Routes | Skill | What it is handed |
 |---|---|---|
-| `source`, `python-structure`, `python-comments`, `domain`, `edges`, `abstraction` | this one | the rules each route opens, read in steps 3 to 6 |
+| `source`, `python-structure`, `python-comments`, `backstage-language`, `domain`, `edges`, `abstraction` | this one | the rules each route opens, read in steps 3 to 6 |
 | `contract` | `skills/detecting-contract-breaks/SKILL.md` | the surface, which it reads at the base version and not from the diff |
 | `python`, `typescript`, `go`, `rust` | `ahrena-engineering-<lang>:skills/reviewing-<lang>/SKILL.md` | the changed files in that language, read for what is specific to it |
 | `secrets`, `supply-chain`, `untrusted-input`, `access`, `sensitive-data`, `language-models`, `agent-authority` | the security discipline the route names (`reviewing-secrets`, `reviewing-supply-chain`, `reviewing-untrusted-input`, `reviewing-access`, `reviewing-sensitive-data`, `reviewing-model-use`) | that discipline's conditions, and the lines that fired them |
@@ -87,6 +88,14 @@ python3 engineering/fundamentals/hooks/check-comments.py --changed <base>...<hea
 ```
 
 It decides condition 1 of [`rules/comment-pointers.md`](../../../fundamentals/rules/comment-pointers.md): a comment this change adds or edits that carries no pointer to an ADR or an issue and is no permitted exemption. Run it without `--fix` here. The review reports the finding and no more; `--fix` removes the comment and belongs to the fixer agent (`ADR-014`) and to a pre-commit hook, never to this review, so a reviewer never reads its own edit. Its `--changed` scoping and its exit-2-on-an-unresolvable-change are the same as the structure detector's above, and are handled the same way.
+
+When the `backstage-language` route fired, run the backstage-language detector over the changed files, report-only, in any of the languages it lexes:
+
+```sh
+python3 engineering/fundamentals/hooks/check-backstage-language.py --changed <base>...<head> path/to/changed.ts
+```
+
+It decides conditions 1 and 2 of [`rules/backstage-language.md`](../../../fundamentals/rules/backstage-language.md): a name or an added path this change writes that carries a Portuguese diacritic or a segment on the hook's closed word list. Condition 3 — every other name behind the scenes, the test name written as a sentence, the commit subject — is read at step 4, and a clean run of the detector does not settle it, because the list can only miss. A finding here requests changes even when the names around it are still Portuguese; the rule binds the name the change writes.
 
 ## 4. Read the routed judgment conditions against the changed lines
 

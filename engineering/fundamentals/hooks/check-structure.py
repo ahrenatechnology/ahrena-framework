@@ -75,6 +75,9 @@ for the next header — an added source line whose text begins `++ ` renders as
 source. None of that is hypothetical: every one of those is a way for this gate
 to report a clean tree it never looked at.
 
+That machinery lives in changes.py, beside this hook, shared with the other two
+change-scoped detectors in this plugin rather than copied into each.
+
 Defaulting to every line is deliberate. A gate that defaults to seeing less than
 it was handed is a gate that passes by seeing nothing, which is the failure the
 workflow's own `fetch-depth: 0` comment already records for a revision range on
@@ -98,12 +101,14 @@ from __future__ import annotations
 import ast
 import io
 import re
-import subprocess
 import sys
 import tokenize
 from dataclasses import dataclass
 from itertools import combinations
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from changes import CHANGED_FLAG, Unavailable, report, scoped, split_argv  # noqa: E402
 
 # --- the thresholds, and where they come from ------------------------------
 
@@ -1420,207 +1425,7 @@ def load(path: Path, rel: str, scope: frozenset[int] | None) -> Source | None:
         return None
 
 
-# --- the change, when the run is scoped to one -----------------------------
 
-CHANGED_FLAG = "--changed"
-
-# The two spellings of a spec that may begin with a dash. Every other option git
-# diff accepts is refused here, because the spec lands on the same command line
-# as the options below and git lets the last flag win: `--name-only`, `--quiet`
-# and `--output=` each leave the scope empty while the run still exits 0, and
-# `-U5` widens it past the lines the change wrote. That is the silent pass
-# rules/debt-markers.md names as the one failure mode worse than a noisy one.
-SPEC_OPTIONS = ("--cached", "--staged")
-
-# The prefix the `+++` side of a file header carries. Pinned rather than assumed:
-# diff.noprefix drops it and diff.mnemonicPrefix rewrites it, and a hook that
-# chopped two characters off unconditionally would read `abc.py` as `c.py` —
-# blaming a file nobody touched and missing the marker in the real one.
-DST_PREFIX = "b/"
-
-# The diff is pinned rather than taken as the environment leaves it. Colour
-# escapes (color.diff), a replacement driver (diff.external, GIT_EXTERNAL_DIFF)
-# and a content filter (diff.*.textconv) are ordinary configurations, and each
-# one empties or garbles the scope while the run still exits 0. The pinned
-# options follow the caller's spec so that a spec which smuggled one of them in
-# cannot override them.
-PINNED = (
-    "--no-color",
-    "--no-ext-diff",
-    "--no-textconv",
-    "--src-prefix=a/",
-    f"--dst-prefix={DST_PREFIX}",
-    "--unified=0",
-)
-
-# A unified-diff hunk header. With --unified=0 there is no context, so the range
-# on the `+` side is exactly the lines the change adds or rewrites, and the two
-# counts together are exactly how many body rows follow the header — which is
-# what lets the parser consume a hunk rather than scan forward for the next one.
-HUNK = re.compile(r"^@@ -\d+(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
-
-# git renders a merge's unresolved paths as a combined diff, whose `@@@` header
-# and two-column body this parser does not read, or as a bare `* Unmerged path`
-# line with no diff at all. Either way the file has no two-sided change to scope,
-# and that is reported rather than passed over in silence.
-UNMERGED = ("diff --cc ", "diff --combined ", "* Unmerged path ")
-
-# git C-quotes a path in a diff header when it holds a double quote, a backslash,
-# a control character or — unless core.quotePath is off — a byte above ASCII. The
-# first two are quoted whatever that setting says, so a hook that did not undo
-# the quoting would be permanently blind to those names and a marker could hide
-# behind a filename.
-ESCAPES = {"a": "\a", "b": "\b", "f": "\f", "n": "\n", "r": "\r", "t": "\t", "v": "\v"}
-OCTAL = "01234567"
-
-
-class Unavailable(Exception):
-    """git could not answer, and the run must say so rather than see nothing."""
-
-
-def git(args: list[str], cwd: Path) -> str:
-    """git's standard output, decoded leniently.
-
-    A diff carries whatever bytes the changed files carry. Decoding it with the
-    locale codec and errors='strict' — which is what text=True asks for — raises
-    inside subprocess, past the OSError below, past this hook's own unavailable
-    path, and out as a traceback with an exit code CI cannot tell apart from a
-    real finding. Every field this parser reads is ASCII, so a byte replaced in a
-    content row costs nothing and the run completes.
-    """
-    try:
-        done = subprocess.run(["git", *args], cwd=str(cwd), capture_output=True)
-    except OSError as exc:
-        raise Unavailable(f"git could not be run: {exc}") from exc
-    if done.returncode != 0:
-        raise Unavailable(_decode(done.stderr).strip() or f"git exited {done.returncode}")
-    return _decode(done.stdout)
-
-
-def _decode(raw: bytes) -> str:
-    return raw.decode("utf-8", errors="replace")
-
-
-def unquote(field: str) -> str:
-    """The path a diff header names, with git's C-style quoting undone."""
-    if len(field) < 2 or not (field.startswith('"') and field.endswith('"')):
-        return field
-    body, out, at = field[1:-1], bytearray(), 0
-    try:
-        while at < len(body):
-            if body[at] != "\\":
-                out.extend(body[at].encode("utf-8"))
-                at += 1
-            elif body[at + 1] in OCTAL:
-                out.append(int(body[at + 1 : at + 4], 8))
-                at += 4
-            else:
-                out.extend(ESCAPES.get(body[at + 1], body[at + 1]).encode("utf-8"))
-                at += 2
-    except (IndexError, ValueError) as exc:
-        raise Unavailable(f"git named a path this hook cannot read: {field} ({exc})") from exc
-    return out.decode("utf-8", errors="replace")
-
-
-def added_lines(diff: str, top: Path) -> dict[Path, set[int]]:
-    """The lines each file gains, keyed by the path the walk will hand back.
-
-    A `+++ ` row is a file header only where one can stand: straight after the
-    matching `--- ` row, and never inside a hunk, whose body is consumed by the
-    counts the header declares. Both locks guard one input. Under --unified=0 an
-    added source line renders with a single `+`, so a line whose own text begins
-    `++ ` reaches this parser as `+++ `; read as a header it re-points the scope
-    at a path taken from somebody's source, which hides every later marker in the
-    file that really changed and blames one the change never opened. Any file
-    carrying diff fixtures holds such a line, this hook's own tests included.
-    """
-    added: dict[Path, set[int]] = {}
-    lines: set[int] | None = None
-    source_header = False
-    body = 0
-    for row in diff.split("\n"):
-        if body:
-            body -= 0 if row.startswith("\\") else 1
-            continue
-        if row.startswith(UNMERGED):
-            raise Unavailable(
-                f"git gave no two-sided diff for an unresolved merge ({row.strip()!r}), and a "
-                "file with no diff has no lines in scope. Finish the merge, or pass a revision"
-            )
-        if row.startswith("diff --git "):
-            lines, source_header = None, False
-            continue
-        if row.startswith("+++ ") and source_header:
-            target = unquote(row[4:])
-            lines = None if target == "/dev/null" else added.setdefault(_target(top, target), set())
-            source_header = False
-            continue
-        source_header = row.startswith("--- ")
-        hunk = HUNK.match(row)
-        if hunk is None:
-            continue
-        start, count = int(hunk.group(2)), int(hunk.group(3) or 1)
-        body = int(hunk.group(1) or 1) + count
-        if lines is not None:
-            lines.update(range(start, start + count))
-    return added
-
-
-def _target(top: Path, target: str) -> Path:
-    """The `+++ b/<path>` side of a file header, as an absolute path."""
-    if not target.startswith(DST_PREFIX):
-        raise Unavailable(
-            f"git named the changed file {target!r}, which does not carry the "
-            f"{DST_PREFIX!r} prefix this run pins, so the scope cannot be trusted"
-        )
-    return (top / target[len(DST_PREFIX) :]).resolve()
-
-
-def scoped(spec: str, paths: list[Path]) -> dict[Path, frozenset[int]]:
-    """The lines the change adds, for each walked path the diff reaches."""
-    top = Path(git(["rev-parse", "--show-toplevel"], Path.cwd()).strip()).resolve()
-    outside = [path for path in paths if not path.is_relative_to(top)]
-    if outside:
-        raise Unavailable(
-            f"{outside[0]} lies outside the repository at {top}, so no diff can say "
-            f"which of its lines this change wrote ({len(outside)} path(s) in all)"
-        )
-    # No pathspec. The walk has already chosen the files, so one argument per
-    # walked file is redundant, and past a few thousand of them it is an argument
-    # list the kernel refuses — which kills all twenty conditions on a repository
-    # whose only fault is being large. Intersecting the whole diff with the walk
-    # is a dict lookup per file and has no limit.
-    diff = git(["-c", "color.ui=false", "diff", spec, *PINNED], top)
-    return {path: frozenset(lines) for path, lines in added_lines(diff, top).items()}
-
-
-def split_argv(argv: list[str]) -> tuple[list[str], str | None]:
-    """The paths, and the change the run is scoped to when one was named."""
-    if CHANGED_FLAG not in argv:
-        return argv, None
-    at = argv.index(CHANGED_FLAG)
-    if at + 1 == len(argv):
-        raise Unavailable(f"{CHANGED_FLAG} needs a revision or range to pass to the diff")
-    spec = argv[at + 1]
-    if spec.startswith("-") and spec not in SPEC_OPTIONS:
-        raise Unavailable(
-            f"{spec!r} is not a revision or range, and the only options {CHANGED_FLAG} "
-            f"takes are {' and '.join(SPEC_OPTIONS)}. An option that suppresses the "
-            "patch would scope the condition to nothing and still exit 0"
-        )
-    return argv[:at] + argv[at + 2 :], spec
-
-
-def report(findings: list[Finding], checked: int, unparsed: int) -> int:
-    suffix = f" ({unparsed} skipped)" if unparsed else ""
-    if findings:
-        print(f"{len(findings)} failure(s) across {checked} file(s){suffix}:\n")
-        for finding in sorted(findings, key=lambda f: (f.where, f.rule, f.condition)):
-            print(finding)
-        return 1
-
-    print(f"{checked} file(s), no failures{suffix}.")
-    return 0
 
 
 def main(argv: list[str]) -> int:
