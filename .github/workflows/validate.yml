@@ -62,6 +62,9 @@ jobs:
       - name: Test the comments hook
         run: python3 engineering/fundamentals/hooks/test-check-comments.py
 
+      - name: Test the backstage-language hook
+        run: python3 engineering/fundamentals/hooks/test-check-backstage-language.py
+
       - name: Test the review router
         run: python3 engineering/quality/hooks/test-route-review.py
 
@@ -166,6 +169,23 @@ jobs:
         run: |
           python3 engineering/fundamentals/hooks/check-comments.py --changed "$RANGE" \
             $(ls */hooks/*.py */*/hooks/*.py | grep -v '/test-')
+
+      # The backstage-language rule applies to the whole repository, scoped to
+      # this pull request the same way: a name or an added path in Portuguese is
+      # reported with condition 1 or 2 of
+      # engineering/fundamentals/rules/backstage-language.md. The detector and
+      # its suite are left out by path, because the closed word list and the
+      # fixtures are Portuguese by construction; that exclusion is the
+      # `--exclude` the rule offers for a recorded fixture, and it is written
+      # here where it can be read.
+      - name: Check the names on this pull request
+        if: github.event_name == 'pull_request'
+        env:
+          RANGE: ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 engineering/fundamentals/hooks/check-backstage-language.py --changed "$RANGE" \
+            --exclude 'engineering/fundamentals/hooks/check-backstage-language.py' \
+            --exclude 'engineering/fundamentals/hooks/test-check-backstage-language.py' .
 
       # The remaining two contributing hooks judge a pull request and
       # nothing else.

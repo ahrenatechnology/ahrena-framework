@@ -1092,8 +1092,14 @@ def command_does_not_grow() -> tuple[int, str]:
     HOOK_SPEC.loader.exec_module(hook)
     top = Path.cwd().resolve()
     answers = Answers(top)
-    hook.subprocess = answers
-    hook.scoped("--cached", [top / f"f{n:05d}.py" for n in range(WALKED)])
+    # git is run from the module the change-scoped hooks share, so that is
+    # where it is stood in for.
+    shared = sys.modules["changes"]
+    real, shared.subprocess = shared.subprocess, answers
+    try:
+        hook.scoped("--cached", [top / f"f{n:05d}.py" for n in range(WALKED)])
+    finally:
+        shared.subprocess = real
     diff = [asked for asked in answers.asked if "diff" in asked][-1]
     if len(diff) > COMMAND_MAX:
         return 1, f"the command grew with the walk: {len(diff)} arguments for {WALKED} file(s)"
