@@ -391,7 +391,8 @@ class Script:
     divides from a slash that opens a regular expression. Where the token does
     not settle it, the rest of the line is passed over unread; where a misreading
     could carry past the line, through a template literal or a block comment, the
-    lexer stops and what it found up to there is all it returns.
+    lexer stops and returns nothing, so the file is skipped by name rather than
+    passed on the comments it found before it lost its place.
 
     Markup is the part it does not understand. In a file that may hold JSX, text
     between tags is not code, so a comment directly after a `>` and a `//`
@@ -413,7 +414,7 @@ class Script:
             self.at = line_end(self.text, 0)
         while self.trusted and self.at < len(self.text):
             self._step()
-        return self.found
+        return self.found if self.trusted else None
 
     def _step(self) -> None:
         char = self.text[self.at]
@@ -656,10 +657,10 @@ class Sql:
     """Whole-line `--` comments of a SQL file, outside quoted text.
 
     A backslash before a quote inside a string closes it in standard SQL and
-    escapes it in an escape string, and nothing in the file says which. The scan
-    stops there and keeps what it had. A string or block comment still open at
-    the end of the file means the pairing was wrong earlier, and nothing is
-    returned.
+    escapes it in an escape string, and nothing in the file says which, so the
+    scan stops there and returns nothing. A string or block comment still open
+    at the end of the file means the pairing was wrong earlier, and nothing is
+    returned either. Either way the file is skipped by name.
     """
 
     def __init__(self, text: str) -> None:
@@ -698,6 +699,7 @@ class Sql:
         while at < len(self.text):
             char, after = self.text[at], self.text[at + 1 : at + 2]
             if char == "\\" and after == quote:
+                self.broken = True
                 self.at = len(self.text)
                 return
             if char == quote and after != quote:
@@ -917,8 +919,6 @@ def load(path: Path, rel: str, scope: frozenset[int] | None) -> Source | None:
 
 def skipped(rel: str) -> None:
     print(f"{rel}\n    skipped, its comments cannot be told from its strings", file=sys.stderr)
-
-
 
 
 def read(argv: list[str]) -> tuple[list[Path], dict[Path, frozenset[int]], str | None]:

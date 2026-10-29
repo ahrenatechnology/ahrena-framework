@@ -140,6 +140,8 @@ SELECT '-- this is data inside a string' AS note;
 SELECT 1;
 '''
 
+SCRIPT_LOST = 'const a = "abc\\\ndef";\n// prose with no pointer\n'
+SQL_BACKSLASH = "SELECT 'a\\' ;\n-- prose with no pointer\n"
 SQL_UNSURE = "SELECT 'an unterminated string that the reader cannot close\nSELECT 2;\n"
 
 # ----------------------------------------------------------------------------
@@ -393,6 +395,18 @@ CASES = [
         "the same marker with an issue reference passes (#211/AC-3)",
         {"a.ts": SCRIPT_MARKER_POINTER},
         ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a script lexer that loses its place skips the file, not just its tail (#211/AC-3)",
+        {"a.ts": SCRIPT_LOST},
+        ["skipped", "cannot be told"],
+        ok=True,
+    ),
+    case(
+        "a SQL backslash before a quote skips the file, not just its tail (#211/AC-3)",
+        {"a.sql": SQL_BACKSLASH},
+        ["skipped", "cannot be told"],
         ok=True,
     ),
     case(
