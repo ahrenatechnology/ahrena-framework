@@ -25,6 +25,7 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-015](ADR-015-reliability-and-observability-are-review-pillars.md) | Reliability and observability are the third and fourth review pillars, each its own plugin and lens |
 | [ADR-016](ADR-016-the-code-graph-is-a-cache-not-a-committed-tree.md) | The code graph is a gitignored, SHA-keyed cache in two tiers, consulted by a skill with self-healing freshness, not a committed tree or a CI gate |
 | [ADR-017](ADR-017-each-platform-binds-the-portable-agency.md) | The manager/worker orchestration is the portable spec; each platform binds it, and an entry directive in the always-loaded instruction file makes the agency always used |
+| [ADR-018](ADR-018-orchestration-is-declared-data.md) | A process's orchestration — nodes, edges, loop bounds, thresholds — is declared data the framework owns; a runtime only binds and executes it, nothing hard-coded per platform; extends ADR-017 |
 
 ## Decided, as rows
 
