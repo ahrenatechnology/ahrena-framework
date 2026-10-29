@@ -7,9 +7,15 @@ must not flag. Each case builds a throwaway tree, runs the hook against it as a
 subprocess, and asserts on the exit code and the message. The fix cases run the
 hook with --fix and read the file back.
 
-This file is authored pointer-clean: it carries no bare prose `#` comment, only
-word-free separators, and all rationale sits in docstrings. The `#` comments
-inside the fixture strings are data the hook reads, not comments on this file.
+The detector reads five languages — Python, TypeScript, JavaScript, shell and
+SQL — so the cases below cover a finding and its carve-out for each, and a --fix
+for each. The Python cases are kept as they were, because the Python path's
+behaviour is unchanged.
+
+This file is authored pointer-clean: it carries no bare prose `#` or `//`
+comment, only word-free separators, and all rationale sits in docstrings. The
+`#`, `//` and `--` sequences inside the fixture strings are data the hook reads,
+not comments on this file.
 
 Usage:
     python3 engineering/fundamentals/hooks/test-check-comments.py
@@ -92,6 +98,54 @@ ADDS_PROSE = CLEAN + "# prose added by this very change, with no pointer\n"
 
 # ----------------------------------------------------------------------------
 
+SCRIPT_PROSE = '''export const total = 1;
+// an explanatory aside with no pointer, which is prose that rots
+const value = 2;
+'''
+
+SCRIPT_CLEAN = '''// ADR-014 explains why this stays
+export const total = 1;
+const value = 2; // see #172 for the rationale
+// eslint-disable-next-line no-console
+const noisy = 3;
+/** documents the exported function */
+export function compute() {}
+const text = "// this # is -- all data inside a string, not a comment";
+const pattern = /a\\/b/; // ADR-016 the slash is division, not a comment
+'''
+
+SCRIPT_BARE_MARKER = 'const x = 1; // TODO wire up the retries\n'
+
+SCRIPT_MARKER_POINTER = 'const x = 1; // TODO (#12) wire up the retries\n'
+
+SHELL_PROSE = '''#!/usr/bin/env bash
+# a whole-line aside with no pointer at all
+echo "running"
+'''
+
+SHELL_CLEAN = '''#!/usr/bin/env bash
+# clean up the scratch directory (#42)
+# shellcheck disable=SC2034
+echo "# this is data, not a comment"
+unused=1
+'''
+
+SQL_PROSE = '''-- a whole-line aside with no pointer at all
+SELECT 1;
+'''
+
+SQL_CLEAN = '''-- see ADR-016 for the column layout
+SELECT '-- this is data inside a string' AS note;
+-- +goose Up
+SELECT 1;
+'''
+
+SCRIPT_LOST = 'const a = "abc\\\ndef";\n// prose with no pointer\n'
+SQL_BACKSLASH = "SELECT 'a\\' ;\n-- prose with no pointer\n"
+SQL_UNSURE = "SELECT 'an unterminated string that the reader cannot close\nSELECT 2;\n"
+
+# ----------------------------------------------------------------------------
+
 BASELINE = "@baseline"
 ARGS = "@args"
 CONFIG = "@config"
@@ -161,6 +215,44 @@ def fix_is_idempotent() -> tuple[int, str]:
     if first != second:
         return 1, f"the fix was not idempotent: {first!r} then {second!r}"
     return 0, "the fix removed the prose and was idempotent"
+
+
+def _fix_named(name: str, content: str, extra: list[str]) -> tuple[int, str, str]:
+    """Write one named file, run the hook with the given arguments, read the file back."""
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / name).write_text(content, encoding="utf-8")
+        done = subprocess.run(
+            [sys.executable, str(HOOK), *extra, name], cwd=str(root), capture_output=True, text=True
+        )
+        return done.returncode, done.stdout + done.stderr, (root / name).read_text(encoding="utf-8")
+
+
+def fix_removes_script_prose() -> tuple[int, str]:
+    """A TypeScript prose comment is removed and the pointer-bearing one is kept."""
+    src = "export const a = 1;\n// prose with no pointer at all\nconst b = 2; // ADR-014 keep this\n"
+    _code, _out, after = _fix_named("a.ts", src, ["--fix"])
+    if after != "export const a = 1;\nconst b = 2; // ADR-014 keep this\n":
+        return 1, f"the TypeScript fix did not remove the prose cleanly: {after!r}"
+    return 0, "removed the TypeScript prose and kept the pointer"
+
+
+def fix_removes_shell_prose() -> tuple[int, str]:
+    """A shell whole-line prose comment is removed and the shebang is kept."""
+    src = "#!/usr/bin/env bash\n# prose with no pointer at all\necho ok\n"
+    _code, _out, after = _fix_named("a.sh", src, ["--fix"])
+    if after != "#!/usr/bin/env bash\necho ok\n":
+        return 1, f"the shell fix did not remove the prose cleanly: {after!r}"
+    return 0, "removed the shell prose and kept the shebang"
+
+
+def fix_removes_sql_prose() -> tuple[int, str]:
+    """A SQL whole-line prose comment is removed and the pointer-bearing one is kept."""
+    src = "-- prose with no pointer at all\n-- see ADR-016 for the layout\nSELECT 1;\n"
+    _code, _out, after = _fix_named("a.sql", src, ["--fix"])
+    if after != "-- see ADR-016 for the layout\nSELECT 1;\n":
+        return 1, f"the SQL fix did not remove the prose cleanly: {after!r}"
+    return 0, "removed the SQL prose and kept the pointer"
 
 
 def case(name: str, files: dict, expect: list[str], ok: bool = False) -> tuple:
@@ -246,6 +338,87 @@ CASES = [
         {BASELINE: {"a.py": CLEAN}, ARGS: ["--changed", "--name-only", "."], "a.py": ADDS_PROSE},
         ["is not a revision or range"],
     ),
+    # ----------------------------------------------------------------------------
+    case(
+        "the Python path still delegates commented-out code and debt markers (#211/AC-2)",
+        {"a.py": DELEGATED},
+        ["no failures"],
+        ok=True,
+    ),
+    # ----------------------------------------------------------------------------
+    case(
+        "a TypeScript prose comment with no pointer fails (#211/AC-1)",
+        {"a.ts": SCRIPT_PROSE},
+        ["[comment-pointers] condition 1", "no durable pointer"],
+    ),
+    case(
+        "a JavaScript prose comment with no pointer fails (#211/AC-1)",
+        {"a.js": SCRIPT_PROSE},
+        ["[comment-pointers] condition 1", "no durable pointer"],
+    ),
+    case(
+        "a shell prose comment with no pointer fails (#211/AC-1)",
+        {"a.sh": SHELL_PROSE},
+        ["[comment-pointers] condition 1", "no durable pointer"],
+    ),
+    case(
+        "a SQL prose comment with no pointer fails (#211/AC-1)",
+        {"a.sql": SQL_PROSE},
+        ["[comment-pointers] condition 1", "no durable pointer"],
+    ),
+    # ----------------------------------------------------------------------------
+    case(
+        "a TypeScript pointer, directive, documentation and string all pass (#211/AC-1)",
+        {"a.ts": SCRIPT_CLEAN},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a shell pointer, directive, shebang and string all pass (#211/AC-1)",
+        {"a.sh": SHELL_CLEAN},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a SQL pointer, directive and string all pass (#211/AC-1)",
+        {"a.sql": SQL_CLEAN},
+        ["no failures"],
+        ok=True,
+    ),
+    # ----------------------------------------------------------------------------
+    case(
+        "a bare marker in a non-Python comment is pointerless prose, a finding (#211/AC-3)",
+        {"a.ts": SCRIPT_BARE_MARKER},
+        ["[comment-pointers] condition 1", "no durable pointer"],
+    ),
+    case(
+        "the same marker with an issue reference passes (#211/AC-3)",
+        {"a.ts": SCRIPT_MARKER_POINTER},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a script lexer that loses its place skips the file, not just its tail (#211/AC-3)",
+        {"a.ts": SCRIPT_LOST},
+        ["skipped", "cannot be told"],
+        ok=True,
+    ),
+    case(
+        "a SQL backslash before a quote skips the file, not just its tail (#211/AC-3)",
+        {"a.sql": SQL_BACKSLASH},
+        ["skipped", "cannot be told"],
+        ok=True,
+    ),
+    case(
+        "a reader that cannot tell comments from data skips the file, no finding (#211/AC-3)",
+        {"a.sql": SQL_UNSURE},
+        ["skipped", "cannot be told"],
+        ok=True,
+    ),
+    # ----------------------------------------------------------------------------
+    case("a fix removes TypeScript prose and keeps the pointer (#211/AC-4)", {CHECK: fix_removes_script_prose}, [], ok=True),
+    case("a fix removes shell prose and keeps the shebang (#211/AC-4)", {CHECK: fix_removes_shell_prose}, [], ok=True),
+    case("a fix removes SQL prose and keeps the pointer (#211/AC-4)", {CHECK: fix_removes_sql_prose}, [], ok=True),
 ]
 
 
