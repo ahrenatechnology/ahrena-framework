@@ -1,4 +1,4 @@
-# ADR-018: Comment-pointers reaches five languages
+# ADR-019: Comment-pointers reaches five languages
 
 - **Status:** accepted
 - **Date:** 2026-10-19
