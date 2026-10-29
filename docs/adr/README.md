@@ -26,6 +26,7 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-016](ADR-016-the-code-graph-is-a-cache-not-a-committed-tree.md) | The code graph is a gitignored, SHA-keyed cache in two tiers, consulted by a skill with self-healing freshness, not a committed tree or a CI gate |
 | [ADR-017](ADR-017-each-platform-binds-the-portable-agency.md) | The manager/worker orchestration is the portable spec; each platform binds it, and an entry directive in the always-loaded instruction file makes the agency always used |
 | [ADR-018](ADR-018-orchestration-is-declared-data.md) | A process's orchestration — nodes, edges, loop bounds, thresholds — is declared data the framework owns; a runtime only binds and executes it, nothing hard-coded per platform; extends ADR-017 |
+| [ADR-019](ADR-019-comment-pointers-reach-five-languages.md) | The comment-pointer condition reads Python, TypeScript, JavaScript, shell and SQL, each through its own conservative reader, reversing the Python-only scope it first landed with |
 
 ## Decided, as rows
 
