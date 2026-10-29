@@ -1,4 +1,4 @@
-# ADR-019: A process's orchestration is declared data a runtime binds
+# ADR-018: A process's orchestration is declared data a runtime binds
 
 - **Status:** accepted
 - **Date:** 2026-10-19
