@@ -13,7 +13,7 @@ enforced-in: forge
 
 Three conditions, all decided by `hooks/check-traceability.py`. The criteria are read from each issue's body, which is their only home (this repository's `ADR-007`), and the tests from the checkout. Without a token all three are reported unchecked rather than failed.
 
-A criterion is written in the issue under `## Acceptance criteria` as `AC-<n>: <behaviour>`, and `skills/writing-acceptance-criteria` gives the shape. A test names the criterion it covers with the token `#<issue>/AC-<n>`, anywhere in the file and in any language. This is the "trace to a requirement" family of correctness, which #34 registered as its Q9 and waits on this rule for.
+A criterion is written in the issue under `## Acceptance criteria`, or `## Critérios de aceite` in an issue written in Portuguese, as `AC-<n>: <behaviour>`, and `skills/writing-acceptance-criteria` gives the shape. A test names the criterion it covers with the token `#<issue>/AC-<n>`, anywhere in the file and in any language. This is the "trace to a requirement" family of correctness, which #34 registered as its Q9 and waits on this rule for.
 
 ## Conditions
 
