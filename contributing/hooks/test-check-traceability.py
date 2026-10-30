@@ -70,6 +70,14 @@ CASES = [
         forge({1: "Just a description."}),
         ["[traceability] condition 1", "#1, which this closes, has no Acceptance criteria section"],
     ),
+    # the heading in the issue's language (#218/AC-1)
+    case(
+        "the criteria under the Portuguese heading are read",
+        COVERED,
+        forge({1: CRITERIA.replace("Acceptance criteria", "Critérios de aceite")}),
+        ["0 failure(s), 0 unchecked"],
+        ok=True,
+    ),
     case(
         "a gap in the numbering fails, and says a dropped criterion stays",
         COVERED,

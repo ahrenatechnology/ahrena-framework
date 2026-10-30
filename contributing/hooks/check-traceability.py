@@ -57,7 +57,9 @@ _spec.loader.exec_module(pr_quality)
 # issue body is an example, not the issue's criteria.
 NOT_PROSE = re.compile(r"^(```|~~~).*?^\1[^\n]*$|<!--.*?-->", re.DOTALL | re.MULTILINE)
 
-HEADING = re.compile(r"^#{1,6}\s*Acceptance criteria\s*$", re.IGNORECASE | re.MULTILINE)
+# The heading is screen text, so it is read in the issue's language: English,
+# or Portuguese for a team that writes its issues in it.
+HEADING = re.compile(r"^#{1,6}\s*(?:Acceptance criteria|Crit[ée]rios de aceite)\s*$", re.IGNORECASE | re.MULTILINE)
 ANY_HEADING = re.compile(r"^#{1,6}\s", re.MULTILINE)
 ITEM = re.compile(r"^\s*[-*+]\s+(?:\[[ xX]\]\s+)?AC-(?P<n>[0-9]+):\s*(?P<text>.*)$", re.MULTILINE)
 REMOVED = "(removed"
