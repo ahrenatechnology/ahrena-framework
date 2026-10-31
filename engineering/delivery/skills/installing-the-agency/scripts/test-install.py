@@ -81,6 +81,60 @@ def test_fresh_repo_writes_exact_shape() -> None:
         assert "ahrena:agency:start" in (c.root / "CLAUDE.md").read_text(encoding="utf-8"), "fresh: directive written"
 
 
+def test_default_writes_every_file_present() -> None:
+    with Case() as c:
+        c.run()
+        for name in ("CLAUDE.md", "AGENTS.md"):
+            assert "ahrena:agency:start" in (c.root / name).read_text(encoding="utf-8"), name
+
+    with Case() as c:
+        (c.root / "CLAUDE.md").write_text("# Mine\n", encoding="utf-8")
+        c.run()
+        assert not (c.root / "AGENTS.md").exists(), "only the file present is written"
+        assert "ahrena:agency:start" in (c.root / "CLAUDE.md").read_text(encoding="utf-8")
+
+    with Case() as c:
+        (c.root / "AGENTS.md").write_text("# Mine\n", encoding="utf-8")
+        c.run()
+        assert not (c.root / "CLAUDE.md").exists() and not (c.root / ".claude").exists(), "codex alone skips settings"
+
+    with Case() as c:
+        (c.root / "CLAUDE.md").write_text("# a\n", encoding="utf-8")
+        (c.root / "AGENTS.md").write_text("# b\n", encoding="utf-8")
+        r = c.run()
+        assert r.returncode == 0, r.stderr
+        for name in ("CLAUDE.md", "AGENTS.md"):
+            assert "ahrena:agency:start" in (c.root / name).read_text(encoding="utf-8"), name
+
+
+def test_platform_limits_the_run_to_one_file() -> None:
+    with Case() as c:
+        (c.root / "CLAUDE.md").write_text("# a\n", encoding="utf-8")
+        (c.root / "AGENTS.md").write_text("# b\n", encoding="utf-8")
+        c.run("--platform", "claude")
+        assert "ahrena:agency" not in (c.root / "AGENTS.md").read_text(encoding="utf-8")
+        assert "ahrena:agency" in (c.root / "CLAUDE.md").read_text(encoding="utf-8")
+
+
+def test_check_reports_each_file() -> None:
+    with Case() as c:
+        c.run()
+        md = c.root / "AGENTS.md"
+        md.write_text(md.read_text(encoding="utf-8").replace("athena", "someone"), encoding="utf-8")
+        r = c.run("--check")
+        assert "claude: directive present" in r.stdout and "codex: directive STALE" in r.stdout, r.stdout
+        assert r.returncode == 1
+
+
+def test_piped_from_stdin() -> None:
+    with Case() as c:
+        env = {**os.environ, "CLAUDE_CONFIG_DIR": str(c.config), "AHRENA_AGENCY_URL": (HERE.parent / "references" / "agency.json").as_uri()}
+        r = subprocess.run([sys.executable, "-", str(c.root)], input=SCRIPT.read_text(encoding="utf-8"), capture_output=True, text=True, env=env)
+        assert r.returncode == 0, r.stderr
+        assert settings(c.root)["enabledPlugins"]["ahrena-foundation@ahrena"] is True
+        assert (c.root / "CLAUDE.md").exists() and (c.root / "AGENTS.md").exists()
+
+
 def test_preserves_other_keys_and_order() -> None:
     with Case() as c:
         put(
@@ -124,9 +178,9 @@ def test_second_run_writes_nothing() -> None:
     with Case() as c:
         c.run()
         settings_path = c.root / ".claude" / "settings.json"
-        before = (settings_path.read_bytes(), (c.root / "CLAUDE.md").read_bytes(), settings_path.stat().st_mtime_ns)
+        before = (settings_path.read_bytes(), (c.root / "CLAUDE.md").read_bytes() + (c.root / "AGENTS.md").read_bytes(), settings_path.stat().st_mtime_ns)
         r = c.run()
-        after = (settings_path.read_bytes(), (c.root / "CLAUDE.md").read_bytes(), settings_path.stat().st_mtime_ns)
+        after = (settings_path.read_bytes(), (c.root / "CLAUDE.md").read_bytes() + (c.root / "AGENTS.md").read_bytes(), settings_path.stat().st_mtime_ns)
         assert r.returncode == 0, "idempotent: exit 0" + ": " + str(r.stderr)
         assert before == after, "idempotent: nothing rewritten"
         assert "nothing written" in r.stdout and "already current" in r.stdout, "idempotent: says so" + ": " + str(r.stdout)
