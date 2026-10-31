@@ -284,6 +284,34 @@ def test_platform_codex_skips_settings() -> None:
         assert "max_depth" in r.stdout, "codex: depth note surfaced"
 
 
+def test_bad_platform_reports_its_own_error() -> None:
+    with Case() as c:
+        env = {**os.environ, "CLAUDE_CONFIG_DIR": str(c.config), "AHRENA_AGENCY_URL": "file:///nonexistent/agency.json"}
+        script = SCRIPT.read_text(encoding="utf-8")
+        r = subprocess.run(
+            [sys.executable, "-", "--platform", "cursor", str(c.root)],
+            input=script,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        assert r.returncode == 2 and "--platform" in r.stderr and "cursor" in r.stderr, "bad platform: its own error" + ": " + str(r.stderr)
+        assert "agency declaration" not in r.stderr, "bad platform: not masked by the load failure"
+
+
+def test_codex_note_only_when_agents_md_is_targeted() -> None:
+    with Case() as c:
+        (c.root / "CLAUDE.md").write_text("# Mine\n", encoding="utf-8")
+        r = c.run()
+        assert "max_depth" not in r.stdout, "claude only: no depth note"
+
+    with Case() as c:
+        (c.root / "AGENTS.md").write_text("# a\n", encoding="utf-8")
+        (c.root / "CLAUDE.md").write_text("# b\n", encoding="utf-8")
+        assert "max_depth" in c.run().stdout, "both files: depth note"
+        assert "max_depth" not in c.run("--platform", "claude").stdout, "--platform claude: no depth note"
+
+
 ONE = "ahrena-foundation@ahrena"
 SCOPES = {
     "project": lambda c: c.root / ".claude" / "settings.json",
