@@ -3,7 +3,7 @@ id: review-verdicts
 type: doc
 clade: quality
 title: The verdict a review publishes
-summary: Why the verdict follows the findings alone, what an approval on the first pass asserts and what makes it worth something, the three rows, why one comment per commit and the earlier one is left standing, why the marker is readable, and why the reviewer never edits the change.
+summary: Why the verdict follows the findings alone, what an approval on the first pass asserts and what makes it worth something, the three rows, why the verdict is also set as a commit status, why one comment per commit and the earlier one is left standing, why the marker is readable, and why the reviewer never edits the change.
 references:
   - docs/review-findings.md
 ---
@@ -48,6 +48,18 @@ GitHub does not let an account approve its own pull request. Where the reviewer 
 
 The verdict does not change. It is published as a comment whose verdict line reads approve, and the comment says the forge refused the review and why. Landing reads the verdict, not the review's state on the forge. Where the ruleset requires an approving review, the merge is then refused too, and the pull request waits for a person, which is the ruleset doing what it was set to do.
 
+## Why the verdict is also a commit status
+
+The forge refuses an approving review from the account that opened the pull request, and the reviewer often publishes through that account. A comment is the fallback, and a ruleset cannot require a comment. So with the comment alone there is nothing for a ruleset to hold a merge on.
+
+A commit status is something a ruleset can require. After the comment, the reviewer sets the status `argos/verdict` on the head it read, with the comment's URL as the target: `success` for approve, `failure` for request changes or comment. It is a plain status written through the API, so no GitHub App is needed.
+
+**Comment is `failure`** because row two is a review that has not finished. A required check that passed over a question or an unchecked condition would let the change merge past exactly the hole the row exists to name.
+
+**A new head has no status.** The forge keeps statuses per commit, and a push moves the head to a commit nobody reviewed. The reviewer never copies a status forward. A required `argos/verdict` check therefore blocks an unreviewed head, and the same missing status is what a refused call leaves behind, which is the safe direction.
+
+**Nothing here turns a ruleset on.** The skill shows a ruleset body that requires the context and says it is shown, not enabled. The repository owner decides whether and where to enable it, in evaluate enforcement first.
+
 ## One comment per commit, and the earlier ones stay
 
 The reviewer publishes a marker on the first line of the comment body, derived from the pull request number and the head commit the review looked at.
@@ -80,7 +92,9 @@ There is a second reason, smaller and more practical. A fix-up commit from the r
 
 ## Where this stops
 
-**Nothing here decides what a ruleset requires.** Required approvals, required checks and who owns a surface are the repository's settings, and an approval here does not stand in for any of them.
+**Nothing here decides what a ruleset requires, and nothing here enables one.** Required approvals, required checks and who owns a surface are the repository's settings. The status gives a ruleset something to require; an approval here does not stand in for any of the settings, and the skill's ruleset is an example, not a change.
+
+**The status stops an unreviewed push, not a writer who sets the context themselves.** Closing that needs a GitHub App and `integration_id` on the required check, or a ruleset that also requires a named reviewer.
 
 **Nothing here covers other reviewers.** A pull request usually carries comments from people and from other automated reviewers. Reading, aggregating or answering those is outside this procedure: this reviewer publishes its own verdict and leaves everyone else's threads alone.
 

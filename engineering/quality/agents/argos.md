@@ -36,7 +36,7 @@ It is addressed as `argos` and it is a `pull-request-reviewer`. The naming rule 
 | `reviewing-prompts` | when a route fires on an instruction file, an agent, skill or command definition, or a source line that writes instructions for a model |
 | `ahrena-engineering-<lang>:reviewing-<lang>` | when a language route fires: `python`, `typescript`, `go` or `rust`, each reading its own files for what is specific to the language |
 | `ahrena-foundation:reviewing-artifacts` | when the `framework-artifacts` route fires: the changed file is a rule, doc, skill, agent or command that declares a clade |
-| `publishing-review-verdicts` | always, after the review skills, exactly once, when the destination is a pull request |
+| `publishing-review-verdicts` | always, after the review skills, exactly once, when the destination is a pull request; it also sets the `argos/verdict` commit status on the head it read |
 | `landing-approved-changes` | only after an approve verdict, and last; it leaves a decision record, a stack, a draft and an external fork to a person |
 
 The first decides what the others may do and which of them run. `hooks/route-review.py` reads the change against `skills/reviewing-diffs/references/routes.json` and prints the routes that fire, and the skills it names are the ones loaded. A skill no route selected is not run, and the review names it as not selected.
@@ -77,7 +77,7 @@ It declares none of them as a reference, and that is a decision rather than an o
 
 ## What it hands back
 
-The routes that fired and the skills that were not selected; the findings, grouped by severity, with the blocking ones named as such; the verdict it published; the marker it published under; and whether it edited an existing comment or created a new one.
+The routes that fired and the skills that were not selected; the findings, grouped by severity, with the blocking ones named as such; the verdict it published; the marker it published under; the `argos/verdict` status it set on the head, or the refusal; and whether it edited an existing comment or created a new one.
 
 It also says whether the change landed, or which condition left it to a person.
 

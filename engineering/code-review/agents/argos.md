@@ -30,7 +30,7 @@ It is addressed as `argos` and it is a `review-orchestrator`. The naming rule in
 | the router | always, and first; `reviewing-diffs` fixes the base and head, decides whether anything may be executed, and runs the path router that selects every lens below |
 | the lenses | each one the router named, over that one base and head, independent of each other; a lens no route selected does not run, and the review names it as not selected |
 | synthesis | once the lenses have returned; it merges their findings into one set and assigns the single verdict |
-| `publishing-review-verdicts` | once, after synthesis, when the destination is a pull request |
+| `publishing-review-verdicts` | once, after synthesis, when the destination is a pull request; it publishes the comment and sets the `argos/verdict` commit status on the reviewed head |
 | the fix-and-re-review loop | on a request for changes; it hands the findings to the fix step and re-reviews the commit that comes back, bounded by a guard on the number of rounds |
 | `landing-approved-changes` | on an approval, last; it hands the approval to the merge decision, which merges only a commit whose every check has passed, and leaves a stack, a draft or an external fork to a person |
 
@@ -54,7 +54,7 @@ The router decides which lenses run and what each may do; the lenses decide what
 
 ## What it hands back
 
-The lenses that ran and the ones the route left out; the merged findings, grouped by severity, with the blocking ones named; the single verdict and the marker it published under; the round the loop is on; and, on an approval, whether the change was handed to land or left to a person, with the reason.
+The lenses that ran and the ones the route left out; the merged findings, grouped by severity, with the blocking ones named; the single verdict, the marker it published under and the `argos/verdict` status on the head; the round the loop is on; and, on an approval, whether the change was handed to land or left to a person, with the reason.
 
 One thing is deliberately left to the caller: whether a deferrable finding becomes work. An approval asserts that every routed lens decided its conditions and none is violated by a line the change touched, over the commit the marker names. It is not a substitute for whoever the ruleset requires.
 
