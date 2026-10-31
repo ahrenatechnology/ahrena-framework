@@ -104,6 +104,9 @@ jobs:
       - name: Test the plan hook
         run: python3 contributing/hooks/test-check-plan.py
 
+      - name: Test the agency installer
+        run: python3 engineering/delivery/skills/installing-the-agency/scripts/test-install.py
+
       - name: Test the costs plugin's record step
         run: python3 costs/runtime/test-record.py
 
