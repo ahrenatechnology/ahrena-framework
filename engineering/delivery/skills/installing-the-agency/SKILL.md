@@ -30,20 +30,23 @@ are available is not left to the model: the script reports each one, in step 2.
 
 The script, `scripts/install.py`, is resolved from the plugin's own root, never
 from a path that exists only in the framework's checkout. On Claude Code that is
-`${CLAUDE_PLUGIN_ROOT}`; on Codex it is the skill's own `scripts/` directory.
+`${CLAUDE_PLUGIN_ROOT}`; on Codex it is the skill's own `scripts/` directory,
+written `<skill-dir>` below. Run every command from the root of the consuming
+repository: the script installs into the directory it is given, which defaults to
+the current one, and a run from inside the plugin folder would write there.
 
 ## 2. Check what is in place
 
 Run the script in `--check` mode. It writes nothing. It reports the directive's
-state in each instruction file and each agency plugin as enabled, missing or
-disabled, counting the project's `.claude/settings.json` and
+state in each instruction file and each agency plugin as enabled, missing,
+disabled or invalid, and the `ahrena` marketplace declaration, counting the project's `.claude/settings.json` and
 `.claude/settings.local.json` and the user's `settings.json`:
 
 ```sh
 # Claude Code
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/installing-the-agency/scripts/install.py" --check
-# Codex, from the skill's own directory
-python3 scripts/install.py --check --platform codex
+# Codex; the trailing . is the consuming repository's root
+python3 <skill-dir>/scripts/install.py --check --platform codex .
 ```
 
 Exit 0 means everything is in place and there is nothing to do; exit 1 means
@@ -70,8 +73,8 @@ Run the same script without `--check`. It does two things:
 ```sh
 # Claude Code
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/installing-the-agency/scripts/install.py"
-# Codex, from the skill's own directory
-python3 scripts/install.py --platform codex
+# Codex; the trailing . is the consuming repository's root
+python3 <skill-dir>/scripts/install.py --platform codex .
 ```
 
 The directive states that build work enters through the `athena` agent, who plans

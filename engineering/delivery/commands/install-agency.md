@@ -17,7 +17,7 @@ Invoke `installing-the-agency` with the arguments below.
 
 | Argument | Required | Meaning |
 |---|---|---|
-| `--check` | no | Report the directive and each plugin as enabled, missing or disabled, writing nothing. Without it, the plugins are enabled and the directive is written or refreshed |
+| `--check` | no | Report the directive and each plugin as enabled, missing, disabled or invalid, and the marketplace declaration, writing nothing. Without it, the plugins are enabled and the directive is written or refreshed |
 | `--platform claude\|codex` | no | Override the auto-detected platform when the repository carries both `CLAUDE.md` and `AGENTS.md`. `codex` skips `.claude/settings.json` |
 | `--language python\|typescript\|go\|rust` | no | Enable that language plugin instead of the ones detected from the repository's marker files. Repeatable, or a comma list |
 
@@ -29,7 +29,9 @@ nothing. The skill runs its script from the plugin's own root:
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/installing-the-agency/scripts/install.py" [arguments]
 ```
 
-On Codex the script is the skill's own `scripts/install.py`.
+Run it from the root of the consuming repository, which is the directory it
+installs into. On Codex the script is `<skill-dir>/scripts/install.py`, run with
+`--platform codex .` from that same root.
 
 ## What runs
 

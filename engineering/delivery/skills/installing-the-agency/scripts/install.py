@@ -85,7 +85,6 @@ def block() -> str:
     return f"{START}\n{DIRECTIVE}\n{END}"
 
 
-
 def detect_platforms(root: Path, given: str | None) -> tuple[list[str], str | None]:
     """The platforms to install for, as (platforms, error).
 
@@ -154,7 +153,6 @@ def write_directive(path: Path, platform: str) -> None:
     print(f"{platform}: {verb} the directive in {path.name}")
 
 
-
 def detect_languages(root: Path, agency: dict) -> list[str]:
     """The languages whose marker file sits at the repository root, in map order."""
     return [
@@ -179,7 +177,6 @@ def wanted_plugins(agency: dict, languages: list[str]) -> list[str]:
     marketplace = agency["marketplace"]["name"]
     names = list(agency["plugins"]) + [agency["languages"][lang]["plugin"] for lang in languages]
     return [f"{name}@{marketplace}" for name in names]
-
 
 
 def read_settings(path: Path) -> dict | None:

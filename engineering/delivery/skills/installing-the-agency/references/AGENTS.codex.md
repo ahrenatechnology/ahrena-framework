@@ -5,8 +5,9 @@ text the skill writes into a Codex repository's `AGENTS.md`, and a short note on
 how the portable personas map onto Codex custom subagents and how the caps apply.
 This is a template to adapt, not a file to copy wholesale.
 
-On Codex the script is the skill's own `scripts/install.py`, run with
-`--platform codex`. That run writes only `AGENTS.md`: the plugin set in
+On Codex the script is the skill's own `scripts/install.py`, run from the
+consuming repository's root with `--platform codex .`, so it writes into that
+repository and not into the plugin folder. That run writes only `AGENTS.md`: the plugin set in
 `.claude/settings.json` is Claude Code's, and Codex does not read it.
 
 ## The entry directive
