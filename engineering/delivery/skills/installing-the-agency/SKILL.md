@@ -1,6 +1,6 @@
 ---
 name: installing-the-agency
-description: Install the agency in a repository. Use when setting it up so build work enters through Athena — enables the agency plugins in .claude/settings.json and writes the entry directive into CLAUDE.md or AGENTS.md, idempotently and without clobbering; --check reports what is missing.
+description: Install the agency in a repository. Use when setting it up so build work enters through Athena — enables the agency plugins in .claude/settings.json and writes the entry directive into every instruction file present (CLAUDE.md, AGENTS.md), or both when neither exists, idempotently and without clobbering; --check reports what is missing.
 type: skill
 clade: engineering
 subclade: delivery
@@ -20,13 +20,14 @@ library, a `--check` that writes nothing. [`docs/platform-bindings.md`](../../do
 defines the per-platform bindings this skill applies, and the orchestration it
 installs is [`skills/orchestrating-delivery/SKILL.md`](../orchestrating-delivery/SKILL.md).
 
-## 1. Detect the platform
+## 1. Choose the instruction files
 
-Decide which platform this repository runs on, by the always-loaded file present:
-`CLAUDE.md` is Claude Code, `AGENTS.md` is Codex; when neither is present the
-install defaults to creating `CLAUDE.md`, and `--platform codex` steers a Codex
-repository that has not yet written its `AGENTS.md`. Whether the agency plugins
-are available is not left to the model: the script reports each one, in step 2.
+Without `--platform` the script writes the directive into every instruction file
+the repository has (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex), and
+creates both when it has neither. `--platform claude` or `--platform codex`
+limits the run to one file; `codex` also skips `.claude/settings.json`, which
+Codex does not read. Whether the agency plugins are available is not left to the
+model: the script reports each one, in step 2.
 
 The script, `scripts/install.py`, is resolved from the plugin's own root, never
 from a path that exists only in the framework's checkout. On Claude Code that is
@@ -50,8 +51,7 @@ python3 <skill-dir>/scripts/install.py --check --platform codex .
 ```
 
 Exit 0 means everything is in place and there is nothing to do; exit 1 means
-step 3 has work. `--platform` overrides the detection when the repository
-carries both files.
+step 3 has work. The directive's state is reported per file.
 
 ## 3. Install, idempotently
 
@@ -68,7 +68,7 @@ Run the same script without `--check`. It does two things:
   `claude plugin marketplace add`, which rewrites an entry the user already has.
 - **Writes the directive** between `<!-- ahrena:agency:start -->` and
   `<!-- ahrena:agency:end -->` in the instruction file, replacing only what sits
-  between them. `--platform codex` skips settings.json, which Codex does not read.
+  between them. The same run on a repository with both files writes both.
 
 ```sh
 # Claude Code
@@ -100,10 +100,10 @@ is the illustrative script to adapt when a project wants the loop run that way.
 
 ## 5. Hand back what was ensured or what is missing
 
-Return which platform was detected, which plugins were enabled and which were
-already, any plugin the owner disabled, a marketplace entry that differs from the
-declared one, whether the directive was already current or was written, and — on
-Codex — the `max_depth` guidance. A disabled plugin or a config the owner must set
+Return which instruction files were written and which were already current,
+which plugins were enabled and which were already enabled, any plugin the owner
+disabled, a marketplace entry that differs from the declared one, and — when
+`AGENTS.md` was targeted — the `max_depth` guidance. A disabled plugin or a config the owner must set
 is carried back as a report, not worked around, exactly as the graph doctor
 carries its `to enable` lines. The script's own tests are
 [`scripts/test-install.py`](scripts/test-install.py).
