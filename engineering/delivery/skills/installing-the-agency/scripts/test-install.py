@@ -66,17 +66,6 @@ class Case:
         return run(self.root, self.config, *args)
 
 
-FAILURES: list[str] = []
-
-
-def check(name: str, condition: bool, detail: str = "") -> None:
-    if not condition:
-        FAILURES.append(f"{name}: {detail}" if detail else name)
-        print(f"FAIL {name}" + (f"\n     {detail}" if detail else ""))
-    else:
-        print(f"ok   {name}")
-
-
 def test_fresh_repo_writes_exact_shape() -> None:
     with Case() as c:
         r = c.run()
@@ -84,12 +73,12 @@ def test_fresh_repo_writes_exact_shape() -> None:
             "extraKnownMarketplaces": {"ahrena": SOURCE},
             "enabledPlugins": {plugin: True for plugin in CORE},
         }
-        check("fresh: exit 0", r.returncode == 0, r.stderr)
-        check("fresh: settings shape", settings(c.root) == expected, str(settings(c.root)))
+        assert r.returncode == 0, "fresh: exit 0" + ": " + str(r.stderr)
+        assert settings(c.root) == expected, "fresh: settings shape" + ": " + str(str(settings(c.root)))
         text = (c.root / ".claude" / "settings.json").read_text(encoding="utf-8")
-        check("fresh: two-space indent and trailing newline", text.endswith("}\n") and '\n  "enabledPlugins"' in text)
-        check("fresh: no ref on the marketplace", "ref" not in json.dumps(settings(c.root)["extraKnownMarketplaces"]))
-        check("fresh: directive written", "ahrena:agency:start" in (c.root / "CLAUDE.md").read_text(encoding="utf-8"))
+        assert text.endswith("}\n") and '\n  "enabledPlugins"' in text, "fresh: two-space indent and trailing newline"
+        assert "ref" not in json.dumps(settings(c.root)["extraKnownMarketplaces"]), "fresh: no ref on the marketplace"
+        assert "ahrena:agency:start" in (c.root / "CLAUDE.md").read_text(encoding="utf-8"), "fresh: directive written"
 
 
 def test_preserves_other_keys_and_order() -> None:
@@ -101,20 +90,20 @@ def test_preserves_other_keys_and_order() -> None:
         )
         r = c.run()
         data = settings(c.root)
-        check("preserve: exit 0", r.returncode == 0, r.stderr)
-        check("preserve: key order", list(data) == ["env", "enabledPlugins", "permissions", "extraKnownMarketplaces"], str(list(data)))
-        check("preserve: own entries first", list(data["enabledPlugins"])[0] == "other@x")
-        check("preserve: other values intact", data["env"] == {"A": "1"} and data["permissions"] == {"allow": ["Bash"]})
-        check("preserve: own marketplace first", list(data["extraKnownMarketplaces"]) == ["mine", "ahrena"])
+        assert r.returncode == 0, "preserve: exit 0" + ": " + str(r.stderr)
+        assert list(data) == ["env", "enabledPlugins", "permissions", "extraKnownMarketplaces"], "preserve: key order" + ": " + str(str(list(data)))
+        assert list(data["enabledPlugins"])[0] == "other@x", "preserve: own entries first"
+        assert data["env"] == {"A": "1"} and data["permissions"] == {"allow": ["Bash"]}, "preserve: other values intact"
+        assert list(data["extraKnownMarketplaces"]) == ["mine", "ahrena"], "preserve: own marketplace first"
 
 
 def test_disabled_entry_not_flipped() -> None:
     with Case() as c:
         put(c.root / ".claude" / "settings.json", {"enabledPlugins": {"ahrena-foundation@ahrena": False}})
         r = c.run()
-        check("disabled: still false", settings(c.root)["enabledPlugins"]["ahrena-foundation@ahrena"] is False)
-        check("disabled: reported", "ahrena-foundation@ahrena is disabled" in r.stdout, r.stdout)
-        check("disabled: the others enabled", settings(c.root)["enabledPlugins"]["ahrena-contributing@ahrena"] is True)
+        assert settings(c.root)["enabledPlugins"]["ahrena-foundation@ahrena"] is False, "disabled: still false"
+        assert "ahrena-foundation@ahrena is disabled" in r.stdout, "disabled: reported" + ": " + str(r.stdout)
+        assert settings(c.root)["enabledPlugins"]["ahrena-contributing@ahrena"] is True, "disabled: the others enabled"
 
 
 def test_existing_marketplace_untouched() -> None:
@@ -122,13 +111,13 @@ def test_existing_marketplace_untouched() -> None:
         mine = {"source": {"source": "github", "repo": "ahrenatechnology/ahrena-framework", "ref": "main"}}
         put(c.root / ".claude" / "settings.json", {"extraKnownMarketplaces": {"ahrena": mine}})
         r = c.run()
-        check("marketplace: kept with its ref", settings(c.root)["extraKnownMarketplaces"]["ahrena"] == mine)
-        check("marketplace: difference reported", "already declared differently" in r.stdout, r.stdout)
+        assert settings(c.root)["extraKnownMarketplaces"]["ahrena"] == mine, "marketplace: kept with its ref"
+        assert "already declared differently" in r.stdout, "marketplace: difference reported" + ": " + str(r.stdout)
 
     with Case() as c:
         put(c.root / ".claude" / "settings.json", {"extraKnownMarketplaces": {"ahrena": SOURCE}})
         r = c.run()
-        check("marketplace: identical entry not reported", "differently" not in r.stdout, r.stdout)
+        assert "differently" not in r.stdout, "marketplace: identical entry not reported" + ": " + str(r.stdout)
 
 
 def test_second_run_writes_nothing() -> None:
@@ -138,15 +127,15 @@ def test_second_run_writes_nothing() -> None:
         before = (settings_path.read_bytes(), (c.root / "CLAUDE.md").read_bytes(), settings_path.stat().st_mtime_ns)
         r = c.run()
         after = (settings_path.read_bytes(), (c.root / "CLAUDE.md").read_bytes(), settings_path.stat().st_mtime_ns)
-        check("idempotent: exit 0", r.returncode == 0, r.stderr)
-        check("idempotent: nothing rewritten", before == after)
-        check("idempotent: says so", "nothing written" in r.stdout and "already current" in r.stdout, r.stdout)
+        assert r.returncode == 0, "idempotent: exit 0" + ": " + str(r.stderr)
+        assert before == after, "idempotent: nothing rewritten"
+        assert "nothing written" in r.stdout and "already current" in r.stdout, "idempotent: says so" + ": " + str(r.stdout)
 
     with Case() as c:
         put(c.root / ".claude" / "settings.json", '{"enabledPlugins":{"x@y":true}}')
         c.run()
         c.run()
-        check("idempotent: reformatting not repeated", settings(c.root)["enabledPlugins"]["x@y"] is True)
+        assert settings(c.root)["enabledPlugins"]["x@y"] is True, "idempotent: reformatting not repeated"
 
 
 def test_unchanged_file_keeps_its_formatting() -> None:
@@ -156,7 +145,7 @@ def test_unchanged_file_keeps_its_formatting() -> None:
         compact = json.dumps(settings(c.root))
         path.write_text(compact, encoding="utf-8")
         c.run()
-        check("no rewrite when content is complete", path.read_text(encoding="utf-8") == compact)
+        assert path.read_text(encoding="utf-8") == compact, "no rewrite when content is complete"
 
 
 def test_malformed_json() -> None:
@@ -164,20 +153,20 @@ def test_malformed_json() -> None:
         path = c.root / ".claude" / "settings.json"
         put(path, "{ not json")
         r = c.run()
-        check("malformed: exit 2", r.returncode == 2, str(r.returncode))
-        check("malformed: file untouched", path.read_text(encoding="utf-8") == "{ not json")
-        check("malformed: reported on stderr", "not valid JSON" in r.stderr, r.stderr)
-        check("malformed: directive not written either", not (c.root / "CLAUDE.md").exists())
+        assert r.returncode == 2, "malformed: exit 2" + ": " + str(r.returncode)
+        assert path.read_text(encoding="utf-8") == "{ not json", "malformed: file untouched"
+        assert "not valid JSON" in r.stderr, "malformed: reported on stderr" + ": " + str(r.stderr)
+        assert not (c.root / "CLAUDE.md").exists(), "malformed: directive not written either"
 
     with Case() as c:
         put(c.root / ".claude" / "settings.json", "[]")
         r = c.run()
-        check("non-object: exit 2", r.returncode == 2, str(r.returncode))
+        assert r.returncode == 2, "non-object: exit 2" + ": " + str(r.returncode)
 
     with Case() as c:
         put(c.root / ".claude" / "settings.json", {"enabledPlugins": []})
         r = c.run()
-        check("wrong-typed enabledPlugins: exit 2", r.returncode == 2, str(r.returncode))
+        assert r.returncode == 2, "wrong-typed enabledPlugins: exit 2" + ": " + str(r.returncode)
 
 
 def test_language_detection() -> None:
@@ -195,18 +184,18 @@ def test_language_detection() -> None:
             (c.root / marker).write_text("", encoding="utf-8")
             c.run()
             extra = [p for p in settings(c.root)["enabledPlugins"] if p not in CORE]
-            check(f"detect {marker}", extra == [f"{plugin}@ahrena"], str(extra))
+            assert extra == [f"{plugin}@ahrena"], f"detect {marker}" + ": " + str(str(extra))
 
     with Case() as c:
         c.run()
-        check("detect: none leaves only the core", list(settings(c.root)["enabledPlugins"]) == CORE)
+        assert list(settings(c.root)["enabledPlugins"]) == CORE, "detect: none leaves only the core"
 
     with Case() as c:
         (c.root / "go.mod").write_text("", encoding="utf-8")
         (c.root / "Cargo.toml").write_text("", encoding="utf-8")
         c.run()
         extra = [p for p in settings(c.root)["enabledPlugins"] if p not in CORE]
-        check("detect: two languages", sorted(extra) == ["ahrena-engineering-go@ahrena", "ahrena-engineering-rust@ahrena"], str(extra))
+        assert sorted(extra) == ["ahrena-engineering-go@ahrena", "ahrena-engineering-rust@ahrena"], "detect: two languages" + ": " + str(str(extra))
 
 
 def test_language_flag() -> None:
@@ -214,100 +203,152 @@ def test_language_flag() -> None:
         (c.root / "pyproject.toml").write_text("", encoding="utf-8")
         c.run("--language", "go")
         extra = [p for p in settings(c.root)["enabledPlugins"] if p not in CORE]
-        check("--language replaces detection", extra == ["ahrena-engineering-go@ahrena"], str(extra))
+        assert extra == ["ahrena-engineering-go@ahrena"], "--language replaces detection" + ": " + str(str(extra))
 
     with Case() as c:
         c.run("--language", "go", "--language", "rust")
         extra = [p for p in settings(c.root)["enabledPlugins"] if p not in CORE]
-        check("--language repeatable", extra == ["ahrena-engineering-go@ahrena", "ahrena-engineering-rust@ahrena"], str(extra))
+        assert extra == ["ahrena-engineering-go@ahrena", "ahrena-engineering-rust@ahrena"], "--language repeatable" + ": " + str(str(extra))
 
     with Case() as c:
         c.run("--language", "python,typescript")
         extra = [p for p in settings(c.root)["enabledPlugins"] if p not in CORE]
-        check("--language comma list", extra == ["ahrena-engineering-python@ahrena", "ahrena-engineering-typescript@ahrena"], str(extra))
+        assert extra == ["ahrena-engineering-python@ahrena", "ahrena-engineering-typescript@ahrena"], "--language comma list" + ": " + str(str(extra))
 
     with Case() as c:
         r = c.run("--language", "cobol")
-        check("--language unknown: exit 2", r.returncode == 2 and "cobol" in r.stderr, r.stderr)
-        check("--language unknown: nothing written", not (c.root / ".claude").exists())
+        assert r.returncode == 2 and "cobol" in r.stderr, "--language unknown: exit 2" + ": " + str(r.stderr)
+        assert not (c.root / ".claude").exists(), "--language unknown: nothing written"
 
 
 def test_platform_codex_skips_settings() -> None:
     with Case() as c:
         r = c.run("--platform", "codex")
-        check("codex: exit 0", r.returncode == 0, r.stderr)
-        check("codex: no settings.json", not (c.root / ".claude").exists())
-        check("codex: AGENTS.md written", "ahrena:agency:start" in (c.root / "AGENTS.md").read_text(encoding="utf-8"))
-        check("codex: depth note surfaced", "max_depth" in r.stdout)
+        assert r.returncode == 0, "codex: exit 0" + ": " + str(r.stderr)
+        assert not (c.root / ".claude").exists(), "codex: no settings.json"
+        assert "ahrena:agency:start" in (c.root / "AGENTS.md").read_text(encoding="utf-8"), "codex: AGENTS.md written"
+        assert "max_depth" in r.stdout, "codex: depth note surfaced"
 
 
-def test_check_is_read_only_and_reports_states() -> None:
+ONE = "ahrena-foundation@ahrena"
+SCOPES = {
+    "project": lambda c: c.root / ".claude" / "settings.json",
+    "local": lambda c: c.root / ".claude" / "settings.local.json",
+    "user": lambda c: c.config / "settings.json",
+}
+
+
+def plugin_line(r: subprocess.CompletedProcess, plugin: str = ONE) -> str:
+    return next((l for l in r.stdout.splitlines() if l.startswith(f"plugin: {plugin}")), "")
+
+
+def core_with(**overrides) -> dict:
+    return {
+        "extraKnownMarketplaces": {"ahrena": SOURCE},
+        "enabledPlugins": {**{p: True for p in CORE}, ONE: overrides["one"]},
+    }
+
+
+def test_check_on_an_empty_repository() -> None:
     with Case() as c:
         r = c.run("--check")
-        check("check empty: exit 1", r.returncode == 1, str(r.returncode))
-        check("check empty: writes nothing", not (c.root / ".claude").exists() and not (c.root / "CLAUDE.md").exists())
-        check("check empty: every plugin missing", sum(l.endswith(" missing") for l in r.stdout.splitlines()) == len(CORE), r.stdout)
-        check("check empty: directive absent", "ABSENT" in r.stdout, r.stdout)
+        assert r.returncode == 1, f"exit 1: {r.returncode}"
+        assert not (c.root / ".claude").exists() and not (c.root / "CLAUDE.md").exists(), "writes nothing"
+        assert sum(l.endswith(" missing") for l in r.stdout.splitlines()) == len(CORE), r.stdout
+        assert "ABSENT" in r.stdout, r.stdout
 
+
+def test_check_on_an_installed_repository() -> None:
     with Case() as c:
         c.run()
         r = c.run("--check")
-        check("check full: exit 0", r.returncode == 0, r.stdout + r.stderr)
-        check("check full: all enabled", r.stdout.count(" enabled") == len(CORE), r.stdout)
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert r.stdout.count(" enabled") == len(CORE), r.stdout
 
-    # Enabled by each of the three scopes in turn.
-    one = "ahrena-foundation@ahrena"
-    for label, path_of in (
-        ("project", lambda c: c.root / ".claude" / "settings.json"),
-        ("local", lambda c: c.root / ".claude" / "settings.local.json"),
-        ("user", lambda c: c.config / "settings.json"),
-    ):
+
+def test_check_counts_each_scope() -> None:
+    for label, path_of in SCOPES.items():
         with Case() as c:
-            put(path_of(c), {"enabledPlugins": {one: True}})
-            r = c.run("--check")
-            line = next((l for l in r.stdout.splitlines() if l.startswith(f"plugin: {one}")), "")
-            check(f"check {label}: counted as enabled", " enabled" in line, r.stdout)
+            put(path_of(c), {"enabledPlugins": {ONE: True}})
+            assert " enabled" in plugin_line(c.run("--check")), label
 
-    # Disabled where nothing else enables it: reported, fails.
-    with Case() as c:
-        put(c.root / ".claude" / "settings.json", {"enabledPlugins": {one: False}})
-        r = c.run("--check")
-        line = next((l for l in r.stdout.splitlines() if l.startswith(f"plugin: {one}")), "")
-        check("check disabled: reported", " disabled" in line, r.stdout)
 
-    # Disabled in the project but enabled at user scope: counts as enabled.
+def test_check_reports_a_disabled_plugin() -> None:
     with Case() as c:
-        c.run()
-        put(c.root / ".claude" / "settings.json", {"enabledPlugins": {**{p: True for p in CORE}, one: False}})
-        put(c.config / "settings.json", {"enabledPlugins": {one: True}})
-        r = c.run("--check")
-        check("check disabled-but-enabled-elsewhere: exit 0", r.returncode == 0, r.stdout)
+        put(c.root / ".claude" / "settings.json", {"enabledPlugins": {ONE: False}})
+        assert " disabled" in plugin_line(c.run("--check"))
 
     with Case() as c:
         c.run()
-        put(c.root / ".claude" / "settings.json", {"enabledPlugins": {**{p: True for p in CORE}, one: False}})
-        r = c.run("--check")
-        check("check disabled-and-nowhere-else: exit 1", r.returncode == 1, r.stdout)
+        put(c.root / ".claude" / "settings.json", core_with(one=False))
+        assert c.run("--check").returncode == 1, "disabled and nowhere else"
 
-    # A stale directive fails even when every plugin is enabled.
+    with Case() as c:
+        c.run()
+        put(c.root / ".claude" / "settings.json", core_with(one=False))
+        put(c.config / "settings.json", {"enabledPlugins": {ONE: True}})
+        assert c.run("--check").returncode == 0, "disabled here, enabled at user scope"
+
+
+def test_check_reports_a_non_boolean_plugin_as_its_own_state() -> None:
+    with Case() as c:
+        c.run()
+        put(c.root / ".claude" / "settings.json", core_with(one=["x"]))
+        r = c.run("--check")
+        assert r.returncode == 1, r.stdout
+        assert " invalid" in plugin_line(r) and " missing" not in plugin_line(r), r.stdout
+        assert "not true or false" in r.stdout, r.stdout
+
+
+def test_install_leaves_a_non_boolean_plugin_alone_and_reports_it() -> None:
+    with Case() as c:
+        put(c.root / ".claude" / "settings.json", {"enabledPlugins": {ONE: "yes"}})
+        r = c.run()
+        assert settings(c.root)["enabledPlugins"][ONE] == "yes", "value kept"
+        assert f"{ONE} is present, not boolean; left as is" in r.stdout, r.stdout
+
+
+def test_check_reports_the_marketplace() -> None:
+    with Case() as c:
+        c.run()
+        assert "marketplace: ahrena declared" in c.run("--check").stdout
+
+    with Case() as c:
+        c.run()
+        put(c.root / ".claude" / "settings.json", {"enabledPlugins": {p: True for p in CORE}})
+        r = c.run("--check")
+        assert r.returncode == 1 and "marketplace: ahrena absent" in r.stdout, r.stdout
+
+    with Case() as c:
+        c.run()
+        other = {"source": {"source": "github", "repo": "me/fork"}}
+        data = {**settings(c.root), "extraKnownMarketplaces": {"ahrena": other}}
+        put(c.root / ".claude" / "settings.json", data)
+        r = c.run("--check")
+        assert r.returncode == 0 and "declared differently" in r.stdout, r.stdout
+
+
+def test_check_fails_on_a_stale_directive() -> None:
     with Case() as c:
         c.run()
         md = c.root / "CLAUDE.md"
         md.write_text(md.read_text(encoding="utf-8").replace("athena", "someone"), encoding="utf-8")
         r = c.run("--check")
-        check("check stale directive: exit 1", r.returncode == 1 and "STALE" in r.stdout, r.stdout)
+        assert r.returncode == 1 and "STALE" in r.stdout, r.stdout
 
-    # Language plugins are part of what --check expects.
+
+def test_check_expects_the_language_plugin() -> None:
     with Case() as c:
         c.run()
         (c.root / "go.mod").write_text("", encoding="utf-8")
         r = c.run("--check")
-        check("check language: go plugin missing", r.returncode == 1 and "ahrena-engineering-go@ahrena missing" in r.stdout, r.stdout)
+        assert r.returncode == 1 and "ahrena-engineering-go@ahrena missing" in r.stdout, r.stdout
 
+
+def test_check_on_malformed_settings() -> None:
     with Case() as c:
         put(c.root / ".claude" / "settings.json", "{ not json")
-        r = c.run("--check")
-        check("check malformed: exit 2", r.returncode == 2, str(r.returncode))
+        assert c.run("--check").returncode == 2
 
 
 def test_directive_untouched_around_markers() -> None:
@@ -315,26 +356,31 @@ def test_directive_untouched_around_markers() -> None:
         (c.root / "CLAUDE.md").write_text("# Mine\n\nkeep this\n", encoding="utf-8")
         c.run()
         text = (c.root / "CLAUDE.md").read_text(encoding="utf-8")
-        check("directive: surrounding content kept", text.startswith("# Mine\n\nkeep this\n"))
+        assert text.startswith("# Mine\n\nkeep this\n"), "directive: surrounding content kept"
 
 
 def test_declared_plugins_exist_in_marketplace() -> None:
     published = {p["name"] for p in json.loads(MARKETPLACE.read_text(encoding="utf-8"))["plugins"]}
     declared = set(AGENCY["plugins"]) | {spec["plugin"] for spec in AGENCY["languages"].values()}
     missing = sorted(declared - published)
-    check("agency.json: every plugin is in marketplace.json", not missing, f"missing: {missing}")
-    check("agency.json: marketplace name matches", AGENCY["marketplace"]["name"] == json.loads(MARKETPLACE.read_text(encoding="utf-8"))["name"])
+    assert not missing, "agency.json: every plugin is in marketplace.json" + ": " + str(f"missing: {missing}")
+    assert AGENCY["marketplace"]["name"] == json.loads(MARKETPLACE.read_text(encoding="utf-8"))["name"], "agency.json: marketplace name matches"
 
 
 def main() -> int:
+    failures = 0
     for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
+        if not (name.startswith("test_") and callable(fn)):
+            continue
+        try:
             fn()
-    if FAILURES:
-        print(f"\n{len(FAILURES)} failed")
-        return 1
-    print("\nall passed")
-    return 0
+        except AssertionError as exc:
+            failures += 1
+            print(f"FAIL {name}: {exc}")
+        else:
+            print(f"ok   {name}")
+    print(f"\n{failures} failed" if failures else "\nall passed")
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

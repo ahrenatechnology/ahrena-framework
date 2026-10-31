@@ -52,17 +52,10 @@ from pathlib import Path
 START = "<!-- ahrena:agency:start -->"
 END = "<!-- ahrena:agency:end -->"
 
-# The declared set: the marketplace, the core plugins and the language map.
-# Data, so the plugins and the markers are edited in one place and a test can
-# hold them against the marketplace manifest.
 AGENCY = Path(__file__).resolve().parent.parent / "references" / "agency.json"
 
-# The platform's always-loaded instruction file. The directive is written into
-# whichever one this repository uses.
 TARGET = {"claude": "CLAUDE.md", "codex": "AGENTS.md"}
 
-# The directive itself: one line plus the route, the whole always-loaded cost of
-# the binding. Kept between the markers so a re-write replaces only this.
 DIRECTIVE = """## Build work enters through the agency
 
 Build work enters through the `athena` agent. She plans the issue, routes the
@@ -72,8 +65,6 @@ stacked pull request. Do not implement build work directly — delegate to the
 agency. Athena orchestrates; she does not write production code, pass a review
 verdict, or apply a fix."""
 
-# Codex caps its subagents; the depth cap is the one to design around. Surfaced,
-# not set — changing Codex's config is the owner's act, not this script's.
 CODEX_NOTE = (
     "codex: the binding flattens to stay within agents.max_depth=1 — Athena spawns the\n"
     "       build agents directly and they do not sub-spawn. For a deeper tree, set\n"
@@ -94,8 +85,6 @@ def block() -> str:
     return f"{START}\n{DIRECTIVE}\n{END}"
 
 
-# --- the directive -----------------------------------------------------------
-
 
 def detect_platforms(root: Path, given: str | None) -> tuple[list[str], str | None]:
     """The platforms to install for, as (platforms, error).
@@ -113,8 +102,6 @@ def detect_platforms(root: Path, given: str | None) -> tuple[list[str], str | No
         return present, None
     if len(present) > 1:
         return [], "both CLAUDE.md and AGENTS.md are present; pass --platform to choose"
-    # Neither present: default to Claude Code and create its file. Named in the
-    # report so the choice is visible rather than silent.
     return ["claude"], None
 
 
@@ -167,8 +154,6 @@ def write_directive(path: Path, platform: str) -> None:
     print(f"{platform}: {verb} the directive in {path.name}")
 
 
-# --- the plugin set ----------------------------------------------------------
-
 
 def detect_languages(root: Path, agency: dict) -> list[str]:
     """The languages whose marker file sits at the repository root, in map order."""
@@ -195,8 +180,6 @@ def wanted_plugins(agency: dict, languages: list[str]) -> list[str]:
     names = list(agency["plugins"]) + [agency["languages"][lang]["plugin"] for lang in languages]
     return [f"{name}@{marketplace}" for name in names]
 
-
-# --- settings.json -----------------------------------------------------------
 
 
 def read_settings(path: Path) -> dict | None:
@@ -246,6 +229,8 @@ def merge_settings(data: dict, agency: dict, plugins: list[str]) -> tuple[dict, 
             notes.append(f"enabled {plugin}")
         elif enabled[plugin] is False:
             notes.append(f"{plugin} is disabled; left as is")
+        elif enabled[plugin] is not True:
+            notes.append(f"{plugin} is present, not boolean; left as is")
     return merged, notes
 
 
@@ -281,37 +266,69 @@ def settings_files(root: Path) -> list[Path]:
 
 
 def plugin_states(root: Path, plugins: list[str]) -> dict[str, tuple[str, list[str]]]:
-    """Each plugin as (state, scopes): enabled, disabled or missing.
+    """Each plugin as (state, scopes): enabled, disabled, invalid or missing.
 
-    Enabled in any file wins; disabled counts only when nothing enables it.
+    Enabled in any file wins. Otherwise a disabled entry, then a non-boolean
+    one, which is its own state rather than a missing plugin.
     """
     layers = {path: (read_settings(path) or {}).get("enabledPlugins", {}) for path in settings_files(root)}
     states: dict[str, tuple[str, list[str]]] = {}
     for plugin in plugins:
-        on = [str(p) for p, e in layers.items() if isinstance(e, dict) and e.get(plugin) is True]
-        off = [str(p) for p, e in layers.items() if isinstance(e, dict) and e.get(plugin) is False]
-        if on:
-            states[plugin] = ("enabled", on)
-        elif off:
-            states[plugin] = ("disabled", off)
+        found = {p: e[plugin] for p, e in layers.items() if isinstance(e, dict) and plugin in e}
+        on = [str(p) for p, v in found.items() if v is True]
+        off = [str(p) for p, v in found.items() if v is False]
+        odd = [str(p) for p, v in found.items() if v is not True and v is not False]
+        for state, scopes in (("enabled", on), ("disabled", off), ("invalid", odd)):
+            if scopes:
+                states[plugin] = (state, scopes)
+                break
         else:
             states[plugin] = ("missing", [])
     return states
 
 
+def marketplace_state(root: Path, agency: dict) -> str:
+    """The marketplace in the project's settings: declared, absent or differs."""
+    data = read_settings(root / ".claude" / "settings.json") or {}
+    markets = data.get("extraKnownMarketplaces")
+    name = agency["marketplace"]["name"]
+    if not isinstance(markets, dict) or name not in markets:
+        return "absent"
+    return "declared" if markets[name] == {"source": agency["marketplace"]["source"]} else "differs"
+
+
+def check_marketplace(root: Path, agency: dict) -> bool:
+    """Report the marketplace declaration; only an absent one fails the check."""
+    state = marketplace_state(root, agency)
+    name = agency["marketplace"]["name"]
+    wording = {
+        "declared": f"marketplace: {name} declared in .claude/settings.json",
+        "absent": f"marketplace: {name} absent from .claude/settings.json; run install.py to declare it",
+        "differs": f"marketplace: {name} declared differently in .claude/settings.json; left as is",
+    }
+    print(wording[state])
+    return state != "absent"
+
+
 def check_plugins(root: Path, plugins: list[str]) -> bool:
     """Report every plugin's state; True when all are enabled somewhere."""
     ok = True
+    hints = {
+        "missing": "run install.py to enable the missing ones",
+        "disabled": "a disabled plugin is the owner's to enable",
+        "invalid": "an enabledPlugins value that is not true or false is the owner's to fix",
+    }
+    seen = set()
     for plugin, (state, scopes) in plugin_states(root, plugins).items():
         where = f" ({scopes[0]})" if scopes else ""
         print(f"plugin: {plugin} {state}{where}")
-        ok = ok and state == "enabled"
-    if not ok:
-        print("plugin: run install.py to enable the missing ones; a disabled one is the owner's to enable")
+        if state != "enabled":
+            ok = False
+            seen.add(state)
+    for state in hints:
+        if state in seen:
+            print(f"plugin: {hints[state]}")
     return ok
-
-
-# --- the command -------------------------------------------------------------
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -331,51 +348,63 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def resolve_languages(args: argparse.Namespace, root: Path, agency: dict) -> tuple[list[str], str | None]:
+    if args.language:
+        return parse_languages(args.language, agency)
+    return detect_languages(root, agency), None
+
+
+def preread_settings(root: Path, check: bool) -> None:
+    """Parse the settings files first, so a malformed one stops the whole run."""
+    for path in settings_files(root) if check else settings_files(root)[:1]:
+        read_settings(path)
+
+
+def note_codex(platform: str) -> None:
+    if platform == "codex":
+        print(CODEX_NOTE)
+
+
+def check_agency(root: Path, platforms: list[str], plugins: list[str], agency: dict) -> bool:
+    ok = True
+    if "claude" in platforms:
+        preread_settings(root, check=True)
+        ok = check_marketplace(root, agency)
+        ok = check_plugins(root, plugins) and ok
+    for platform in platforms:
+        ok = check_directive(root / TARGET[platform], platform) and ok
+        note_codex(platform)
+    return ok
+
+
+def write_agency(root: Path, platforms: list[str], plugins: list[str], agency: dict) -> bool:
+    if "claude" in platforms:
+        preread_settings(root, check=False)
+        write_settings(root, agency, plugins)
+    for platform in platforms:
+        write_directive(root / TARGET[platform], platform)
+        note_codex(platform)
+    return True
+
+
 def main(argv: list[str]) -> int:
     args = build_parser().parse_args(argv[1:])
-
     root = Path(args.root).resolve() if args.root else Path.cwd()
     if not root.is_dir():
         print(f"{root}: not a directory", file=sys.stderr)
         return 2
-
     platforms, error = detect_platforms(root, args.platform)
+    agency = load_agency()
+    languages: list[str] = []
+    if error is None:
+        languages, error = resolve_languages(args, root, agency)
     if error is not None:
         print(error, file=sys.stderr)
         return 2
-
-    agency = load_agency()
-    if args.language:
-        languages, error = parse_languages(args.language, agency)
-        if error is not None:
-            print(error, file=sys.stderr)
-            return 2
-    else:
-        languages = detect_languages(root, agency)
-    plugins = wanted_plugins(agency, languages)
-    with_settings = "claude" in platforms
-
     try:
-        # Read the settings before anything is written, so a malformed file
-        # stops the run with the directive untouched too.
-        if with_settings:
-            for path in settings_files(root) if args.check else settings_files(root)[:1]:
-                read_settings(path)
         print(f"languages: {', '.join(languages) if languages else 'none detected'}")
-        ok = True
-        if with_settings:
-            if args.check:
-                ok = check_plugins(root, plugins)
-            else:
-                write_settings(root, agency, plugins)
-        for platform in platforms:
-            path = root / TARGET[platform]
-            if args.check:
-                ok = check_directive(path, platform) and ok
-            else:
-                write_directive(path, platform)
-            if platform == "codex":
-                print(CODEX_NOTE)
+        run = check_agency if args.check else write_agency
+        ok = run(root, platforms, wanted_plugins(agency, languages), agency)
     except SettingsError as exc:
         print(exc, file=sys.stderr)
         return 2
