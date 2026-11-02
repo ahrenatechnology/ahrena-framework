@@ -37,7 +37,9 @@ when everything is in place and 1 when anything is missing, or disabled and
 enabled nowhere else. Malformed settings JSON is an error, exit 2, and the
 file is never touched. `root` defaults to the current directory, the consuming
 repository's root. `--language` is repeatable or a comma list and replaces the
-detection from the marker files. `--platform codex` skips settings.json, which
+detection from the marker files. With no `--platform` the directive goes into
+every instruction file present, and into both when neither exists; `--platform`
+limits the run to one. `--platform codex` skips settings.json, which
 Codex does not read.
 """
 
@@ -47,12 +49,17 @@ import argparse
 import json
 import os
 import sys
+import urllib.request
 from pathlib import Path
 
 START = "<!-- ahrena:agency:start -->"
 END = "<!-- ahrena:agency:end -->"
 
-AGENCY = Path(__file__).resolve().parent.parent / "references" / "agency.json"
+AGENCY_FILE = ("references", "agency.json")
+AGENCY_URL = (
+    "https://raw.githubusercontent.com/ahrenatechnology/ahrena-framework/main/"
+    "engineering/delivery/skills/installing-the-agency/references/agency.json"
+)
 
 TARGET = {"claude": "CLAUDE.md", "codex": "AGENTS.md"}
 
@@ -77,7 +84,20 @@ class SettingsError(Exception):
 
 
 def load_agency() -> dict:
-    return json.loads(AGENCY.read_text(encoding="utf-8"))
+    """The declared set: the file beside this script, else the one on trunk.
+
+    Piped from curl, `python3 -` has no `__file__` and no `references/` beside
+    it, so the declaration is fetched from the same trunk the script came from.
+    `AHRENA_AGENCY_URL` replaces that address, which is how a test serves it.
+    """
+    here = globals().get("__file__")
+    if here:
+        path = Path(here).resolve().parent.parent.joinpath(*AGENCY_FILE)
+        if path.is_file():
+            return json.loads(path.read_text(encoding="utf-8"))
+    url = os.environ.get("AHRENA_AGENCY_URL", AGENCY_URL)
+    with urllib.request.urlopen(url, timeout=30) as response:
+        return json.loads(response.read().decode("utf-8"))
 
 
 def block() -> str:
@@ -88,20 +108,15 @@ def block() -> str:
 def detect_platforms(root: Path, given: str | None) -> tuple[list[str], str | None]:
     """The platforms to install for, as (platforms, error).
 
-    One platform today, by the instruction file present or by `--platform`. It
-    returns a list so that installing for every platform is a change to this
-    function and nothing else.
+    `--platform` limits the run to one. Otherwise every instruction file that is
+    present is written, and when neither is, both are created.
     """
     if given is not None:
         if given not in TARGET:
             return [], f"--platform is 'claude' or 'codex', not '{given}'"
         return [given], None
     present = [name for name, filename in TARGET.items() if (root / filename).is_file()]
-    if len(present) == 1:
-        return present, None
-    if len(present) > 1:
-        return [], "both CLAUDE.md and AGENTS.md are present; pass --platform to choose"
-    return ["claude"], None
+    return present or list(TARGET), None
 
 
 def current_block(text: str) -> str | None:
@@ -142,15 +157,17 @@ def check_directive(path: Path, platform: str) -> bool:
     return False
 
 
-def write_directive(path: Path, platform: str) -> None:
+def write_directive(path: Path, platform: str) -> bool:
+    """Write or refresh the directive; True when the file changed."""
     text = path.read_text(encoding="utf-8") if path.is_file() else ""
     updated = splice(text)
     if updated == text:
         print(f"{platform}: directive already current in {path.name}; nothing written")
-        return
+        return False
     path.write_text(updated, encoding="utf-8")
     verb = "refreshed" if current_block(text) is not None else "wrote"
     print(f"{platform}: {verb} the directive in {path.name}")
+    return True
 
 
 def detect_languages(root: Path, agency: dict) -> list[str]:
@@ -334,7 +351,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Install the agency: enable its plugins and write the entry directive.",
     )
     parser.add_argument("--check", action="store_true", help="report, write nothing")
-    parser.add_argument("--platform", help="claude or codex; default is detected")
+    parser.add_argument("--platform", help="claude or codex; default is every instruction file present, else both")
     parser.add_argument(
         "--language",
         action="append",
@@ -357,8 +374,9 @@ def preread_settings(root: Path, check: bool) -> None:
         read_settings(path)
 
 
-def note_codex(platform: str) -> None:
-    if platform == "codex":
+def note_codex(platform: str, pending: bool) -> None:
+    """The Codex depth note, only when its file was written or is still to write."""
+    if platform == "codex" and pending:
         print(CODEX_NOTE)
 
 
@@ -369,8 +387,9 @@ def check_agency(root: Path, platforms: list[str], plugins: list[str], agency: d
         ok = check_marketplace(root, agency)
         ok = check_plugins(root, plugins) and ok
     for platform in platforms:
-        ok = check_directive(root / TARGET[platform], platform) and ok
-        note_codex(platform)
+        current = check_directive(root / TARGET[platform], platform)
+        note_codex(platform, pending=not current)
+        ok = current and ok
     return ok
 
 
@@ -379,8 +398,8 @@ def write_agency(root: Path, platforms: list[str], plugins: list[str], agency: d
         preread_settings(root, check=False)
         write_settings(root, agency, plugins)
     for platform in platforms:
-        write_directive(root / TARGET[platform], platform)
-        note_codex(platform)
+        written = write_directive(root / TARGET[platform], platform)
+        note_codex(platform, pending=written)
     return True
 
 
@@ -391,10 +410,15 @@ def main(argv: list[str]) -> int:
         print(f"{root}: not a directory", file=sys.stderr)
         return 2
     platforms, error = detect_platforms(root, args.platform)
-    agency = load_agency()
-    languages: list[str] = []
-    if error is None:
-        languages, error = resolve_languages(args, root, agency)
+    if error is not None:
+        print(error, file=sys.stderr)
+        return 2
+    try:
+        agency = load_agency()
+    except (OSError, ValueError) as exc:
+        print(f"cannot read the agency declaration: {exc}", file=sys.stderr)
+        return 2
+    languages, error = resolve_languages(args, root, agency)
     if error is not None:
         print(error, file=sys.stderr)
         return 2
