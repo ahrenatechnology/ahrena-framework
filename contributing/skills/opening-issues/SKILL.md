@@ -43,6 +43,7 @@ Open a new issue beside an existing one only when the work is genuinely independ
 | Plan | One executable unit of a larger item, as its sub-issue | [`references/plan.md`](references/plan.md), `references/issue-forms/plan.yml` |
 | Spike | A timeboxed question that must be answered before dependent work | [`references/spike.md`](references/spike.md), `references/issue-forms/spike.yml` |
 | Bug | Something that does not do what was specified | [`references/bug.md`](references/bug.md), `references/issue-forms/bug.yml` |
+| Round | A work window of the round method, with the activities the person approved, closed by its closing rather than a pull request | [`references/round.md`](references/round.md), `references/issue-forms/round.yml` |
 
 If the item is two of these, it is two items. A story that needs an unknown answered first is a spike that blocks a story.
 
@@ -64,6 +65,8 @@ Write every field as a `### <label>` heading followed by its answer, in the temp
 Fill every required field. An optional field with nothing to say is left out, not written empty. Start from the field's own text where it has one, and replace every placeholder.
 
 The body must end up with an `### Acceptance criteria` section, in the shape `writing-acceptance-criteria` gives, because `traceability.md` reads it. Ahrena's defaults carry one. If the repository's template has no such field, add the section after its last field, and add `### Left to other issues` after it when there is anything to leave. Everything else in the repository's template stays as it is.
+
+A Round issue is the one exception. It is closed by the round's closing, never by a pull request, so the traceability check never reads it and it carries no criteria of its own; each of its activities has an issue that does.
 
 Write the body to a file, so it can be read back before it is sent. The title follows the template's `title`.
 
