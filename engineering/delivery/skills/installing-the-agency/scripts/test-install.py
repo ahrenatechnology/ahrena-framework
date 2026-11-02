@@ -250,6 +250,7 @@ def core_with(**overrides) -> dict:
 
 
 def test_check_on_an_empty_repository() -> None:
+    # Covers #222/AC-2: --check reports every missing agency plugin.
     with Case() as c:
         r = c.run("--check")
         assert r.returncode == 1, f"exit 1: {r.returncode}"
@@ -357,6 +358,16 @@ def test_directive_untouched_around_markers() -> None:
         c.run()
         text = (c.root / "CLAUDE.md").read_text(encoding="utf-8")
         assert text.startswith("# Mine\n\nkeep this\n"), "directive: surrounding content kept"
+
+
+def test_script_is_resolved_from_the_plugin_root() -> None:
+    # Covers #221/AC-1: the command and the skill run install.py from the plugin's own root.
+    delivery = HERE.parents[2]
+    for doc in (delivery / "commands" / "install-agency.md", HERE.parent / "SKILL.md"):
+        runs = [l for l in doc.read_text(encoding="utf-8").splitlines() if l.startswith("python3 ") and "install.py" in l]
+        assert runs, f"{doc.name}: invokes install.py"
+        for line in runs:
+            assert "${CLAUDE_PLUGIN_ROOT}/skills/installing-the-agency/scripts/install.py" in line or "<skill-dir>/scripts/install.py" in line, f"{doc.name}: plugin-relative: {line}"
 
 
 def test_declared_plugins_exist_in_marketplace() -> None:
