@@ -4,7 +4,7 @@ type: rule
 clade: engineering
 subclade: delivery
 title: Who decides, accepts and merges in a round
-statement: The round's PM sets priority and accepts, its TL dispatches and merges after that acceptance, and no work runs without an issue, an owner and a done criterion.
+statement: The round's PM sets priority and accepts, its TL lands what Argos approved after the PM's acceptance, and all work has an issue, an owner and a done criterion.
 enforcement: judgment
 references:
   - docs/round-method.md
@@ -22,7 +22,7 @@ Before this rule, the same person's rounds recorded who merges in two contradict
 
 2. **The PM gives product acceptance; the TL does not.** An activity is accepted when the PM has checked its result against the activity's done criterion. The TL reports a result; it does not declare it accepted.
 
-3. **The TL merges, after the PM's acceptance, on a green CI and an Argos verdict with no blocker.** All three hold on the head being merged. The merge goes through the forge as [`ahrena-contributing`'s gates rule](../../../contributing/rules/gates.md) requires. The PM never merges. In lean mode (condition 8), with no TL, the landing is Argos's, through the same forge procedure, after the PM's acceptance.
+3. **The TL lands only what Argos approved, on green checks, after the PM's acceptance.** Argos's verdict on the head is approve. A comment verdict carries an open question or an unchecked condition, and that is answered first; "no blocker" alone is not enough. Every check on that head has passed, and the PM has accepted the activity. All three hold on the head being landed. A single pull request lands through `ahrena-engineering-quality`'s `landing-approved-changes`. A stack lands layer by layer through `ahrena-contributing`'s `stacking-pull-requests`, each layer on its own approval and its own green checks. [`ahrena-contributing`'s gates rule](../../../contributing/rules/gates.md) governs every landing, and its condition 3 names the round's TL as the agent that lands in a round. The PM never merges. In lean mode (condition 8), with no TL, Argos lands a single pull request after the PM's acceptance, and the person lands a stack.
 
 4. **No work without an issue, an owner and a done criterion.** Every activity of the round carries all three. A request arriving mid-round goes to the PM, who opens its issue and decides whether it enters now, and what leaves to make room, or waits for the next round. No child session is started without an issue.
 
