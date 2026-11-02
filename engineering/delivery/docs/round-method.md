@@ -26,11 +26,11 @@ The form has five sections. **Window** is the start and end of the round. **Sess
 
 **The PM of the round**, `themis`, owns priority and acceptance. It opens the round, proposes the day's activities up to capacity, talks to the person, gives product acceptance and runs the closing. It never opens build sessions, reviews or merges.
 
-**The Tech Lead of the round**, `hermes`, owns execution across the window. It starts one child session per issue, each running Athena, unblocks them, watches trunk and infrastructure, and merges on a green CI and an Argos verdict with no blocker, after the PM's acceptance. It tells the PM only when an activity changes state. It never builds or reviews.
+**The Tech Lead of the round**, `hermes`, owns execution across the window. It starts one child session per issue, each running Athena, unblocks them, watches trunk and infrastructure, and lands what Argos approved, on green checks, after the PM's acceptance: a single pull request through `landing-approved-changes`, a stack layer by layer through `stacking-pull-requests`. It tells the PM only when an activity changes state. It never builds or reviews.
 
 **Athena is the tech-lead of one issue; hermes is the tech-lead of a work window.** Athena plans one issue into layers, routes them, delegates each to a build clade and stacks the result. Hermes does none of that. It decides which issues run now, starts one Athena session per issue, and carries each to a merge. The two never overlap: Athena never sees the round, and hermes never sees a layer.
 
-**Lean mode** is the round without a TL. With one build issue at a time, the PM dispatches Athena directly and the TL's coordination has nothing to coordinate. A TL is opened when two or more build issues run in parallel, or when an infrastructure operation runs beside a build issue.
+**Lean mode** is the round without a TL. With one build issue at a time, the PM dispatches Athena directly and the TL's coordination has nothing to coordinate. A TL is opened when two or more build issues run in parallel, or when an infrastructure operation runs beside a build issue. In lean mode Argos lands a single pull request and the person lands a stack.
 
 ## Opening
 
