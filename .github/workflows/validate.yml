@@ -113,6 +113,9 @@ jobs:
       - name: Test the costs plugin's publish step
         run: python3 costs/runtime/test-publish.py
 
+      - name: Test the round script
+        run: python3 engineering/delivery/skills/opening-the-round/scripts/test-round.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
 

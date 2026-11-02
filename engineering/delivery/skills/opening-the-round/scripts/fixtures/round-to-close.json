@@ -1,0 +1,72 @@
+{
+  "project": "console",
+  "date": "2026-10-31",
+  "window": "2026-10-31, 09:00 to 18:00",
+  "language": "en",
+  "unit": "count",
+  "capacity": 3.8,
+  "round_issue": "https://github.com/acme/console/issues/106",
+  "activities": [
+    {
+      "result": "Session list paginates",
+      "issue": "#41",
+      "owner": "hermes",
+      "done": "the list shows page 2",
+      "size": "M",
+      "origin": "carried",
+      "rounds": 2,
+      "outcome": "done",
+      "evidence": "PR #61 merged, CI green"
+    },
+    {
+      "result": "Fleet view loads under 1s",
+      "issue": "#43",
+      "owner": "hermes",
+      "done": "the fleet view loads in under 1s",
+      "size": "P",
+      "origin": "new",
+      "rounds": 1,
+      "outcome": "done",
+      "evidence": "PR #62 merged; timing 0.7s"
+    },
+    {
+      "result": "Export a round as CSV",
+      "issue": "#44",
+      "owner": "hermes",
+      "done": "a CSV of the round downloads",
+      "size": "M",
+      "origin": "new",
+      "rounds": 1,
+      "outcome": "left-over",
+      "state": "in progress",
+      "reason": "the format changed mid-round",
+      "next_step": "finish the writer"
+    },
+    {
+      "result": "Alerts on stuck sessions",
+      "issue": "#45",
+      "owner": "hermes",
+      "done": "a stuck session raises an alert",
+      "size": "G",
+      "origin": "carried",
+      "rounds": 2,
+      "outcome": "left-over",
+      "state": "blocked",
+      "reason": "no signal for stuck yet",
+      "next_step": "spike the signal"
+    }
+  ],
+  "decisions": [
+    "CSV uses semicolons, as the finance team asked"
+  ],
+  "pending": [
+    {
+      "what": "#44 needs the column order.",
+      "recommend": "keep the on-screen order.",
+      "link": "https://github.com/acme/console/issues/44"
+    }
+  ],
+  "context": [
+    "#41 merged; watch the pagination on the pilot"
+  ]
+}

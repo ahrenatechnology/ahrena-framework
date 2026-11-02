@@ -1,0 +1,30 @@
+{
+  "project": "console",
+  "date": "2026-10-31",
+  "window": "2026-10-31, 09:00 to 18:00",
+  "language": "en",
+  "unit": "count",
+  "sessions": [
+    "PM: PM da rodada · console · 31/10/2026",
+    "TL: Tech Lead da rodada · console · 31/10/2026"
+  ],
+  "activities": [
+    {
+      "result": "Fleet view loads under 1s",
+      "issue": "#43",
+      "owner": "hermes",
+      "done": "the fleet view loads in under 1s on the pilot data",
+      "size": "P"
+    },
+    {
+      "result": "Export a round as CSV",
+      "issue": "#44",
+      "owner": "hermes",
+      "done": "a CSV of the round downloads",
+      "size": "M"
+    }
+  ],
+  "out_of_scope": [
+    "Dark mode (#50)"
+  ]
+}
