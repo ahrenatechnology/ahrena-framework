@@ -1,6 +1,6 @@
 ---
 name: installing-the-agency
-description: Install the agency in a repository. Use when setting it up so build work enters through Athena — enables the agency plugins in .claude/settings.json and writes the entry directive into CLAUDE.md or AGENTS.md, idempotently and without clobbering; --check reports what is missing.
+description: Install the agency in a repository. Use when setting it up so build work enters through Athena — enables the agency plugins in .claude/settings.json and writes the entry directive into every instruction file present (CLAUDE.md, AGENTS.md), or both when neither exists, idempotently and without clobbering; --check reports what is missing.
 type: skill
 clade: engineering
 subclade: delivery
@@ -100,10 +100,10 @@ is the illustrative script to adapt when a project wants the loop run that way.
 
 ## 5. Hand back what was ensured or what is missing
 
-Return which platform was detected, which plugins were enabled and which were
-already, any plugin the owner disabled, a marketplace entry that differs from the
-declared one, whether the directive was already current or was written, and — on
-Codex — the `max_depth` guidance. A disabled plugin or a config the owner must set
+Return which instruction files were written and which were already current,
+which plugins were enabled and which were already enabled, any plugin the owner
+disabled, a marketplace entry that differs from the declared one, and — when
+`AGENTS.md` was targeted — the `max_depth` guidance. A disabled plugin or a config the owner must set
 is carried back as a report, not worked around, exactly as the graph doctor
 carries its `to enable` lines. The script's own tests are
 [`scripts/test-install.py`](scripts/test-install.py).

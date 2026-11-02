@@ -406,14 +406,15 @@ def main(argv: list[str]) -> int:
         print(f"{root}: not a directory", file=sys.stderr)
         return 2
     platforms, error = detect_platforms(root, args.platform)
+    if error is not None:
+        print(error, file=sys.stderr)
+        return 2
     try:
         agency = load_agency()
     except (OSError, ValueError) as exc:
         print(f"cannot read the agency declaration: {exc}", file=sys.stderr)
         return 2
-    languages: list[str] = []
-    if error is None:
-        languages, error = resolve_languages(args, root, agency)
+    languages, error = resolve_languages(args, root, agency)
     if error is not None:
         print(error, file=sys.stderr)
         return 2
