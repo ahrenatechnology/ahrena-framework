@@ -67,6 +67,7 @@ class Case:
 
 
 def test_fresh_repo_writes_exact_shape() -> None:
+    # Covers #224/AC-1: one run installs the eight plugins and writes the directive to both files.
     with Case() as c:
         r = c.run()
         expected = {
@@ -192,6 +193,7 @@ def test_existing_marketplace_untouched() -> None:
 
 
 def test_second_run_writes_nothing() -> None:
+    # Covers #224/AC-2: a second run changes nothing.
     with Case() as c:
         c.run()
         settings_path = c.root / ".claude" / "settings.json"
@@ -467,6 +469,15 @@ def test_script_is_resolved_from_the_plugin_root() -> None:
         assert runs, f"{doc.name}: invokes install.py"
         for line in runs:
             assert "${CLAUDE_PLUGIN_ROOT}/skills/installing-the-agency/scripts/install.py" in line or "<skill-dir>/scripts/install.py" in line, f"{doc.name}: plugin-relative: {line}"
+
+
+def test_readme_documents_the_agency_install() -> None:
+    # Covers #222/AC-1: the README has an "Install the agency" section that lists the plugins.
+    readme = (HERE.parents[4] / "README.md").read_text(encoding="utf-8")
+    assert "## Install the agency" in readme, "readme: install section"
+    section = readme.split("## Install the agency", 1)[1].split("\n## ", 1)[0]
+    for plugin in AGENCY["plugins"]:
+        assert plugin in section, f"readme: lists {plugin}"
 
 
 def test_declared_plugins_exist_in_marketplace() -> None:
