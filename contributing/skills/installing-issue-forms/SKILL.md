@@ -11,7 +11,7 @@ references:
 
 Agents write issues from the repository's templates, or from Ahrena's defaults when there are none, and they need nothing installed to do it (`opening-issues` step 3). Installing the forms is for people. It makes the same forms appear on the forge's "New issue" page, so an issue filed by hand has the same sections as one an agent writes.
 
-The forms are the ones `opening-issues` uses: `references/issue-forms/` beside its `SKILL.md`. Every form carries `Acceptance criteria` and `Left to other issues`, which the framework's checks read.
+The forms are the ones `opening-issues` uses: `references/issue-forms/` beside its `SKILL.md`. Every form but `round` carries `Acceptance criteria` and `Left to other issues`, which the framework's checks read; a Round issue is closed by its round's closing, not by a pull request.
 
 ## 1. See what the repository already has
 

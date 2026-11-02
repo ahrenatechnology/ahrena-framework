@@ -1,0 +1,69 @@
+# Installed by Ahrena: ahrena-contributing, skills/installing-issue-forms.
+# New in Ahrena, for the round method of ahrena-engineering-delivery (#225).
+# A Round issue is closed by the round's closing, not by a pull request, so it
+# carries no `Acceptance criteria`: each activity's own issue does. It sets no
+# native type, because a round is a work window and not a work item; the
+# `round` label is what finds it.
+name: "Round"
+description: "A work window with objectives the person approved, run by the PM of the round and closed with a written closing"
+title: "{{ Round · project · date, in the person's language }}"
+labels:
+  - "round"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form to open a round: a work window with objectives the person approved, ending in a written closing.
+        The PM of the round writes it, after the person approved the activities, with the `opening-the-round` skill. The closing is a comment on this issue, and closes it.
+        Every activity has an owner, a done criterion and an issue. One without an issue gets one before it enters the table.
+
+  - type: input
+    id: window
+    attributes:
+      label: "Window"
+      description: "When the round starts and ends, with the date. The closing runs 15 minutes before the end."
+      placeholder: "e.g. 2026-11-02, 09:00 to 18:00"
+    validations:
+      required: true
+
+  - type: textarea
+    id: sessions
+    attributes:
+      label: "Sessions"
+      description: "The coordinator sessions of the round, by title. One PM session; a TL session only when two or more build issues run in parallel or an infrastructure operation runs beside one. Otherwise write that the round runs in lean mode."
+      placeholder: |
+        e.g.
+        - PM: PM da rodada · ahrena-console · 02/11/2026
+        - TL: Tech Lead da rodada · ahrena-console · 02/11/2026
+    validations:
+      required: true
+
+  - type: input
+    id: capacity
+    attributes:
+      label: "Capacity"
+      description: "The calibrated capacity: the mean done over the project's last five closed rounds, as activities or points (P=1, M=2, G=3). Say so when there is no history yet, and when the plan exceeds it."
+      placeholder: "e.g. 6 points (mean of the last 5 rounds); planned 7"
+    validations:
+      required: true
+
+  - type: textarea
+    id: activities
+    attributes:
+      label: "Activities"
+      description: "One row per activity, carried-over ones first. Size is P, M or G. Origin is new, or carried with the round count. State starts as planned."
+      value: |
+        | Result | Issue | Owner | Done criterion | Size | Origin | State |
+        |---|---|---|---|---|---|---|
+        |  |  |  |  |  |  | planned |
+    validations:
+      required: true
+
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: "Out of scope"
+      description: "What was asked for and deliberately left out of this round, each with its issue when it has one."
+    validations:
+      required: true
