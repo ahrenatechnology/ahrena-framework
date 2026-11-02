@@ -10,7 +10,8 @@ switch, and the fresh session starts from that same comment.
     decide   reads the session's state and says what is due: renew, compact
              or continue; renewal outranks compaction, and nothing else renews
     render   writes the work-context comment, refusing one that lacks a part
-    latest   finds the newest work-context comment on a Round issue, to re-read
+    latest   finds the newest work-context comment the coordinator itself wrote
+             on a Round issue, to re-read; anyone else's is ignored
 
 The comment's six parts are the goal, the decisions, the pull requests and
 branches, the child sessions, the next step and the blockers. Its labels follow
@@ -19,7 +20,7 @@ the person's language; its hidden block's keys stay English.
 Usage:
     python3 work-context.py decide STATE.json [--threshold TOKENS]
     python3 work-context.py render CONTEXT.json
-    python3 work-context.py latest COMMENTS.json
+    python3 work-context.py latest COMMENTS.json --author LOGIN
 
 STATE.json has context_tokens, session_day, today, session_account and
 current_account. COMMENTS.json is `gh issue view N --json comments`.
@@ -114,8 +115,10 @@ def render(context: dict) -> str:
     return f"## {head}\n\n{sections}\n\n<!-- {MARK}: {block} -->\n"
 
 
-def latest(comments: list[dict]) -> dict | None:
+def latest(comments: list[dict], author: str) -> dict | None:
     for comment in reversed(comments):
+        if (comment.get("author") or {}).get("login") != author:
+            continue
         body = comment.get("body", "")
         if re.search(rf"<!-- {MARK}: \{{", body):
             return {"body": body, "createdAt": comment.get("createdAt", "")}
@@ -132,6 +135,7 @@ def main(argv: list[str]) -> int:
     p.add_argument("context")
     p = sub.add_parser("latest")
     p.add_argument("comments")
+    p.add_argument("--author", required=True)
     args = parser.parse_args(argv)
     try:
         if args.command == "decide":
@@ -144,9 +148,9 @@ def main(argv: list[str]) -> int:
             print(render(json.loads(Path(args.context).read_text(encoding="utf-8"))), end="")
             return 0
         payload = json.loads(Path(args.comments).read_text(encoding="utf-8"))
-        found = latest(payload.get("comments", []) if isinstance(payload, dict) else payload)
+        found = latest(payload.get("comments", []) if isinstance(payload, dict) else payload, args.author)
         if found is None:
-            raise Refused("no work-context comment on this Round issue")
+            raise Refused(f"no work-context comment by {args.author} on this Round issue")
         print(found["body"], end="")
         return 0
     except Refused as refusal:

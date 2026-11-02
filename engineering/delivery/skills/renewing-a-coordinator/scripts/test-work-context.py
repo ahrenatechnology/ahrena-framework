@@ -3,8 +3,8 @@
 
 The fixtures are a set of session states with the verdict each must get
 (fixtures/states.json), a complete work context (fixtures/context.json) and a
-Round issue's comments holding two work-context comments
-(fixtures/round-comments.json). The script runs as a subprocess on each. The
+Round issue's comments holding two work-context comments by the coordinator and
+a newer one by someone else (fixtures/round-comments.json). The script runs as a subprocess on each. The
 behaviour is pinned against #225's criterion:
 
     #225/AC-7  the coordinator writes its work context (goal, decisions, pull
@@ -33,6 +33,7 @@ FIXTURES = HERE / "fixtures"
 STATES = json.loads((FIXTURES / "states.json").read_text(encoding="utf-8"))
 CONTEXT = FIXTURES / "context.json"
 COMMENTS = FIXTURES / "round-comments.json"
+AUTHOR = "round-tl"
 
 
 def run(*args: str) -> tuple[int, str]:
@@ -89,15 +90,32 @@ def case_render_refuses() -> list[str]:
 
 def case_latest() -> list[str]:
     """After compacting, the newest work-context comment is what is re-read."""
-    code, output = run("latest", str(COMMENTS))
+    code, output = run("latest", str(COMMENTS), "--author", AUTHOR)
     found = []
     if code != 0:
         return [f"latest exited {code}: {output.strip()}"]
     if "objetivo atual" not in output or "primeiro objetivo" in output:
         found.append("latest did not return the newest work-context comment")
-    code, output = with_file({"comments": [{"body": "Checkpoint."}]}, "latest")
+    code, output = with_file({"comments": [{"body": "Checkpoint.", "author": {"login": AUTHOR}}]}, "latest", "--author", AUTHOR)
     if code != 1:
         found.append("a Round issue with no work context did not exit 1")
+    return found
+
+
+def case_latest_ignores_others() -> list[str]:
+    """A newer work-context comment by anyone but the coordinator is not re-read."""
+    code, output = run("latest", str(COMMENTS), "--author", AUTHOR)
+    found = []
+    if code != 0:
+        return [f"latest exited {code}: {output.strip()}"]
+    if "objetivo alheio" in output:
+        found.append("latest returned a work-context comment another author wrote")
+    code, output = run("latest", str(COMMENTS), "--author", "nobody")
+    if code != 1:
+        found.append("an author with no work context on the issue did not exit 1")
+    code, output = run("latest", str(COMMENTS))
+    if code != 2:
+        found.append(f"latest without --author exited {code}, not 2")
     return found
 
 
@@ -106,7 +124,7 @@ def case_round_trip() -> list[str]:
     code, comment = run("render", str(CONTEXT))
     if code != 0:
         return [f"render exited {code}"]
-    code, output = with_file({"comments": [{"body": comment}]}, "latest")
+    code, output = with_file({"comments": [{"body": comment, "author": {"login": AUTHOR}}]}, "latest", "--author", AUTHOR)
     return [] if code == 0 and output == comment else ["latest did not return the comment render wrote"]
 
 
@@ -114,6 +132,7 @@ CASES = [(f"{case['name']} (#225/AC-7)", lambda case=case: check_state(case)) fo
     ("the work context has its six parts (#225/AC-7)", case_render),
     ("a work context missing a part is refused (#225/AC-7)", case_render_refuses),
     ("the newest work context is re-read after compacting (#225/AC-7)", case_latest),
+    ("only the coordinator's own work context is re-read (#225/AC-7)", case_latest_ignores_others),
     ("what is written is what is re-read (#225/AC-7)", case_round_trip),
 ]
 
