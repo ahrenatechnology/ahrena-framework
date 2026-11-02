@@ -4,9 +4,10 @@ type: doc
 clade: engineering
 subclade: delivery
 title: Binding the agency to each platform
-summary: The portable manager/worker spec and how each platform binds it — Claude Code as the Athena agent plus an optional Workflow, Codex as custom subagents with the AGENTS.md trigger and the max_depth cap, and LangGraph named as the out-of-scope runtime binding — plus the entry directive that makes the agency always used.
+summary: The portable manager/worker spec and how each platform binds it — Claude Code as the Athena agent plus an optional Workflow, Codex as custom subagents with the AGENTS.md trigger and the max_depth cap, and LangGraph named as the out-of-scope runtime binding — plus the entry directive that makes the agency always used and the lean-mode fallback for the round's coordinators where child sessions are missing.
 references:
   - docs/clef-decision-gate.md
+  - docs/round-method.md
 ---
 
 # Binding the agency to each platform
@@ -80,6 +81,26 @@ rather than sub-spawning. That runs inside `max_depth=1` on a stock install. A
 project that wants build agents to fan out into their own stage subagents raises
 `agents.max_depth` to 2 — one named setting, opted into, rather than a default the
 binding silently depends on.
+
+## The round's coordinators where child sessions are missing
+
+The round method adds two coordinators above Athena, the PM and the Tech Lead of
+the round, and the Tech Lead's whole job is to start one child session per issue
+and talk to each. On Claude Code that is `start_session`, which opens a child
+session with its own title, model and brief, and `SendMessage`, which reaches it
+afterwards. [`docs/round-method.md`](round-method.md) describes the round.
+
+**Codex has neither, so a round on Codex runs in lean mode.** A Codex subagent is
+spawned for a task and returns; there is no durable child session to title,
+message later or archive. Without that, the Tech Lead has nothing to coordinate,
+and the round runs with the PM alone, one build issue at a time, each through
+Athena as above. The round's other parts are unchanged, because they live in the
+Round issue rather than in a session: the opening, the checkpoint, the closing,
+carry-over and calibration all run the same way.
+
+The fallback is decided by the tools present, not by the platform's name. A
+platform that later gains a way to start and message a durable child session
+binds the Tech Lead to it; until then, lean mode is the binding.
 
 ## LangGraph: the out-of-scope runtime binding
 
