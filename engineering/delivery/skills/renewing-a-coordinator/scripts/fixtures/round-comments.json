@@ -1,0 +1,24 @@
+{
+  "comments": [
+    {
+      "body": "Abrindo a rodada.",
+      "createdAt": "2026-11-02T09:00:00Z"
+    },
+    {
+      "body": "## Contexto\n\n<!-- work-context: {\"blockers\": [], \"children\": [\"Rodada console · #43 (Athena, PR #61)\", \"Rodada console · #44 (Athena, em andamento)\"], \"decisions\": [\"CSV com ponto e vírgula, pedido do financeiro\"], \"goal\": \"primeiro objetivo\", \"language\": \"pt-BR\", \"next_step\": \"Mergear #61 depois do aceite do PM\", \"pull_requests\": [\"#61 feat/43-fleet-view, CI verde, aguardando aceite do PM\"], \"role\": \"Tech Lead da rodada\", \"when\": \"02/11/2026 11:00\"} -->\n",
+      "createdAt": "2026-11-02T11:00:00Z"
+    },
+    {
+      "body": "PR #61 verde.",
+      "createdAt": "2026-11-02T12:00:00Z"
+    },
+    {
+      "body": "## Contexto\n\n<!-- work-context: {\"blockers\": [], \"children\": [\"Rodada console · #43 (Athena, PR #61)\", \"Rodada console · #44 (Athena, em andamento)\"], \"decisions\": [\"CSV com ponto e vírgula, pedido do financeiro\"], \"goal\": \"objetivo atual\", \"language\": \"pt-BR\", \"next_step\": \"Mergear #61 depois do aceite do PM\", \"pull_requests\": [\"#61 feat/43-fleet-view, CI verde, aguardando aceite do PM\"], \"role\": \"Tech Lead da rodada\", \"when\": \"02/11/2026 15:40\"} -->\n",
+      "createdAt": "2026-11-02T15:40:00Z"
+    },
+    {
+      "body": "Checkpoint: #43 verde, #44 em risco.",
+      "createdAt": "2026-11-02T16:00:00Z"
+    }
+  ]
+}

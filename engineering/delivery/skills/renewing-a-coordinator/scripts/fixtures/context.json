@@ -1,0 +1,18 @@
+{
+  "role": "Tech Lead da rodada",
+  "when": "02/11/2026 15:40",
+  "language": "pt-BR",
+  "goal": "Entregar #43 e #44 da rodada de hoje",
+  "decisions": [
+    "CSV com ponto e vírgula, pedido do financeiro"
+  ],
+  "pull_requests": [
+    "#61 feat/43-fleet-view, CI verde, aguardando aceite do PM"
+  ],
+  "children": [
+    "Rodada console · #43 (Athena, PR #61)",
+    "Rodada console · #44 (Athena, em andamento)"
+  ],
+  "next_step": "Mergear #61 depois do aceite do PM",
+  "blockers": []
+}

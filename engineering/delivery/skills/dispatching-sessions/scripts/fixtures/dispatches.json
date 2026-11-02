@@ -1,0 +1,190 @@
+[
+  {
+    "name": "a complete dispatch goes",
+    "dispatch": {
+      "issue": "#43",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "language": "pt-BR",
+      "person_language": "pt-BR",
+      "model": "sonnet",
+      "model_reason": "",
+      "agent": "athena",
+      "tool": "claude-code"
+    },
+    "verdict": "dispatch",
+    "says": "dispatch: #43 to a new session, model sonnet"
+  },
+  {
+    "name": "no issue, no child",
+    "dispatch": {
+      "issue": "",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Construa a tela de exportação.",
+      "language": "pt-BR",
+      "person_language": "pt-BR",
+      "model": "sonnet",
+      "model_reason": "",
+      "agent": "athena",
+      "tool": "claude-code"
+    },
+    "verdict": "refuse",
+    "says": "no issue: no child session starts without one"
+  },
+  {
+    "name": "the child runs Athena",
+    "dispatch": {
+      "issue": "#43",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "language": "pt-BR",
+      "person_language": "pt-BR",
+      "model": "sonnet",
+      "model_reason": "",
+      "agent": "apollo",
+      "tool": "claude-code"
+    },
+    "verdict": "refuse",
+    "says": "not athena"
+  },
+  {
+    "name": "Opus without a reason is refused",
+    "dispatch": {
+      "issue": "#43",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "language": "pt-BR",
+      "person_language": "pt-BR",
+      "model": "opus",
+      "model_reason": "",
+      "agent": "athena",
+      "tool": "claude-code"
+    },
+    "verdict": "refuse",
+    "says": "model opus without a reason"
+  },
+  {
+    "name": "Opus with a reason in the brief goes",
+    "dispatch": {
+      "issue": "#43",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue. Opus porque o registro de decisão é o trabalho.",
+      "language": "pt-BR",
+      "person_language": "pt-BR",
+      "model": "opus",
+      "model_reason": "Opus porque o registro de decisão é o trabalho",
+      "agent": "athena",
+      "tool": "claude-code"
+    },
+    "verdict": "dispatch",
+    "says": "model opus"
+  },
+  {
+    "name": "a reason kept out of the brief does not count",
+    "dispatch": {
+      "issue": "#43",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "language": "pt-BR",
+      "person_language": "pt-BR",
+      "model": "opus",
+      "model_reason": "design-heavy",
+      "agent": "athena",
+      "tool": "claude-code"
+    },
+    "verdict": "refuse",
+    "says": "model opus without a reason in the brief"
+  },
+  {
+    "name": "a brief not in the person's language is refused",
+    "dispatch": {
+      "issue": "#43",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "language": "en",
+      "person_language": "pt-BR",
+      "model": "sonnet",
+      "model_reason": "",
+      "agent": "athena",
+      "tool": "claude-code"
+    },
+    "verdict": "refuse",
+    "says": "the person reads 'pt-BR'"
+  },
+  {
+    "name": "a brief that does not name its issue is refused",
+    "dispatch": {
+      "issue": "#43",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Rode a Athena e abra o PR.",
+      "language": "pt-BR",
+      "person_language": "pt-BR",
+      "model": "sonnet",
+      "model_reason": "",
+      "agent": "athena",
+      "tool": "claude-code"
+    },
+    "verdict": "refuse",
+    "says": "the brief does not name #43"
+  },
+  {
+    "name": "a second, unrelated demand to a held session is refused",
+    "dispatch": {
+      "issue": "#43",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "language": "pt-BR",
+      "person_language": "pt-BR",
+      "model": "sonnet",
+      "model_reason": "",
+      "agent": "athena",
+      "tool": "claude-code",
+      "session": {
+        "title": "Rodada console · #40",
+        "holds": "#40"
+      }
+    },
+    "verdict": "refuse",
+    "says": "the session already holds #40"
+  },
+  {
+    "name": "more of the same demand to its own session goes",
+    "dispatch": {
+      "issue": "#43",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "language": "pt-BR",
+      "person_language": "pt-BR",
+      "model": "sonnet",
+      "model_reason": "",
+      "agent": "athena",
+      "tool": "claude-code",
+      "session": {
+        "title": "Rodada console · #43",
+        "holds": "#43"
+      }
+    },
+    "verdict": "dispatch",
+    "says": "dispatch: #43 to its session"
+  },
+  {
+    "name": "a pull request another tool owns is skipped",
+    "dispatch": {
+      "issue": "#43",
+      "title": "Rodada console · #43 Visão da frota em menos de 1s",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "language": "pt-BR",
+      "person_language": "pt-BR",
+      "model": "sonnet",
+      "model_reason": "",
+      "agent": "athena",
+      "tool": "claude-code",
+      "pull_request": {
+        "number": 61,
+        "owner_tool": "codex"
+      }
+    },
+    "verdict": "skip",
+    "says": "owned by codex"
+  }
+]
