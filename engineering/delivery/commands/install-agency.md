@@ -18,7 +18,7 @@ Invoke `installing-the-agency` with the arguments below.
 | Argument | Required | Meaning |
 |---|---|---|
 | `--check` | no | Report the directive and each plugin as enabled, missing, disabled or invalid, and the marketplace declaration, writing nothing. Without it, the plugins are enabled and the directive is written or refreshed |
-| `--platform claude\|codex` | no | Override the auto-detected platform when the repository carries both `CLAUDE.md` and `AGENTS.md`. `codex` skips `.claude/settings.json` |
+| `--platform claude\|codex` | no | Limit the run to one instruction file. Without it, every file present is written, and both are created when neither exists. `codex` skips `.claude/settings.json` |
 | `--language python\|typescript\|go\|rust` | no | Enable that language plugin instead of the ones detected from the repository's marker files. Repeatable, or a comma list |
 
 Without `--check` the skill ensures the plugins and the directive are in place;

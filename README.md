@@ -30,6 +30,46 @@ The gate takes no dependencies, so the check CI runs is the check a consumer run
 
 A plugin may reference another by the name the marketplace gives it, as `ahrena-engineering-fundamentals:docs/simplicity.md`, and that graph is acyclic. Everything else is tracked in the issues of this repository.
 
+## Install the agency
+
+The agency is eight plugins from the `ahrena` marketplace, plus one per language the repository uses.
+
+| Plugin | What it is |
+|---|---|
+| `ahrena-engineering-delivery` | Athena, who turns an issue into a stack of reviewed pull requests, and `/install-agency` |
+| `ahrena-engineering-frontend` | Iris, who builds a feature outside-in, wireframe first |
+| `ahrena-engineering-backend` | Apollo, who builds a capability inside-out, domain first |
+| `ahrena-engineering-quality` | Argos and Erodos: review, publish the verdict, apply fixes, land |
+| `ahrena-engineering-fundamentals` | The language-agnostic engineering rules and the code graph |
+| `ahrena-engineering-security` | Janus and the six security review disciplines |
+| `ahrena-contributing` | Issue, plan, branch, commit and pull request rules |
+| `ahrena-foundation` | What an artifact is, and the skills that create and review them |
+
+Language plugins are `ahrena-engineering-python`, `-typescript`, `-go` and `-rust`. The installer enables the ones whose marker file sits at the repository root (`pyproject.toml`, `requirements.txt` or `setup.py`; `tsconfig.json` or `package.json`; `go.mod`; `Cargo.toml`), or the ones `--language` names.
+
+From the root of your repository, with no checkout and no plugin installed:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/ahrenatechnology/ahrena-framework/main/engineering/delivery/skills/installing-the-agency/scripts/install.py | python3 -
+```
+
+Pass options after the dash, as `python3 - --language python`. This needs `install.py` on `main`, so it works once this change has merged. Once `ahrena-engineering-delivery` is present, `/install-agency` runs the same script, and `/install-agency --check` verifies the result without writing.
+
+It is idempotent: a second run changes nothing and says so. It writes:
+
+- `.claude/settings.json`: `extraKnownMarketplaces.ahrena` and `enabledPlugins["<plugin>@ahrena"]: true`, keeping every other key and never flipping a plugin you disabled.
+- A block between `<!-- ahrena:agency:start -->` and `<!-- ahrena:agency:end -->` in `CLAUDE.md` and `AGENTS.md`, for every file present, or both when neither exists.
+
+It does not use `claude plugin marketplace add`, which rewrote an existing `ahrena` entry's ref. The manual path is still available:
+
+```sh
+claude plugin marketplace add ahrenatechnology/ahrena-framework --scope project
+claude plugin install ahrena-engineering-delivery@ahrena --scope project
+# the same for each plugin in the table
+```
+
+The directive names `clio`, the data builder, which lives in `ahrena-engineering-data` and is not one of the eight. To add it, run `claude plugin install ahrena-engineering-data@ahrena --scope project`, or add `"ahrena-engineering-data@ahrena": true` to `enabledPlugins`.
+
 ## License
 
 See [LICENSE](LICENSE).
