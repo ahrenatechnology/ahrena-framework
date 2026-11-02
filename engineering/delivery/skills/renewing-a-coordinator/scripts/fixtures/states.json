@@ -1,0 +1,73 @@
+[
+  {
+    "name": "below the threshold, same day and account: continue",
+    "state": {
+      "context_tokens": 120000,
+      "session_day": "2026-11-02",
+      "today": "2026-11-02",
+      "session_account": "team",
+      "current_account": "team"
+    },
+    "verdict": "continue"
+  },
+  {
+    "name": "at 200k: write the context and compact, no hand-over",
+    "state": {
+      "context_tokens": 200000,
+      "session_day": "2026-11-02",
+      "today": "2026-11-02",
+      "session_account": "team",
+      "current_account": "team"
+    },
+    "verdict": "compact",
+    "says": "compact this session; do not hand over"
+  },
+  {
+    "name": "far above 200k on the same day still compacts, never renews",
+    "state": {
+      "context_tokens": 850000,
+      "session_day": "2026-11-02",
+      "today": "2026-11-02",
+      "session_account": "team",
+      "current_account": "team"
+    },
+    "verdict": "compact",
+    "says": "re-read the newest work-context comment"
+  },
+  {
+    "name": "the day's turn renews",
+    "state": {
+      "context_tokens": 120000,
+      "session_day": "2026-11-02",
+      "today": "2026-11-03",
+      "session_account": "team",
+      "current_account": "team"
+    },
+    "verdict": "renew",
+    "says": "archive the old session only on the person's yes"
+  },
+  {
+    "name": "an account switch renews",
+    "state": {
+      "context_tokens": 120000,
+      "session_day": "2026-11-02",
+      "today": "2026-11-02",
+      "session_account": "team",
+      "current_account": "max"
+    },
+    "verdict": "renew",
+    "says": "propose a fresh session started from that comment"
+  },
+  {
+    "name": "the day's turn outranks compaction",
+    "state": {
+      "context_tokens": 400000,
+      "session_day": "2026-11-02",
+      "today": "2026-11-03",
+      "session_account": "team",
+      "current_account": "team"
+    },
+    "verdict": "renew",
+    "says": "the day turned"
+  }
+]

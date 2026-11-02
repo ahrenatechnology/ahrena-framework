@@ -116,6 +116,12 @@ jobs:
       - name: Test the round script
         run: python3 engineering/delivery/skills/opening-the-round/scripts/test-round.py
 
+      - name: Test the dispatch check
+        run: python3 engineering/delivery/skills/dispatching-sessions/scripts/test-check-dispatch.py
+
+      - name: Test the work-context script
+        run: python3 engineering/delivery/skills/renewing-a-coordinator/scripts/test-work-context.py
+
       - name: Validate the artifact corpus
         run: python3 foundation/hooks/validate-artifacts.py
 
