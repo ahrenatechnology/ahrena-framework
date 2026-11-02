@@ -53,7 +53,7 @@ From the root of your repository, with no checkout and no plugin installed:
 curl -fsSL https://raw.githubusercontent.com/ahrenatechnology/ahrena-framework/main/engineering/delivery/skills/installing-the-agency/scripts/install.py | python3 -
 ```
 
-Pass options after the dash, as `python3 - --language python`. The command fetches `install.py` from the `main` branch. Once `ahrena-engineering-delivery` is present, `/install-agency` runs the same script, and `/install-agency --check` verifies the result without writing.
+Pass options after the dash, as `python3 - --language python`. The command fetches `install.py` from the `main` branch. `--platform claude|codex` limits the run to one instruction file. If only `AGENTS.md` exists the run is Codex-only and skips `.claude/settings.json`, so pass `--platform claude` to write it. Once `ahrena-engineering-delivery` is present, `/install-agency` runs the same script, and `/install-agency --check` verifies the result without writing.
 
 `--platform claude|codex` limits the run to one instruction file. A repository that has only `AGENTS.md` is treated as Codex-only and skips `.claude/settings.json`; pass `--platform claude` to write it.
 

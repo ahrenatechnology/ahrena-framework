@@ -157,15 +157,17 @@ def check_directive(path: Path, platform: str) -> bool:
     return False
 
 
-def write_directive(path: Path, platform: str) -> None:
+def write_directive(path: Path, platform: str) -> bool:
+    """Write or refresh the directive; True when the file changed."""
     text = path.read_text(encoding="utf-8") if path.is_file() else ""
     updated = splice(text)
     if updated == text:
         print(f"{platform}: directive already current in {path.name}; nothing written")
-        return
+        return False
     path.write_text(updated, encoding="utf-8")
     verb = "refreshed" if current_block(text) is not None else "wrote"
     print(f"{platform}: {verb} the directive in {path.name}")
+    return True
 
 
 def detect_languages(root: Path, agency: dict) -> list[str]:
@@ -372,8 +374,9 @@ def preread_settings(root: Path, check: bool) -> None:
         read_settings(path)
 
 
-def note_codex(platform: str) -> None:
-    if platform == "codex":
+def note_codex(platform: str, pending: bool) -> None:
+    """The Codex depth note, only when its file was written or is still to write."""
+    if platform == "codex" and pending:
         print(CODEX_NOTE)
 
 
@@ -384,8 +387,9 @@ def check_agency(root: Path, platforms: list[str], plugins: list[str], agency: d
         ok = check_marketplace(root, agency)
         ok = check_plugins(root, plugins) and ok
     for platform in platforms:
-        ok = check_directive(root / TARGET[platform], platform) and ok
-        note_codex(platform)
+        current = check_directive(root / TARGET[platform], platform)
+        note_codex(platform, pending=not current)
+        ok = current and ok
     return ok
 
 
@@ -394,8 +398,8 @@ def write_agency(root: Path, platforms: list[str], plugins: list[str], agency: d
         preread_settings(root, check=False)
         write_settings(root, agency, plugins)
     for platform in platforms:
-        write_directive(root / TARGET[platform], platform)
-        note_codex(platform)
+        written = write_directive(root / TARGET[platform], platform)
+        note_codex(platform, pending=written)
     return True
 
 

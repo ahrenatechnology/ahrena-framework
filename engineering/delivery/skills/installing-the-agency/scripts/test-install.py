@@ -126,6 +126,23 @@ def test_check_reports_each_file() -> None:
         assert r.returncode == 1
 
 
+def test_codex_note_only_when_agents_md_is_written() -> None:
+    with Case() as c:
+        (c.root / "CLAUDE.md").write_text("# a\n", encoding="utf-8")
+        assert "max_depth" not in c.run().stdout, "no AGENTS.md in play"
+
+    with Case() as c:
+        assert "max_depth" in c.run().stdout, "AGENTS.md written"
+        assert "max_depth" not in c.run().stdout, "second run writes nothing"
+
+
+def test_bad_platform_is_reported_before_the_declaration_is_read() -> None:
+    with Case() as c:
+        env = {**os.environ, "CLAUDE_CONFIG_DIR": str(c.config), "AHRENA_AGENCY_URL": "file:///nonexistent"}
+        r = subprocess.run([sys.executable, "-", "--platform", "vim", str(c.root)], input=SCRIPT.read_text(encoding="utf-8"), capture_output=True, text=True, env=env)
+        assert r.returncode == 2 and "--platform is" in r.stderr, r.stderr
+
+
 def test_piped_from_stdin() -> None:
     with Case() as c:
         env = {**os.environ, "CLAUDE_CONFIG_DIR": str(c.config), "AHRENA_AGENCY_URL": (HERE.parent / "references" / "agency.json").as_uri()}

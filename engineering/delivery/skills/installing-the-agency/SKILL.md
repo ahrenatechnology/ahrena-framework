@@ -26,7 +26,8 @@ Without `--platform` the script writes the directive into every instruction file
 the repository has (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex), and
 creates both when it has neither. `--platform claude` or `--platform codex`
 limits the run to one file; `codex` also skips `.claude/settings.json`, which
-Codex does not read. Whether the agency plugins are available is not left to the
+Codex does not read. A repository with only `AGENTS.md` is therefore a Codex-only
+run; pass `--platform claude` to write `CLAUDE.md` and the settings too. Whether the agency plugins are available is not left to the
 model: the script reports each one, in step 2.
 
 The script, `scripts/install.py`, is resolved from the plugin's own root, never
@@ -100,12 +101,13 @@ is the illustrative script to adapt when a project wants the loop run that way.
 
 ## 5. Hand back what was ensured or what is missing
 
-Return which instruction files were written and which were already current,
-which plugins were enabled and which were already enabled, any plugin the owner
-disabled, a marketplace entry that differs from the declared one, and — when
-`AGENTS.md` was targeted — the `max_depth` guidance. A disabled plugin or a config the owner must set
-is carried back as a report, not worked around, exactly as the graph doctor
-carries its `to enable` lines. The script's own tests are
+Return which instruction files were written and which were already current
+(every file present, or both when neither existed), which plugins were enabled
+and which already were, any plugin the owner disabled, a marketplace entry that
+differs from the declared one, and — when `AGENTS.md` was written — the
+`max_depth` guidance. A disabled plugin or a config the owner must set is carried
+back as a report, not worked around, exactly as the graph doctor carries its
+`to enable` lines. The script's own tests are
 [`scripts/test-install.py`](scripts/test-install.py).
 
 ## When this skill does not apply
