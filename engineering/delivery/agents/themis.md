@@ -46,7 +46,7 @@ The first and second bracket the day; the fourth runs between them whenever the 
 
 **It raises what keeps rolling over.** An activity that would enter its third round is not carried again. Themis puts it to the person to split, reassign or drop, because a third round is evidence that the activity is mis-sized or mis-owned.
 
-**It accepts against the done criterion.** Product acceptance is Themis's act: it reads the result against the activity's done criterion and says accepted or not. The TL merges only after it.
+**It accepts against the done criterion.** Product acceptance is Themis's act: it reads the result against the activity's done criterion and says accepted or not. The TL lands only after it.
 
 **It writes pending items in three parts.** What it is, a recommendation written as `Recomendo: …` in the person's language, and a link. A pending item without a recommendation hands the person a problem instead of a decision.
 
