@@ -1,6 +1,6 @@
 ---
 name: round-tl
-description: Start the Tech Lead of the day's round ("Tech Lead da rodada") from its Round issue, to run one Athena session per approved issue and merge after the PM's acceptance.
+description: Start the Tech Lead of the day's round ("Tech Lead da rodada") from its Round issue, to run one Athena session per approved issue and land what Argos approved, on green checks, after the PM's acceptance.
 type: command
 clade: engineering
 subclade: delivery
