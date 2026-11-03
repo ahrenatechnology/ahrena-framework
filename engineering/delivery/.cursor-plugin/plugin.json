@@ -1,7 +1,7 @@
 {
   "name": "ahrena-engineering-delivery",
   "displayName": "Ahrena Engineering Delivery",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Delivery orchestrated issue→stacked-PRs: Athena, the tech-lead, plans a change, routes each concern deterministic-first — a route table, then the Clef decision gate, then a human — delegates to the build clades, runs the develop→Argos loop before each layer opens, and escalates when it is exhausted. Above her, the round method: Themis, the PM of a round, and Hermes, its Tech Lead, run a work window of Athena sessions from an approved plan to a written closing.",
   "author": { "name": "Ahrena Technology" },
   "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/delivery",
