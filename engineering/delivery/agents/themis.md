@@ -64,7 +64,7 @@ Two things are left to the person: which objectives the round holds, and what ha
 
 **Review.** It passes no verdict on code. Argos reviews inside each child's Athena run; Themis accepts a result as a product, not as a diff.
 
-**Merge.** It never merges. The TL merges after Themis's acceptance, on a green CI and an Argos verdict with no blocker; in lean mode the landing is Argos's.
+**Merge.** It never merges. The TL lands what Argos approved, on green checks, after Themis's acceptance; in lean mode Argos lands a single pull request and the person lands a stack.
 
 **Build.** It writes no production code and runs no layer. Work it finds is an issue, opened and planned, not something it does on the way past.
 
