@@ -20,13 +20,14 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-010](ADR-010-a-fork-syncs-through-a-merge-commit.md) | A fork syncs its parent through a merge commit, and the gates judge only what the fork brings |
 | [ADR-011](ADR-011-a-plan-is-its-units-as-sub-issues.md) | A plan is its units, as sub-issues ordered by the forge's native dependencies |
 | [ADR-012](ADR-012-the-repositorys-issue-templates-first.md) | The repository's issue templates first, and Ahrena's forms, adapted from the predecessor's, by default |
-| [ADR-013](ADR-013-a-clean-review-approves-and-the-forge-lands-it.md) | A clean review approves on the first pass, and the forge lands it; supersedes ADR-009 |
+| [ADR-013](ADR-013-a-clean-review-approves-and-the-forge-lands-it.md) | A clean review approves on the first pass, and the forge lands it; supersedes ADR-009. Superseded by ADR-020 |
 | [ADR-014](ADR-014-a-separate-agent-applies-the-fixes.md) | A separate agent (Erodos) applies the review's fixes, and the review runs again before landing |
 | [ADR-015](ADR-015-reliability-and-observability-are-review-pillars.md) | Reliability and observability are the third and fourth review pillars, each its own plugin and lens |
 | [ADR-016](ADR-016-the-code-graph-is-a-cache-not-a-committed-tree.md) | The code graph is a gitignored, SHA-keyed cache in two tiers, consulted by a skill with self-healing freshness, not a committed tree or a CI gate |
 | [ADR-017](ADR-017-each-platform-binds-the-portable-agency.md) | The manager/worker orchestration is the portable spec; each platform binds it, and an entry directive in the always-loaded instruction file makes the agency always used |
 | [ADR-018](ADR-018-orchestration-is-declared-data.md) | A process's orchestration — nodes, edges, loop bounds, thresholds — is declared data the framework owns; a runtime only binds and executes it, nothing hard-coded per platform; extends ADR-017 |
 | [ADR-019](ADR-019-comment-pointers-reach-five-languages.md) | The comment-pointer condition reads Python, TypeScript, JavaScript, shell and SQL, each through its own conservative reader, reversing the Python-only scope it first landed with |
+| [ADR-020](ADR-020-argos-accelerates-and-the-forge-holds.md) | Argos accelerates with a high bar and the forge holds: a declared `optimistic` or `conservative` posture, five holds in either, release by the forge's auto-merge, the autofix step declared on or off, and one Argos whose code-review definition every runtime extends and never contradicts; supersedes ADR-013 |
 
 ## Decided, as rows
 

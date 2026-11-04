@@ -1,9 +1,10 @@
 # ADR-013: A clean review approves, and the forge lands it
 
-- **Status:** accepted
+- **Status:** superseded
 - **Date:** 2026-10-09
 - **Issue:** #130
 - **Supersedes:** ADR-009
+- **Superseded by:** ADR-020
 
 ## Context
 
