@@ -1,6 +1,6 @@
 ---
 name: reviewing-artifacts
-description: Review a rule, doc, skill, agent or command for the defects a gate cannot detect. Use when reviewing a pull request that adds or changes artifacts, when an artifact passes CI but reads wrong, or when auditing an existing corpus before building on it. Covers type choice, conditions versus maxims, missing thresholds, drift between an artifact's opening and its body, enforcement route, and always-loaded footprint.
+description: Review a rule, doc, skill, agent or command for the defects a gate cannot detect. Use when reviewing a pull request that adds or changes artifacts, when an artifact passes CI but reads wrong, or when auditing an existing corpus before building on it. Covers type choice, scope, conditions versus maxims, missing thresholds, register, drift between an artifact's opening and its body or between a restatement and its source, enforcement route, and always-loaded footprint.
 type: skill
 clade: foundation
 references:
@@ -23,7 +23,7 @@ python3 <plugin>/hooks/validate-artifacts.py
 
 Spending review attention on kebab-case is waste. If the gate is red, the review has not started yet.
 
-It now also decides leftover markers, unreplaced placeholders and missing sections, so those are off your list. What it cannot decide is whether a section that exists says anything: a `Where this stops` reading "use judgment" passes the gate and fails step 9.
+It now also decides leftover markers, unreplaced placeholders, missing sections, a heading with nothing under it, and an outline that skips a level or carries two titles, so those are off your list. What it cannot decide is whether a section that has something in it says anything: a `Where this stops` reading "use judgment" passes the gate and fails step 12.
 
 ## 2. Challenge the type
 
@@ -40,7 +40,23 @@ Take the artifact and ask the question from `docs/artifact-model.md`: **can it b
 
 Reclassifying is cheap now and expensive after three artifacts reference it.
 
-## 3. On a rule, hunt for maxims
+## 3. Hold it to one job
+
+Step 2 asks whether the artifact is the right type. This asks whether it is still one artifact. Each type has one job, and an artifact outgrows it a paragraph at a time.
+
+| Type | Its one job | What drift looks like |
+|---|---|---|
+| rule | the conditions of one subject | a condition about a second subject, or one restating a neighbour's |
+| doc | the reasoning a decision needs | a procedure with an order, or a condition no rule carries |
+| skill | one procedure, one end state | a second end state, or a step that is another skill's whole procedure |
+| agent | choosing and sequencing skills | a procedure written out in its own body |
+| command | invoking one skill or agent | a decision of its own |
+
+The gate decides which types may reference which. It cannot see content that was copied in instead of referenced, and that is how most drift arrives.
+
+The finding names the part that left and where it goes: into the artifact that already owns it, as a reference, or into a new one. A part that belongs nowhere yet is the next artifact, not a section of this one.
+
+## 4. On a rule, hunt for maxims
 
 A condition names a detectable state. A maxim names a virtue. They read the same to a careless eye and behave completely differently when an agent tries to apply one.
 
@@ -52,21 +68,31 @@ A condition names a detectable state. A maxim names a virtue. They read the same
 
 Every numbered condition must say what decides it. A condition with no detector named is a maxim that has been numbered.
 
-## 4. Put a number where a quantity word stands
+## 5. Put a number where a quantity word stands
 
 "Many", "several", "fast", "simple", "complex", "reasonable", "large", "high latency", "low cost". Each of these sits in a place where a number belongs, and two readers will pick two different numbers and both be right.
 
-This is not step 3 run again. A maxim has no measurable state behind it: "a class should do one thing" cannot be given a threshold, only rewritten into a different condition. An ambiguity has one and the author left it out: "the lookup is fast" is about latency, which is measured every day, and only the figure is missing. A maxim is replaced; an ambiguity is filled in.
+This is not step 4 run again. A maxim has no measurable state behind it: "a class should do one thing" cannot be given a threshold, only rewritten into a different condition. An ambiguity has one and the author left it out: "the lookup is fast" is about latency, which is measured every day, and only the figure is missing. A maxim is replaced; an ambiguity is filled in.
 
 Carry the number in the finding. A review that only circles the word hands the author the same blank page they already had. "Many cases" becomes "at least 80% of observed cases", "fast" becomes "p99 at or under 300ms". A proposal wrong by a factor of two is still progress, because it gives the author something to disagree with.
 
 One case is legitimate: the number genuinely arrives in a later phase, after the load test or the pilot. That is acceptable only when the artifact says so and names what produces the figure. An ambiguity with its arrival declared is a plan. The same words without it are a gap.
 
-## 5. Read the statement with no context
+## 6. Read the register
+
+Content ported from somewhere else carries the place it came from in its words. Three patterns.
+
+**Uppercase modals.** "MUST", "SHOULD" and "MAY" are the predecessor's register, not this corpus's. A condition here states a state: "a skill has at least one numbered step", not "a skill MUST have one". Rewriting is the test. A "MUST" that will not turn into a state is a maxim in capitals, and step 4 applies.
+
+**Borrowed names.** Lexis, Codex, Kata, Warrior and Cry are the predecessor's names for rule, doc, skill, agent and command. Here they appear only as provenance, in backticks, naming the artifact a thing came from: `codex-commit-standards`. As live vocabulary they send the reader looking for a sixth type. Codex the platform is a different word.
+
+**Praise.** "Robust", "powerful", "seamless", "clean", "best practice". An adjective that asserts a virtue stands where a state belongs, which makes it a maxim one word long. Ask what the author would observe, and write that.
+
+## 7. Read the statement with no context
 
 A rule's `statement` reaches the agent alone, with a link. Read it cold, as the only thing you know, and ask whether you could act on it. If it needs the body to make sense, it is a summary rather than a statement, and the rule will be ignored in exactly the situation it exists for.
 
-## 6. Read the top against the bottom
+## 8. Read the top against the bottom
 
 What an artifact declares up front and what it does further down were written at different times, and only one of them gets edited when something changes.
 
@@ -81,7 +107,22 @@ Each half reads fine alone, which is why these survive every review that reads t
 
 A drifted example is the worst of the four. When the rule and the example disagree, readers follow the example, so the defect ships as compliance.
 
-## 7. Question the enforcement route
+## 9. Read every restatement against its source
+
+Step 8 reads an artifact against itself. This reads it against the others. The predecessor kept each artifact in three languages and checked the copies for the same sections, the same numbered rules and the same rows. This corpus has one language and still has copies: every place one artifact repeats what another owns.
+
+| Restated | Open |
+|---|---|
+| A threshold, "the 10-line cap" | the rule that sets it |
+| "condition 3 of `completeness.md`" | that rule's numbered list, as it is now |
+| A count, "the five foundation rules" | the directory |
+| What a hook decides, in its docstring | every rule whose `enforced-by` names it |
+
+The source changed in a pull request the copy was not part of. So a copy is checked by opening the source, never from memory.
+
+When the two disagree, the source wins. Correct the copy, or replace it with a link where a link does the same work, because a link cannot drift.
+
+## 10. Question the enforcement route
 
 For every rule declaring `enforcement: judgment`, ask whether a script could have decided it.
 
@@ -89,31 +130,31 @@ This is the check that decays a corpus fastest if it is skipped. Writing a hook 
 
 If the condition is decidable and the hook is missing, that is a finding, not a follow-up.
 
-## 8. Check where the rationale sits
+## 11. Check where the rationale sits
 
 Explanation in a rule makes the rule long, and a long rule is one nobody loads. Explanation absent from the doc makes the rule arbitrary, and an arbitrary rule is one people route around.
 
 Both failures are common. Look for the pair: the rule states, the doc explains, and the rule references the doc.
 
-## 9. Demand a real "where this stops"
+## 12. Demand a real "where this stops"
 
 A section that says "use judgment" is not a boundary. A real one names the case where applying the artifact harder makes the outcome worse, and it is the section that separates a rule from dogma.
 
 If the author could not find one, either the artifact is narrower than it claims or it has not been used yet.
 
-## 10. On a skill or an agent, test the description
+## 13. On a skill or an agent, test the description
 
 `description` is the only text a platform reads when deciding whether to load the artifact. It has one job: fire in the right situation and stay quiet otherwise.
 
 Read it and ask what situations it names. A description that describes capability ("creates artifacts") rather than occasion ("when adding a new rule, doc, skill, agent or command") will not trigger, and the artifact might as well not exist.
 
-## 11. Separate references from mentions
+## 14. Separate references from mentions
 
 Every entry in `references` declares a dependency. Prose that names another artifact does not.
 
 Over-declaring is the common direction, and it is not harmless: the graph is what a reader trusts to know what depends on what, and noise in it makes the real edges invisible.
 
-## 12. Price the footprint
+## 15. Price the footprint
 
 Ask what this artifact adds to a request that has nothing to do with it.
 
@@ -121,7 +162,7 @@ A hook rule costs zero. A judgment rule costs one line. A doc costs nothing unti
 
 The gate already decides two of these: the 10-line cap on code blocks in a body, and whether every file in a skill's body is reachable from a step. What is left for you is the part no threshold reaches. A body with no code at all can still be three times longer than the procedure needs, and material can sit in the right tier while being the wrong material. `rules/progressive-disclosure.md` states the mechanics; `docs/context-budget.md` gives you the accounting to argue with.
 
-## 13. Report
+## 16. Report
 
 Group findings by severity, and say plainly which are blocking.
 
