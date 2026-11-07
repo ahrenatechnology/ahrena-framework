@@ -61,7 +61,7 @@ Two sections carry the weight. Every finding line has its four fields from `docs
 
 Publish the verdict from step 3 with the body from step 4, as an edit or as a new comment per step 2.
 
-When the verdict is approve and the forge refuses the approving review because the reviewer's account is the author's, publish the same body as a comment. Keep the verdict line as approve and add one sentence saying the forge refused the review and why.
+The verdict is the comment; this procedure never submits a forge review.
 
 Then set the commit status on the head from step 1, with the comment's `html_url` as the target. The comment goes first because the status needs its URL:
 
