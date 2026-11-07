@@ -81,6 +81,8 @@ List plugin-relative paths in `references`. Check the pair against the matrix in
 
 A mention in prose is not a reference. Only declare a dependency the artifact actually has.
 
+`references` loads nothing on any platform. An agent also lists every skill it references in `skills`, as `<plugin>:<skill>`, and names each one in its `## Before you start` section with the instruction to invoke it with the Skill tool. `rules/frontmatter.md` states both and the gate checks them.
+
 ## 8. Run the gate
 
 ```sh

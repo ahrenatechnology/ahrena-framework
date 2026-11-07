@@ -16,6 +16,11 @@ references:
   - ahrena-engineering-quality:agents/argos.md
   - ahrena-engineering-quality:skills/landing-approved-changes/SKILL.md
   - ahrena-contributing:skills/stacking-pull-requests/SKILL.md
+skills:
+  - ahrena-engineering-delivery:dispatching-sessions
+  - ahrena-engineering-delivery:renewing-a-coordinator
+  - ahrena-engineering-quality:landing-approved-changes
+  - ahrena-contributing:stacking-pull-requests
 ---
 
 # Hermes
@@ -29,6 +34,17 @@ The execution of a round's work window, across every issue it holds at once. Her
 It exists only when there is parallel work to coordinate: two or more build issues at once, or an infrastructure operation beside one. With one build issue at a time the round runs in lean mode, without Hermes. Where the platform cannot start and message child sessions, as on Codex, lean mode is the only mode, as `docs/platform-bindings.md` records.
 
 It is addressed as `hermes` and it is a `round-lead`. The naming rule in the foundation plugin explains why an agent carries both.
+
+## Before you start
+
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context:
+
+- `ahrena-engineering-delivery:dispatching-sessions`
+- `ahrena-engineering-delivery:renewing-a-coordinator`
+- `ahrena-engineering-quality:landing-approved-changes`
+- `ahrena-contributing:stacking-pull-requests`
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

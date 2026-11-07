@@ -9,6 +9,8 @@ references:
   - skills/<skill-it-orchestrates>/SKILL.md
   - rules/<rule-it-enforces>.md
   - docs/<doc-it-consults>.md
+skills:
+  - <plugin>:<skill-it-orchestrates>
 ---
 
 # <Specialist name>
@@ -18,6 +20,16 @@ references:
 The kind of work it takes, in two or three sentences. A caller reads this
 to decide whether to route here, so lead with the boundary rather than the
 capability.
+
+## Before you start
+
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context: `<plugin>:<skill-it-orchestrates>`.
+
+`references` loads nothing. Every skill it points at is listed in `skills`
+and named here, plugin-qualified, or the gate fails the agent
+(`rules/frontmatter.md`, conditions 8 to 10).
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

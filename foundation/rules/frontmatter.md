@@ -46,9 +46,22 @@ Nested maps, inline collections and multi-line scalars are rejected. The restric
 
 `role` is the agent's subject as a noun phrase, beside the persona in `name`. `rules/naming.md` explains why an agent carries two.
 
-`subclade` and `references` are optional on every type. `enforced-by` is required when `enforcement` is `hook` and rejected when it is `judgment`. `enforced-in` is optional on a rule whose `enforcement` is `hook`, and rejected when it is `judgment`.
+`subclade` and `references` are optional on every type. `skills` is an agent field, required when the agent references a skill. `enforced-by` is required when `enforcement` is `hook` and rejected when it is `judgment`. `enforced-in` is optional on a rule whose `enforcement` is `hook`, and rejected when it is `judgment`.
 
 Rules and docs use `id`, `title` and `summary` because nothing outside this framework reads them. Skills, agents and commands use `name` and `description` because the platforms do, and a parallel set of our own fields would be a second thing to keep in sync.
+
+## `references` and `skills`
+
+`references` is documentation for readers and for the gate. It loads nothing, on any platform.
+
+An agent that orchestrates a skill therefore names it twice more. `skills` lists it by its plugin-qualified name, `<plugin>:<skill>`: the marketplace's plugin name and the skill's directory, the name the Skill tool lists. A `## Before you start` section in the body tells the executor to invoke each one with the Skill tool before the first step.
+
+| Platform | What loads a skill into an agent |
+|---|---|
+| Claude Code | `skills` in the agent's frontmatter, preloaded at startup |
+| Codex | none — the body instruction is the only path |
+| Cursor | none — the body instruction is the only path |
+| DeepSeek | none — the body instruction is the only path |
 
 ## Undeclared fields
 
@@ -93,6 +106,9 @@ Each of these is decided by `hooks/validate-artifacts.py`.
 5. `statement` is one line of at most 160 characters.
 6. `enforcement` is `hook` or `judgment`, and `enforced-by` is present exactly when it is `hook`.
 7. `enforced-in`, when present, is `tree` or `forge`, and is absent when `enforcement` is `judgment`.
+8. An agent's `skills` is a list naming, plugin-qualified, every skill its `references` point at.
+9. Every entry of an agent's `skills` is a `<plugin>:<skill>` that resolves to a skill in the marketplace.
+10. An agent whose `references` point at a skill has a `## Before you start` section, outside code, that names each such skill in backticks and the `Skill tool`.
 
 ## Where this stops
 

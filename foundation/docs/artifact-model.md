@@ -68,6 +68,22 @@ The verb is already determined by the pair of types. A skill pointing at a rule 
 
 If a pair of types ever admits two genuinely different relationships, the verb earns its place. Until then it is a field to maintain and a field to get wrong.
 
+## Why an agent names its skills three times
+
+`references` is this framework's field. The gate reads it to check the matrix above, and a person reads it to see what an agent depends on. No platform reads it: Claude Code ignores a frontmatter field it does not recognise without reporting it, and none of the other three documents a field by that name. An agent that names a skill only in `references` runs without that skill unless the model happens to invoke it, which is how every agent in this corpus ran until #252.
+
+Two routes do load a skill, and an agent takes both.
+
+**The preload field.** Claude Code's `skills` frontmatter injects the full content of each listed skill into the subagent at startup. A plugin's components are namespaced by the plugin, so the entry is `<plugin>:<skill>`, the name the Skill tool lists, not the path `references` uses. A skill that sets `disable-model-invocation: true` cannot be preloaded. Source: [Claude Code sub-agents](https://code.claude.com/docs/en/sub-agents).
+
+**The body instruction.** It is the only route the other three platforms have, and it is the fallback on Claude Code when a preload does not take. No other platform documents a field that loads a skill into an agent:
+
+- Codex defines a custom agent in TOML with `name`, `description` and `developer_instructions`. Its skills inherit from the parent, and `skills.config` only disables one. Source: [Codex subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents).
+- Cursor's subagent frontmatter is `name`, `description`, `model`, `readonly` and `is_background`; nothing attaches a skill. Source: [Cursor subagents](https://cursor.com/docs/context/subagents).
+- DeepSeek discovers skills by directory and spawns sub-agents with a tool call; it has no agent definition file to carry a field. Source: [DeepSeek TUI README](https://docs.rs/crate/deepseek-tui/0.3.16/source/README.md) and the install mapping in this repository's `ARCHITECTURE.md`.
+
+The preload is the stronger route and the instruction the portable one. Either alone leaves a platform or a failure mode uncovered, so `rules/frontmatter.md` requires both and the gate checks that they agree with `references`.
+
 ## Why some rules ship a hook and others do not
 
 A rule is only as strong as what checks it. Two routes exist, and the rule declares which one it takes in its `enforcement` field.
