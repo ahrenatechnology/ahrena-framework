@@ -32,12 +32,14 @@ It is addressed as `iris` and it is a `frontend-engineer`. The naming rule in th
 
 ## Before you start
 
-Before step 1, invoke each of these with the Skill tool and follow it:
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context:
 
 - `ahrena-engineering-frontend:building-frontend-outside-in`
 - `ahrena-engineering-frontend:designing-wireframes`
 - `ahrena-engineering-frontend:testing-frontend`
 - `ahrena-engineering-fundamentals:reading-the-component-map`
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

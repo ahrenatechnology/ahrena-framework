@@ -35,13 +35,15 @@ It is addressed as `themis` and it is a `product-manager`. The naming rule in th
 
 ## Before you start
 
-Before step 1, invoke each of these with the Skill tool and follow it:
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context:
 
 - `ahrena-engineering-delivery:opening-the-round`
 - `ahrena-engineering-delivery:closing-the-round`
 - `ahrena-engineering-delivery:dispatching-sessions`
 - `ahrena-engineering-delivery:renewing-a-coordinator`
 - `ahrena-contributing:opening-issues`
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

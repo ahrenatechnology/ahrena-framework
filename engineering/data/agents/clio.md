@@ -32,12 +32,14 @@ It is addressed as `clio` and it is a `data-engineer`. The naming rule in the fo
 
 ## Before you start
 
-Before step 1, invoke each of these with the Skill tool and follow it:
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context:
 
 - `ahrena-engineering-data:building-data-contract-first`
 - `ahrena-engineering-data:modeling-data-contracts`
 - `ahrena-engineering-data:testing-data`
 - `ahrena-engineering-fundamentals:reading-the-component-map`
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

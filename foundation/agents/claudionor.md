@@ -30,7 +30,9 @@ It is addressed as `claudionor` and it is an `artifact-author`. `rules/naming.md
 
 ## Before you start
 
-Before step 1, invoke each of these with the Skill tool and follow it: `ahrena-foundation:creating-artifacts`, `ahrena-foundation:reviewing-artifacts`, `ahrena-foundation:writing-hooks`.
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context: `ahrena-foundation:creating-artifacts`, `ahrena-foundation:reviewing-artifacts`, `ahrena-foundation:writing-hooks`.
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

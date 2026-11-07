@@ -31,7 +31,9 @@ It is addressed as `erodos` and it is a `change-fixer`.
 
 ## Before you start
 
-Before step 1, invoke `ahrena-engineering-quality:applying-fixes` with the Skill tool and follow it.
+Before doing anything else, invoke `ahrena-engineering-quality:applying-fixes` with the Skill tool, so its procedure is in your context.
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

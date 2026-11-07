@@ -100,7 +100,7 @@ Specialist work.
 
 ## Before you start
 
-Before step 1, invoke `fixture-plugin:doing-things` with the Skill tool and follow it.
+Before doing anything else, invoke `fixture-plugin:doing-things` with the Skill tool, so its procedure is in your context.
 
 ## Skills it orchestrates
 
@@ -174,12 +174,11 @@ NEIGHBOUR_DOC_TO_RULE = NEIGHBOUR_DOC.replace(
 )
 
 
-# #252 — An agent wires every skill it references through `skills` and a
-# `## Before you start` section, so the fixtures below vary one of the two.
+# #252: each fixture below varies one of the two load paths, `skills` or `## Before you start`.
 UNWIRED_AGENT = GOOD_AGENT.replace("skills:\n  - fixture-plugin:doing-things\n", "")
 NO_LOAD_SECTION = (
     "## Before you start\n\n"
-    "Before step 1, invoke `fixture-plugin:doing-things` with the Skill tool and follow it.\n\n"
+    "Before doing anything else, invoke `fixture-plugin:doing-things` with the Skill tool, so its procedure is in your context.\n\n"
 )
 SECOND_SKILL = GOOD_SKILL.replace("name: doing-things", "name: checking-things").replace(
     "references:\n  - rules/bounded.md\n", ""
@@ -203,8 +202,7 @@ ATHENA_BEFORE_252 = (Path(__file__).resolve().parent / "fixtures" / "athena-befo
     encoding="utf-8"
 )
 
-# The plugins athena.md named at e9f4342, each holding a stub of every artifact
-# its references point at, so the only defect left in the copy is the wiring.
+# #252/AC-11: stubs of every artifact athena.md (e9f4342) points at, so only its wiring fails.
 ATHENA_PLUGINS = {
     "ahrena-engineering-delivery": "d",
     "ahrena-engineering-fundamentals": "f",
@@ -1030,7 +1028,7 @@ CASES = [
         ["2 artifact(s), no failures"],
         ok=True,
     ),
-    # --- agents wire the skills they orchestrate ----------------------------
+    # ---------------------------------------------------------------------------
     # #252/AC-1
     case(
         "an agent that references a skill but declares no skills fails",
@@ -1045,7 +1043,7 @@ CASES = [
             "p/skills/checking-things/SKILL.md": SECOND_SKILL,
             "p/agents/specialist.md": TWO_SKILL_AGENT.replace(
                 NO_LOAD_SECTION,
-                "## Before you start\n\nBefore step 1, invoke each of these with the Skill tool and follow it: "
+                "## Before you start\n\nBefore doing anything else, invoke each of these with the Skill tool, so its procedure is in your context: "
                 "`fixture-plugin:doing-things`, `fixture-plugin:checking-things`.\n\n",
             ),
         },
@@ -1117,7 +1115,7 @@ CASES = [
         "a Before you start section that never names the Skill tool fails",
         {
             **VALID_CORPUS,
-            "p/agents/specialist.md": GOOD_AGENT.replace("with the Skill tool and follow it", "and follow it"),
+            "p/agents/specialist.md": GOOD_AGENT.replace(" with the Skill tool,", ","),
         },
         ["1 failure(s)", "condition 10: '## Before you start' does not tell the executor to use the Skill tool"],
     ),
@@ -1189,7 +1187,7 @@ CASES = [
                 1,
             ).replace(
                 "\n## Skills it orchestrates",
-                "\n## Before you start\n\nBefore step 1, invoke each of these with the Skill tool and follow it: "
+                "\n## Before you start\n\nBefore doing anything else, invoke each of these with the Skill tool, so its procedure is in your context: "
                 "`ahrena-engineering-delivery:orchestrating-delivery`, `ahrena-engineering-delivery:routing-concern`, "
                 "`ahrena-engineering-fundamentals:reading-the-component-map`, `ahrena-contributing:opening-issues`, "
                 "`ahrena-contributing:planning-changes`, `ahrena-contributing:stacking-pull-requests`.\n\n"

@@ -39,7 +39,7 @@ It is addressed as `athena` and it is a `tech-lead`. The naming rule in the foun
 
 ## Before you start
 
-Before step 1, invoke each of these with the Skill tool and follow it:
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context:
 
 - `ahrena-engineering-delivery:orchestrating-delivery`
 - `ahrena-engineering-delivery:routing-concern`
@@ -47,6 +47,8 @@ Before step 1, invoke each of these with the Skill tool and follow it:
 - `ahrena-contributing:opening-issues`
 - `ahrena-contributing:planning-changes`
 - `ahrena-contributing:stacking-pull-requests`
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

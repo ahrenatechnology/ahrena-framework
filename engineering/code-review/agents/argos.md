@@ -29,7 +29,9 @@ It is addressed as `argos` and it is a `review-orchestrator`. The naming rule in
 
 ## Before you start
 
-Before step 1, invoke each of these with the Skill tool and follow it: `ahrena-engineering-quality:reviewing-diffs`, `ahrena-engineering-quality:publishing-review-verdicts`, `ahrena-engineering-quality:landing-approved-changes`.
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context: `ahrena-engineering-quality:reviewing-diffs`, `ahrena-engineering-quality:publishing-review-verdicts`, `ahrena-engineering-quality:landing-approved-changes`.
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

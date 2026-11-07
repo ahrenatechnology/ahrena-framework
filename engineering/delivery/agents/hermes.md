@@ -37,12 +37,14 @@ It is addressed as `hermes` and it is a `round-lead`. The naming rule in the fou
 
 ## Before you start
 
-Before step 1, invoke each of these with the Skill tool and follow it:
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context:
 
 - `ahrena-engineering-delivery:dispatching-sessions`
 - `ahrena-engineering-delivery:renewing-a-coordinator`
 - `ahrena-engineering-quality:landing-approved-changes`
 - `ahrena-contributing:stacking-pull-requests`
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 
