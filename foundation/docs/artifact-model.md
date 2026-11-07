@@ -102,9 +102,30 @@ An artifact is authored by filling a template, and that decides which defects su
 
 The scan skips code, and that is not a compromise. `<plugin>` and `<name>` on a command line are what the reader is meant to substitute, and a backticked `TODO` is prose about markers rather than a marker. Every angle bracket in this corpus is one of those two, which is why scanning code would fail nothing real and reject everything honest.
 
-**A missing section is the other.** Each type owes its reader a fixed set: a rule owes its conditions and its boundary, a skill owes the cases it does not handle, an agent owes what it refuses. These are not formatting preferences. The boundary section is what separates a rule from dogma, and the "does not apply" section is what stops a skill being reached for in the wrong situation. An artifact that drops them is not shorter, it is incomplete.
+**A missing section is the other.** Each type owes its reader a fixed set: a rule owes its conditions and its boundary, a skill owes the cases it does not handle, an agent owes what it refuses and the skeleton below. These are not formatting preferences. The boundary section is what separates a rule from dogma, and the "does not apply" section is what stops a skill being reached for in the wrong situation. An artifact that drops them is not shorter, it is incomplete.
 
 Fixed headings also let a reader skim a corpus they have never seen, and let the gate check presence without understanding content.
+
+## The agent body skeleton
+
+An agent body is a system prompt, and its reader is the model that runs it, often as a subagent with nobody to ask. So the body instructs the executor, in this order, under these `##` headings:
+
+1. **What this agent is for.** The role, in two or three sentences, addressed to the executor: "You are…". A caller deciding whether to route here reads it too, so it leads with the boundary.
+2. **Before you start.** The instruction to invoke each orchestrated skill with the Skill tool before doing anything else, exactly as conditions 8 to 10 of `rules/frontmatter.md` require, and the reminder that loading a skill is not running it: each one runs at the `Procedure` step that names it. An agent that orchestrates no skill has no such section.
+3. **Inputs.** What the caller passes, and for each one what to do when it is missing: return `BLOCKED` naming it, or derive it and say how.
+4. **Procedure.** Numbered steps. Each states the action, the skill or tool it uses, and what the step outputs. A branch is explicit: "if the plan is not approved, go to step 2". A step that applies a rule names it.
+5. **Delegation.** A table: the situation, the exact `subagent_type`, plugin-qualified (`ahrena-engineering-quality:argos`), what the brief contains, and what comes back. "None" when the agent delegates nothing. A child is called in the foreground and its result read in the same run.
+6. **Done when.** The completion criterion, phrased "Do not return before …".
+7. **When blocked.** What counts as blocked, and what to return when it is.
+8. **Output.** A literal template in a fenced block, one per status the agent can return. The first line is `DONE`, `BLOCKED` or `NEEDS_APPROVAL`; the fields after it are what the caller reads: what exists (branches, pull requests, verdicts), what is left, and for `NEEDS_APPROVAL` what is to be approved, the recommendation, and how the run resumes.
+9. **What it does not do.** The adjacent work it will be asked for, and who owns it.
+10. **Example.** At least one worked example, the input and the output the agent returns, inside `<example>` tags.
+
+**No agent waits for a person mid-run.** A subagent cannot hold a conversation: a question it asks is its final message, and the run is over. So a step that needs a person's approval returns `NEEDS_APPROVAL`, with what is to be approved and the agent's recommendation, and stops. The caller asks the person and relaunches the agent with the answer as an input. `Inputs` names that input (`approval`, say), and `Procedure` says at which step a run resumes when it is present, so a relaunch does not redo the work that led to the question.
+
+**The body addresses the executor only.** Why an agent exists, its history and the arguments behind its design go to the plugin's `docs/`. A sentence addressed to the maintainer, such as one explaining why an agent carries both a handle and a role, costs every run its tokens and tells the executor nothing it can act on.
+
+The fixed status line and fixed headings are what let a caller read the result without parsing prose, and let `rules/completeness.md` check presence, order and the status line. Whether the steps are executable is read by `skills/reviewing-artifacts/SKILL.md`.
 
 ## Where this stops
 

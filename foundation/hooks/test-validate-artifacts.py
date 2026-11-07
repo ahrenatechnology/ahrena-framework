@@ -189,6 +189,39 @@ TWO_SKILL_AGENT = GOOD_AGENT.replace(
 )
 
 
+# #252/AC-3 #252/AC-7 — An agent that has `## Procedure` is held to the body
+# skeleton instead of the pre-#252 agent row, so the fixtures below drop or
+# break one part of a skeleton agent that otherwise passes.
+SKELETON_OUTPUT = (
+    "## Output\n\n"
+    "```text\nDONE\nexists: the thing, done\nleft: none\n```\n\n"
+    "```text\nBLOCKED\nblocker: the missing input\nneeds: what to relaunch with\n```\n\n"
+    "```text\nNEEDS_APPROVAL\napprove: the plan\nrecommendation: approve it\n"
+    "resume: relaunch with approval; the run resumes at step 2\n```\n\n"
+)
+SKELETON_EXAMPLE = (
+    "## Example\n\n"
+    "<example>\nInput: a thing to do.\n\n```text\nDONE\nexists: the thing, done\nleft: none\n```\n"
+    "</example>\n"
+)
+SKELETON_AGENT = GOOD_AGENT.replace(
+    NO_LOAD_SECTION,
+    "## Before you start\n\nBefore doing anything else, invoke each of these with the Skill tool, so its "
+    "procedure is in your context: `fixture-plugin:doing-things`.\n\nLoading a skill is not running it: "
+    "run each one only at the step of `## Procedure` that names it.\n\n",
+).replace(
+    "## Skills it orchestrates\n\nOnly `doing-things`.\n\n",
+    "## Inputs\n\n- `thing`: the thing to do. Missing, return BLOCKED naming it.\n"
+    "- `approval`: the person's answer to a NEEDS_APPROVAL. Present, resume at step 2.\n\n"
+    "## Procedure\n\n1. Plan the thing. Return NEEDS_APPROVAL with the plan.\n"
+    "2. Do the thing with `doing-things`. Output: the thing, done.\n\n"
+    "## Delegation\n\nNone.\n\n"
+    "## Done when\n\nDo not return before the thing is done.\n\n"
+    "## When blocked\n\nThe thing is missing. Return BLOCKED naming it.\n\n"
+    + SKELETON_OUTPUT,
+) + "\n" + SKELETON_EXAMPLE
+
+
 def wired_agent(preload: list[str], section: str) -> str:
     """The fixture agent with its `skills` list and its load section replaced."""
     lines = "".join(f"  - {name}\n" for name in preload)
@@ -1197,6 +1230,113 @@ CASES = [
         },
         ["no failures"],
         ok=True,
+    ),
+    # --- the agent body skeleton -------------------------------------------
+    # #252/AC-3 #252/AC-7
+    case(
+        "a skeleton agent passes without the pre-#252 Skills it orchestrates section",
+        {**VALID_CORPUS, "p/agents/specialist.md": SKELETON_AGENT},
+        ["5 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #252/AC-3
+    case(
+        "a skeleton agent missing Output fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": SKELETON_AGENT.replace(SKELETON_OUTPUT, "")},
+        ["1 failure(s)", "'## Output' is missing"],
+    ),
+    # #252/AC-3
+    case(
+        "a skeleton agent missing Done when fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": SKELETON_AGENT.replace(
+                "## Done when\n\nDo not return before the thing is done.\n\n", ""
+            ),
+        },
+        ["1 failure(s)", "'## Done when' is missing"],
+    ),
+    # #252/AC-3
+    case(
+        "a skeleton agent missing Example fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": SKELETON_AGENT.replace(SKELETON_EXAMPLE, "")},
+        ["1 failure(s)", "'## Example' is missing"],
+    ),
+    # #252/AC-3
+    case(
+        "a skeleton agent with its sections out of order fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": SKELETON_AGENT.replace(SKELETON_OUTPUT, "").replace(
+                "## Inputs\n", SKELETON_OUTPUT + "## Inputs\n"
+            ),
+        },
+        ["1 failure(s)", "condition 5: the skeleton sections are out of order"],
+    ),
+    # #252/AC-3
+    case(
+        "an Example section without example tags fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": SKELETON_AGENT.replace("<example>\n", "").replace("</example>\n", ""),
+        },
+        ["1 failure(s)", "condition 7: '## Example' holds no <example> ... </example> pair"],
+    ),
+    # #252/AC-3
+    case(
+        "an example tag in inline code does not count",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": SKELETON_AGENT.replace("<example>\n", "`<example>`\n").replace(
+                "</example>\n", "`</example>`\n"
+            ),
+        },
+        ["condition 7: '## Example' holds no"],
+    ),
+    # #252/AC-3
+    case(
+        "the example-tag exemption is that tag alone",
+        {**VALID_CORPUS, "p/agents/specialist.md": SKELETON_AGENT.replace("<example>\n", "<examples>\n", 1)},
+        ["body still carries the template placeholder '<examples>'"],
+    ),
+    # #252/AC-3 #252/AC-7
+    case(
+        "an Output template that does not open with a status fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": SKELETON_AGENT.replace(
+                "## Output\n\n```text\nDONE\n", "## Output\n\n```text\nFinished\n"
+            ),
+        },
+        ["1 failure(s)", "condition 6: an '## Output' template does not open with DONE, BLOCKED or NEEDS_APPROVAL"],
+    ),
+    # #252/AC-3
+    case(
+        "an Output section with no fenced template fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": SKELETON_AGENT.replace(
+                SKELETON_OUTPUT, "## Output\n\nThe thing, done.\n\n"
+            ),
+        },
+        ["1 failure(s)", "condition 6: '## Output' has no fenced template"],
+    ),
+    # #252/AC-7
+    case(
+        "a NEEDS_APPROVAL template that does not say how the run resumes fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": SKELETON_AGENT.replace(
+                "resume: relaunch with approval; the run resumes at step 2\n", ""
+            ),
+        },
+        ["1 failure(s)", "condition 6: the NEEDS_APPROVAL template has no 'resume:' field"],
+    ),
+    # #252/AC-7
+    case(
+        "a NEEDS_APPROVAL template that names nothing to approve fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": SKELETON_AGENT.replace("approve: the plan\n", "")},
+        ["1 failure(s)", "condition 6: the NEEDS_APPROVAL template has no 'approve:' field"],
     ),
     # #159/AC-6
     case(

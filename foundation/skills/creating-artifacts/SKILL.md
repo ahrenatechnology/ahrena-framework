@@ -59,6 +59,16 @@ Fill every field, and keep the sections the template gives you. `rules/completen
 
 What the gate cannot check is whether a section that exists says anything. A `Where this stops` reading "use judgment" passes condition 3 and still tells the reader nothing.
 
+**An agent is written to the body skeleton**, which `docs/artifact-model.md` defines and `references/agent.md` lays out in order: role, `Before you start`, `Inputs`, `Procedure`, `Delegation`, `Done when`, `When blocked`, `Output`, `What it does not do`, `Example`. The body is the executor's system prompt, so write each section as an instruction to the executor ("You are…", "Do not return before…"), not as an argument for the agent. Rationale, history and anything addressed to a maintainer go to the plugin's `docs/`.
+
+Three parts of it fail most often:
+
+- **A step that waits for a person.** A subagent cannot. The step returns `NEEDS_APPROVAL` and stops, `Inputs` names the answer the caller relaunches with (`approval`), and `Procedure` names the step the run resumes at.
+- **Delegation to an agent that does not exist.** Name the `subagent_type` plugin-qualified, as the Agent tool lists it, and check it is in the marketplace.
+- **An output described in prose.** `Output` holds one fenced template per status, each opening with `DONE`, `BLOCKED` or `NEEDS_APPROVAL`, and `Example` shows one real input and the output returned for it, inside `<example>` tags.
+
+`rules/completeness.md` checks the sections, their order, the status lines and the tags once an agent has `## Procedure` (conditions 5 to 7). Whether the steps are executable is for `reviewing-artifacts`.
+
 ## 5. Put the material where the step reads it, not in the body
 
 A skill or agent body is paid in full every time the artifact fires, so only the line a person types belongs inline. `rules/progressive-disclosure.md` caps a code block there at 10 lines.
