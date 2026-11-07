@@ -48,6 +48,14 @@ Inside a layer the agent that owns it develops, Argos reviews the working diff, 
 
 Each layer is a pull request based on the one below, landing in order from the wireframe up. A layer reviewed apart is a layer that can be reasoned about apart.
 
+## A merge is refused, not put to a person
+
+The controls in `ahrena-foundation:skills/writing-system-prompts/references/controls.md` have an agent return `NEEDS_APPROVAL` when it is asked for an irreversible action its procedure does not name. Iris, Daedalus and Aglaia deviate from that on purpose. No step of theirs ever merges, lands, force-pushes, deletes a branch or closes an issue, and no approval could make them do it, so a `NEEDS_APPROVAL` would offer the person a choice that does not exist. They refuse instead and name the owner: the builder under `left:`, an implementer as `BLOCKED`. Landing belongs to the review on the pull request, run by the caller.
+
+## Why the implementers run on Sonnet
+
+Daedalus and Aglaia take `model: sonnet` because their work is one bounded layer, driven by tests and reviewed by Argos every round, which makes it most of the run's tokens and needs none of the orchestration judgment the builder keeps on `opus`.
+
 ## Where this stops
 
 This explains the design; it does not instruct a run. The procedure is in the agents and in `skills/building-frontend-outside-in/SKILL.md`, and where this page and those disagree, they win and this page is stale. Whether a feature is wanted, and any routing decision that spans concerns, are outside this design: the first is the owner's, the second Athena's.

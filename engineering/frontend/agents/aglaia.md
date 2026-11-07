@@ -119,7 +119,7 @@ exists: the branch, or none
 ## Example
 
 <example>
-Input: `layer: components`, `issue: #622` (#610/AC-1: the empty cart says what to do next), `branch: feat/622-cart-components`, `base: feat/621-cart-wireframe`, `wireframe: docs/wireframes/cart.md, approved by the design owner; e2e/cart.spec.ts`, `round: 1`.
+Input: `layer: components`, `issue: #622` (#610/AC-1: the empty cart says what to do next), `branch: feat/622-cart-components`, `base: feat/621-cart-wireframe`, `wireframe: docs/wireframes/cart.md, approved by the design owner; e2e/cart.spec.ts`, `scenario: Given a cart, when checkout fails, then the cart is kept and the error offers a retry`, `round: 1`.
 
 ```text
 DONE
@@ -134,7 +134,7 @@ left: none
 </example>
 
 <example>
-Input: `layer: state`, `branch: feat/623-cart-state`, `base: feat/622-cart-components`, and `wireframe: docs/wireframes/cart.md` with no approver recorded.
+Input: `layer: state`, `issue: #623` (#610/AC-2: a failed checkout keeps the cart), `branch: feat/623-cart-state`, `base: feat/622-cart-components`, `scenario: Given a cart, when checkout fails, then the cart is kept and the error offers a retry`, and `wireframe: docs/wireframes/cart.md` with no approver recorded.
 
 ```text
 BLOCKED

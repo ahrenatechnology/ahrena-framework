@@ -59,8 +59,8 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 4. Take the layers in order, wireframe, components, state, contract, per steps 4 to 7 of the build skill, and run steps 5 to 9 for each, starting at round 1. Start a layer only once the one below has an open pull request; brief no code layer before the wireframe records its approval (`rules/wireframe-first.md`). After the contract layer, go to step 10.
 5. Delegate the layer: the wireframe to `ahrena-engineering-frontend:daedalus`, every other layer to `ahrena-engineering-frontend:aglaia`, with the briefs in `## Delegation`. If the child returns `DONE`, go to step 6. If it returns `NEEDS_APPROVAL` (the wireframe for its owner, or a folder or term), return `NEEDS_APPROVAL` carrying its `approve:` and `recommendation:`, with `resume:` at step 5, and stop. If it returns `BLOCKED`, return `BLOCKED` carrying its blocker. Output: the layer branch with its evidence.
 6. Read the evidence against what the layer owes. At the wireframe, per `ahrena-engineering-frontend:designing-wireframes`: every state the scenario reaches is drawn (empty, loading, error, populated), the approver is recorded, and the end-to-end skeleton ran red. At the code layers, per `ahrena-engineering-frontend:testing-frontend` at that layer's step: a red run before the green one, and at the contract the end-to-end green with the page-level accessibility check. If something is missing, treat the gap as a finding and go to step 8. Output: the evidence confirmed, or the gap.
-7. Delegate the review of the layer's working diff to `ahrena-engineering-code-review:argos`. On an approval, go to step 9. On a comment whose findings are questions or unchecked conditions, return `NEEDS_APPROVAL` listing them, with `resume:` at step 7, and stop. On a request for changes, go to step 8. Output: the verdict and its findings.
-8. If this was round 3, return `BLOCKED`: the loop is exhausted, and per step 3 of the build skill the design in the layer above is the likely fault, so name it. Otherwise go to step 5 with round + 1, relaunching the same agent, `ahrena-engineering-frontend:daedalus` for the wireframe or `ahrena-engineering-frontend:aglaia` for a code layer, with Argos's findings, and any evidence gap from step 6, as `findings`. Output: the next round's brief.
+7. Read the full head SHA of the pushed layer `branch` with git, and delegate the review of `base...` that SHA, as a working diff, to `ahrena-engineering-code-review:argos`, with the brief in `## Delegation`. If it returns `BLOCKED`, return `BLOCKED` carrying its blocker. On an approval, go to step 9. On a comment whose findings are questions or unchecked conditions, return `NEEDS_APPROVAL` listing them, with `resume:` at step 8, and stop. On a request for changes, go to step 8. Output: the verdict and its findings.
+8. If this run resumed with `approval` on a review's questions and the answer accepts the layer as it stands, go to step 9; otherwise add the answer to the findings. If this was round 3, return `BLOCKED`: the loop is exhausted, and per step 3 of the build skill the design in the layer above is the likely fault, so name it. Otherwise go to step 5 with round + 1, relaunching the same agent, `ahrena-engineering-frontend:daedalus` for the wireframe or `ahrena-engineering-frontend:aglaia` for a code layer, with Argos's findings, and any evidence gap from step 6, as `findings`. Output: the next round's brief.
 9. Open the layer's pull request, per step 0 and then step 4 or step 7 of `ahrena-contributing:stacking-pull-requests`: based on the branch below (trunk for the wireframe), titled per the project's pull-request rules, its body closing the layer's own issue and carrying the evidence, the rounds and, on the wireframe, who approved it. Open it and nothing more. Output: the pull request's URL.
 10. Return `DONE`. This procedure takes no irreversible action: if the brief asked for a merge, a landing, a force-push, a branch deletion or an issue closing, do not take it, and name it under `left:` with its owner.
 
@@ -68,9 +68,9 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 
 | Situation | `subagent_type` | Brief contains | Comes back |
 |---|---|---|---|
-| The wireframe layer, each round (step 5) | `ahrena-engineering-frontend:daedalus` | `issue` (the layer's issue and the story's criteria), `branch`, `base`, `scenario`, `round`, `findings` from the last round, `approval` when relaunched with one | `DONE` with `branch`, `wireframe`, `red`; or `NEEDS_APPROVAL` with `approve`, `recommendation`; or `BLOCKED` with `blocker` |
-| Components, state and contract, each round (step 5) | `ahrena-engineering-frontend:aglaia` | `layer`, `issue`, `branch`, `base`, `wireframe` (path, approver and skeleton path from the wireframe layer's `DONE`), `scenario`, `round`, `findings`, `approval` when relaunched with one | `DONE` with `branch`, `red`, `green`, `e2e`; or `BLOCKED` with `blocker`; or `NEEDS_APPROVAL` with `approve`, `recommendation` |
-| After each develop round (step 7) | `ahrena-engineering-code-review:argos` | the repository, `base` and the layer `branch` as head, the destination as the working diff with no pull request, and that it publishes nothing, lands nothing and runs no fix loop | the verdict (approve, comment, request changes) and the findings by severity, each with file, line and condition |
+| The wireframe layer, each round (step 5) | `ahrena-engineering-frontend:daedalus` | `issue` (the layer's issue and the story's criteria), `branch`, `base`, `scenario`, `round`, `findings` from the last round, `approval` when relaunched with one | `DONE` with `branch`, `wireframe`, `skeleton`, `red`; or `NEEDS_APPROVAL` with `approve`, `recommendation`; or `BLOCKED` with `blocker` |
+| Components, state and contract, each round (step 5) | `ahrena-engineering-frontend:aglaia` | `layer`, `issue`, `branch`, `base`, `wireframe` (the `wireframe:` approver and path and the `skeleton:` path from the wireframe layer's `DONE`), `scenario`, `round`, `findings`, `approval` when relaunched with one | `DONE` with `branch`, `red`, `green`, `e2e`; or `BLOCKED` with `blocker`; or `NEEDS_APPROVAL` with `approve`, `recommendation` |
+| After each develop round (step 7) | `ahrena-engineering-code-review:argos` | `target`: `base...` followed by the full head SHA of the layer `branch`, a working diff with no pull request; `autofix: off`; `land: off`; no `round` or `max_rounds` | `DONE` with `verdict:` and `findings:`; or `BLOCKED` with `blocker:`, returned as this agent's `BLOCKED` |
 
 Call each child in the foreground and read its result in the same run.
 
@@ -111,7 +111,7 @@ NEEDS_APPROVAL
 approve: the wireframe to approve, with its path, branch, screens and states; or a child's or the review's open question, in full
 recommendation: the option this agent recommends, in one line
 layer: the layer and round
-resume: relaunch with `approval`; the run resumes at step 5 for a child's question, step 7 for a review's
+resume: relaunch with `approval`; the run resumes at step 5 for a child's question, step 8 for a review's
 exists: the scenario, and the issues, branches and pull requests so far
 ```
 
@@ -141,7 +141,7 @@ NEEDS_APPROVAL
 approve: docs/wireframes/cart.md on feat/621-cart-wireframe; screens cart and checkout; states empty, loading, error, populated
 recommendation: approve as drawn; the error state offers retry and keeps the cart, per #610/AC-2
 layer: wireframe, round 1
-resume: relaunch with `approval`; the run resumes at step 5 for a child's question, step 7 for a review's
+resume: relaunch with `approval`; the run resumes at step 5 for a child's question, step 8 for a review's
 exists: scenario given a cart, checkout fails, the cart is kept and the error offers a retry; issues #621 to #624; branch feat/621-cart-wireframe at 52aa0c3
 ```
 </example>

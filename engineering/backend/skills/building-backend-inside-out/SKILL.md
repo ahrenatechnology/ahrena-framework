@@ -17,7 +17,7 @@ references:
 
 # Building backend inside-out
 
-A capability is built from the inside out, in four layers that nest: the domain holds the rules, the use cases drive the domain, the OLTP persists it, the API exposes it. The dependency runs one way — inward — so [`ahrena-engineering-fundamentals:rules/domain-model.md`](../../../fundamentals/rules/domain-model.md) holds the domain to importing no mechanism and [`ahrena-engineering-fundamentals:rules/aggregates.md`](../../../fundamentals/rules/aggregates.md) draws the boundary each root defends. Each layer is tested green before the one that depends on it is started, each is delegated to a specialist, and each lands as its own pull request in a stack.
+A capability is built from the inside out, in four layers that nest: the domain holds the rules, the use cases drive the domain, the OLTP persists it, the API exposes it. The dependency runs one way — inward — so [`ahrena-engineering-fundamentals:rules/domain-model.md`](../../../fundamentals/rules/domain-model.md) holds the domain to importing no mechanism and [`ahrena-engineering-fundamentals:rules/aggregates.md`](../../../fundamentals/rules/aggregates.md) draws the boundary each root defends. Each layer is tested green before the one that depends on it is started, each is delegated to `ahrena-engineering-backend:hephaestus`, and each lands as its own pull request in a stack.
 
 ## 1. Read the component map and conform to it
 
@@ -33,7 +33,7 @@ Write the behaviour the capability must exhibit, in the project's scenario style
 
 ## 3. The loop every layer runs before it opens
 
-Inside each of the four layers, the delegated specialist develops, the reviewer reviews the working diff, the specialist develops again — for at most three rounds — and then the layer opens as a pull request. Between rounds, the mechanically applicable findings are applied so the specialist's next round starts from them.
+Inside each of the four layers, `ahrena-engineering-backend:hephaestus` develops, `ahrena-engineering-code-review:argos` reviews the working diff, and Hephaestus develops again with Argos's findings as its input — for at most three rounds — and then the layer opens as a pull request. Erodos applies fixes only on the pull request, outside this loop.
 
 Three rounds is the cap, not the target. A layer that is clean in one round opens in one. A layer still failing review after three rounds is a layer whose model is wrong, which is a finding for the layer below it, not a fourth round here. The reviewer reviews again on the pull request itself, outside this loop; the in-loop rounds spend the cheap feedback before the expensive one, they do not replace it.
 

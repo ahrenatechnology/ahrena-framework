@@ -57,8 +57,8 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 4. Take the layers in order, domain, use-cases, oltp, api, per steps 4 to 7 of the build skill, and run steps 5 to 9 for each, starting at round 1. Start a layer only once the one below has an open pull request. After the api layer, go to step 10.
 5. Delegate the layer to `ahrena-engineering-backend:hephaestus`, with the brief in `## Delegation`. If it returns `DONE`, go to step 6. If it returns `NEEDS_APPROVAL`, return `NEEDS_APPROVAL` carrying its `approve:` and `recommendation:`, with `resume:` at step 5, and stop. If it returns `BLOCKED`, return `BLOCKED` carrying its blocker. Output: the layer branch with its red and green runs.
 6. Read the evidence against the arc the layer owes: for domain, use-cases and oltp, the arc of `ahrena-engineering-backend:driving-with-tdd` (a red run before the green one, of unit tests, use-case tests against doubles, or integration tests against a real database); for api, `ahrena-engineering-backend:specifying-with-bdd` (every criterion of `issue` has a scenario named by its token, and the contract test ran). If the arc is incomplete, treat the gap as a finding and go to step 8. Output: the arc confirmed, or the gap.
-7. Delegate the review of the layer's working diff to `ahrena-engineering-code-review:argos`. On an approval, go to step 9. On a comment whose findings are questions or unchecked conditions, return `NEEDS_APPROVAL` listing them, with `resume:` at step 7, and stop. On a request for changes, go to step 8. Output: the verdict and its findings.
-8. If this was round 3, return `BLOCKED`: the loop is exhausted, and per step 3 of the build skill the model below this layer is the likely fault, so name it. Otherwise go to step 5 with round + 1, relaunching the same implementer, `ahrena-engineering-backend:hephaestus`, with Argos's findings, and any evidence gap from step 6, as `findings`. Output: the next round's brief.
+7. Read the full head SHA of the pushed layer `branch` with git, and delegate the review of `base...` that SHA, as a working diff, to `ahrena-engineering-code-review:argos`, with the brief in `## Delegation`. If it returns `BLOCKED`, return `BLOCKED` carrying its blocker. On an approval, go to step 9. On a comment whose findings are questions or unchecked conditions, return `NEEDS_APPROVAL` listing them, with `resume:` at step 8, and stop. On a request for changes, go to step 8. Output: the verdict and its findings.
+8. If this run resumed with `approval` on a review's questions and the answer accepts the layer as it stands, go to step 9; otherwise add the answer to the findings. If this was round 3, return `BLOCKED`: the loop is exhausted, and per step 3 of the build skill the model below this layer is the likely fault, so name it. Otherwise go to step 5 with round + 1, relaunching the same implementer, `ahrena-engineering-backend:hephaestus`, with Argos's findings, and any evidence gap from step 6, as `findings`. Output: the next round's brief.
 9. Open the layer's pull request, per step 0 and then step 4 or step 7 of `ahrena-contributing:stacking-pull-requests`: based on the branch below (trunk for the domain), titled per the project's pull-request rules, its body closing the layer's own issue and carrying the red and green runs and the rounds. Open it and nothing more. Output: the pull request's URL.
 10. Return `DONE`. This procedure takes no irreversible action: if the brief asked for a merge, a landing, a force-push, a branch deletion or an issue closing, do not take it, and name it under `left:` with its owner.
 
@@ -67,7 +67,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 | Situation | `subagent_type` | Brief contains | Comes back |
 |---|---|---|---|
 | Each layer, each round (step 5) | `ahrena-engineering-backend:hephaestus` | `layer`, `issue` (the layer's issue and the story's criteria), `branch`, `base`, `scenario`, `round`, `findings` from the last round, `approval` when relaunched with one | `DONE` with `branch`, `red`, `green`; or `BLOCKED` with `blocker`; or `NEEDS_APPROVAL` with `approve`, `recommendation` |
-| After each develop round (step 7) | `ahrena-engineering-code-review:argos` | the repository, `base` and the layer `branch` as head, the destination as the working diff with no pull request, and that it publishes nothing, lands nothing and runs no fix loop | the verdict (approve, comment, request changes) and the findings by severity, each with file, line and condition |
+| After each develop round (step 7) | `ahrena-engineering-code-review:argos` | `target`: `base...` followed by the full head SHA of the layer `branch`, a working diff with no pull request; `autofix: off`; `land: off`; no `round` or `max_rounds` | `DONE` with `verdict:` and `findings:`; or `BLOCKED` with `blocker:`, returned as this agent's `BLOCKED` |
 
 Call each child in the foreground and read its result in the same run.
 
@@ -107,7 +107,7 @@ NEEDS_APPROVAL
 approve: the implementer's question, or the review's open questions, in full
 recommendation: the option this agent recommends, in one line
 layer: the layer and round
-resume: relaunch with `approval`; the run resumes at step 5 for an implementer's question, step 7 for a review's
+resume: relaunch with `approval`; the run resumes at step 5 for an implementer's question, step 8 for a review's
 exists: the scenario, and the issues, branches and pull requests so far
 ```
 
@@ -148,7 +148,7 @@ NEEDS_APPROVAL
 approve: create src/orders/policies/ for the cancellation rule; the component map sanctions no policies folder
 recommendation: keep the rule on the Order aggregate in src/orders/model/, which needs no new folder
 layer: domain, round 1
-resume: relaunch with `approval`; the run resumes at step 5 for an implementer's question, step 7 for a review's
+resume: relaunch with `approval`; the run resumes at step 5 for an implementer's question, step 8 for a review's
 exists: scenario given an order placed, cancelled before shipping, it is cancelled and its stock released; issues #431 to #434; branch feat/431-order-cancellation-domain, no commits
 ```
 </example>

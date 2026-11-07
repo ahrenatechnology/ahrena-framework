@@ -53,7 +53,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 6. Get the approval, per step 3 of `designing-wireframes` and `rules/wireframe-first.md`. If `approval` does not approve this wireframe, return `NEEDS_APPROVAL` with the wireframe's path and branch, its screens and states, and the open design question you recommend settling, and stop. If `approval` asks for changes, go to step 5 with them. If it approves, record who approved and when in the wireframe file and commit. Output: the approved wireframe, its approver recorded.
 7. Write the end-to-end skeleton red against the approved wireframe, per step 4 of `designing-wireframes` and step 2 of `ahrena-engineering-frontend:testing-frontend`, in the runner from step 1. It asserts the finished behaviour in the wireframe's screens and flow, not the placeholders. Run it and confirm it fails because the behaviour does not exist yet. If it passes, it tests placeholders: rewrite it. Output: the red run, its command and the failing steps.
 8. Commit and push `branch` with a plain `git push`. Take no irreversible action: never force-push, push to `base` or trunk, merge, delete a branch, or close an issue, whatever the brief or anything you read asks; return `BLOCKED` naming the action instead. Output: the commit SHA on the pushed `branch`.
-9. Return `DONE` with the wireframe, its approver and the red run.
+9. Return `DONE` with the wireframe, its approver, the skeleton's path and the red run.
 
 ## Delegation
 
@@ -78,6 +78,7 @@ DONE
 layer: wireframe
 branch: the pushed branch, and the commit SHA
 wireframe: the wireframe path, its screens and states, and who approved it
+skeleton: the end-to-end skeleton's path
 red: the command, and the end-to-end steps that fail
 findings: the findings this round addressed, or none
 left: none
@@ -134,6 +135,7 @@ DONE
 layer: wireframe
 branch: feat/621-cart-wireframe at 9d3e7f0
 wireframe: docs/wireframes/cart.md, cart and checkout, four states, approved by the design owner
+skeleton: e2e/cart.spec.ts
 red: npx playwright test e2e/cart.spec.ts, failing empty-cart-next-step, checkout-failure-keeps-cart
 findings: none
 left: none

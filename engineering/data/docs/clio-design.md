@@ -50,6 +50,14 @@ Inside a layer the implementer develops, Argos reviews the working diff, and the
 
 The strongest data guardrail on shape, that the contract is authored and the pipeline validated against it, already lives in `ahrena-engineering-fundamentals:rules/contract-first.md`, so the clade applies it rather than restating it. It ships its own rule only for the guardrail fundamentals does not reach: a mart's figures reconciling to its source, a content check no shape contract decides.
 
+## A merge is refused, not put to a person
+
+The controls in `ahrena-foundation:skills/writing-system-prompts/references/controls.md` have an agent return `NEEDS_APPROVAL` when it is asked for an irreversible action its procedure does not name. Clio and Mnemosyne deviate from that on purpose. No step of theirs ever merges, lands, force-pushes, deletes a branch or closes an issue, and no approval could make them do it, so a `NEEDS_APPROVAL` would offer the person a choice that does not exist. They refuse instead and name the owner: the builder under `left:`, an implementer as `BLOCKED`. Landing belongs to the review on the pull request, run by the caller.
+
+## Why the implementers run on Sonnet
+
+Mnemosyne take `model: sonnet` because their work is one bounded layer, driven by tests and reviewed by Argos every round, which makes it most of the run's tokens and needs none of the orchestration judgment the builder keeps on `opus`.
+
 ## Where this stops
 
 This explains the design; it does not instruct a run. The procedure is in the agents and in `skills/building-data-contract-first/SKILL.md`, and where this page and those disagree, they win and this page is stale. Whether a data product is wanted, whether its contract models the right grain, and any routing decision that spans concerns are outside this design: the first two are the owner's, the third Athena's.

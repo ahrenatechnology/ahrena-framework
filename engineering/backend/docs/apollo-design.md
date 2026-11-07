@@ -53,6 +53,14 @@ Each layer is a pull request based on the one below, landing in order from the d
 
 The clade declares no rule, and that is a decision. Its strongest guardrail, the domain depending on nothing outward, already lives in `ahrena-engineering-fundamentals:rules/domain-model.md`, and duplicating it would put one constraint in two places that drift. The layers apply `ahrena-engineering-fundamentals:rules/aggregates.md` and `ahrena-engineering-fundamentals:rules/domain-services.md` to the domain, `ahrena-engineering-fundamentals:rules/contract-first.md` to the API's authored contract, `ahrena-engineering-fundamentals:rules/solid.md` and `ahrena-engineering-fundamentals:rules/clean-code.md` to the code at every layer, and the ubiquitous-language rule to every name.
 
+## A merge is refused, not put to a person
+
+The controls in `ahrena-foundation:skills/writing-system-prompts/references/controls.md` have an agent return `NEEDS_APPROVAL` when it is asked for an irreversible action its procedure does not name. Apollo and Hephaestus deviate from that on purpose. No step of theirs ever merges, lands, force-pushes, deletes a branch or closes an issue, and no approval could make them do it, so a `NEEDS_APPROVAL` would offer the person a choice that does not exist. They refuse instead and name the owner: the builder under `left:`, an implementer as `BLOCKED`. Landing belongs to the review on the pull request, run by the caller.
+
+## Why the implementers run on Sonnet
+
+Hephaestus take `model: sonnet` because their work is one bounded layer, driven by tests and reviewed by Argos every round, which makes it most of the run's tokens and needs none of the orchestration judgment the builder keeps on `opus`.
+
 ## Where this stops
 
 This explains the design; it does not instruct a run. The procedure is in the agents and in `skills/building-backend-inside-out/SKILL.md`, and where this page and those disagree, they win and this page is stale. Whether a capability is wanted, and any routing decision that spans concerns, are outside this design: the first is the owner's, the second Athena's.
