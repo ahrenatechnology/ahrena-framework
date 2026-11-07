@@ -11,7 +11,7 @@ references:
   - skills/testing-frontend/SKILL.md
   - rules/wireframe-first.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
-  - ahrena-engineering-quality:agents/argos.md
+  - ahrena-engineering-code-review:agents/argos.md
   - ahrena-engineering-quality:agents/erodos.md
 skills:
   - ahrena-engineering-frontend:building-frontend-outside-in

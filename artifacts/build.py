@@ -22,6 +22,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 Q = "engineering/quality"
+CR = "engineering/code-review"
 
 
 def node(x, y, w, h, lb, sub="", cls="nd", rx=8):
@@ -93,7 +94,7 @@ ERODOS_FLOW = svg("0 0 720 452", "".join([
 ARGOS_ORCH = """\
 ## Como o Argos opera
 
-O Argos é o revisor. Numa passada ele fixa a base e o head, roda o roteador (um script que lê a mudança contra a tabela de rotas e diz quais disciplinas tocam o diff), delega a cada disciplina selecionada, junta os achados e decide **um** veredito a partir deles — sem olhar a história:
+O Argos é o revisor. Numa passada ele fixa a base e o head, roda o roteador (um script que lê a mudança contra a tabela de rotas e diz quais disciplinas tocam o diff), roda ele mesmo cada disciplina selecionada, sem subagentes, junta os achados e decide **um** veredito a partir deles — sem olhar a história:
 
 - um achado **bloqueante** → pede mudança;
 - uma **pergunta** ou condição **unchecked**, sem bloqueante → comentário (a revisão não terminou);
@@ -101,7 +102,7 @@ O Argos é o revisor. Numa passada ele fixa a base e o head, roda o roteador (um
 
 Ao aprovar, ele pede ao forge (o GitHub) para fazer o **squash-merge do commit exato que revisou**, só com os checks verdes. Ele não dá push na trunk nem decide sozinho: quem mescla é o forge, pelas regras dele.
 
-A mudança bloqueante vai para o **Erodos** — um agente separado, para que o Argos nunca leia a própria edição — e o commit que o Erodos devolve volta a esta mesma revisão. Quatro casos ele deixa para uma pessoa, aconteça o que acontecer: registro de decisão, camada de stack, draft e pull request de fork externo. `ADR-013` registra por que a revisão limpa aprova e mescla.
+A mudança bloqueante vai para o **Erodos** — um agente separado, para que o Argos nunca leia a própria edição — e o commit que o Erodos devolve volta a esta mesma revisão, no máximo três rodadas por padrão. O veredito é o comentário e o status `argos/verdict`, nunca um `gh pr review --approve`. Quatro casos ele deixa para uma pessoa, aconteça o que acontecer: registro de decisão, camada de stack, draft e pull request de fork externo. `ADR-013` registra por que a revisão limpa aprova e mescla.
 """
 
 ERODOS_ORCH = """\
@@ -132,7 +133,7 @@ PAGES = {
         "flow": ARGOS_FLOW,
         "orchestration": ARGOS_ORCH,
         "entries": [
-            ("Agente", "argos", f"{Q}/agents/argos.md", "O revisor. Diz o que ele é, quais skills orquestra e o que não faz."),
+            ("Agente", "argos", f"{CR}/agents/argos.md", "O revisor. Diz o que ele é, quais skills orquestra e o que não faz."),
             ("Toda revisão", "reviewing-diffs", f"{Q}/skills/reviewing-diffs/SKILL.md", "Sempre, e primeiro. Fixa base e head, roda o roteador e lê as regras de engenharia."),
             ("Toda revisão", "publishing-review-verdicts", f"{Q}/skills/publishing-review-verdicts/SKILL.md", "Escolhe o veredito pelos achados e publica um comentário por commit."),
             ("Toda revisão", "landing-approved-changes", f"{Q}/skills/landing-approved-changes/SKILL.md", "Só depois de um approve. Pede ao forge o squash do commit revisado, com os checks verdes."),

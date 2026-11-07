@@ -67,7 +67,7 @@ class Case:
 
 
 def test_fresh_repo_writes_exact_shape() -> None:
-    # Covers #224/AC-1: one run installs the eight plugins and writes the directive to both files.
+    # Covers #224/AC-1: one run installs the nine plugins and writes the directive to both files.
     with Case() as c:
         r = c.run()
         expected = {
