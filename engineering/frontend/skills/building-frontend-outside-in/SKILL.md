@@ -15,7 +15,7 @@ references:
 
 # Building frontend outside-in
 
-A feature is built from the outside in, in four layers that nest: the wireframe fixes what the user sees, the components fill it, the state drives them, the contract feeds the state. Each layer is validated before the one it constrains is started, each is delegated to a specialist, and each lands as its own pull request in a stack. [`rules/wireframe-first.md`](../../rules/wireframe-first.md) holds the first layer to being an approved gate.
+A feature is built from the outside in, in four layers that nest: the wireframe fixes what the user sees, the components fill it, the state drives them, the contract feeds the state. Each layer is validated before the one it constrains is started, each is delegated (the wireframe to `ahrena-engineering-frontend:daedalus`, the code layers to `ahrena-engineering-frontend:aglaia`), and each lands as its own pull request in a stack. [`rules/wireframe-first.md`](../../rules/wireframe-first.md) holds the first layer to being an approved gate.
 
 ## 1. Read the component map and conform to it
 
@@ -31,13 +31,13 @@ Write the behaviour the feature must exhibit, in the project's scenario style, b
 
 ## 3. The loop every layer runs before it opens
 
-Inside each of the four layers, the delegated specialist develops, Argos reviews the working diff, the specialist develops again — for at most three rounds — and then the layer opens as a pull request. Between rounds, Erodos applies the mechanically applicable findings so the specialist's next round starts from them.
+Inside each of the four layers, the layer's agent (Daedalus or Aglaia) develops, `ahrena-engineering-code-review:argos` reviews the working diff, and the same agent develops again with Argos's findings as its input — for at most three rounds — and then the layer opens as a pull request. Erodos applies fixes only on the pull request, outside this loop.
 
 Three rounds is the cap, not the target. A layer that is clean in one round opens in one. A layer still failing Argos after three rounds is a layer whose design is wrong, which is a finding for the layer above it, not a fourth round here. Argos reviews again on the pull request itself, outside this loop; the in-loop rounds spend the cheap feedback before the expensive one, they do not replace it.
 
 ## 4. Layer one — the wireframe
 
-Delegate to the Designer, through [`skills/designing-wireframes/SKILL.md`](../designing-wireframes/SKILL.md). It produces the wireframe as an artifact, hands it back for the owner's approval, and writes the Playwright end-to-end skeleton red against it. No component is coded until that approval exists — this is the gate `rules/wireframe-first.md` names. The approved wireframe and the red skeleton are the first pull request in the stack.
+Delegate to `ahrena-engineering-frontend:daedalus`, which runs [`skills/designing-wireframes/SKILL.md`](../designing-wireframes/SKILL.md). It produces the wireframe as an artifact, hands it back for the owner's approval as `NEEDS_APPROVAL`, and writes the Playwright end-to-end skeleton red against it. No component is coded until that approval exists — this is the gate `rules/wireframe-first.md` names. The approved wireframe and the red skeleton are the first pull request in the stack.
 
 ## 5. Layer two — the components
 

@@ -11,7 +11,7 @@ references:
 
 # Designing wireframes
 
-This is the Designer's procedure, and it is the first layer of an outside-in build. It produces the wireframe, gets it approved, and writes the failing end-to-end test against it, before any component, state or contract code exists. [`rules/wireframe-first.md`](../../rules/wireframe-first.md) is the gate this procedure opens.
+This is the procedure `ahrena-engineering-frontend:daedalus` follows, and it is the first layer of an outside-in build. It produces the wireframe, gets it approved, and writes the failing end-to-end test against it, before any component, state or contract code exists. [`rules/wireframe-first.md`](../../rules/wireframe-first.md) is the gate this procedure opens.
 
 ## 1. Read the component map first
 
@@ -43,7 +43,7 @@ The approved wireframe and the red skeleton are the first pull request in the st
 
 **The visual design.** This fixes structure, states and flow. Colour, type, spacing and motion are the visual layer's, and contrast and focus order are the accessibility checks'. A wireframe is approved on being structurally right, not visually final.
 
-**Approving the wireframe.** The Designer produces and hands back; the owner approves. This skill never supplies the approval it waits for.
+**Approving the wireframe.** Daedalus produces and hands back; the owner approves. This skill never supplies the approval it waits for.
 
 <!--
 Directory layout:

@@ -16,7 +16,7 @@ references:
 
 # Building data contract-first
 
-A capability is built from source to product, in four layers that stack: the schema pins the data contract, the medallion transforms carry the data from bronze through silver to gold, the expectations gate its quality, the marts serve it. The contract is authored first and the later layers evolve from it, so [`ahrena-engineering-fundamentals:rules/contract-first.md`](../../../fundamentals/rules/contract-first.md) governs the whole build: a contract that can disagree with the pipeline is the only one that catches the change that breaks a consumer. Each layer is tested green before the one that depends on it is started, each is delegated to a specialist, and each lands as its own pull request in a stack.
+A capability is built from source to product, in four layers that stack: the schema pins the data contract, the medallion transforms carry the data from bronze through silver to gold, the expectations gate its quality, the marts serve it. The contract is authored first and the later layers evolve from it, so [`ahrena-engineering-fundamentals:rules/contract-first.md`](../../../fundamentals/rules/contract-first.md) governs the whole build: a contract that can disagree with the pipeline is the only one that catches the change that breaks a consumer. Each layer is tested green before the one that depends on it is started, each is delegated to `ahrena-engineering-data:mnemosyne`, and each lands as its own pull request in a stack.
 
 ## 1. Read the component map and conform to it
 
@@ -32,7 +32,7 @@ Author the data contract the capability must satisfy before any transform, throu
 
 ## 3. The loop every layer runs before it opens
 
-Inside each of the four layers, the delegated specialist develops, the reviewer reviews the working diff, the specialist develops again — for at most three rounds — and then the layer opens as a pull request. Between rounds, the mechanically applicable findings are applied so the specialist's next round starts from them.
+Inside each of the four layers, `ahrena-engineering-data:mnemosyne` develops, `ahrena-engineering-code-review:argos` reviews the working diff, and Mnemosyne develops again with Argos's findings as its input — for at most three rounds — and then the layer opens as a pull request. Erodos applies fixes only on the pull request, outside this loop.
 
 Three rounds is the cap, not the target. A layer that is clean in one round opens in one. A layer still failing review after three rounds is a layer whose model is wrong, which is a finding for the layer below it, not a fourth round here. The reviewer reviews again on the pull request itself, outside this loop; the in-loop rounds spend the cheap feedback before the expensive one, they do not replace it.
 
