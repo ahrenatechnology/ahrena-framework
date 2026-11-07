@@ -60,7 +60,7 @@ Run the same script without `--check`. It does two things:
 
 - **Merges the agency into `.claude/settings.json`.** The set is declared in
   [`references/agency.json`](references/agency.json): the `ahrena` marketplace
-  and the eight core plugins, plus the language plugin for each marker file at
+  and the nine core plugins, plus the language plugin for each marker file at
   the repository root (`pyproject.toml`, `tsconfig.json`, `go.mod`,
   `Cargo.toml`), or the ones `--language python|typescript|go|rust` names. The
   merge only adds. It keeps every other key and its order, never flips a plugin

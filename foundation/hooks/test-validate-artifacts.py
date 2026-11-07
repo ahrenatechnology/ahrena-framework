@@ -1338,6 +1338,31 @@ CASES = [
         {**VALID_CORPUS, "p/agents/specialist.md": SKELETON_AGENT.replace("approve: the plan\n", "")},
         ["1 failure(s)", "condition 6: the NEEDS_APPROVAL template has no 'approve:' field"],
     ),
+    # #252/AC-10
+    case(
+        "two agents in the marketplace that declare the same name fail",
+        {
+            **VALID_CORPUS,
+            MARKETPLACE_PATH: TWO_PLUGINS,
+            "q/agents/specialist.md": STUB_AGENT,
+        },
+        [
+            "1 failure(s)",
+            "[naming] condition 8: agent name 'specialist' is declared by 2 agents: "
+            "fixture-plugin:agents/specialist.md, other-plugin:agents/specialist.md",
+        ],
+    ),
+    # #252/AC-10
+    case(
+        "two agents in the marketplace with distinct names pass",
+        {
+            **VALID_CORPUS,
+            MARKETPLACE_PATH: TWO_PLUGINS,
+            "q/agents/other.md": STUB_AGENT.replace("name: specialist", "name: other"),
+        },
+        ["6 artifact(s), no failures"],
+        ok=True,
+    ),
     # #159/AC-6
     case(
         "a plugin the tree carries but the marketplace does not list is still validated",

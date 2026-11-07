@@ -16,7 +16,7 @@ references:
   - ahrena-engineering-frontend:agents/iris.md
   - ahrena-engineering-backend:agents/apollo.md
   - ahrena-engineering-data:agents/clio.md
-  - ahrena-engineering-quality:agents/argos.md
+  - ahrena-engineering-code-review:agents/argos.md
   - ahrena-engineering-quality:agents/erodos.md
 skills:
   - ahrena-engineering-delivery:orchestrating-delivery

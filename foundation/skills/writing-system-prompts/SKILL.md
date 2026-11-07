@@ -61,7 +61,7 @@ Each step states the action, the skill or tool it uses, and what exists after it
 
 | Field | What to write |
 |---|---|
-| `subagent_type` | Plugin-qualified, exactly as the Agent tool lists it: `ahrena-engineering-quality:argos` |
+| `subagent_type` | Plugin-qualified, exactly as the Agent tool lists it: `ahrena-engineering-code-review:argos` |
 | Brief contains | The inputs the child's `## Inputs` names, by name |
 | Comes back | The child's first line (`DONE`, `BLOCKED`, `NEEDS_APPROVAL`) and the fields the parent reads |
 

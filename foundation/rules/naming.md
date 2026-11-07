@@ -62,6 +62,8 @@ A persona name is allowed here and nowhere else. A skill is an activity and a ru
 
 The cost of the second field is that it can drift from the description. The gate checks its shape, not its truth, so `role` is one of the things a reviewer reads.
 
+The handle is unique across the marketplace, not only within a plugin. A caller or a runtime invokes an agent by its handle, and two agents under one handle leave the platform to pick one of them, with the caller none the wiser.
+
 ## Identity
 
 The name in frontmatter matches the name on disk.
@@ -85,6 +87,7 @@ Each of these is decided by `hooks/validate-artifacts.py`.
 5. A skill name's first token ends in `ing`.
 6. The identity field matches the name on disk.
 7. An agent declares `role`, kebab-case, under the same prefix conditions as its name.
+8. No two agents in the marketplace declare the same `name`, in one plugin or across plugins.
 
 ## Where this stops
 

@@ -13,7 +13,7 @@ references:
   - skills/renewing-a-coordinator/SKILL.md
   - agents/themis.md
   - agents/athena.md
-  - ahrena-engineering-quality:agents/argos.md
+  - ahrena-engineering-code-review:agents/argos.md
   - ahrena-engineering-quality:skills/landing-approved-changes/SKILL.md
   - ahrena-contributing:skills/stacking-pull-requests/SKILL.md
 skills:
