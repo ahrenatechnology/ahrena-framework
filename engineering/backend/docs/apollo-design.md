@@ -59,7 +59,7 @@ The controls in `ahrena-foundation:skills/writing-system-prompts/references/cont
 
 ## Why the implementers run on Sonnet
 
-Hephaestus take `model: sonnet` because their work is one bounded layer, driven by tests and reviewed by Argos every round, which makes it most of the run's tokens and needs none of the orchestration judgment the builder keeps on `opus`.
+Hephaestus takes `model: sonnet` because its work is one bounded layer, driven by tests and reviewed by Argos every round, which makes it most of the run's tokens and needs none of the orchestration judgment the builder keeps on `opus`.
 
 ## Where this stops
 
