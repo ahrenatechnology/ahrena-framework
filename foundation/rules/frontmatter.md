@@ -46,7 +46,7 @@ Nested maps, inline collections and multi-line scalars are rejected. The restric
 
 `role` is the agent's subject as a noun phrase, beside the persona in `name`. `rules/naming.md` explains why an agent carries two.
 
-`subclade` and `references` are optional on every type. `skills` is an agent field, required when the agent references a skill. `enforced-by` is required when `enforcement` is `hook` and rejected when it is `judgment`. `enforced-in` is optional on a rule whose `enforcement` is `hook`, and rejected when it is `judgment`.
+`subclade` and `references` are optional on every type. An agent also declares `tools` and `model`, below. `skills` is an agent field, required when the agent references a skill. `enforced-by` is required when `enforcement` is `hook` and rejected when it is `judgment`. `enforced-in` is optional on a rule whose `enforcement` is `hook`, and rejected when it is `judgment`.
 
 Rules and docs use `id`, `title` and `summary` because nothing outside this framework reads them. Skills, agents and commands use `name` and `description` because the platforms do, and a parallel set of our own fields would be a second thing to keep in sync.
 
@@ -67,7 +67,13 @@ An agent that orchestrates a skill therefore names it twice more. `skills` lists
 
 **On a rule or a doc, an undeclared field fails.** The schema is closed because we own both ends of it.
 
-**On a skill, an agent or a command, an undeclared field passes.** These files are read by four platforms that add fields on their own schedule. `allowed-tools`, `model` and `argument-hint` are theirs, they will not be the last, and a gate that rejects them would break on someone else's release.
+**On a skill, an agent or a command, an undeclared field passes.** These files are read by four platforms that add fields on their own schedule. `allowed-tools` and `argument-hint` are theirs, they will not be the last, and a gate that rejects them would break on someone else's release. `tools` and `model` are platform fields too, but on an agent they are declared and required, below.
+
+## `tools` and `model`
+
+An agent declares both, non-empty. `tools` lists what its procedure uses, and `model` the model it runs on. Without `tools` an agent inherits every tool its caller has, which is the excessive agency `writing-system-prompts` closes; without `model` it inherits its caller's, so its cost is decided by whoever happens to call it. Both are the platforms' fields, so their values are not checked against a list here; a reviewer reads `tools` against the procedure.
+
+**A lead runs on `opus`.** An agent is a lead when its `role` is one of `tech-lead`, `product-manager` or `round-lead`. The list is closed so the gate can decide it: a new lead role is an amendment to this rule, not a naming choice. A lead plans, routes and decides for other agents, and the model that does that is the one whose mistakes cost the most downstream.
 
 ## `statement`
 
@@ -109,6 +115,8 @@ Each of these is decided by `hooks/validate-artifacts.py`.
 8. An agent's `skills` is a list naming, plugin-qualified, every skill its `references` point at.
 9. Every entry of an agent's `skills` is a `<plugin>:<skill>` that resolves to a skill in the marketplace.
 10. An agent whose `references` point at a skill has a `## Before you start` section, outside code, that names each such skill in backticks and the `Skill tool`.
+11. An agent declares `tools` and `model`, each present and non-empty.
+12. An agent whose `role` is `tech-lead`, `product-manager` or `round-lead` declares `model: opus`.
 
 ## Where this stops
 

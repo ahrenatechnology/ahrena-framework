@@ -5,6 +5,8 @@ type: agent
 clade: <plugin-clade>
 subclade: <optional>
 role: <the subject as a noun phrase, kebab-case, e.g. artifact-author>
+tools: <comma-separated, only the tools the Procedure uses, e.g. Read, Grep, Bash, Skill>
+model: <opus for a lead (role tech-lead, product-manager or round-lead), otherwise the model the work needs>
 references:
   - skills/<skill-it-orchestrates>/SKILL.md
   - rules/<rule-it-enforces>.md
@@ -94,9 +96,12 @@ agent delegates nothing.
 
 Do not return before <the observable completion criterion>.
 
+Continue until the work is done. Return only when it is done, when you are blocked, or when a decision needs a person.
+
 <!--
 Observable means a caller could check it: the pull requests exist, the gate
-passes, the verdict is published.
+passes, the verdict is published. The second paragraph is the persistence
+instruction; keep it word for word.
 -->
 
 ## When blocked

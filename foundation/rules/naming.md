@@ -64,6 +64,8 @@ The cost of the second field is that it can drift from the description. The gate
 
 The handle is unique across the marketplace, not only within a plugin. A caller or a runtime invokes an agent by its handle, and two agents under one handle leave the platform to pick one of them, with the caller none the wiser.
 
+An agent that hands work to another names it the way the Agent tool lists it: plugin-qualified, `<plugin>:<agent>`, in the `subagent_type` column of its `## Delegation` table. A bare handle depends on which plugins happen to be installed, and a role ("a specialist", "the reviewer") resolves to nothing.
+
 ## Identity
 
 The name in frontmatter matches the name on disk.
@@ -88,9 +90,13 @@ Each of these is decided by `hooks/validate-artifacts.py`.
 6. The identity field matches the name on disk.
 7. An agent declares `role`, kebab-case, under the same prefix conditions as its name.
 8. No two agents in the marketplace declare the same `name`, in one plugin or across plugins.
+9. In an agent's `## Delegation` table, the table has a `subagent_type` column, and every cell of it names, in backticks, only `<plugin>:<agent>` names, each resolving to `agents/<agent>.md` in that plugin of the marketplace. A cell that is not plugin-qualified fails.
+10. Every `<plugin>:agents/<name>.md` an agent's body names outside fenced code resolves to an agent in the marketplace.
 
 ## Where this stops
 
 **The gerund check is a suffix test, not grammar.** It catches the mistake that actually happens, which is a skill named as a noun phrase (`artifact-creation`, `code-review`). A noun that happens to end in `ing` passes it, and `skills/thing-doer/` is the case in the gate's own test suite. Closing that gap needs a dictionary, which is a dependency this hook will not take for one class of typo. A reviewer catches it.
+
+**Delegation is resolved, not read.** Conditions 9 and 10 check that every named agent exists. Whether the row's brief carries what the child's `## Inputs` asks for, and whether a sentence in prose hands work to an agent the table does not name, is SP-2 of `reviewing-artifacts`.
 
 Files inside a skill body are not artifacts and this rule does not reach them. `references/` and `scripts/` hold whatever the skill needs, named however the language it is written in expects.

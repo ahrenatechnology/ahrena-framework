@@ -10,7 +10,7 @@
     {
       "name": "ahrena-foundation",
       "description": "The self-hosting core: what an artifact is, where it lives, how it is named, and the skills that create the others. Every other plugin depends on this one.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -53,7 +53,7 @@
     {
       "name": "ahrena-engineering-frontend",
       "description": "Frontend built outside-in: a validated wireframe before any code, four layers that stack as stacked pull requests, and a red-to-green test arc per layer, all conforming to the project's component map.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -75,7 +75,7 @@
     {
       "name": "ahrena-engineering-backend",
       "description": "Backend built inside-out: four layers that stack as stacked pull requests — domain, use cases, OLTP, API — with unit TDD red-first at the domain and BDD acceptance tracing to its criteria at the API, all conforming to the project's component map.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -100,7 +100,7 @@
     {
       "name": "ahrena-engineering-data",
       "description": "Data built source→product, contract-first: four layers that stack as stacked pull requests — schema, medallion, expectations, marts — the data contract authored first and the later layers evolving from it, every mart reconciled to its source, all conforming to the project's component map.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -124,7 +124,7 @@
     {
       "name": "ahrena-engineering-delivery",
       "description": "Delivery orchestrated issue→stacked-PRs: Athena, the tech-lead, plans a change, routes each concern deterministic-first — a route table, then the Clef decision gate, then a human — delegates to the build clades, runs the develop→Argos loop before each layer opens, and escalates when it is exhausted. Above her, the round method: Themis, the PM of a round, and Hermes, its Tech Lead, run a work window of Athena sessions from an approved plan to a written closing.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -238,7 +238,7 @@
     {
       "name": "ahrena-engineering-quality",
       "description": "The code-review toolkit: the per-discipline review skills, the path router, the findings and verdict docs, and Erodos, the fixer. Argos, the reviewer that runs them, ships in ahrena-engineering-code-review.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -261,7 +261,7 @@
     {
       "name": "ahrena-engineering-security",
       "description": "Application security as review disciplines: secrets and supply chain, untrusted input, access and sensitive data, and the use of language models and agents.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -330,7 +330,7 @@
     {
       "name": "ahrena-engineering-code-review",
       "description": "The code-review engine: the orchestrator that routes a change to the review lenses it calls for, merges their findings into one verdict, drives the fix-and-re-review loop, and hands an approval to the merge decision.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
