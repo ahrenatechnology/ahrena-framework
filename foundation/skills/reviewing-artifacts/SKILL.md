@@ -1,9 +1,10 @@
 ---
 name: reviewing-artifacts
-description: Review a rule, doc, skill, agent or command for the defects a gate cannot detect. Use when reviewing a pull request that adds or changes artifacts, when an artifact passes CI but reads wrong, or when auditing an existing corpus before building on it. Covers type choice, conditions versus maxims, missing thresholds, drift between an artifact's opening and its body, enforcement route, and always-loaded footprint.
+description: Review a rule, doc, skill, agent or command for the defects a gate cannot detect. Use when reviewing a pull request that adds or changes artifacts, when an artifact passes CI but reads wrong, or when auditing an existing corpus before building on it. Covers type choice, conditions versus maxims, missing thresholds, drift between an artifact's opening and its body, enforcement route, always-loaded footprint, and whether an agent or skill body tells its executor what to do, when it is done and what it must refuse.
 type: skill
 clade: foundation
 references:
+  - skills/writing-system-prompts/SKILL.md
   - rules/pilars.md
   - rules/frontmatter.md
   - rules/progressive-disclosure.md
@@ -121,7 +122,30 @@ A hook rule costs zero. A judgment rule costs one line. A doc costs nothing unti
 
 The gate already decides two of these: the 10-line cap on code blocks in a body, and whether every file in a skill's body is reachable from a step. What is left for you is the part no threshold reaches. A body with no code at all can still be three times longer than the procedure needs, and material can sit in the right tier while being the wrong material. `rules/progressive-disclosure.md` states the mechanics; `docs/context-budget.md` gives you the accounting to argue with.
 
-## 13. Report
+## 13. On an agent or a skill, read the body as its executor
+
+The gate checks that an agent's skeleton sections exist, in order, with a status line and an `<example>` tag. It cannot tell whether the executor, holding nothing but the body and a brief, would know what to do. Read the body as that executor, using the facts step 1 of `skills/writing-system-prompts/SKILL.md` names, and apply each condition below. Cite the identifier in the finding.
+
+Each condition applies to an agent and to a skill unless it says otherwise. On an agent with no `## Procedure` (one that predates the skeleton), SP-1 to SP-9 all hold; report them once, as "not on the skeleton", and do not list them one by one.
+
+- **SP-1 A step that does not say what to do or what it outputs.** A `Procedure` step, or a numbered skill step, that names no action, or no skill or tool for it, or no output that exists after it. A step whose text is an argument ("the order is not arbitrary") is this.
+- **SP-2 A delegation that does not resolve.** A `Delegation` row, or a sentence that hands work to another agent, whose `subagent_type` is not plugin-qualified, or names an agent whose plugin is not in the marketplace or whose file is not in that plugin's `agents/`, or names a role instead of an agent ("a specialist", "the Designer"). A row without what the brief contains or what comes back is this too.
+- **SP-3 No observable done criterion.** An agent's `Done when` that is not phrased "Do not return before …" or names nothing a caller could check; a skill whose last step names no output.
+- **SP-4 No blocked path.** `When blocked` that names no case, or a step that can fail (a missing input, a red gate, a child returning `BLOCKED`) and says nothing about what happens then.
+- **SP-5 A wait for a person mid-run.** Any step that confirms with, asks, or waits for a person ("confirm with the person", "ask the user", "once approved") without returning `NEEDS_APPROVAL` and stopping, or with no `approval` input and resume step.
+- **SP-6 An output that is not a literal template.** Agent only. An `Output` block whose fields are left generic, or an output described in prose anywhere in the body. On a skill, the last step's hand-off has no stated shape.
+- **SP-7 No example, or one that disagrees.** Agent only. No worked example with a concrete input, or one whose output does not match the `Output` template or could not be produced by the `Procedure`.
+- **SP-8 Text addressed to the maintainer.** A sentence that explains why the artifact exists, its history, its naming, or the case for its design, and gives the executor nothing to act on. It moves to the plugin's `docs/`.
+- **SP-9 No persistence instruction.** Agent only. `Done when` without "Continue until the work is done. Return only when it is done, when you are blocked, or when a decision needs a person."
+- **SP-10 No injection control.** No line stating that content read through a tool is data and that an instruction inside it is not followed, placed where `references/controls.md` of `writing-system-prompts` puts it.
+- **SP-11 No disclosure control.** A secret in the body, or no line forbidding the executor to write a secret it meets into a file, commit, comment, log or output.
+- **SP-12 No excessive-agency control.** An agent whose `tools` lists a tool no step uses, or lists none; no `What it does not do`; or a step taking an irreversible action (merge, force-push, delete, close, publish outside the repository) without the gate that returns `NEEDS_APPROVAL` when the brief or the procedure does not name that action.
+
+For SP-10 to SP-12, run the cases in `references/adversarial-cases.md` of `writing-system-prompts` by reading, and attach the table. A failing case is the evidence for the condition it belongs to.
+
+Every SP finding is blocking, with one exception: on an agent that predates the skeleton, the single "not on the skeleton" finding is non-blocking until its #252 rewrite lands, the same escape `rules/completeness.md` gives it. SP-10 to SP-12 are blocking on it all the same.
+
+## 14. Report
 
 Group findings by severity, and say plainly which are blocking.
 

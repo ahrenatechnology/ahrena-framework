@@ -10,6 +10,7 @@ references:
   - rules/progressive-disclosure.md
   - rules/completeness.md
   - docs/artifact-model.md
+  - skills/writing-system-prompts/SKILL.md
 ---
 
 # Creating artifacts
@@ -68,6 +69,8 @@ Three parts of it fail most often:
 - **An output described in prose.** `Output` holds one fenced template per status, each opening with `DONE`, `BLOCKED` or `NEEDS_APPROVAL`, and `Example` shows one real input and the output returned for it, inside `<example>` tags.
 
 `rules/completeness.md` checks the sections, their order, the status lines and the tags once an agent has `## Procedure` (conditions 5 to 7). Whether the steps are executable is for `reviewing-artifacts`.
+
+**Write the body of an agent or a skill with `writing-system-prompts`.** Once the template is copied and the frontmatter filled, invoke `ahrena-foundation:writing-system-prompts` with the Skill tool and follow it through its last step for the body: the success criterion, the steps, delegation, the stop paths, the output template, the three controls, the example and the adversarial cases. Then come back here at step 5. A rule, a doc or a command has no executor to write for and skips this.
 
 ## 5. Put the material where the step reads it, not in the body
 
