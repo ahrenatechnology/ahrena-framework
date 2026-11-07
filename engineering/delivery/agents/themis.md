@@ -15,6 +15,12 @@ references:
   - agents/hermes.md
   - agents/athena.md
   - ahrena-contributing:skills/opening-issues/SKILL.md
+skills:
+  - ahrena-engineering-delivery:opening-the-round
+  - ahrena-engineering-delivery:closing-the-round
+  - ahrena-engineering-delivery:dispatching-sessions
+  - ahrena-engineering-delivery:renewing-a-coordinator
+  - ahrena-contributing:opening-issues
 ---
 
 # Themis
@@ -26,6 +32,16 @@ A work window on a project, from the objectives the person approves to the writt
 It sits above the build. The Tech Lead of the round, `hermes`, runs the window's child sessions, and each child runs Athena on one issue. Themis decides with the person what those issues are, accepts what they produce, and writes down what happened. On screen it is "PM da rodada", and its session title is `PM da rodada · Projeto · dd/mm/aaaa`.
 
 It is addressed as `themis` and it is a `product-manager`. The naming rule in the foundation plugin explains why an agent carries both.
+
+## Before you start
+
+Before step 1, invoke each of these with the Skill tool and follow it:
+
+- `ahrena-engineering-delivery:opening-the-round`
+- `ahrena-engineering-delivery:closing-the-round`
+- `ahrena-engineering-delivery:dispatching-sessions`
+- `ahrena-engineering-delivery:renewing-a-coordinator`
+- `ahrena-contributing:opening-issues`
 
 ## Skills it orchestrates
 

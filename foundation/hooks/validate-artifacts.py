@@ -96,6 +96,12 @@ REQUIRED_SECTIONS = {
 }
 NUMBERED_STEP = re.compile(r"^\d+\.")
 
+# #252 — conditions 8 to 10 of frontmatter.md, decided in check_skill_wiring.
+SKILL_PATH = re.compile(r"^skills/([^/]+)/SKILL\.md$")
+PRELOAD_FIELD = "skills"
+LOAD_SECTION = "Before you start"
+LOAD_PHRASE = "Skill tool"
+
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 KEY = re.compile(r"^[a-z][a-z0-9-]*$")
 MD_LINK = re.compile(r"\[[^\]]*\]\(\s*([^)\s]+)")
@@ -441,6 +447,121 @@ def check_references(a: Artifact, index: dict[str, str], plugins: set[str], find
             findings.append(Finding(a.rel, "pilars", message))
 
 
+def _orchestrated_skills(a: Artifact) -> list[str]:
+    """The plugin-qualified name of every skill the agent's `references` point at.
+
+    A reference is a plugin-relative path, `skills/<name>/SKILL.md` in the
+    agent's own plugin or `<plugin>:skills/<name>/SKILL.md` in another, and the
+    name a platform loads it by is `<plugin>:<name>`, the marketplace's plugin
+    name and the skill's directory.
+    """
+    names: list[str] = []
+    for ref in _declared_refs(a):
+        owner, path = _split_ref(ref)
+        found = SKILL_PATH.match(path)
+        if found:
+            qualified = f"{owner or a.plugin_name}:{found.group(1)}"
+            if qualified not in names:
+                names.append(qualified)
+    return names
+
+
+def _section_text(body: str, heading: str) -> str | None:
+    """The text under `## heading`, outside code, or None when there is no such section."""
+    collected: list[str] | None = None
+    for _, line in _outside_fences(body):
+        if line.startswith("## "):
+            if collected is not None:
+                break
+            if line[3:].strip().lower() == heading.lower():
+                collected = []
+            continue
+        if collected is not None:
+            collected.append(line)
+    return None if collected is None else "\n".join(collected)
+
+
+def check_skill_wiring(a: Artifact, index: dict[str, str], findings: list[Finding]) -> None:
+    """Conditions 8 to 10 of frontmatter.md: every orchestrated skill is loaded, twice over.
+
+    `references` is read by people and by this gate, never by a platform, so an
+    agent that names a skill only there runs without it (#252). Claude Code
+    preloads what the agent's `skills` list names; no other platform has such a
+    field, so a body section telling the executor to invoke each skill with the
+    Skill tool is the path every platform shares.
+    """
+    if a.kind != "agent":
+        return
+    preload = a.data.get(PRELOAD_FIELD)
+    if isinstance(preload, str):
+        findings.append(Finding(a.rel, "frontmatter", "condition 8: skills is a list, even with one entry"))
+        preload = []
+    listed = preload or []
+
+    for entry in listed:
+        owner, sep, name = entry.partition(":")
+        if not sep or not owner or not name:
+            findings.append(
+                Finding(
+                    a.rel,
+                    "frontmatter",
+                    f"condition 9: skills entry '{entry}' is not plugin-qualified; "
+                    "write it as '<plugin>:<skill>'",
+                )
+            )
+        elif index.get(f"{owner}:skills/{name}/SKILL.md") != "skill":
+            findings.append(
+                Finding(
+                    a.rel,
+                    "frontmatter",
+                    f"condition 9: skills entry '{entry}' does not resolve to a skill in the marketplace",
+                )
+            )
+
+    orchestrated = _orchestrated_skills(a)
+    if not orchestrated:
+        return
+    for name in orchestrated:
+        if name not in listed:
+            findings.append(
+                Finding(
+                    a.rel,
+                    "frontmatter",
+                    f"condition 8: skills does not list '{name}', which references points at; "
+                    "references loads nothing",
+                )
+            )
+
+    section = _section_text(a.body, LOAD_SECTION)
+    if section is None:
+        findings.append(
+            Finding(
+                a.rel,
+                "frontmatter",
+                f"condition 10: '## {LOAD_SECTION}' is missing; it tells the executor to invoke "
+                f"{', '.join(orchestrated)} with the {LOAD_PHRASE}",
+            )
+        )
+        return
+    for name in orchestrated:
+        if f"`{name}`" not in section:
+            findings.append(
+                Finding(
+                    a.rel,
+                    "frontmatter",
+                    f"condition 10: '## {LOAD_SECTION}' does not name `{name}`",
+                )
+            )
+    if LOAD_PHRASE not in section:
+        findings.append(
+            Finding(
+                a.rel,
+                "frontmatter",
+                f"condition 10: '## {LOAD_SECTION}' does not tell the executor to use the {LOAD_PHRASE}",
+            )
+        )
+
+
 def _path_back(start: str, edges: dict[str, set[str]], walked: list[str]) -> list[str] | None:
     """A walk onward from the end of `walked` that arrives back at `start`, or None."""
     for nxt in sorted(edges.get(walked[-1], ())):
@@ -692,6 +813,7 @@ def check_artifact(a: Artifact, index: dict[str, str], names: set[str], findings
     check_enforcement(a, findings)
     check_naming(a, findings)
     check_references(a, index, names, findings)
+    check_skill_wiring(a, index, findings)
     check_completeness(a, findings)
     check_sections(a, findings)
     check_disclosure(a, findings)

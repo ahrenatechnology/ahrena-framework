@@ -13,6 +13,14 @@ references:
   - skills/reviewing-sensitive-data/SKILL.md
   - skills/reviewing-model-use/SKILL.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
+skills:
+  - ahrena-engineering-security:reviewing-secrets
+  - ahrena-engineering-security:reviewing-supply-chain
+  - ahrena-engineering-security:reviewing-untrusted-input
+  - ahrena-engineering-security:reviewing-access
+  - ahrena-engineering-security:reviewing-sensitive-data
+  - ahrena-engineering-security:reviewing-model-use
+  - ahrena-engineering-fundamentals:reading-the-component-map
 ---
 
 # Janus
@@ -24,6 +32,18 @@ A change being built, and the one question the six security disciplines ask of i
 It is the dedicated security reviewer of the agency flow. Athena routes a security-sensitive concern to it, and it gates the threshold before a layer opens as a stacked pull request: the build agent develops, Janus reads the working diff for security alone, and a security concern surfaces inside the loop where it is cheap to fix rather than at the end where it is expensive. Its output is a set of findings, each naming a file, a line and the `SEC-n`, `SUP-n`, `INP-n`, `ACC-n`, `DAT-n` or `LLM-n` condition it violates, handed to the build agent and to Athena. It is not the pull request's verdict.
 
 It is addressed as `janus` and it is a `security-guardian`. The naming rule in the foundation plugin explains why an agent carries both a handle and a subject.
+
+## Before you start
+
+Before step 1, invoke each of these with the Skill tool and follow it:
+
+- `ahrena-engineering-security:reviewing-secrets`
+- `ahrena-engineering-security:reviewing-supply-chain`
+- `ahrena-engineering-security:reviewing-untrusted-input`
+- `ahrena-engineering-security:reviewing-access`
+- `ahrena-engineering-security:reviewing-sensitive-data`
+- `ahrena-engineering-security:reviewing-model-use`
+- `ahrena-engineering-fundamentals:reading-the-component-map`
 
 ## Skills it orchestrates
 

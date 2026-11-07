@@ -88,6 +88,8 @@ clade: fixture
 role: thing-doer
 references:
   - skills/doing-things/SKILL.md
+skills:
+  - fixture-plugin:doing-things
 ---
 
 # Specialist
@@ -95,6 +97,10 @@ references:
 ## What this agent is for
 
 Specialist work.
+
+## Before you start
+
+Before step 1, invoke `fixture-plugin:doing-things` with the Skill tool and follow it.
 
 ## Skills it orchestrates
 
@@ -166,6 +172,79 @@ NEIGHBOUR_DOC_TO_RULE = NEIGHBOUR_DOC.replace(
     "summary: A doc that passes.",
     "summary: A doc that passes.\nreferences:\n  - fixture-plugin:rules/bounded.md",
 )
+
+
+# #252 — An agent wires every skill it references through `skills` and a
+# `## Before you start` section, so the fixtures below vary one of the two.
+UNWIRED_AGENT = GOOD_AGENT.replace("skills:\n  - fixture-plugin:doing-things\n", "")
+NO_LOAD_SECTION = (
+    "## Before you start\n\n"
+    "Before step 1, invoke `fixture-plugin:doing-things` with the Skill tool and follow it.\n\n"
+)
+SECOND_SKILL = GOOD_SKILL.replace("name: doing-things", "name: checking-things").replace(
+    "references:\n  - rules/bounded.md\n", ""
+)
+TWO_SKILL_AGENT = GOOD_AGENT.replace(
+    "  - skills/doing-things/SKILL.md\n",
+    "  - skills/doing-things/SKILL.md\n  - skills/checking-things/SKILL.md\n",
+)
+
+
+def wired_agent(preload: list[str], section: str) -> str:
+    """The fixture agent with its `skills` list and its load section replaced."""
+    lines = "".join(f"  - {name}\n" for name in preload)
+    return (
+        GOOD_AGENT.replace("skills:\n  - fixture-plugin:doing-things\n", f"skills:\n{lines}")
+        .replace(NO_LOAD_SECTION, section)
+    )
+
+
+ATHENA_BEFORE_252 = (Path(__file__).resolve().parent / "fixtures" / "athena-before-252.md").read_text(
+    encoding="utf-8"
+)
+
+# The plugins athena.md named at e9f4342, each holding a stub of every artifact
+# its references point at, so the only defect left in the copy is the wiring.
+ATHENA_PLUGINS = {
+    "ahrena-engineering-delivery": "d",
+    "ahrena-engineering-fundamentals": "f",
+    "ahrena-contributing": "c",
+    "ahrena-engineering-frontend": "fe",
+    "ahrena-engineering-backend": "be",
+    "ahrena-engineering-data": "da",
+    "ahrena-engineering-quality": "qa",
+}
+STUB_SKILL = GOOD_SKILL.replace("references:\n  - rules/bounded.md\n", "")
+STUB_AGENT = UNWIRED_AGENT.replace("references:\n  - skills/doing-things/SKILL.md\n", "").replace(
+    NO_LOAD_SECTION, ""
+)
+
+
+def athena_tree() -> dict[str, str]:
+    """A marketplace in which every reference of the pre-#252 athena.md resolves."""
+    tree = {
+        MARKETPLACE_PATH: json.dumps(
+            {
+                "name": "fixture",
+                "plugins": [{"name": n, "source": {"path": d}} for n, d in ATHENA_PLUGINS.items()],
+            }
+        ),
+        "d/agents/athena.md": ATHENA_BEFORE_252,
+        "d/docs/clef-decision-gate.md": GOOD_DOC.replace("id: reference", "id: clef-decision-gate"),
+    }
+    skills = {
+        "d": ("orchestrating-delivery", "routing-concern"),
+        "f": ("reading-the-component-map",),
+        "c": ("opening-issues", "planning-changes", "stacking-pull-requests"),
+    }
+    for directory, names in skills.items():
+        for name in names:
+            tree[f"{directory}/skills/{name}/SKILL.md"] = STUB_SKILL.replace("name: doing-things", f"name: {name}")
+    agents = {"fe": ("iris",), "be": ("apollo",), "da": ("clio",), "qa": ("argos", "erodos")}
+    for directory, names in agents.items():
+        for name in names:
+            tree[f"{directory}/agents/{name}.md"] = STUB_AGENT.replace("name: specialist", f"name: {name}")
+    return tree
 
 
 def qualified(ref: str) -> str:
@@ -949,6 +1028,176 @@ CASES = [
             "p/rules/bounded.md": qualified("other-plugin:docs/neighbour.md"),
         },
         ["2 artifact(s), no failures"],
+        ok=True,
+    ),
+    # --- agents wire the skills they orchestrate ----------------------------
+    # #252/AC-1
+    case(
+        "an agent that references a skill but declares no skills fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": UNWIRED_AGENT},
+        ["agents/specialist.md", "condition 8: skills does not list 'fixture-plugin:doing-things'"],
+    ),
+    # #252/AC-1 #252/AC-2
+    case(
+        "an agent whose skills omit one referenced skill fails, naming the condition",
+        {
+            **VALID_CORPUS,
+            "p/skills/checking-things/SKILL.md": SECOND_SKILL,
+            "p/agents/specialist.md": TWO_SKILL_AGENT.replace(
+                NO_LOAD_SECTION,
+                "## Before you start\n\nBefore step 1, invoke each of these with the Skill tool and follow it: "
+                "`fixture-plugin:doing-things`, `fixture-plugin:checking-things`.\n\n",
+            ),
+        },
+        ["1 failure(s)", "[frontmatter] condition 8: skills does not list 'fixture-plugin:checking-things'"],
+    ),
+    # #252/AC-1
+    case(
+        "a skills list given as a scalar fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace(
+                "skills:\n  - fixture-plugin:doing-things\n", "skills: fixture-plugin:doing-things\n"
+            ),
+        },
+        ["condition 8: skills is a list, even with one entry"],
+    ),
+    # #252/AC-1
+    case(
+        "a skills entry that does not resolve to a skill fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": wired_agent(
+                ["fixture-plugin:doing-things", "fixture-plugin:absent-thing"], NO_LOAD_SECTION
+            ),
+        },
+        ["1 failure(s)", "condition 9: skills entry 'fixture-plugin:absent-thing' does not resolve"],
+    ),
+    # #252/AC-1
+    case(
+        "a skills entry naming a plugin the marketplace does not list fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": wired_agent(
+                ["fixture-plugin:doing-things", "ghost-plugin:doing-things"], NO_LOAD_SECTION
+            ),
+        },
+        ["condition 9: skills entry 'ghost-plugin:doing-things' does not resolve"],
+    ),
+    # #252/AC-1
+    case(
+        "a skills entry that is not plugin-qualified fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": wired_agent(["doing-things"], NO_LOAD_SECTION)},
+        [
+            "condition 9: skills entry 'doing-things' is not plugin-qualified",
+            "condition 8: skills does not list 'fixture-plugin:doing-things'",
+        ],
+    ),
+    # #252/AC-1
+    case(
+        "an agent with no Before you start section fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": GOOD_AGENT.replace(NO_LOAD_SECTION, "")},
+        ["1 failure(s)", "condition 10: '## Before you start' is missing"],
+    ),
+    # #252/AC-1
+    case(
+        "a Before you start section that omits a referenced skill fails",
+        {
+            **VALID_CORPUS,
+            "p/skills/checking-things/SKILL.md": SECOND_SKILL,
+            "p/agents/specialist.md": TWO_SKILL_AGENT.replace(
+                "  - fixture-plugin:doing-things\n",
+                "  - fixture-plugin:doing-things\n  - fixture-plugin:checking-things\n",
+            ),
+        },
+        ["1 failure(s)", "condition 10: '## Before you start' does not name `fixture-plugin:checking-things`"],
+    ),
+    # #252/AC-1
+    case(
+        "a Before you start section that never names the Skill tool fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace("with the Skill tool and follow it", "and follow it"),
+        },
+        ["1 failure(s)", "condition 10: '## Before you start' does not tell the executor to use the Skill tool"],
+    ),
+    # #252/AC-1
+    case(
+        "a Before you start section inside a code fence does not count",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace(
+                NO_LOAD_SECTION, "```markdown\n" + NO_LOAD_SECTION + "```\n\n"
+            ),
+        },
+        ["condition 10: '## Before you start' is missing"],
+    ),
+    # #252/AC-1
+    case(
+        "an agent wired to a skill in another plugin passes",
+        {
+            MARKETPLACE_PATH: TWO_PLUGINS,
+            "q/skills/doing-things/SKILL.md": STUB_SKILL,
+            "p/agents/specialist.md": GOOD_AGENT.replace(
+                "  - skills/doing-things/SKILL.md\n", "  - other-plugin:skills/doing-things/SKILL.md\n"
+            ).replace("fixture-plugin:doing-things", "other-plugin:doing-things"),
+        },
+        ["2 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #252/AC-1
+    case(
+        "an agent that references no skill needs neither skills nor the section",
+        {
+            "p/agents/specialist.md": STUB_AGENT,
+        },
+        ["1 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #252/AC-11
+    case(
+        "the pre-#252 athena.md fails the wiring check",
+        athena_tree(),
+        [
+            "agents/athena.md",
+            "condition 8: skills does not list 'ahrena-engineering-delivery:orchestrating-delivery'",
+            "condition 8: skills does not list 'ahrena-contributing:stacking-pull-requests'",
+            "condition 10: '## Before you start' is missing",
+            "7 failure(s)",
+        ],
+    ),
+    # #252/AC-11
+    case(
+        "the pre-#252 athena.md fixture tree is otherwise clean",
+        {
+            **athena_tree(),
+            "d/agents/athena.md": ATHENA_BEFORE_252.replace(
+                "---\n\n# Athena",
+                "skills:\n"
+                + "".join(
+                    f"  - {n}\n"
+                    for n in (
+                        "ahrena-engineering-delivery:orchestrating-delivery",
+                        "ahrena-engineering-delivery:routing-concern",
+                        "ahrena-engineering-fundamentals:reading-the-component-map",
+                        "ahrena-contributing:opening-issues",
+                        "ahrena-contributing:planning-changes",
+                        "ahrena-contributing:stacking-pull-requests",
+                    )
+                )
+                + "---\n\n# Athena",
+                1,
+            ).replace(
+                "\n## Skills it orchestrates",
+                "\n## Before you start\n\nBefore step 1, invoke each of these with the Skill tool and follow it: "
+                "`ahrena-engineering-delivery:orchestrating-delivery`, `ahrena-engineering-delivery:routing-concern`, "
+                "`ahrena-engineering-fundamentals:reading-the-component-map`, `ahrena-contributing:opening-issues`, "
+                "`ahrena-contributing:planning-changes`, `ahrena-contributing:stacking-pull-requests`.\n\n"
+                "## Skills it orchestrates",
+                1,
+            ),
+        },
+        ["no failures"],
         ok=True,
     ),
     # #159/AC-6
