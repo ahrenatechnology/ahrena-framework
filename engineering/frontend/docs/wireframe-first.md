@@ -25,7 +25,7 @@ The wireframe is the outermost edge, so it is validated first. It is also the ch
 
 Approval is what makes the wireframe a gate rather than a step. The design's owner — the person who is accountable for what the feature does and how it behaves — accepts the wireframe before any code is written against it. An agent producing the wireframe and then approving its own wireframe has removed the gate while appearing to pass it, which is worse than no gate, because the stack now carries a signed-off first layer that nobody with authority signed.
 
-This is why the first layer is delegated to a Designer and handed back, not produced and consumed inside one step. The hand-back is the gate.
+This is why the first layer is delegated to Daedalus, the wireframe designer, and handed back as `NEEDS_APPROVAL`, not produced and consumed inside one step. The hand-back is the gate.
 
 ## Behaviour leads the wireframe
 

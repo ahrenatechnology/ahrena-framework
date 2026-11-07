@@ -28,8 +28,9 @@ the build agent that can finish it, runs the develop→review loop at most three
 rounds before each layer opens, stacks the layers, and escalates what the loop or
 the cascade cannot settle. It never writes production code, passes a review
 verdict, or applies a fix. In this framework the manager is Athena and the
-workers are Iris, Apollo and Clio, with Argos reviewing and Erodos applying
-findings in the loop.
+workers are Iris, Apollo and Clio, each handing its layers to an implementer
+(Daedalus and Aglaia, Hephaestus, Mnemosyne), with Argos reviewing in the loop and
+Erodos applying findings on the pull request.
 
 That description names no runtime. It is true of a Claude Code agent, a Codex
 subagent and a LangGraph supervisor alike, which is why the spec is portable and
