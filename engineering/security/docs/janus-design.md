@@ -25,7 +25,7 @@ It applies the six security disciplines and nothing else. The engineering rules 
 
 ## It does not fix what it finds
 
-A reviewer that applied its own findings would read its own edit on the next pass, and the second reading is the value of the review. The build agent writes the change, and Erodos applies the mechanically applicable findings between rounds.
+A reviewer that applied its own findings would read its own edit on the next pass, and the second reading is the value of the review. The build agent writes the change, and Erodos applies the mechanically applicable findings once the layer is a pull request.
 
 ## It reads the project's conventions first
 
