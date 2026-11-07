@@ -1,6 +1,6 @@
 {
   "name": "ahrena-engineering-security",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Application security as review disciplines: secrets and supply chain, untrusted input, access and sensitive data, and the use of language models and agents.",
   "author": {
     "name": "Ahrena Technology",

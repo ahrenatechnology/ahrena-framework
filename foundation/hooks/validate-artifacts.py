@@ -6,6 +6,7 @@ Decides the conditions stated in the three foundation rules:
     foundation/rules/pilars.md       types, authority, references
     foundation/rules/naming.md       names and paths
     foundation/rules/frontmatter.md  required and undeclared fields
+    foundation/rules/completeness.md markers, placeholders, required sections
 
 Standard library only, on purpose. A consumer who installs the plugin can run
 the same gate the repository runs, without installing anything to do it.
@@ -97,12 +98,11 @@ REQUIRED_SECTIONS = {
     "rule": ("Conditions", "Where this stops"),
     "doc": ("Where this stops",),
     "skill": ("When this skill does not apply",),
-    "agent": ("What this agent is for", "Skills it orchestrates", "What it does not do"),
     "command": ("What runs",),
 }
 NUMBERED_STEP = re.compile(r"^\d+\.")
 
-# #252 — the agent body skeleton, conditions 5 to 7 of completeness.md.
+# #252 — the agent body skeleton, conditions 3 and 5 to 7 of completeness.md, on every agent.
 AGENT_SKELETON = (
     "What this agent is for",
     "Before you start",
@@ -115,8 +115,7 @@ AGENT_SKELETON = (
     "What it does not do",
     "Example",
 )
-SKELETON_MARKER = "Procedure"
-SKELETON_REQUIRED = tuple(h for h in AGENT_SKELETON if h != "Before you start")
+REQUIRED_SECTIONS["agent"] = tuple(h for h in AGENT_SKELETON if h != "Before you start")
 STATUS_LINE = re.compile(r"^(DONE|BLOCKED|NEEDS_APPROVAL)\b")
 APPROVAL_FIELDS = ("approve:", "recommendation:", "resume:")
 EXAMPLE_OPEN, EXAMPLE_CLOSE = "<example>", "</example>"
@@ -126,6 +125,17 @@ SKILL_PATH = re.compile(r"^skills/([^/]+)/SKILL\.md$")
 PRELOAD_FIELD = "skills"
 LOAD_SECTION = "Before you start"
 LOAD_PHRASE = "Skill tool"
+
+# #252/AC-4 — conditions 11 and 12 of frontmatter.md; the lead roles are its closed list.
+AGENT_RUNTIME_FIELDS = ("tools", "model")
+LEAD_ROLES = ("tech-lead", "product-manager", "round-lead")
+LEAD_MODEL = "opus"
+
+# #252/AC-6 — conditions 9 and 10 of naming.md.
+DELEGATION_SECTION = "Delegation"
+DELEGATION_COLUMN = "subagent_type"
+AGENT_NAME_REF = re.compile(r"`([^`\s]*)`")
+AGENT_PATH_REF = re.compile(r"\b([a-z0-9][a-z0-9-]*):agents/([^\s`/)]+)\.md\b")
 
 KEBAB = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 KEY = re.compile(r"^[a-z][a-z0-9-]*$")
@@ -587,6 +597,103 @@ def check_skill_wiring(a: Artifact, index: dict[str, str], findings: list[Findin
         )
 
 
+def check_agent_runtime(a: Artifact, findings: list[Finding]) -> None:
+    """Conditions 11 and 12 of frontmatter.md: an agent says what it may run and on what (#252/AC-4).
+
+    Without `tools` an agent inherits every tool its caller has, and without
+    `model` it inherits the caller's model, so neither its power nor its cost
+    is stated anywhere a reviewer can read.
+    """
+    if a.kind != "agent":
+        return
+    for name in AGENT_RUNTIME_FIELDS:
+        value = a.data.get(name)
+        if value is None:
+            findings.append(Finding(a.rel, "frontmatter", f"condition 11: '{name}' is missing; an agent declares it"))
+        elif not (value if isinstance(value, str) else "".join(value)).strip():
+            findings.append(Finding(a.rel, "frontmatter", f"condition 11: '{name}' is empty"))
+    role, model = a.data.get("role"), a.data.get("model")
+    if role in LEAD_ROLES and isinstance(model, str) and model.strip() and model.strip() != LEAD_MODEL:
+        findings.append(
+            Finding(
+                a.rel,
+                "frontmatter",
+                f"condition 12: role '{role}' is a lead, so model is '{LEAD_MODEL}', not '{model.strip()}'",
+            )
+        )
+
+
+def _cells(line: str) -> list[str]:
+    """The cells of one Markdown table row."""
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def _agent_exists(qualified: str, index: dict[str, str]) -> bool:
+    owner, _, name = qualified.partition(":")
+    return index.get(f"{owner}:agents/{name}.md") == "agent"
+
+
+def _delegation_error(name: str, index: dict[str, str]) -> str | None:
+    """Why one name in a `subagent_type` cell does not resolve, or None when it does."""
+    owner, sep, handle = name.partition(":")
+    if not sep or not owner or not handle:
+        return f"condition 9: delegation to '{name}' is not plugin-qualified; write it as `<plugin>:<agent>`"
+    if not _agent_exists(name, index):
+        return f"condition 9: delegation to '{name}' does not resolve to an agent in the marketplace"
+    return None
+
+
+def _delegation_names(rows: list[str]) -> list[str] | None:
+    """Every name in the `subagent_type` column of a table, or None when the table has no such column.
+
+    A cell with no backticked name is read whole, so a role written in prose
+    ("a specialist") is reported as the unqualified name it is.
+    """
+    header = [cell.strip("`").lower() for cell in _cells(rows[0])]
+    if DELEGATION_COLUMN not in header:
+        return None
+    column = header.index(DELEGATION_COLUMN)
+    names: list[str] = []
+    for row in rows[1:]:
+        cells = _cells(row)
+        if all(set(cell) <= set("-: ") for cell in cells):
+            continue
+        cell = cells[column] if column < len(cells) else ""
+        names += AGENT_NAME_REF.findall(cell) or [cell or "(empty)"]
+    return names
+
+
+def check_delegation(a: Artifact, index: dict[str, str], findings: list[Finding]) -> None:
+    """Conditions 9 and 10 of naming.md: every agent an agent hands work to exists (#252/AC-6).
+
+    A delegation to a role ("a specialist") or to a handle the marketplace does
+    not carry is one the Agent tool cannot resolve, and the run fails at the
+    hand-off, or worse, a different agent with that handle answers.
+    """
+    if a.kind != "agent":
+        return
+    section = _section_text(a.body, DELEGATION_SECTION) or ""
+    rows = [line for line in section.splitlines() if line.strip().startswith("|")]
+    names = _delegation_names(rows) if rows else []
+    if names is None:
+        message = f"condition 9: the '## {DELEGATION_SECTION}' table has no `{DELEGATION_COLUMN}` column"
+        findings.append(Finding(a.rel, "naming", message))
+    for name in names or []:
+        error = _delegation_error(name, index)
+        if error:
+            findings.append(Finding(a.rel, "naming", error))
+    for offset, line in _outside_fences(a.body):
+        for owner, name in AGENT_PATH_REF.findall(line):
+            if not _agent_exists(f"{owner}:{name}", index):
+                findings.append(
+                    Finding(
+                        f"{a.rel}:{a.body_start + offset}",
+                        "naming",
+                        f"condition 10: '{owner}:agents/{name}.md' does not resolve to an agent in the marketplace",
+                    )
+                )
+
+
 def _path_back(start: str, edges: dict[str, set[str]], walked: list[str]) -> list[str] | None:
     """A walk onward from the end of `walked` that arrives back at `start`, or None."""
     for nxt in sorted(edges.get(walked[-1], ())):
@@ -757,7 +864,7 @@ def _check_example(a: Artifact, findings: list[Finding]) -> None:
 
 
 def check_skeleton(a: Artifact, headings: list[str], findings: list[Finding]) -> None:
-    """Conditions 5 to 7 of completeness.md: the agent body skeleton (#252)."""
+    """Conditions 5 to 7 of completeness.md: the agent body skeleton, on every agent (#252)."""
     _check_order(a, headings, findings)
     _check_output(a, findings)
     _check_example(a, findings)
@@ -768,14 +875,10 @@ def check_sections(a: Artifact, findings: list[Finding]) -> None:
     headings = [line[3:].strip() for _, line in _outside_fences(a.body) if line.startswith("## ")]
     present = {h.lower() for h in headings}
 
-    required_sections = REQUIRED_SECTIONS[a.kind]
-    skeleton = a.kind == "agent" and SKELETON_MARKER.lower() in present
-    if skeleton:
-        required_sections = SKELETON_REQUIRED
-    for required in required_sections:
+    for required in REQUIRED_SECTIONS[a.kind]:
         if required.lower() not in present:
             findings.append(Finding(a.rel, "completeness", f"'## {required}' is missing"))
-    if skeleton:
+    if a.kind == "agent":
         check_skeleton(a, headings, findings)
 
     if a.kind == "skill" and not any(NUMBERED_STEP.match(h) for h in headings):
@@ -954,6 +1057,8 @@ def check_artifact(a: Artifact, index: dict[str, str], names: set[str], findings
     check_naming(a, findings)
     check_references(a, index, names, findings)
     check_skill_wiring(a, index, findings)
+    check_agent_runtime(a, findings)
+    check_delegation(a, index, findings)
     check_completeness(a, findings)
     check_sections(a, findings)
     check_disclosure(a, findings)
