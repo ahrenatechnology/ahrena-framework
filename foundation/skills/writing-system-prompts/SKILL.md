@@ -125,8 +125,10 @@ A case with no line that decides it is a fail. Fix the body at the step that own
 ## 11. Run the gate and hand to review
 
 ```sh
-python3 foundation/hooks/validate-artifacts.py
+python3 <plugin>/hooks/validate-artifacts.py [repo-root]
 ```
+
+`<plugin>` is the foundation plugin's directory; in this repository, `foundation`.
 
 Fix every failure before going on. Then run `reviewing-artifacts` on the artifact, which applies SP-1 to SP-12 in its step 13, and attach the table from step 10 to what you hand back. Output: the gate's exit 0, the review's findings, and the adversarial table.
 
