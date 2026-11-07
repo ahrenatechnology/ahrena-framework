@@ -67,7 +67,7 @@ An agent that orchestrates a skill therefore names it twice more. `skills` lists
 
 **On a rule or a doc, an undeclared field fails.** The schema is closed because we own both ends of it.
 
-**On a skill, an agent or a command, an undeclared field passes.** These files are read by four platforms that add fields on their own schedule. `allowed-tools`, `model` and `argument-hint` are theirs, they will not be the last, and a gate that rejects them would break on someone else's release.
+**On a skill, an agent or a command, an undeclared field passes.** These files are read by four platforms that add fields on their own schedule. `allowed-tools` and `argument-hint` are theirs, they will not be the last, and a gate that rejects them would break on someone else's release. `tools` and `model` are platform fields too, but on an agent they are declared and required, below.
 
 ## `tools` and `model`
 

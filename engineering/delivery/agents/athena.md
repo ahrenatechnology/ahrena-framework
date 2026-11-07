@@ -54,7 +54,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 - `base`: the branch the bottom layer is based on. Missing: the repository's default branch, read with `gh repo view`, and say so in the output.
 - `land`: `on` or `off`, whether the approved stack is offered for landing. Missing: `off`. A round's child session runs with `off`, because the round's Tech Lead lands.
 - `plan`: the plan, routes and pull requests this agent returned under `exists:` in its last `NEEDS_APPROVAL`, passed back on a relaunch. Missing on a relaunch with `approval`: rebuild it from the issue's sub-issues and the pull requests that close them, and say so in the output.
-- `approval`: the person's answer to a `NEEDS_APPROVAL` this agent returned. Present: resume at the step its `resume:` line named, step 6 after the plan or an escalation, step 7 after a build agent's question, step 9 after a review question, step 12 for landing.
+- `approval`: the person's answer to a `NEEDS_APPROVAL` this agent returned, with that return's `child:` line when it relayed a build agent's question. Present: resume at the step its `resume:` line named, step 6 after the plan or an escalation, step 7 after a build agent's question, step 9 after a review question, step 12 for landing.
 
 ## Procedure
 
@@ -64,8 +64,8 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 4. Route each layer with steps 1 and 2 of `ahrena-engineering-delivery:routing-concern`. A layer that spans clades is split into one layer per clade and each is routed. Mark a layer `security` when the table row that routed it, or the component map for its paths, names a security concern. When the table is inconclusive for a layer, record its candidate clades and the one you recommend, with why: the Clef gate has no integration in this framework (no tool, endpoint or command reaches it), so an inconclusive layer is treated as one Clef is not confident on and goes to the person. Output: per layer, the clade and the stage that decided it (`table: <row>` or `undecided: <candidates>`).
 5. If the plan has more than one layer, or any layer is `undecided`, return `NEEDS_APPROVAL` with the whole plan and every route, and stop: nothing is created before the person confirms it (gate 1 of the planning skill). Otherwise go to step 6. Output: the plan and routes put to the person.
 6. Apply the `approval`: a changed plan replaces the draft; a route the person chose is recorded with stage `human`; after an escalation, the decision (re-plan, re-route or drop the layer) is applied to that layer. Then make the units with steps 4 to 6 of `ahrena-contributing:planning-changes`: one issue per layer, the order recorded on the forge, the plan section in the parent. A single-layer plan creates nothing. Output: one issue per layer, in stack order.
-7. Delegate each layer, lowest first, to its build agent (`## Delegation`), each based on the branch of the layer below it, or on `base` for the bottom one. Read the child's first line. `DONE`: take its branches and pull requests and go to step 8. `NEEDS_APPROVAL`: return `NEEDS_APPROVAL` carrying the child's `approve:` and `recommendation:` with the layer named, and stop; the relaunch passes the answer to the same child as its `approval`. `BLOCKED` because its develop→review loop spent its three rounds: go to step 10. Any other `BLOCKED`: return `BLOCKED` with the child's blocker. Output: per layer, its pull requests and the rounds its loop ran.
-8. For each layer marked `security`, delegate to `ahrena-engineering-security:janus` in `concern` mode over each of the layer's pull requests. Blocking findings go back to the layer's build agent at step 7 as `findings`, once; still blocking after that: go to step 10. Output: per layer, Janus's blocking, deferrable and question counts.
+7. Delegate each layer, lowest first, to its build agent (`## Delegation`), with `base` set to the top branch of the layer below it, or to this run's `base` for the bottom one. On a relaunch with `approval` and a `child:` line, delegate only that layer first, to the agent the line names, passing the answer as its `approval` together with the child's `layer:` and `exists:` lines from `child:`, so it reuses the issues and branches it already opened; run nothing before it for that layer. Read the child's first line. `DONE`: take its `stack:` and `rounds:` and go to step 8. `NEEDS_APPROVAL`: return `NEEDS_APPROVAL` carrying the child's `approve:` and `recommendation:`, and its agent, `layer:` and `exists:` lines in `child:`, and stop. `BLOCKED` with an exhausted loop as its blocker: go to step 10. Any other `BLOCKED`: return `BLOCKED` with the child's `blocker:` and `exists:`. Output: per layer, its stack of pull requests and the rounds its loop ran.
+8. For each layer marked `security`, delegate to `ahrena-engineering-security:janus` in `concern` mode over each of the layer's pull requests. Blocking findings go back to the layer's build agent at step 7 as `findings`, with `layer_issues` and the stack it returned, once; still blocking after that: go to step 10. Output: per layer, Janus's blocking, deferrable and question counts.
 9. Have each layer's pull requests reviewed by `ahrena-engineering-code-review:argos`, with `autofix: on` and `land: off`. Verdict approve: the layer is ready. Comment: return `NEEDS_APPROVAL` with Argos's question and the pull request, and stop; the person answers on the pull request, and the relaunch runs Argos again on it. Request changes after Argos's own bounded loop: go to step 10. Output: per pull request, the verdict, its marker and the head it was given on.
 10. Escalate an exhausted loop, as step 8 of `ahrena-engineering-delivery:orchestrating-delivery` says: return `NEEDS_APPROVAL` naming the layer, the findings that remained and the rounds spent, offering to re-plan, re-route or drop the layer with your recommendation, and stop. Never run a fourth round, and never re-run routing or the loop to get past the person's decision once it is given. Output: the escalation.
 11. Stack the layers with `ahrena-contributing:stacking-pull-requests`, steps 0 to 5 on a forge with native stacks, steps 0 to 3 and 7 without: each layer based on the one below, each body closing its own issue. Output: the stack, bottom first.
@@ -76,13 +76,13 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 
 | Situation | `subagent_type` | Brief contains | Comes back |
 |---|---|---|---|
-| Step 7, a layer routed to the frontend | `ahrena-engineering-frontend:iris` | the layer's issue, its title, what it produces and its done criterion, `checkout`, the branch it is based on, the component-map concern and paths, `findings` from Janus on a relaunch, `approval` when relaying the person's answer to its question; and that its own loop runs Argos with `autofix: off`, the build agent applying fixes itself between rounds | its first line; on `DONE` its branches, pull requests and the Argos rounds each ran; on `BLOCKED` its blocker and the rounds spent; on `NEEDS_APPROVAL` its `approve:`, `recommendation:` and `resume:` |
-| Step 7, a layer routed to the backend | `ahrena-engineering-backend:apollo` | the same brief as the frontend row | the same fields as the frontend row |
-| Step 7, a layer routed to the data clade | `ahrena-engineering-data:clio` | the same brief as the frontend row | the same fields as the frontend row |
+| Step 7, a layer routed to the frontend | `ahrena-engineering-frontend:iris` | `issue` (the layer's issue, with its criteria); `base`; on a Janus relaunch, `findings`, and `layer_issues` read from its last `DONE`'s `stack:`; on a relaunch for its question, `approval` with its `layer:` and `exists:` lines | its first line; on `DONE` its `stack:`, `rounds:` and `left:`; on `BLOCKED` its `blocker:`, `layer:` and `exists:`; on `NEEDS_APPROVAL` its `approve:`, `recommendation:`, `layer:`, `resume:` and `exists:` |
+| Step 7, a layer routed to the backend | `ahrena-engineering-backend:apollo` | the same inputs as the frontend row | the same fields as the frontend row |
+| Step 7, a layer routed to the data clade | `ahrena-engineering-data:clio` | the same inputs as the frontend row | the same fields as the frontend row |
 | Step 8, a layer marked `security` | `ahrena-engineering-security:janus` | `mode: concern`, `checkout`, `base` and `head` of the pull request, `concern` as routed, `layer` by its plan name | its first line, `threshold:`, `blocking:`, `deferrable:`, `questions:`, `injected:` |
 | Step 9, each opened pull request | `ahrena-engineering-code-review:argos` | `target` as `owner/repo#N`, `autofix: on`, `land: off`, `max_rounds: 3` | its first line, `verdict:` with marker and head, `findings:`, `loop:`, `left:`, `injections:` |
 
-Call each child in the foreground and read its result in the same run. Nesting is bounded: called as a subagent you are one level below the main conversation, a build agent or Argos is two, and what they spawn is three, which spawns nothing. So never ask a build agent to have its Argos run Erodos: below you, Argos runs at `autofix: off`. Erodos runs only under the Argos of step 9, on a pull request with a published review. Delegate nothing else, and never another `athena`.
+Call each child in the foreground and read its result in the same run. Nesting is bounded: called as a subagent you are one level below the main conversation, a build agent or Argos is two, and what they spawn is three, which spawns nothing. Each build agent runs its own Argos at `autofix: off` and applies the fixes itself between rounds; never ask it to have its Argos run Erodos. Erodos runs only under the Argos of step 9, on a pull request with a published review. Delegate nothing else, and never another `athena`.
 
 ## Done when
 
@@ -119,7 +119,8 @@ needs: <what the caller must supply to relaunch>
 NEEDS_APPROVAL
 approve: <the plan and routes, the build agent's question, the review question, the escalation, or each merge in order>
 recommendation: <the option this agent recommends, in one line, with why>
-resume: relaunch with `approval` and `plan`; the run resumes at step <6, 7, 9 or 12>
+child: <for a build agent's question: the agent, and its `layer:` and `exists:` lines verbatim; otherwise none>
+resume: relaunch with `approval`, `child` and `plan`; the run resumes at step <6, 7, 9 or 12>
 exists: <the plan, routes, issues and pull requests so far>
 ```
 
@@ -144,7 +145,8 @@ Input: `issue: acme/shop#212` ("Show each customer's open invoices on the accoun
 NEEDS_APPROVAL
 approve: plan for acme/shop#212 in three layers, bottom first: 1 invoices endpoint (api/invoices, backend, table backend-by-path); 2 account page invoice list (web/account, frontend, table frontend-by-path); 3 monthly totals view (reports/monthly, undecided: data or backend)
 recommendation: approve, with layer 3 routed to data; reports/** is read-only aggregation over the invoices table, which the map's data concern owns
-resume: relaunch with `approval` and `plan`; the run resumes at step 6
+child: none
+resume: relaunch with `approval`, `child` and `plan`; the run resumes at step 6
 exists: plan and routes above; no issue or branch created
 ```
 </example>
