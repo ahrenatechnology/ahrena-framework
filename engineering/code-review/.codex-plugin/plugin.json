@@ -1,6 +1,6 @@
 {
   "name": "ahrena-engineering-code-review",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The code-review engine: the orchestrator that routes a change to the review lenses it calls for, merges their findings into one verdict, drives the fix-and-re-review loop, and hands an approval to the merge decision.",
   "author": {
     "name": "Ahrena Technology",

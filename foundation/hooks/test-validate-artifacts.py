@@ -86,6 +86,8 @@ description: A specialist. Hand it specialist work.
 type: agent
 clade: fixture
 role: thing-doer
+tools: Read, Skill
+model: sonnet
 references:
   - skills/doing-things/SKILL.md
 skills:
@@ -102,13 +104,64 @@ Specialist work.
 
 Before doing anything else, invoke `fixture-plugin:doing-things` with the Skill tool, so its procedure is in your context.
 
-## Skills it orchestrates
+## Inputs
 
-Only `doing-things`.
+- `thing`: the thing to do. Missing, return BLOCKED naming it.
+- `approval`: the person's answer to a NEEDS_APPROVAL. Present, resume at step 2.
+
+## Procedure
+
+1. Plan the thing. Return NEEDS_APPROVAL with the plan.
+2. Do the thing with `doing-things`. Output: the thing, done.
+
+## Delegation
+
+None.
+
+## Done when
+
+Do not return before the thing is done.
+
+## When blocked
+
+The thing is missing. Return BLOCKED naming it.
+
+## Output
+
+```text
+DONE
+exists: the thing, done
+left: none
+```
+
+```text
+BLOCKED
+blocker: the missing input
+needs: what to relaunch with
+```
+
+```text
+NEEDS_APPROVAL
+approve: the plan
+recommendation: approve it
+resume: relaunch with approval; the run resumes at step 2
+```
 
 ## What it does not do
 
 Anything else.
+
+## Example
+
+<example>
+Input: a thing to do.
+
+```text
+DONE
+exists: the thing, done
+left: none
+```
+</example>
 """
 
 GOOD_COMMAND = """---
@@ -189,9 +242,7 @@ TWO_SKILL_AGENT = GOOD_AGENT.replace(
 )
 
 
-# #252/AC-3 #252/AC-7 — An agent that has `## Procedure` is held to the body
-# skeleton instead of the pre-#252 agent row, so the fixtures below drop or
-# break one part of a skeleton agent that otherwise passes.
+# #252/AC-3 #252/AC-7 — the parts of GOOD_AGENT's skeleton the cases below drop or break.
 SKELETON_OUTPUT = (
     "## Output\n\n"
     "```text\nDONE\nexists: the thing, done\nleft: none\n```\n\n"
@@ -204,22 +255,8 @@ SKELETON_EXAMPLE = (
     "<example>\nInput: a thing to do.\n\n```text\nDONE\nexists: the thing, done\nleft: none\n```\n"
     "</example>\n"
 )
-SKELETON_AGENT = GOOD_AGENT.replace(
-    NO_LOAD_SECTION,
-    "## Before you start\n\nBefore doing anything else, invoke each of these with the Skill tool, so its "
-    "procedure is in your context: `fixture-plugin:doing-things`.\n\nLoading a skill is not running it: "
-    "run each one only at the step of `## Procedure` that names it.\n\n",
-).replace(
-    "## Skills it orchestrates\n\nOnly `doing-things`.\n\n",
-    "## Inputs\n\n- `thing`: the thing to do. Missing, return BLOCKED naming it.\n"
-    "- `approval`: the person's answer to a NEEDS_APPROVAL. Present, resume at step 2.\n\n"
-    "## Procedure\n\n1. Plan the thing. Return NEEDS_APPROVAL with the plan.\n"
-    "2. Do the thing with `doing-things`. Output: the thing, done.\n\n"
-    "## Delegation\n\nNone.\n\n"
-    "## Done when\n\nDo not return before the thing is done.\n\n"
-    "## When blocked\n\nThe thing is missing. Return BLOCKED naming it.\n\n"
-    + SKELETON_OUTPUT,
-) + "\n" + SKELETON_EXAMPLE
+SKELETON_AGENT = GOOD_AGENT
+assert SKELETON_OUTPUT in GOOD_AGENT and SKELETON_EXAMPLE in GOOD_AGENT
 
 
 def wired_agent(preload: list[str], section: str) -> str:
@@ -276,6 +313,64 @@ def athena_tree() -> dict[str, str]:
         for name in names:
             tree[f"{directory}/agents/{name}.md"] = STUB_AGENT.replace("name: specialist", f"name: {name}")
     return tree
+
+
+# #252/AC-11: the rewritten athena.md, read from the repository rather than copied.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+ATHENA_NOW = (REPO_ROOT / "engineering" / "delivery" / "agents" / "athena.md").read_text(encoding="utf-8")
+ATHENA_PLUGIN = "ahrena-engineering-delivery"
+
+
+def references_of(text: str) -> list[str]:
+    """The `references` list of an artifact's frontmatter, read line by line."""
+    refs, inside = [], False
+    for line in text.split("---", 2)[1].splitlines():
+        if line.startswith("references:"):
+            inside = True
+        elif inside and line.startswith("  - "):
+            refs.append(line[4:].strip())
+        elif inside:
+            inside = False
+    return refs
+
+
+def stub_tree(agent_path: str, text: str, home: str) -> dict[str, str]:
+    """A marketplace holding `text` at `agent_path` in plugin `home`, and a stub for each reference.
+
+    Every plugin a reference names gets its own directory; every referenced
+    skill, agent and doc gets a stub that passes on its own, so only the agent
+    under test can fail.
+    """
+    plugins = {home: "plug0"}
+    tree = {f"plug0/{agent_path}": text}
+    for ref in references_of(text):
+        owner, sep, path = ref.partition(":")
+        owner, path = (owner, path) if sep else (home, ref)
+        directory = plugins.setdefault(owner, f"plug{len(plugins)}")
+        parts = path.split("/")
+        if parts[0] == "skills":
+            tree[f"{directory}/{path}"] = STUB_SKILL.replace("name: doing-things", f"name: {parts[1]}")
+        elif parts[0] == "agents":
+            name = parts[1][: -len(".md")]
+            tree[f"{directory}/{path}"] = STUB_AGENT.replace("name: specialist", f"name: {name}")
+        else:
+            stem = parts[1][: -len(".md")]
+            kind = "doc" if parts[0] == "docs" else parts[0]
+            assert kind == "doc", f"no stub for a {kind} reference: {ref}"
+            tree[f"{directory}/{path}"] = GOOD_DOC.replace("id: reference", f"id: {stem}")
+    tree[MARKETPLACE_PATH] = json.dumps(
+        {"name": "fixture", "plugins": [{"name": n, "source": {"path": d}} for n, d in plugins.items()]}
+    )
+    return tree
+
+
+# #252/AC-4 #252/AC-6: a second agent the fixture agent can delegate to.
+HELPER_AGENT = STUB_AGENT.replace("name: specialist", "name: helper")
+DELEGATING_AGENT = GOOD_AGENT.replace(
+    "## Delegation\n\nNone.\n",
+    "## Delegation\n\n| Situation | `subagent_type` | Brief contains | Comes back |\n|---|---|---|---|\n"
+    "| Step 2 | `fixture-plugin:helper` | the thing | DONE |\n",
+)
 
 
 def qualified(ref: str) -> str:
@@ -1194,12 +1289,14 @@ CASES = [
             "condition 8: skills does not list 'ahrena-engineering-delivery:orchestrating-delivery'",
             "condition 8: skills does not list 'ahrena-contributing:stacking-pull-requests'",
             "condition 10: '## Before you start' is missing",
-            "7 failure(s)",
+            "condition 11: 'tools' is missing",
+            "'## Procedure' is missing",
+            "16 failure(s)",
         ],
     ),
-    # #252/AC-11
+    # #252/AC-11 — every failure is on athena.md, so the stub tree itself is clean.
     case(
-        "the pre-#252 athena.md fixture tree is otherwise clean",
+        "the pre-#252 athena.md with its wiring fixed still fails the skeleton",
         {
             **athena_tree(),
             "d/agents/athena.md": ATHENA_BEFORE_252.replace(
@@ -1228,13 +1325,189 @@ CASES = [
                 1,
             ),
         },
+        [
+            "9 failure(s) across 13 artifact(s)",
+            "condition 11: 'tools' is missing",
+            "condition 11: 'model' is missing",
+            "'## Procedure' is missing",
+            "'## Example' is missing",
+        ],
+    ),
+    # #252/AC-11
+    case(
+        "the rewritten athena.md in the repository passes the gate",
+        stub_tree("agents/athena.md", ATHENA_NOW, ATHENA_PLUGIN),
         ["no failures"],
+        ok=True,
+    ),
+    # #252/AC-4
+    case(
+        "an agent without tools fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": GOOD_AGENT.replace("tools: Read, Skill\n", "")},
+        ["1 failure(s)", "[frontmatter] condition 11: 'tools' is missing"],
+    ),
+    # #252/AC-4
+    case(
+        "an agent without model fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": GOOD_AGENT.replace("model: sonnet\n", "")},
+        ["1 failure(s)", "[frontmatter] condition 11: 'model' is missing"],
+    ),
+    # #252/AC-4
+    case(
+        "an agent with an empty tools field fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": GOOD_AGENT.replace("tools: Read, Skill", "tools:")},
+        ["condition 11: 'tools'"],
+    ),
+    # #252/AC-4
+    case(
+        "a lead agent on a model other than opus fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: tech-lead")},
+        ["1 failure(s)", "condition 12: role 'tech-lead' is a lead, so model is 'opus', not 'sonnet'"],
+    ),
+    # #252/AC-4
+    case(
+        "each lead role is held to opus",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: product-manager"),
+            "p/agents/helper.md": HELPER_AGENT.replace("role: thing-doer", "role: round-lead"),
+        },
+        ["2 failure(s)", "role 'product-manager' is a lead", "role 'round-lead' is a lead"],
+    ),
+    # #252/AC-4
+    case(
+        "a lead agent on opus passes",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: tech-lead").replace(
+                "model: sonnet", "model: opus"
+            ),
+        },
+        ["5 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #252/AC-4
+    case(
+        "a role outside the lead list may run on any model",
+        {**VALID_CORPUS, "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: team-leader")},
+        ["5 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #252/AC-6
+    case(
+        "a delegation to a plugin-qualified agent that exists passes",
+        {**VALID_CORPUS, "p/agents/specialist.md": DELEGATING_AGENT, "p/agents/helper.md": HELPER_AGENT},
+        ["6 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #252/AC-6
+    case(
+        "a delegation to an agent in another plugin passes",
+        {
+            **VALID_CORPUS,
+            MARKETPLACE_PATH: TWO_PLUGINS,
+            "p/agents/specialist.md": DELEGATING_AGENT.replace("fixture-plugin:helper", "other-plugin:helper"),
+            "q/agents/helper.md": HELPER_AGENT,
+        },
+        ["6 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #252/AC-6
+    case(
+        "a delegation cell that is not plugin-qualified fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": DELEGATING_AGENT.replace("`fixture-plugin:helper`", "`helper`"),
+            "p/agents/helper.md": HELPER_AGENT,
+        },
+        ["1 failure(s)", "[naming] condition 9: delegation to 'helper' is not plugin-qualified"],
+    ),
+    # #252/AC-6
+    case(
+        "a delegation cell naming a role fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": DELEGATING_AGENT.replace("`fixture-plugin:helper`", "a specialist"),
+        },
+        ["1 failure(s)", "condition 9: delegation to 'a specialist' is not plugin-qualified"],
+    ),
+    # #252/AC-6
+    case(
+        "a delegation to an agent the plugin does not carry fails",
+        {**VALID_CORPUS, "p/agents/specialist.md": DELEGATING_AGENT},
+        ["1 failure(s)", "condition 9: delegation to 'fixture-plugin:helper' does not resolve to an agent"],
+    ),
+    # #252/AC-6
+    case(
+        "a delegation to a plugin the marketplace does not list fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": DELEGATING_AGENT.replace("fixture-plugin:helper", "ghost-plugin:helper"),
+        },
+        ["1 failure(s)", "condition 9: delegation to 'ghost-plugin:helper' does not resolve"],
+    ),
+    # #252/AC-6
+    case(
+        "one unresolved name in a cell of several fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": DELEGATING_AGENT.replace(
+                "`fixture-plugin:helper` |", "`fixture-plugin:helper`, `fixture-plugin:absent` |"
+            ),
+            "p/agents/helper.md": HELPER_AGENT,
+        },
+        ["1 failure(s)", "delegation to 'fixture-plugin:absent' does not resolve"],
+    ),
+    # #252/AC-6
+    case(
+        "a delegation table without a subagent_type column fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": DELEGATING_AGENT.replace("`subagent_type`", "Agent"),
+            "p/agents/helper.md": HELPER_AGENT,
+        },
+        ["1 failure(s)", "condition 9: the '## Delegation' table has no `subagent_type` column"],
+    ),
+    # #252/AC-6
+    case(
+        "an agent path in the body that does not resolve fails",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace(
+                "Anything else.\n", "Anything else; review is `fixture-plugin:agents/ghost.md`'s.\n"
+            ),
+        },
+        ["1 failure(s)", "condition 10: 'fixture-plugin:agents/ghost.md' does not resolve to an agent"],
+    ),
+    # #252/AC-6
+    case(
+        "an agent path in the body that resolves passes",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace(
+                "Anything else.\n", "Anything else; review is `fixture-plugin:agents/helper.md`'s.\n"
+            ),
+            "p/agents/helper.md": HELPER_AGENT,
+        },
+        ["6 artifact(s), no failures"],
+        ok=True,
+    ),
+    # #252/AC-6
+    case(
+        "an agent path inside a fenced block is not read",
+        {
+            **VALID_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace(
+                "Anything else.\n", "Anything else.\n\n```text\nfixture-plugin:agents/ghost.md\n```\n"
+            ),
+        },
+        ["5 artifact(s), no failures"],
         ok=True,
     ),
     # --- the agent body skeleton -------------------------------------------
     # #252/AC-3 #252/AC-7
     case(
-        "a skeleton agent passes without the pre-#252 Skills it orchestrates section",
+        "an agent on the skeleton passes without the pre-#252 Skills it orchestrates section",
         {**VALID_CORPUS, "p/agents/specialist.md": SKELETON_AGENT},
         ["5 artifact(s), no failures"],
         ok=True,
