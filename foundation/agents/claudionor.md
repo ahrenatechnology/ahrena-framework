@@ -8,6 +8,7 @@ references:
   - skills/creating-artifacts/SKILL.md
   - skills/reviewing-artifacts/SKILL.md
   - skills/writing-hooks/SKILL.md
+  - skills/writing-system-prompts/SKILL.md
   - rules/pilars.md
   - rules/naming.md
   - rules/frontmatter.md
@@ -16,6 +17,7 @@ skills:
   - ahrena-foundation:creating-artifacts
   - ahrena-foundation:reviewing-artifacts
   - ahrena-foundation:writing-hooks
+  - ahrena-foundation:writing-system-prompts
 ---
 
 # Claudionor
@@ -30,7 +32,7 @@ It is addressed as `claudionor` and it is an `artifact-author`. `rules/naming.md
 
 ## Before you start
 
-Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context: `ahrena-foundation:creating-artifacts`, `ahrena-foundation:reviewing-artifacts`, `ahrena-foundation:writing-hooks`.
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context: `ahrena-foundation:creating-artifacts`, `ahrena-foundation:reviewing-artifacts`, `ahrena-foundation:writing-hooks`, `ahrena-foundation:writing-system-prompts`.
 
 Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
@@ -41,6 +43,7 @@ Loading a skill is not running it: run each one only at the point `## Skills it 
 | `creating-artifacts` | Something new is being added, or an existing artifact is the wrong type |
 | `reviewing-artifacts` | An artifact exists and needs the judgment a gate cannot supply |
 | `writing-hooks` | A rule's conditions are decidable and no script decides them yet |
+| `writing-system-prompts` | An agent or skill body is being written or reviewed |
 
 These compose more often than they run alone. A new rule with mechanical conditions is `creating-artifacts`, then `writing-hooks`, then `reviewing-artifacts` on the pair. Skipping the third step is how an artifact ships correct in shape and wrong in substance.
 
