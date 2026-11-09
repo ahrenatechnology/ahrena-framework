@@ -7,6 +7,8 @@ role: change-fixer
 references:
   - skills/applying-fixes/SKILL.md
   - docs/review-findings.md
+skills:
+  - ahrena-engineering-quality:applying-fixes
 ---
 
 # Erodos
@@ -26,6 +28,12 @@ and this repository's `ADR-014` argue why the fixer and the reviewer are two
 agents, and why they are meant to run as two bot identities.
 
 It is addressed as `erodos` and it is a `change-fixer`.
+
+## Before you start
+
+Before doing anything else, invoke `ahrena-engineering-quality:applying-fixes` with the Skill tool, so its procedure is in your context.
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

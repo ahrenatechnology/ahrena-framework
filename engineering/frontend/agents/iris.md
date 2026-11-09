@@ -13,6 +13,11 @@ references:
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
   - ahrena-engineering-quality:agents/argos.md
   - ahrena-engineering-quality:agents/erodos.md
+skills:
+  - ahrena-engineering-frontend:building-frontend-outside-in
+  - ahrena-engineering-frontend:designing-wireframes
+  - ahrena-engineering-frontend:testing-frontend
+  - ahrena-engineering-fundamentals:reading-the-component-map
 ---
 
 # Iris
@@ -24,6 +29,17 @@ A user-facing feature that has to be built, and the order it is built in. It tak
 It is a mini-orchestrator. Each layer is delegated to a specialist subagent, and each layer lands as its own pull request in a stack. Inside a layer, the specialist develops and Argos reviews, in a loop, until the layer is clean enough to open. Iris decides what gets built, in what order, and whether a layer is ready to stack; it does not implement the production code line by line, and it does not pass judgment on its own work.
 
 It is addressed as `iris` and it is a `frontend-engineer`. The naming rule in the foundation plugin explains why an agent carries both a handle and a subject.
+
+## Before you start
+
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context:
+
+- `ahrena-engineering-frontend:building-frontend-outside-in`
+- `ahrena-engineering-frontend:designing-wireframes`
+- `ahrena-engineering-frontend:testing-frontend`
+- `ahrena-engineering-fundamentals:reading-the-component-map`
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 

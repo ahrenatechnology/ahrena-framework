@@ -11,6 +11,10 @@ references:
   - ahrena-engineering-quality:docs/review-findings.md
   - ahrena-engineering-quality:docs/review-routes.md
   - ahrena-engineering-quality:docs/review-verdicts.md
+skills:
+  - ahrena-engineering-quality:reviewing-diffs
+  - ahrena-engineering-quality:publishing-review-verdicts
+  - ahrena-engineering-quality:landing-approved-changes
 ---
 
 # Argos
@@ -22,6 +26,12 @@ A change that already exists, and the question of which kinds of review it calls
 Each review lens reads the same base and head through its own discipline and returns findings — the engineering rules over the source, security over what the change lets the wrong party do, the text a model will read as instructions, the language a file is written in. Argos is what turns many lenses on one change into a single answer, and what lets a new lens join the review without the others having to know.
 
 It is addressed as `argos` and it is a `review-orchestrator`. The naming rule in the foundation plugin explains why an agent carries both a handle and a subject.
+
+## Before you start
+
+Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context: `ahrena-engineering-quality:reviewing-diffs`, `ahrena-engineering-quality:publishing-review-verdicts`, `ahrena-engineering-quality:landing-approved-changes`.
+
+Loading a skill is not running it: run each one only at the point `## Skills it orchestrates` says it runs.
 
 ## Skills it orchestrates
 
