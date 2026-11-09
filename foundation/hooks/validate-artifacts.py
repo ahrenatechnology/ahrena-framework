@@ -85,7 +85,13 @@ INLINE_CODE = re.compile(r"`[^`\n]*`")
 # as an inline collection, before this check ever runs, so a brace placeholder
 # in a frontmatter value cannot reach here.
 FRONTMATTER_SCANS = ((PLACEHOLDER_TOKEN, "marker"), (PLACEHOLDER_ANGLE, "template placeholder"))
-BODY_SCANS = FRONTMATTER_SCANS + ((PLACEHOLDER_BRACE, "template placeholder"),)
+# #252 — the `<example>` tag is exempt in the body only, completeness.md.
+BODY_ANGLE = re.compile(r"<(?!example>)[A-Za-z][^<>:\n]{0,60}>")
+BODY_SCANS = (
+    (PLACEHOLDER_TOKEN, "marker"),
+    (BODY_ANGLE, "template placeholder"),
+    (PLACEHOLDER_BRACE, "template placeholder"),
+)
 
 REQUIRED_SECTIONS = {
     "rule": ("Conditions", "Where this stops"),
@@ -95,6 +101,25 @@ REQUIRED_SECTIONS = {
     "command": ("What runs",),
 }
 NUMBERED_STEP = re.compile(r"^\d+\.")
+
+# #252 — the agent body skeleton, conditions 5 to 7 of completeness.md.
+AGENT_SKELETON = (
+    "What this agent is for",
+    "Before you start",
+    "Inputs",
+    "Procedure",
+    "Delegation",
+    "Done when",
+    "When blocked",
+    "Output",
+    "What it does not do",
+    "Example",
+)
+SKELETON_MARKER = "Procedure"
+SKELETON_REQUIRED = tuple(h for h in AGENT_SKELETON if h != "Before you start")
+STATUS_LINE = re.compile(r"^(DONE|BLOCKED|NEEDS_APPROVAL)\b")
+APPROVAL_FIELDS = ("approve:", "recommendation:", "resume:")
+EXAMPLE_OPEN, EXAMPLE_CLOSE = "<example>", "</example>"
 
 # #252 — conditions 8 to 10 of frontmatter.md, decided in check_skill_wiring.
 SKILL_PATH = re.compile(r"^skills/([^/]+)/SKILL\.md$")
@@ -655,14 +680,103 @@ def check_completeness(a: Artifact, findings: list[Finding]) -> None:
         )
 
 
+def _section_blocks(body: str, heading: str) -> list[list[str]]:
+    """The fenced code blocks under `## heading`, each as its lines between the fences."""
+    blocks: list[list[str]] = []
+    inside, current = False, None
+    for line in body.splitlines():
+        if not FENCE.match(line):
+            if current is not None:
+                current.append(line)
+            elif line.startswith("## "):
+                inside = line[3:].strip().lower() == heading.lower()
+            continue
+        if current is None:
+            current = []
+            continue
+        if inside:
+            blocks.append(current)
+        current = None
+    return blocks
+
+
+def _check_order(a: Artifact, headings: list[str], findings: list[Finding]) -> None:
+    order = [h.lower() for h in AGENT_SKELETON]
+    seen = [h for h in (x.lower() for x in headings) if h in order]
+    if seen != sorted(seen, key=order.index):
+        findings.append(
+            Finding(
+                a.rel,
+                "completeness",
+                "condition 5: the skeleton sections are out of order; they run "
+                + ", ".join(AGENT_SKELETON),
+            )
+        )
+
+
+def _template_error(block: list[str]) -> list[str]:
+    """What is wrong with one `## Output` template, as condition 6 messages."""
+    lines = [line.strip() for line in block if line.strip()]
+    status = STATUS_LINE.match(lines[0]) if lines else None
+    if status is None:
+        return ["an '## Output' template does not open with DONE, BLOCKED or NEEDS_APPROVAL"]
+    if status.group(1) != "NEEDS_APPROVAL":
+        return []
+    return [
+        f"the NEEDS_APPROVAL template has no '{name}' field"
+        for name in APPROVAL_FIELDS
+        if not any(line.startswith(name) for line in lines[1:])
+    ]
+
+
+def _check_output(a: Artifact, findings: list[Finding]) -> None:
+    if _section_text(a.body, "Output") is None:
+        return
+    blocks = _section_blocks(a.body, "Output")
+    errors = [error for block in blocks for error in _template_error(block)]
+    if not blocks:
+        errors = ["'## Output' has no fenced template"]
+    findings.extend(Finding(a.rel, "completeness", f"condition 6: {error}") for error in errors)
+
+
+def _check_example(a: Artifact, findings: list[Finding]) -> None:
+    example = _section_text(a.body, "Example")
+    if example is None:
+        return
+    prose = INLINE_CODE.sub("", example)
+    opened = prose.find(EXAMPLE_OPEN)
+    if opened < 0 or prose.find(EXAMPLE_CLOSE, opened) < 0:
+        findings.append(
+            Finding(
+                a.rel,
+                "completeness",
+                f"condition 7: '## Example' holds no {EXAMPLE_OPEN} ... {EXAMPLE_CLOSE} pair "
+                "outside code",
+            )
+        )
+
+
+def check_skeleton(a: Artifact, headings: list[str], findings: list[Finding]) -> None:
+    """Conditions 5 to 7 of completeness.md: the agent body skeleton (#252)."""
+    _check_order(a, headings, findings)
+    _check_output(a, findings)
+    _check_example(a, findings)
+
+
 def check_sections(a: Artifact, findings: list[Finding]) -> None:
     """The sections each type owes its reader."""
     headings = [line[3:].strip() for _, line in _outside_fences(a.body) if line.startswith("## ")]
     present = {h.lower() for h in headings}
 
-    for required in REQUIRED_SECTIONS[a.kind]:
+    required_sections = REQUIRED_SECTIONS[a.kind]
+    skeleton = a.kind == "agent" and SKELETON_MARKER.lower() in present
+    if skeleton:
+        required_sections = SKELETON_REQUIRED
+    for required in required_sections:
         if required.lower() not in present:
             findings.append(Finding(a.rel, "completeness", f"'## {required}' is missing"))
+    if skeleton:
+        check_skeleton(a, headings, findings)
 
     if a.kind == "skill" and not any(NUMBERED_STEP.match(h) for h in headings):
         findings.append(
