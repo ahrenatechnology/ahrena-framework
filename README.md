@@ -32,14 +32,15 @@ A plugin may reference another by the name the marketplace gives it, as `ahrena-
 
 ## Install the agency
 
-The agency is eight plugins from the `ahrena` marketplace, plus one per language the repository uses.
+The agency is nine plugins from the `ahrena` marketplace, plus one per language the repository uses.
 
 | Plugin | What it is |
 |---|---|
 | `ahrena-engineering-delivery` | Athena, who turns an issue into a stack of reviewed pull requests, and `/install-agency` |
 | `ahrena-engineering-frontend` | Iris, who builds a feature outside-in, wireframe first |
 | `ahrena-engineering-backend` | Apollo, who builds a capability inside-out, domain first |
-| `ahrena-engineering-quality` | Argos and Erodos: review, publish the verdict, apply fixes, land |
+| `ahrena-engineering-code-review` | Argos, who conducts the review: routes the lenses, publishes one verdict, loops through Erodos, lands |
+| `ahrena-engineering-quality` | Erodos and the review skills: route, review, publish the verdict, apply fixes, land |
 | `ahrena-engineering-fundamentals` | The language-agnostic engineering rules and the code graph |
 | `ahrena-engineering-security` | Janus and the six security review disciplines |
 | `ahrena-contributing` | Issue, plan, branch, commit and pull request rules |
@@ -70,7 +71,7 @@ claude plugin install ahrena-engineering-delivery@ahrena --scope project
 # the same for each plugin in the table
 ```
 
-The directive names `clio`, the data builder, which lives in `ahrena-engineering-data` and is not one of the eight. To add it, run `claude plugin install ahrena-engineering-data@ahrena --scope project`, or add `"ahrena-engineering-data@ahrena": true` to `enabledPlugins`.
+The directive names `clio`, the data builder, which lives in `ahrena-engineering-data` and is not one of the nine. To add it, run `claude plugin install ahrena-engineering-data@ahrena --scope project`, or add `"ahrena-engineering-data@ahrena": true` to `enabledPlugins`.
 
 ## License
 

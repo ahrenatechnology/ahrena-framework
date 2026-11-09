@@ -858,6 +858,32 @@ def check_links(a: Artifact, findings: list[Finding]) -> None:
                 )
 
 
+def check_agent_names(artifacts: list[Artifact], findings: list[Finding]) -> None:
+    """Condition 8 of naming.md: no two agents in the marketplace share a `name`.
+
+    The handle is what a caller types and what a runtime invokes. Two agents
+    under one handle leave the platform to pick one, and #245 is what that
+    costs: a CI runtime that asked for `argos` and ran whichever it found (#252).
+    """
+    owners: dict[str, list[str]] = {}
+    for a in artifacts:
+        if a.kind != "agent":
+            continue
+        declared = a.data.get("name")
+        handle = declared if isinstance(declared, str) and declared else a.name
+        owners.setdefault(handle, []).append(f"{a.plugin_name}:{a.rel}")
+    for handle in sorted(owners):
+        if len(owners[handle]) > 1:
+            findings.append(
+                Finding(
+                    ".claude-plugin/marketplace.json",
+                    "naming",
+                    f"condition 8: agent name '{handle}' is declared by {len(owners[handle])} agents: "
+                    + ", ".join(sorted(owners[handle])),
+                )
+            )
+
+
 # --- entry point -----------------------------------------------------------
 
 
@@ -952,6 +978,7 @@ def main(argv: list[str]) -> int:
     for a in artifacts:
         check_artifact(a, index, names, findings)
     check_plugin_graph(artifacts, findings)
+    check_agent_names(artifacts, findings)
     checked = len(artifacts)
 
     if findings:

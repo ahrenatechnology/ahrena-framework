@@ -11,7 +11,7 @@ references:
   - skills/testing-data/SKILL.md
   - rules/reconciliation.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
-  - ahrena-engineering-quality:agents/argos.md
+  - ahrena-engineering-code-review:agents/argos.md
   - ahrena-engineering-quality:agents/erodos.md
 skills:
   - ahrena-engineering-data:building-data-contract-first

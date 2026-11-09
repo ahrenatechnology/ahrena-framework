@@ -10,7 +10,7 @@ references:
   - skills/driving-with-tdd/SKILL.md
   - skills/specifying-with-bdd/SKILL.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
-  - ahrena-engineering-quality:agents/argos.md
+  - ahrena-engineering-code-review:agents/argos.md
   - ahrena-engineering-quality:agents/erodos.md
 skills:
   - ahrena-engineering-backend:building-backend-inside-out
