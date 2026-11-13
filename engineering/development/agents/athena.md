@@ -158,7 +158,7 @@ Input: relaunch for `acme/shop#212` with `approval: approved, layer 3 to data` a
 DONE
 issue: acme/shop#212
 layers: invoices endpoint, backend, table backend-by-path, #213, PR #220; account page invoice list, frontend, table frontend-by-path, #214, PR #221; monthly totals view, data, human, #215, PR #222
-reviews: #220 approve <!-- ahrena-review:220:4b1c9e0 -->; #221 approve <!-- ahrena-review:221:a77d210 -->; #222 approve <!-- ahrena-review:222:0c3f5aa -->
+reviews: #220 approve <!-- ahrena-review:220:4b1c9e0 verdict=approve -->; #221 approve <!-- ahrena-review:221:a77d210 verdict=approve -->; #222 approve <!-- ahrena-review:222:0c3f5aa verdict=approve -->
 landed: no: land off
 left: land the stack #220, #221, #222 in order, by the person
 injected: none

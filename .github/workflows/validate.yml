@@ -68,6 +68,9 @@ jobs:
       - name: Test the review router
         run: python3 engineering/quality/hooks/test-route-review.py
 
+      - name: Test the review marker contract
+        run: python3 engineering/quality/skills/publishing-review-verdicts/references/test-marker.py
+
       - name: Test the boundaries hook
         run: python3 engineering/python/hooks/test-check-boundaries.py
 

@@ -17,21 +17,36 @@ Nothing in this procedure changes the content of the pull request. It makes two 
 
 ## 1. Build the marker
 
-The marker is a plain, readable string on the first line of the comment body, inside an HTML comment so it does not render:
+The marker is the first line of the comment body, inside an HTML comment so it does not render. It is the only part of the comment a tool may read:
 
 ```text
-<!-- ahrena-review:142:a1b2c3d -->
+<!-- ahrena-review:142:a1b2c3d verdict=approve -->
 ```
 
-The pull request number, then the first seven characters of the head commit the review looked at. No hash: a readable marker needs no tool to produce and none to verify, and `docs/review-verdicts.md` sets out why that is worth more than a fixed length.
+The pull request number, the head commit the review looked at, and the verdict. The marker is written once the verdict is picked in step 3; steps 1 and 2 fix only its first two fields, which identify the review.
 
-Take the head from step 1 of the review, not from the branch tip now. Keep the full commit sha as well: the marker abbreviates it, and step 5 needs the whole of it. If a commit landed while the review was running, the marker must name the commit that was actually read, or the comment claims to be about a state nobody looked at.
+**The contract.** The grammar is closed and one regular expression decides it:
+
+```text
+<!-- ahrena-review:<pr>:<sha> verdict=<approve|request-changes|comment> -->
+```
+
+- `<pr>`: decimal digits, no leading zero.
+- `<sha>`: 7 to 40 lowercase hexadecimal characters, a prefix of the head commit. A reader compares it by prefix against the head it is asking about, whichever length it is.
+- `verdict`: exactly one of `approve`, `request-changes`, `comment`. The same word as the table in step 3, with a hyphen.
+- One space between the fields, one marker per comment, on the first line.
+
+The prose below the marker (the title, the verdict line, the tables) is free for a person and is not part of the contract: a tool reads the marker and nothing else. A marker that does not match, or that has no `verdict=`, is not a verdict; a reader reports it as `unknown`, never as approve. Adding or renaming a field changes the contract, so it is a change to this skill and to `references/marker.py`, and readers learn of it there.
+
+`references/marker.py` is the reference reader: `parse(body)` returns the verdict or `None`, and `python3 references/test-marker.py` is the executable form of the contract, with the accepted and rejected markers a reader can copy as test cases. Authorship is not in the marker: it proves what the review says, not who wrote it.
+
+Take the head from step 1 of the review, not from the branch tip now. Keep the full commit sha as well: the marker may abbreviate it, and step 5 needs the whole of it. If a commit landed while the review was running, the marker must name the commit that was actually read, or the comment claims to be about a state nobody looked at.
 
 ## 2. Find this reviewer's own earlier comment for this commit
 
-List the comments this reviewer has published on the pull request and look for a marker matching the one from step 1.
+List the comments this reviewer has published on the pull request and look for a marker with the same `ahrena-review:<pr>:<sha>` as the one from step 1, whatever its `verdict=`. Compare the shas by prefix, so a comment written with seven characters matches a later one written with forty.
 
-**A match** means this is a re-run on the same commit. Edit that comment in place, replacing its body. Nothing about a different state of the change is lost, because the verdict being overwritten is about the same commit.
+**A match** means this is a re-run on the same commit. Edit that comment in place, replacing its body, marker included: the verdict may be a different one. Nothing about a different state of the change is lost, because the verdict being overwritten is about the same commit.
 
 **No match** means the head has moved, or this is the first review. Publish a new comment.
 
@@ -53,7 +68,7 @@ The row that gets softened is the second. A question looks minor beside a clean 
 
 ## 4. Assemble the body
 
-Copy the skeleton in `references/review-body.md` and fill it. The order is fixed — marker, verdict line, counts, findings grouped by severity, then the axes that were not decided — because a reader scanning three reviews should find the same thing in the same place each time.
+Copy the skeleton in `references/review-body.md` and fill it. The marker carries the verdict from step 3 and the verdict line says the same thing in words; the two never differ. The order is fixed — marker, verdict line, counts, findings grouped by severity, then the axes that were not decided — because a reader scanning three reviews should find the same thing in the same place each time.
 
 Two sections carry the weight. Every finding line has its four fields from `docs/review-findings.md`, and a line missing one is dropped rather than published short. And the `unchecked` section is written even when it is empty, with the word that says so, because an absent section reads as full coverage and that is the claim this procedure is built to avoid making.
 
