@@ -10,14 +10,14 @@ model: opus
 references:
   - rules/round-roles.md
   - docs/round-method.md
-  - docs/platform-bindings.md
+  - ahrena-engineering-development:docs/platform-bindings.md
   - docs/themis-design.md
   - skills/opening-the-round/SKILL.md
   - skills/closing-the-round/SKILL.md
   - skills/dispatching-sessions/SKILL.md
   - skills/renewing-a-coordinator/SKILL.md
   - agents/hermes.md
-  - agents/athena.md
+  - ahrena-engineering-development:agents/athena.md
   - ahrena-contributing:skills/opening-issues/SKILL.md
 skills:
   - ahrena-engineering-delivery:opening-the-round
@@ -78,7 +78,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 | Situation | `subagent_type` | Brief contains | Comes back |
 |---|---|---|---|
 | Step 7, a round with parallel build work | `ahrena-engineering-delivery:hermes` | `/round-tl` with `project` and `round_issue`, the title `Tech Lead da rodada · Projeto · dd/mm/aaaa`, in the person's language | its reports, each an activity changing state (green, at risk, blocked, done, landed), and each child Athena's `NEEDS_APPROVAL` forwarded verbatim, taken as `child_report` at step 16 |
-| Step 8 and step 11, an activity in lean mode | `ahrena-engineering-delivery:athena` | the dispatch `check-dispatch.py` passed: the issue, who is who, `land: off`, the state, what is pending on the person, and the limits (no merge, no other issue, report when the activity changes state), on Sonnet unless the brief says why not | its first line (`DONE`, `BLOCKED`, `NEEDS_APPROVAL`), its stack and Argos verdicts, its `left:`; a `NEEDS_APPROVAL` is taken as `child_report` at step 16, and step 17 sends the answer back to that session |
+| Step 8 and step 11, an activity in lean mode | `ahrena-engineering-development:athena` | the dispatch `check-dispatch.py` passed: the issue, who is who, `land: off`, the state, what is pending on the person, and the limits (no merge, no other issue, report when the activity changes state), on Sonnet unless the brief says why not | its first line (`DONE`, `BLOCKED`, `NEEDS_APPROVAL`), its stack and Argos verdicts, its `left:`; a `NEEDS_APPROVAL` is taken as `child_report` at step 16, and step 17 sends the answer back to that session |
 
 Each is started as a child session with `mcp__ccd_session__start_session`, not with the Agent tool: it runs on its own and reports to this session, and you read its report when it arrives. Never poll a child; a coordinator wakes no faster than every 30 minutes (step 5 of `renewing-a-coordinator`). Delegate nothing else.
 

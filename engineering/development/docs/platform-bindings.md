@@ -2,12 +2,11 @@
 id: platform-bindings
 type: doc
 clade: engineering
-subclade: delivery
+subclade: development
 title: Binding the agency to each platform
 summary: The portable manager/worker spec and how each platform binds it — Claude Code as the Athena agent plus an optional Workflow, Codex as custom subagents with the AGENTS.md trigger and the max_depth cap, and LangGraph named as the out-of-scope runtime binding — plus the entry directive that makes the agency always used and the lean-mode fallback for the round's coordinators where child sessions are missing.
 references:
   - docs/clef-decision-gate.md
-  - docs/round-method.md
 ---
 
 # Binding the agency to each platform
@@ -15,7 +14,7 @@ references:
 The agency's orchestration is one shape, written once and bound many ways. This
 doc states that shape, then says how each platform runs it and how a platform is
 made to *always* run it. The orchestration artifacts themselves — the Athena
-agent and the `orchestrating-delivery` and `routing-concern` skills — are the
+agent and the `orchestrating-development` and `routing-concern` skills — are the
 portable spec; nothing here changes them. What changes per platform is the
 binding: the mechanism that spawns the manager and its workers, and the one
 directive that routes build work through them.
@@ -89,7 +88,7 @@ The round method adds two coordinators above Athena, the PM and the Tech Lead of
 the round, and the Tech Lead's whole job is to start one child session per issue
 and talk to each. On Claude Code that is `start_session`, which opens a child
 session with its own title, model and brief, and `SendMessage`, which reaches it
-afterwards. [`docs/round-method.md`](round-method.md) describes the round.
+afterwards. `docs/round-method.md` of `ahrena-engineering-delivery` describes the round.
 
 **Codex has neither, so a round on Codex runs in lean mode.** A Codex subagent is
 spawned for a task and returns; there is no durable child session to title,
@@ -134,7 +133,7 @@ not implemented here.
 **It does not change the spec.** Athena and her two skills are the portable
 orchestration, authored once. This doc binds them to platforms; it does not
 re-specify the plan→route→delegate→loop→stack procedure, which is
-`skills/orchestrating-delivery/SKILL.md`'s.
+`skills/orchestrating-development/SKILL.md`'s.
 
 **It does not implement a runtime.** The LangGraph mapping is recorded, not built,
 and the local-model path is named, not wired. Both are runtime concerns the

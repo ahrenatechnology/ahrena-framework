@@ -3,7 +3,7 @@ name: routing-concern
 description: Route a concern to the clade that owns it, deterministic-first. Use when a change, a layer or a finding has to be placed with the frontend, backend or data clade, or split across them. Applies a route table first, consults the Clef decision gate when the table is inconclusive, and escalates to a human when Clef is not confident — never guessing a routing it cannot decide.
 type: skill
 clade: engineering
-subclade: delivery
+subclade: development
 references:
   - docs/clef-decision-gate.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md

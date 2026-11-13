@@ -7,7 +7,7 @@ title: The round method
 summary: How a work window is run by a PM and a Tech Lead of the round — the Round issue, opening, durable day sessions, the checkpoint, the closing, carry-over, calibration and visibility — and how the round's TL differs from Athena.
 references:
   - rules/round-roles.md
-  - docs/platform-bindings.md
+  - ahrena-engineering-development:docs/platform-bindings.md
 ---
 
 # The round method
@@ -80,13 +80,13 @@ The round is open to the team, not only to the person who ran it. With the perso
 
 ## On a platform without child sessions
 
-Hermes needs a way to start a child session and talk to it. On Claude Code that is `start_session` and `SendMessage`. Where they are missing, as on Codex, the round runs in lean mode: the PM alone, one issue at a time through Athena. [`docs/platform-bindings.md`](platform-bindings.md) records the fallback beside the other per-platform bindings.
+Hermes needs a way to start a child session and talk to it. On Claude Code that is `start_session` and `SendMessage`. Where they are missing, as on Codex, the round runs in lean mode: the PM alone, one issue at a time through Athena. [`docs/platform-bindings.md`](../../development/docs/platform-bindings.md) records the fallback beside the other per-platform bindings.
 
 ## Where this stops
 
 **It does not choose what is worth building.** The method structures a window around objectives the person approved. What those objectives are is the person's call.
 
-**It does not orchestrate an issue.** Planning one issue into layers, routing them and stacking them is Athena's, in `orchestrating-delivery`. A round contains Athena runs; it does not reach into them.
+**It does not orchestrate an issue.** Planning one issue into layers, routing them and stacking them is Athena's, in `orchestrating-development`. A round contains Athena runs; it does not reach into them.
 
 **It does not observe sessions.** Detecting which session plays which role, measuring a coordinator's context and proposing its renewal on screen belong to a session observer, ahrenatechnology/ahrena-console#292 and ahrenatechnology/ahrena-console#293. The method states the limits; the observer measures them.
 

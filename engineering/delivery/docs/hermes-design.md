@@ -7,7 +7,7 @@ title: How Hermes decides
 summary: The arguments behind the round Tech Lead's procedure - why it dispatches only what the person approved, briefs children in the person's language on Sonnet, lands on three conditions on the head being landed, reads reports as state, leaves another tool's work alone, reports state changes only, and never polls.
 references:
   - docs/round-method.md
-  - docs/platform-bindings.md
+  - ahrena-engineering-development:docs/platform-bindings.md
   - rules/round-roles.md
 ---
 
@@ -45,7 +45,7 @@ Each wake re-reads the whole session, and a coordinator's context is the largest
 
 ## Session tools are named for the platform
 
-Starting, messaging and archiving a durable child session are platform tools, not subagent calls. The agent names the desktop app's session tools in `tools`; a platform without them runs the round in lean mode, as [`platform-bindings.md`](platform-bindings.md) records.
+Starting, messaging and archiving a durable child session are platform tools, not subagent calls. The agent names the desktop app's session tools in `tools`; a platform without them runs the round in lean mode, as [`platform-bindings.md`](../../development/docs/platform-bindings.md) records.
 
 ## Where this stops
 

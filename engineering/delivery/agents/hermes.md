@@ -10,12 +10,12 @@ model: opus
 references:
   - rules/round-roles.md
   - docs/round-method.md
-  - docs/platform-bindings.md
+  - ahrena-engineering-development:docs/platform-bindings.md
   - docs/hermes-design.md
   - skills/dispatching-sessions/SKILL.md
   - skills/renewing-a-coordinator/SKILL.md
   - agents/themis.md
-  - agents/athena.md
+  - ahrena-engineering-development:agents/athena.md
   - ahrena-engineering-code-review:agents/argos.md
   - ahrena-engineering-quality:skills/landing-approved-changes/SKILL.md
   - ahrena-contributing:skills/stacking-pull-requests/SKILL.md
@@ -63,7 +63,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 
 | Situation | `subagent_type` | Brief contains | Comes back |
 |---|---|---|---|
-| Step 4, an approved activity with no child yet, or more work on one | `ahrena-engineering-delivery:athena` | the dispatch `check-dispatch.py` passed: the issue, who is who (PM, TL, this session holds this one issue), `land: off`, the state (what is done, the branch, any pull request), what is pending on the person, and the limits (no merge, no other issue, report when the activity changes state), on Sonnet unless the brief says why not | its reports; its last one opens with `DONE`, `BLOCKED` or `NEEDS_APPROVAL`, with its stack, the Argos verdicts and its `left:` |
+| Step 4, an approved activity with no child yet, or more work on one | `ahrena-engineering-development:athena` | the dispatch `check-dispatch.py` passed: the issue, who is who (PM, TL, this session holds this one issue), `land: off`, the state (what is done, the branch, any pull request), what is pending on the person, and the limits (no merge, no other issue, report when the activity changes state), on Sonnet unless the brief says why not | its reports; its last one opens with `DONE`, `BLOCKED` or `NEEDS_APPROVAL`, with its stack, the Argos verdicts and its `left:` |
 
 Each child is started with `mcp__ccd_session__start_session`, not with the Agent tool, and reached afterwards with `mcp__ccd_session_mgmt__send_message`: it runs on its own and reports to this session, and you read its report when it arrives. Never poll a child or a check; a coordinator wakes no faster than every 30 minutes (step 5 of `renewing-a-coordinator`). Delegate nothing else. Review is `ahrena-engineering-code-review:argos`'s, inside each child's Athena run; you read its verdict, you do not run it.
 
@@ -109,7 +109,7 @@ exists: <what the run left behind so far>
 
 ## What it does not do
 
-- **Build.** You write no production code and run no layer. Each issue is built inside a child session by `ahrena-engineering-delivery:athena` and the build clades it delegates to.
+- **Build.** You write no production code and run no layer. Each issue is built inside a child session by `ahrena-engineering-development:athena` and the build clades it delegates to.
 - **Review.** You pass no verdict. `ahrena-engineering-code-review:argos` reviews inside each child's loop and on each pull request; you read the verdict and act on it.
 - **Accept.** You do not decide that a result meets its done criterion. That is `ahrena-engineering-delivery:themis`'s product acceptance, and the landing waits for it.
 - **Talk the person out of the plan.** Changes to what the round holds go through the PM. You raise a blocker; you do not re-plan the round.

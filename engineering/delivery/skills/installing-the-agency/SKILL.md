@@ -5,8 +5,8 @@ type: skill
 clade: engineering
 subclade: delivery
 references:
-  - docs/platform-bindings.md
-  - skills/orchestrating-delivery/SKILL.md
+  - ahrena-engineering-development:docs/platform-bindings.md
+  - ahrena-engineering-development:skills/orchestrating-development/SKILL.md
 ---
 
 # Installing the agency
@@ -16,9 +16,9 @@ reports exactly what is missing — the install layer for the orchestration spec
 person runs through `/install-agency`. The agency is portable and already shipped;
 this skill binds it to the platform in front of it and routes build work through
 it. It follows the graph doctor's shape: ensure-or-report, idempotent, standard
-library, a `--check` that writes nothing. [`docs/platform-bindings.md`](../../docs/platform-bindings.md)
+library, a `--check` that writes nothing. [`docs/platform-bindings.md`](../../../development/docs/platform-bindings.md)
 defines the per-platform bindings this skill applies, and the orchestration it
-installs is [`skills/orchestrating-delivery/SKILL.md`](../orchestrating-delivery/SKILL.md).
+installs is [`skills/orchestrating-development/SKILL.md`](../../../development/skills/orchestrating-development/SKILL.md).
 
 ## 1. Choose the instruction files
 
@@ -117,11 +117,11 @@ ensure; re-running is harmless, and it changes nothing.
 
 **Running the orchestration.** This skill installs the agency and routes build
 work to it; turning an issue into a landed stack is
-[`skills/orchestrating-delivery/SKILL.md`](../orchestrating-delivery/SKILL.md),
+[`skills/orchestrating-development/SKILL.md`](../../../development/skills/orchestrating-development/SKILL.md),
 which Athena runs once the agency is installed.
 
 **Changing the binding or the spec.** How a platform binds the spec is
-[`docs/platform-bindings.md`](../../docs/platform-bindings.md), and the spec
+[`docs/platform-bindings.md`](../../../development/docs/platform-bindings.md), and the spec
 itself is the orchestration artifacts. This skill applies a binding; it does not
 author one or re-specify Athena's loop.
 

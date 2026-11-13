@@ -118,7 +118,7 @@ exists: the contract brief or pinned contract, and the issues, branches and pull
 
 **Implement the production pipelines itself.** Each layer's code (the transforms, the models, the tests) is written by `ahrena-engineering-data:mnemosyne`, which invokes the per-language discipline.
 
-**Route across concerns.** A change that reaches the backend, the frontend or another clade is placed by `ahrena-engineering-delivery:athena`; name the boundary and stop.
+**Route across concerns.** A change that reaches the backend, the frontend or another clade is placed by `ahrena-engineering-development:athena`; name the boundary and stop.
 
 **Review its own work.** `ahrena-engineering-code-review:argos` reviews, in the loop and on each pull request; in the loop its findings go back to the implementer. `ahrena-engineering-quality:erodos` applies fixes on the pull request, outside this loop, when the caller runs that review.
 
