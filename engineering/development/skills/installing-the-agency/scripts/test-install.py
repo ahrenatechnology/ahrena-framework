@@ -488,6 +488,65 @@ def test_declared_plugins_exist_in_marketplace() -> None:
     assert AGENCY["marketplace"]["name"] == json.loads(MARKETPLACE.read_text(encoding="utf-8"))["name"], "agency.json: marketplace name matches"
 
 
+OLD_DIRECTIVE = (
+    "## Build work enters through the agency\n\n"
+    "Build work enters through the `athena` agent. She plans the issue, routes the\n"
+    "concern, and delegates each layer to `iris` (frontend), `apollo` (backend) or\n"
+    "`clio` (data), running the develop→Argos loop (at most three rounds) before each\n"
+    "stacked pull request. Do not implement build work directly — delegate to the\n"
+    "agency. Athena orchestrates; she does not write production code, pass a review\n"
+    "verdict, or apply a fix."
+)
+DEVELOPMENT = "ahrena-engineering-development"
+DELIVERY = "ahrena-engineering-delivery"
+
+
+def old_install(c: "Case") -> None:
+    """A repository installed before the split: the delivery plugin alone, and the old directive."""
+    old_plugins = [f"{p}@ahrena" for p in AGENCY["plugins"] if p != DEVELOPMENT]
+    put(
+        c.root / ".claude" / "settings.json",
+        {"extraKnownMarketplaces": {"ahrena": SOURCE}, "enabledPlugins": {p: True for p in old_plugins}},
+    )
+    start = "<!-- ahrena:agency:start -->"
+    end = "<!-- ahrena:agency:end -->"
+    (c.root / "CLAUDE.md").write_text(f"# Rules\n\n{start}\n{OLD_DIRECTIVE}\n{end}\n", encoding="utf-8")
+
+
+def test_old_plugin_set_is_brought_to_both_plugins() -> None:
+    # Covers #269/AC-1: a repository with only the delivery plugin ends with both, and the directive refreshed.
+    with Case() as c:
+        old_install(c)
+        r = c.run()
+        enabled = settings(c.root)["enabledPlugins"]
+        assert r.returncode == 0, r.stdout + r.stderr
+        assert enabled.get(f"{DEVELOPMENT}@ahrena") is True and enabled.get(f"{DELIVERY}@ahrena") is True, enabled
+        text = (c.root / "CLAUDE.md").read_text(encoding="utf-8")
+        assert "ahrena-engineering-development:athena" in text and text.startswith("# Rules"), text
+
+
+def test_old_plugin_set_second_run_changes_nothing() -> None:
+    # Covers #269/AC-2: after the migration a second run writes nothing.
+    with Case() as c:
+        old_install(c)
+        c.run()
+        settings_path = c.root / ".claude" / "settings.json"
+        before = (settings_path.read_bytes(), (c.root / "CLAUDE.md").read_bytes())
+        r = c.run()
+        after = (settings_path.read_bytes(), (c.root / "CLAUDE.md").read_bytes())
+        assert r.returncode == 0 and before == after, r.stdout + r.stderr
+
+
+def test_check_names_the_plugin_missing_on_the_old_set() -> None:
+    # Covers #269/AC-3: --check on the old state reports the development plugin by name, and the stale directive.
+    with Case() as c:
+        old_install(c)
+        r = c.run("--check")
+        assert r.returncode == 1, r.stdout
+        assert plugin_line(r, DEVELOPMENT).startswith(f"plugin: {DEVELOPMENT}") and "missing" in plugin_line(r, DEVELOPMENT), r.stdout
+        assert "STALE" in r.stdout, r.stdout
+
+
 def main() -> int:
     failures = 0
     for name, fn in sorted(globals().items()):
