@@ -7,7 +7,7 @@ report and the files. The config directory is always a temporary one, so no case
 reads or writes the real `~/.claude`.
 
 Usage:
-    python3 engineering/delivery/skills/installing-the-agency/scripts/test-install.py
+    python3 engineering/development/skills/installing-the-agency/scripts/test-install.py
 """
 
 from __future__ import annotations

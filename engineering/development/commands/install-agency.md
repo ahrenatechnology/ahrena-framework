@@ -3,7 +3,7 @@ name: install-agency
 description: Install the agency in this repository, or report what is missing — enable its plugins in settings.json and write the entry directive, idempotently.
 type: command
 clade: engineering
-subclade: delivery
+subclade: development
 argument-hint: "[--check] [--platform claude|codex] [--language python|typescript|go|rust]"
 references:
   - skills/installing-the-agency/SKILL.md

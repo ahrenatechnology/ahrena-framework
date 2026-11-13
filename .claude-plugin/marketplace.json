@@ -123,7 +123,7 @@
     },
     {
       "name": "ahrena-engineering-development",
-      "description": "Development orchestrated issue→stacked-PRs: Athena, the tech-lead, plans a change, routes each concern deterministic-first — a route table, then the Clef decision gate, then a human — delegates to the build clades, runs the develop→Argos loop before each layer opens, and escalates when it is exhausted.",
+      "description": "Development orchestrated issue→stacked-PRs: Athena, the tech-lead, plans a change, routes each concern deterministic-first — a route table, then the Clef decision gate, then a human — delegates to the build clades, runs the develop→Argos loop before each layer opens, and escalates when it is exhausted. Also installs the agency in a repository, enabling the plugins the build path needs.",
       "version": "0.1.0",
       "source": {
         "source": "git-subdir",
@@ -141,7 +141,8 @@
         "routing",
         "stacked-prs",
         "planning",
-        "escalation"
+        "escalation",
+        "installer"
       ]
     },
     {
