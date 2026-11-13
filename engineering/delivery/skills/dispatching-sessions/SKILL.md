@@ -7,8 +7,8 @@ subclade: delivery
 references:
   - rules/round-roles.md
   - docs/round-method.md
-  - docs/platform-bindings.md
-  - skills/orchestrating-delivery/SKILL.md
+  - ahrena-engineering-development:docs/platform-bindings.md
+  - ahrena-engineering-development:skills/orchestrating-development/SKILL.md
 ---
 
 # Dispatching sessions
@@ -30,7 +30,7 @@ A pull request another tool owns, such as one Codex opened, is not dispatched at
 Both are in the person's language, because the person reads them in the session list. The title names the round's project and the issue; the date is the round's. The brief names the issue and says, in this order:
 
 - who is who: the PM and the TL of the round, and that this session holds this one issue;
-- what is theirs: run Athena on the issue, through [`orchestrating-delivery`](../orchestrating-delivery/SKILL.md), up to an open, reviewed pull request;
+- what is theirs: run Athena on the issue, through [`orchestrating-development`](../../../development/skills/orchestrating-development/SKILL.md), up to an open, reviewed pull request;
 - the state: what is already done, the branch and any pull request;
 - what is pending on the person, and the limits: no merge, no other issue, report back when the activity changes state.
 
@@ -48,7 +48,7 @@ python3 skills/dispatching-sessions/scripts/check-dispatch.py dispatch.json
 
 ## 5. Start the session, or send to it
 
-On Claude Code, `start_session` with the title, the model and the brief starts a new child; `SendMessage` reaches one already holding the issue. Record the child in the Round issue's next work context. Where neither exists, as on Codex, the round runs in lean mode, one issue at a time, as [`docs/platform-bindings.md`](../../docs/platform-bindings.md) records.
+On Claude Code, `start_session` with the title, the model and the brief starts a new child; `SendMessage` reaches one already holding the issue. Record the child in the Round issue's next work context. Where neither exists, as on Codex, the round runs in lean mode, one issue at a time, as [`docs/platform-bindings.md`](../../../development/docs/platform-bindings.md) records.
 
 ## 6. Close the loop on the child
 
@@ -56,7 +56,7 @@ When the child's pull request merges, offer the person to archive the session, a
 
 ## When this skill does not apply
 
-**Orchestrating the issue itself.** Planning, routing, building and stacking happen inside the child, in Athena's `orchestrating-delivery`. This skill hands the issue over; it does not run it.
+**Orchestrating the issue itself.** Planning, routing, building and stacking happen inside the child, in Athena's `orchestrating-development`. This skill hands the issue over; it does not run it.
 
 **Deciding what is dispatched.** Which activities run, and in what order, was decided at the opening, by `opening-the-round` and the person's ok. This skill carries out that plan.
 

@@ -69,7 +69,7 @@ At the middle of the window, send the person one message: each activity green, a
 
 **Closing the round.** Writing the evidence, the left-overs and the closing comment is `closing-the-round`.
 
-**Running a single issue.** One issue that has to become merged work is Athena's, through `orchestrating-delivery`; a round is for a window that holds several.
+**Running a single issue.** One issue that has to become merged work is Athena's, through `orchestrating-development`; a round is for a window that holds several.
 
 **Choosing what matters.** The skill proposes up to capacity and the person approves. It never decides priority over the person's head.
 

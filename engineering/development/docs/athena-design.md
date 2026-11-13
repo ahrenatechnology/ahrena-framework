@@ -2,13 +2,12 @@
 id: athena-design
 type: doc
 clade: engineering
-subclade: delivery
+subclade: development
 title: How Athena decides
 summary: The arguments behind the tech-lead's procedure - why it reads the component map first, opens the issue before the plan, routes deterministic-first, treats an unreachable Clef as not confident, runs a bounded loop inside each layer, delegates rather than builds, keeps nesting at three levels, and returns to a person instead of waiting for one.
 references:
   - docs/clef-decision-gate.md
   - docs/platform-bindings.md
-  - rules/round-roles.md
 ---
 
 # How Athena decides
@@ -47,7 +46,7 @@ Each routed layer goes to the build agent that owns it, and that agent owns the 
 
 ## It returns rather than waits
 
-An exhausted loop and an undecided route end at a person, and the person's decision is final. A pending check is a return state, because a subagent that polls CI spends its context waiting on something it cannot speed up. Landing a stack is a person's call or, in a round, the Tech Lead's under [`round-roles.md`](../rules/round-roles.md) condition 3, so Athena lands only with `land` on and the person's approval of each merge.
+An exhausted loop and an undecided route end at a person, and the person's decision is final. A pending check is a return state, because a subagent that polls CI spends its context waiting on something it cannot speed up. Landing a stack is a person's call or, in a round, the Tech Lead's under `round-roles.md` of `ahrena-engineering-delivery` condition 3, so Athena lands only with `land` on and the person's approval of each merge.
 
 ## Where this stops
 

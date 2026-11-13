@@ -117,7 +117,7 @@ exists: the scenario, and the issues, branches and pull requests so far
 
 **Implement the production code itself.** Each layer's code is written by `ahrena-engineering-backend:hephaestus`, which invokes the per-language discipline, `ahrena-engineering-python:reviewing-python` and its TypeScript, Go and Rust equivalents.
 
-**Route across concerns.** A change that reaches the frontend, another service or another clade is placed by `ahrena-engineering-delivery:athena`; name the boundary and stop.
+**Route across concerns.** A change that reaches the frontend, another service or another clade is placed by `ahrena-engineering-development:athena`; name the boundary and stop.
 
 **Review its own work.** `ahrena-engineering-code-review:argos` reviews, in the loop and on each pull request; in the loop its findings go back to the implementer. `ahrena-engineering-quality:erodos` applies fixes on the pull request, outside this loop, when the caller runs that review.
 

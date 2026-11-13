@@ -39,7 +39,7 @@ file.
 says a plugin adapts to a platform through a manifest, not a migration, and the
 same holds for orchestration. The spec stays one agent and two skills. Each
 platform gets a thin binding that maps that shape onto its own agent mechanism,
-documented in `engineering/delivery/docs/platform-bindings.md`.
+documented in `engineering/development/docs/platform-bindings.md`.
 
 - **Claude Code** binds it as the Athena agent, plus an optional Workflow script
   that encodes her loop as a deterministic fan-out. The Workflow is opt-in and

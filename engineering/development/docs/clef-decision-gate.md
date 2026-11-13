@@ -2,7 +2,7 @@
 id: clef-decision-gate
 type: doc
 clade: engineering
-subclade: delivery
+subclade: development
 title: The Clef decision gate
 summary: What Clef is and is not, where it sits in the routing cascade — after the deterministic route table, before human escalation — what it takes in and returns, and the confidence threshold below which a concern is escalated to a human rather than guessed.
 ---

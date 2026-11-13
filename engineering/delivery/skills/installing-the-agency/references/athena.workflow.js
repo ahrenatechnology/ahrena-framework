@@ -5,7 +5,7 @@
 // spawns one subagent PER TEST STEP, so the Workflow panel shows each stage and
 // each red→green test step as its own row rather than a coarse "build frontend".
 //
-// The shape it encodes is the portable spec (skills/orchestrating-delivery):
+// The shape it encodes is the portable spec (skills/orchestrating-development):
 //   ensure the issue (find-or-create) -> plan it -> for each routed layer, run
 //   that builder's test-step arc
 //   (mirroring the clade's testing skill) then the Argos<=3 review loop -> stack.
@@ -102,7 +102,7 @@ const REVIEW_SCHEMA = {
   required: ['clean', 'findings'],
 }
 
-const MAX_ROUNDS = 3 // the loop cap from orchestrating-delivery step 5
+const MAX_ROUNDS = 3 // the loop cap from orchestrating-development step 5
 
 // --- the per-builder test-step arcs -----------------------------------------
 //

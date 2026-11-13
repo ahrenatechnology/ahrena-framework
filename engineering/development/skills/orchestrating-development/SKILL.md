@@ -1,9 +1,9 @@
 ---
-name: orchestrating-delivery
+name: orchestrating-development
 description: Take an issue from plan to a landed stack of pull requests. Use when a tech-lead must turn a received issue into reviewed, tested, merged work — planning it into typed layers, routing each to the build clade that owns it, running the develop→review loop before each layer opens, stacking the layers, and escalating when the loop is exhausted. It orchestrates; it does not implement, review or fix.
 type: skill
 clade: engineering
-subclade: delivery
+subclade: development
 references:
   - skills/routing-concern/SKILL.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
@@ -13,7 +13,7 @@ references:
   - ahrena-contributing:skills/stacking-pull-requests/SKILL.md
 ---
 
-# Orchestrating delivery
+# Orchestrating development
 
 An issue arrives and has to become merged work. This is the procedure a tech-lead runs to get it there: plan the issue into typed layers, route each layer to the build clade that owns it, run a develop→review loop on each layer before it opens, and stack the layers so they land in order. The procedure orchestrates specialists and gates; it writes no production code, passes no review verdict, and applies no fix. Each of those belongs to an agent this procedure delegates to and names in prose, never to the orchestrator.
 
@@ -64,7 +64,7 @@ Escalate to a human, rather than pressing on, in two cases: a layer still failin
 <!--
 Directory layout:
 
-skills/orchestrating-delivery/
+skills/orchestrating-development/
 └── SKILL.md
 
 Flat. One level under skills/. A nested skill is invisible to DeepSeek.

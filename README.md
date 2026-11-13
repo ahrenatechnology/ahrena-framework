@@ -36,7 +36,8 @@ The agency is nine plugins from the `ahrena` marketplace, plus one per language 
 
 | Plugin | What it is |
 |---|---|
-| `ahrena-engineering-delivery` | Athena, who turns an issue into a stack of reviewed pull requests, and `/install-agency` |
+| `ahrena-engineering-development` | Athena, who turns an issue into a stack of reviewed pull requests |
+| `ahrena-engineering-delivery` | Themis and Hermes, the PM and the Tech Lead of a round, who run a work window of Athena sessions; and `/install-agency` until it moves to development |
 | `ahrena-engineering-frontend` | Iris, who builds a feature outside-in, wireframe first; Daedalus, who draws the wireframe for approval; Aglaia, who writes each code layer |
 | `ahrena-engineering-backend` | Apollo, who builds a capability inside-out, domain first; Hephaestus, who writes each layer test-first |
 | `ahrena-engineering-code-review` | Argos, who conducts the review: routes the lenses, publishes one verdict, loops through Erodos, lands |

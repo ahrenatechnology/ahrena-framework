@@ -317,8 +317,8 @@ def athena_tree() -> dict[str, str]:
 
 # #252/AC-11: the rewritten athena.md, read from the repository rather than copied.
 REPO_ROOT = Path(__file__).resolve().parents[2]
-ATHENA_NOW = (REPO_ROOT / "engineering" / "delivery" / "agents" / "athena.md").read_text(encoding="utf-8")
-ATHENA_PLUGIN = "ahrena-engineering-delivery"
+ATHENA_NOW = (REPO_ROOT / "engineering" / "development" / "agents" / "athena.md").read_text(encoding="utf-8")
+ATHENA_PLUGIN = "ahrena-engineering-development"
 
 
 def references_of(text: str) -> list[str]:

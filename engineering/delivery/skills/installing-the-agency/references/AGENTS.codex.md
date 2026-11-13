@@ -51,7 +51,7 @@ reads, regenerated from the persona rather than hand-edited.
 # .codex/agents/athena.toml  (illustrative)
 name = "athena"
 description = "Tech-lead: plans an issue, routes each concern, delegates layers, runs the Argos loop, stacks PRs. Never implements."
-# system prompt is the body of engineering/delivery/agents/athena.md
+# system prompt is the body of engineering/development/agents/athena.md
 ```
 
 ## The caps, and the depth gotcha
