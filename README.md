@@ -36,8 +36,8 @@ The agency is nine plugins from the `ahrena` marketplace, plus one per language 
 
 | Plugin | What it is |
 |---|---|
-| `ahrena-engineering-development` | Athena, who turns an issue into a stack of reviewed pull requests |
-| `ahrena-engineering-delivery` | Themis and Hermes, the PM and the Tech Lead of a round, who run a work window of Athena sessions; and `/install-agency` until it moves to development |
+| `ahrena-engineering-development` | Athena, who turns an issue into a stack of reviewed pull requests, and `/install-agency` |
+| `ahrena-engineering-delivery` | Themis and Hermes, the PM and the Tech Lead of a round, who run a work window of Athena sessions |
 | `ahrena-engineering-frontend` | Iris, who builds a feature outside-in, wireframe first; Daedalus, who draws the wireframe for approval; Aglaia, who writes each code layer |
 | `ahrena-engineering-backend` | Apollo, who builds a capability inside-out, domain first; Hephaestus, who writes each layer test-first |
 | `ahrena-engineering-code-review` | Argos, who conducts the review: routes the lenses, publishes one verdict, loops through Erodos, lands |
@@ -52,10 +52,10 @@ Language plugins are `ahrena-engineering-python`, `-typescript`, `-go` and `-rus
 From the root of your repository, with no checkout and no plugin installed:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/ahrenatechnology/ahrena-framework/main/engineering/delivery/skills/installing-the-agency/scripts/install.py | python3 -
+curl -fsSL https://raw.githubusercontent.com/ahrenatechnology/ahrena-framework/main/engineering/development/skills/installing-the-agency/scripts/install.py | python3 -
 ```
 
-Pass options after the dash, as `python3 - --language python`. The command fetches `install.py` from the `main` branch. `--platform claude|codex` limits the run to one instruction file. If only `AGENTS.md` exists the run is Codex-only and skips `.claude/settings.json`, so pass `--platform claude` to write it. Once `ahrena-engineering-delivery` is present, `/install-agency` runs the same script, and `/install-agency --check` verifies the result without writing.
+Pass options after the dash, as `python3 - --language python`. The command fetches `install.py` from the `main` branch. `--platform claude|codex` limits the run to one instruction file. If only `AGENTS.md` exists the run is Codex-only and skips `.claude/settings.json`, so pass `--platform claude` to write it. Once `ahrena-engineering-development` is present, `/install-agency` runs the same script, and `/install-agency --check` verifies the result without writing.
 
 `--platform claude|codex` limits the run to one instruction file. A repository that has only `AGENTS.md` is treated as Codex-only and skips `.claude/settings.json`; pass `--platform claude` to write it.
 
@@ -68,7 +68,7 @@ It does not use `claude plugin marketplace add`, which rewrote an existing `ahre
 
 ```sh
 claude plugin marketplace add ahrenatechnology/ahrena-framework --scope project
-claude plugin install ahrena-engineering-delivery@ahrena --scope project
+claude plugin install ahrena-engineering-development@ahrena --scope project
 # the same for each plugin in the table
 ```
 

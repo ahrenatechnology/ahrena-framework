@@ -58,7 +58,7 @@ END = "<!-- ahrena:agency:end -->"
 AGENCY_FILE = ("references", "agency.json")
 AGENCY_URL = (
     "https://raw.githubusercontent.com/ahrenatechnology/ahrena-framework/main/"
-    "engineering/delivery/skills/installing-the-agency/references/agency.json"
+    "engineering/development/skills/installing-the-agency/references/agency.json"
 )
 
 TARGET = {"claude": "CLAUDE.md", "codex": "AGENTS.md"}

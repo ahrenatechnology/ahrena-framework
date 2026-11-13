@@ -29,7 +29,7 @@
 // issue as `args.issue` so BDD scenarios can name #<issue>/AC-n.
 
 export const meta = {
-  name: 'athena-delivery',
+  name: 'athena-development',
   description: "Athena's loop: plan, then per routed layer run the builder's test-step arc + Argos<=3 loop, then stack",
   phases: [
     { title: 'Plan', detail: 'ensure the issue (find-or-create), then decompose it into typed, ordered, routed layers' },

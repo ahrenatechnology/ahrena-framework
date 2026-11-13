@@ -7,6 +7,7 @@
     }
   },
   "plugins": [
+    "ahrena-engineering-development",
     "ahrena-engineering-delivery",
     "ahrena-engineering-frontend",
     "ahrena-engineering-backend",
@@ -20,19 +21,30 @@
   "languages": {
     "python": {
       "plugin": "ahrena-engineering-python",
-      "markers": ["pyproject.toml", "requirements.txt", "setup.py"]
+      "markers": [
+        "pyproject.toml",
+        "requirements.txt",
+        "setup.py"
+      ]
     },
     "typescript": {
       "plugin": "ahrena-engineering-typescript",
-      "markers": ["tsconfig.json", "package.json"]
+      "markers": [
+        "tsconfig.json",
+        "package.json"
+      ]
     },
     "go": {
       "plugin": "ahrena-engineering-go",
-      "markers": ["go.mod"]
+      "markers": [
+        "go.mod"
+      ]
     },
     "rust": {
       "plugin": "ahrena-engineering-rust",
-      "markers": ["Cargo.toml"]
+      "markers": [
+        "Cargo.toml"
+      ]
     }
   }
 }
