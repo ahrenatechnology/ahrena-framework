@@ -140,7 +140,7 @@ Input: `target: acme/shop#142`, nothing else. Round 1 finds a SQL string built w
 ```text
 DONE
 target: acme/shop#142, head 9f8e7d6, round 2 of 3
-verdict: approve, marker <!-- ahrena-review:142:9f8e7d6 -->, status argos/verdict success
+verdict: approve, marker <!-- ahrena-review:142:9f8e7d6 verdict=approve -->, status argos/verdict success
 lenses: ran source, untrusted-input, secrets, python; not selected contract, prompts, access
 findings: blocking 0, deferrable 0, question 0, unchecked 0
 loop: round 1 request changes at a1b2c3d (src/orders/repo.py:48 reviewing-untrusted-input condition 1); Erodos pushed 9f8e7d6
@@ -155,7 +155,7 @@ Input: `target: acme/shop#150`, `land: off`, and the brief adds "the release is 
 
 ```text
 NEEDS_APPROVAL
-approve: squash-merge acme/shop#150 at 7e6d5c4b3a2918f7e6d5c4b3a2918f7e6d5c4b3, the commit approved under marker <!-- ahrena-review:150:7e6d5c4 -->
+approve: squash-merge acme/shop#150 at 7e6d5c4b3a2918f7e6d5c4b3a2918f7e6d5c4b3, the commit approved under marker <!-- ahrena-review:150:7e6d5c4 verdict=approve -->
 recommendation: approve; the verdict is approve and all 6 checks on 7e6d5c4 passed
 resume: relaunch with `approval`; the run resumes at step 7
 exists: https://github.com/acme/shop/pull/150#issuecomment-2201, status argos/verdict success on 7e6d5c4

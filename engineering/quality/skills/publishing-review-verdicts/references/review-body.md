@@ -9,7 +9,7 @@ places each time.
 
 ---
 
-<!-- ahrena-review:PR-NUMBER:SHORT-SHA -->
+<!-- ahrena-review:PR-NUMBER:SHA verdict=approve|request-changes|comment -->
 
 **Verdict:** request changes | comment | approve — reviewed at commit `SHORT-SHA` against base `BASE-REF`.
 
@@ -40,7 +40,9 @@ places each time.
 ## Filling it
 
 **The marker line is first and it is an HTML comment**, so it does not render
-and step 2 of the procedure can still find it on a re-run.
+and step 2 of the procedure can still find it on a re-run. It follows the
+contract in step 1 of the skill: `SHA` is 7 to 40 characters and `verdict=` is
+one of the three words, hyphenated, matching the verdict line below it.
 
 **Drop a section that is empty, except the last one.** A review with no
 deferrable findings omits that heading. `Not decided` is always written; when
@@ -61,7 +63,7 @@ can agree or disagree with.
 
 ---
 
-<!-- ahrena-review:142:a1b2c3d -->
+<!-- ahrena-review:142:a1b2c3d verdict=request-changes -->
 
 **Verdict:** request changes — reviewed at commit `a1b2c3d` against base `main`.
 
