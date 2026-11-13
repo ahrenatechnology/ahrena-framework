@@ -62,9 +62,9 @@ A commit status is something a ruleset can require. After the comment, the revie
 
 ## One comment per commit, and the earlier ones stay
 
-The reviewer publishes a marker on the first line of the comment body, derived from the pull request number and the head commit the review looked at.
+The reviewer publishes a marker on the first line of the comment body, carrying the pull request number, the head commit the review looked at and the verdict, in the grammar that step 1 of the skill fixes for readers outside this repository.
 
-The marker does two things. It makes a re-run on the same commit idempotent: the reviewer finds its own earlier comment carrying the same marker and edits that comment instead of adding a second one, so a review triggered three times produces one comment rather than three copies of the same list. And it makes a re-run on a new commit a new comment, because the marker no longer matches anything.
+The marker does two things. It makes a re-run on the same commit idempotent: the reviewer finds its own earlier comment carrying the same pull request and commit and edits that comment instead of adding a second one, so a review triggered three times produces one comment rather than three copies of the same list. And it makes a re-run on a new commit a new comment, because the marker no longer matches anything.
 
 **The earlier comment is left exactly where it is.** It is not deleted, edited or collapsed, and there are two reasons.
 
