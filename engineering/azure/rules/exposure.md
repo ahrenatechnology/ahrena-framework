@@ -19,7 +19,7 @@ The failure it exists for is concrete. An Azure Resource Manager authorization e
 
 ## What is sensitive here
 
-A closed list. Each item is sensitive whatever its value happens to be today. A role and a scope described in words in a design or a review finding (`Storage Blob Data Reader on the orders account`) are not an item; an assignment as Azure records it, with its ids, is.
+A closed list. Each item is sensitive whatever its value happens to be today. A role and a scope described in words in a design or a review finding (`Storage Blob Data Reader on the orders account`), and a custom role's actions written in a design record or a template, are not an item there; an assignment as Azure records it, with its ids, is, and so is any of them in an application's output.
 
 - **An identity:** a tenant id, a subscription id, a management group id, the object id, client id or application id of a user, group, service principal or managed identity.
 - **An authorization:** a role assignment, a role definition, a custom role's action list, an Azure Policy assignment or definition id, a Key Vault access policy, a PIM eligibility.

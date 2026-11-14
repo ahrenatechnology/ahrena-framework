@@ -18,7 +18,7 @@ references:
 
 # Designing on Azure
 
-The output is a design record, a markdown file in the repository (where the project keeps its decision records; else beside the infrastructure code; else `docs/design/` at the repository root), with one section per step below. Each decision names the Well-Architected checklist code it serves and the rule or doc of this plugin it applies, so a reviewer can check it against the page.
+The output is a design record, a markdown file in the repository (where the project keeps its decision records; else beside the infrastructure code; else `docs/design/` at the root of the checkout), named for the workload (`docs/design/orders-on-azure.md`), with one section per step below. Each decision names the Well-Architected checklist code it serves and the rule or doc of this plugin it applies, so a reviewer can check it against the page.
 
 ## 1. Take the client's estate as input
 
@@ -62,7 +62,7 @@ Write the owner tag's name and how it reaches every resource (set per resource, 
 
 ## 9. Check the record against the checklists
 
-Open the five Well-Architected checklist pages that `docs/architecture-framework.md` links (a page that cannot be opened is recorded as not read, with its URL) and mark each item the design addresses, the ones it leaves to the client, and the ones it does not address with the reason. Then list the questions from steps 1 and 2 that are still open. The design is done when every rule condition of this plugin has a line in the record that satisfies it, a recorded reason it does not apply, or a record that it is the client's, with the question that settles it.
+Open the five Well-Architected checklist pages that `docs/architecture-framework.md` links (a page that cannot be opened is recorded as not read, with its URL) and mark each item the design addresses, the ones it leaves to the client, and the ones it does not address with the reason. Then list every question steps 1 to 8 left open, including pages recorded as not read. The design is done when every rule condition of this plugin has a line in the record that satisfies it, a recorded reason it does not apply, or a record that it is the client's, with the question that settles it.
 
 ## When this skill does not apply
 
