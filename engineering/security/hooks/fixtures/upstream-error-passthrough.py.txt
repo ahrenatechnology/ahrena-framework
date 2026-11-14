@@ -1,0 +1,39 @@
+"""Store a partner's API credential for a tenant (issue #294, anonymised).
+
+The incident this fixture keeps: the endpoint below failed on a permission it
+lacked, and the client received the cloud SDK's access-denied message as the
+body of an HTTP 500. Every identifier here is invented. The message had this
+shape:
+
+    An error occurred (AccessDeniedException) when calling the CreateSecret
+    operation: User: arn:aws:sts::111122223333:assumed-role/example-service-role/
+    example-session is not authorized to perform: secretsmanager:CreateSecret on
+    resource: tenants/t-0001/partner-credential with an explicit deny in a
+    permissions boundary
+
+From that one body a caller reads the account, the role the service assumes,
+the action it was denied, where a third party's credential is kept, and that a
+permissions boundary governs the role.
+
+The file is stored as text so that nothing in this repository routes or
+gates it as source. The tests copy it into a scratch repository as
+handlers/credentials.py and review that change, which is how a later edit to
+the router, to the exposure hook or to the conditions cannot lose it.
+"""
+
+import json
+
+import boto3
+from botocore.exceptions import ClientError
+
+store = boto3.client("secretsmanager")
+
+
+def handler(event, context):
+    body = json.loads(event["body"])
+    name = f"tenants/{body['tenant_id']}/partner-credential"
+    try:
+        store.put_secret_value(SecretId=name, SecretString=body["credential"])
+    except ClientError as error:
+        return {"statusCode": 500, "body": json.dumps({"error": str(error)})}
+    return {"statusCode": 204, "body": ""}

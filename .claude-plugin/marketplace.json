@@ -349,6 +349,29 @@
       ]
     },
     {
+      "name": "ahrena-engineering-gcp",
+      "description": "What is specific to Google Cloud: least-privilege IAM without basic roles or service account keys, encryption, no project, policy or resource path in an application's output, labels and budgets, and the service each problem calls for.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/gcp",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/gcp",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "gcp",
+        "google-cloud",
+        "iam",
+        "security",
+        "networking",
+        "cost",
+        "cloud"
+      ]
+    },
+    {
       "name": "ahrena-engineering-azure",
       "description": "Azure, grounded in Microsoft's documentation: least-privilege roles and managed identities, encryption and private reach, no Azure identifier or SDK error in an output, and an owner and a budget on every resource.",
       "version": "0.1.0",

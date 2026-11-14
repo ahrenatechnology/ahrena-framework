@@ -68,6 +68,9 @@ jobs:
       - name: Test the review router
         run: python3 engineering/quality/hooks/test-route-review.py
 
+      - name: Test the exposure hook
+        run: python3 engineering/security/hooks/test-check-exposure.py
+
       - name: Test the review marker contract
         run: python3 engineering/quality/skills/publishing-review-verdicts/references/test-marker.py
 
@@ -82,6 +85,9 @@ jobs:
 
       - name: Test the typing hook
         run: python3 engineering/python/hooks/test-check-typing.py
+
+      - name: Test the Google Cloud grants hook
+        run: python3 engineering/gcp/hooks/test-check-gcp-grants.py
 
       - name: Test the branch-name hook
         run: python3 contributing/hooks/test-check-branch-name.py

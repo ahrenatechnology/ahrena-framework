@@ -28,7 +28,7 @@ Validation and preflight errors appear in the activity log and not in the deploy
 
 ## 2. Read the real error code
 
-For a validation or preflight failure, re-run validation and read its output.
+When the error output is already in hand (the caller supplied it), read the code from it and skip the commands of this step. Otherwise, for a validation or preflight failure, re-run validation and read its output.
 
 ```sh
 bicep build main.bicep
@@ -76,7 +76,7 @@ Change the template, not the resource by hand, so the next deployment does not u
 az deployment group what-if --resource-group RG --template-file main.bicep
 ```
 
-What-if reports changes and makes none. Its output can carry noise: a property the template omits but the platform sets may show as deleted, and it does not evaluate `newGuid()`, `utcNow()`, secure parameters or `listKeys()` ([Bicep what-if](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deploy-what-if)). Deploy, and verify by the check the failure named: the operation succeeds, the revision is healthy, the endpoint answers.
+What-if reports changes and makes none. Its output can carry noise: a property the template omits but the platform sets may show as deleted, and it does not evaluate `newGuid()`, `utcNow()`, secure parameters or `listKeys()` ([Bicep what-if](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deploy-what-if)). Whoever owns the deployment (the pipeline, or the person running it) deploys the changed template; this skill names the change and the check, and verifies when it can read the result: the operation succeeds, the revision is healthy, the endpoint answers.
 
 ## 7. Report without leaking
 

@@ -1,0 +1,1 @@
+-W clippy::unwrap_used -W clippy::panic -W clippy::todo -W clippy::unimplemented -W clippy::undocumented_unsafe_blocks -W clippy::map_err_ignore -W clippy::needless_pass_by_value -W clippy::redundant_clone

@@ -23,6 +23,10 @@ It is addressed as `janus` and its subject is `security-guardian`. The naming ru
 
 It applies the six security disciplines and nothing else. The engineering rules over source, the language specifics, the contract break and the prompt-as-instruction review belong to Argos, in the one verdict Argos publishes on the pull request. Janus moves the security disciplines earlier in the flow; it does not take over the parts of the review that are not about security. A guardian that published its own verdict would be a second Argos, and the flow has one. A clear threshold is therefore not an approval of the change.
 
+## It applies the exposure rule at every threshold
+
+The routed disciplines are selected by what a change's lines look like, and the incident behind `rules/layer-exposure.md` is the case where that selection failed: the line that returned a provider's error to a client was not the line any route pointed at. So at a threshold Janus does not wait to be routed to exposure. It always runs the access and sensitive-data disciplines, runs the exposure hook, and reads every exit the layer adds against the rule, because a layer is the unit that owns its data and the threshold is the last point where the layer's own author can still change what it emits. A dependency's error passed through is `ACC-8`; any other sensitive datum or whole object at an exit is `DAT-1`; both block, because the line is in the layer's diff.
+
 ## It does not fix what it finds
 
 A reviewer that applied its own findings would read its own edit on the next pass, and the second reading is the value of the review. The build agent writes the change, and Erodos applies the mechanically applicable findings once the layer is a pull request.

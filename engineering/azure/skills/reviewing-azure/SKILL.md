@@ -43,15 +43,15 @@ A role assignment is judged against the calls the code makes, so open the code t
 
 Work rule by rule, condition by condition. Give the scenario in Azure terms: the resource, the property and its value, the principal and its role at its scope, or the path from the SDK exception to the response. `docs/identity-and-access.md` and `docs/networking.md` hold the defaults a template inherits when it omits a property; a missing property is a finding only when its default is the unsafe value.
 
-For `exposure/1` and `exposure/2`, follow every `catch` or `except` of an Azure SDK exception in the change to where its value goes. An exception handed whole to a logger, or its message put in a response, is `blocking`. This is the condition the incident behind issue #294 would have met.
+For `exposure/1` and `exposure/2`, run the security plugin's exposure hook over the change first (`python3 engineering/security/hooks/check-exposure.py --changed BASE...HEAD` in this repository, or the installed plugin's copy), then follow every `catch` or `except` of an Azure SDK exception in the change to where its value goes, because the hook decides a whole error and not a field taken from it. An exception handed whole to a logger, or its message put in a response, is `blocking`. This is the condition the incident behind issue #294 would have met.
 
 A condition whose answer depends on something only the client holds (whether a public endpoint is intended, which data needs a customer-managed key, who the budget's recipient is) is a `question`, naming who answers it. A state the template decides is not a question: a budget with no `notifications` at all reaches nobody and is `blocking`, whoever the recipient will be.
 
 ## 5. Write the findings
 
-Each finding carries the fields in `ahrena-engineering-quality:docs/review-findings.md`: file and line, the rule and condition (`exposure/2`), the state observed, and a correction that is an instruction ("assign `Storage Blob Data Reader` on the account instead of `Contributor` on the resource group"). Never quote a real subscription id, tenant id, object id or secret in a finding: name the file and line where it sits.
+One finding per condition a line breaks: an assignment with too broad a role and too broad a scope is two findings. Each cites the line of the offending property (the role, the missing `scope`, the `return`), and carries the fields in `ahrena-engineering-quality:docs/review-findings.md`: file and line, the rule and condition (`exposure/2`), the state observed, and a correction that is an instruction ("assign `Storage Blob Data Reader` on the account instead of `Contributor` on the resource group"). Never quote a real subscription id, tenant id, object id or secret in a finding: name the file and line where it sits.
 
-Hand the set back to step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md`. Do not publish from here, and do not edit the change.
+Hand the set back to whoever invoked this skill: step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md` in a full review, or the agent that ran it. When the language-agnostic pass has not run (this skill run on its own), say so as one `unchecked` line. Do not publish from here, and do not edit the change.
 
 ## When this skill does not apply
 

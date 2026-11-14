@@ -6,6 +6,7 @@ clade: security
 references:
   - ahrena-engineering-quality:docs/review-findings.md
   - ahrena-engineering-quality:docs/review-routes.md
+  - rules/layer-exposure.md
 
 ---
 
@@ -13,11 +14,11 @@ references:
 
 One question: with this change, does a datum become readable to someone who should not read it — in a log, in a response, in storage, in transit, or because the cryptography protecting it is weak? This is the sibling of `reviewing-access`: that skill decides who may act, this one decides who may read what the system keeps.
 
-The conditions are in `references/conditions.md`, identified `DAT-n`. A finding cites the identifier. Severity and route follow `docs/review-findings.md`.
+The conditions are in `references/conditions.md`, identified `DAT-n`. A finding cites the identifier. Severity and route follow `docs/review-findings.md`. What is sensitive and what an exit is are the closed lists of `rules/layer-exposure.md`: credentials, personal and payment data, and authorization and infrastructure configuration, at any exit. A category the repository adds extends that list; none is removed from it.
 
 ## 1. Take the route, and read the repository first
 
-The `sensitive-data` route fired on lines that log or trace, build a response, store a credential, or call a hash, cipher, signing or random primitive. Read what the repository treats as sensitive and which recipients its documents already name for which category of data, so DAT-5 is judged against that and not from scratch.
+The `sensitive-data` route fired on lines that log or trace, build a response, store a credential, or call a hash, cipher, signing or random primitive. The `layer-exposure` route fired on a line that hands a caught error, a dependency's response, a policy or a whole configuration to an exit; start there. Read what the repository treats as sensitive and which recipients its documents already name for which category of data, so DAT-5 is judged against that and not from scratch.
 
 ## 2. Follow the datum to where it rests or leaves
 
@@ -25,7 +26,7 @@ For each changed log call, response builder, storage write and outbound call, as
 
 ## 3. Apply the conditions
 
-Open `references/conditions.md` and read against DAT-1 to DAT-5: sensitive data in a log or trace, a response that returns the whole record, a password or secret stored recoverably, cryptography chosen by hand, data sent to a new recipient.
+Open `references/conditions.md` and read against DAT-1 to DAT-5: sensitive data or configuration at an exit, a response that returns the whole record, a password or secret stored recoverably, cryptography chosen by hand, data sent to a new recipient.
 
 Read each condition's `Exempt` line: an internal identifier that is not personal data, a response built from a field-naming schema, a fast hash used as a checksum with no security claim.
 

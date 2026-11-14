@@ -6,6 +6,7 @@ clade: security
 references:
   - ahrena-engineering-quality:docs/review-findings.md
   - ahrena-engineering-quality:docs/review-routes.md
+  - rules/layer-exposure.md
 
 ---
 
@@ -17,7 +18,7 @@ The conditions are in `references/conditions.md`, identified `ACC-n`. A finding 
 
 ## 1. Take the route, and read the repository first
 
-The `access` route fired on lines that authenticate, authorise, scope by owner, receive a webhook, or set a cross-origin rule. Before the checklist, read how this repository authenticates a caller and where the owner or tenant identity comes from — its `AGENTS.md`, its architecture document, the decision records. Where it wrote the answer, that outranks the checklist; where it did not and a condition needs it, the finding is a `question`.
+The `access` route fired on lines that authenticate, authorise, scope by owner, receive a webhook, or set a cross-origin rule. The `error-exposure` route fired on a line that hands a caught error or a dependency's response to a response or a log; that line is ACC-8, read against `rules/layer-exposure.md`. Before the checklist, read how this repository authenticates a caller and where the owner or tenant identity comes from — its `AGENTS.md`, its architecture document, the decision records. Where it wrote the answer, that outranks the checklist; where it did not and a condition needs it, the finding is a `question`.
 
 ## 2. Map the entry and the actor
 
@@ -25,7 +26,7 @@ For each changed handler, route, consumer or job, establish two things: can it b
 
 ## 3. Apply the conditions
 
-Open `references/conditions.md` and read against ACC-1 to ACC-8: an unauthenticated entry, a token trusted unverified, a session that outlives its reason, a permission checked only in the interface, a record fetched by id with no owner predicate, a webhook taken at its word, a browser trusted across origins, an answer that tells the caller too much.
+Open `references/conditions.md` and read against ACC-1 to ACC-8: an unauthenticated entry, a token trusted unverified, a session that outlives its reason, a permission checked only in the interface, a record fetched by id with no owner predicate, a webhook taken at its word, a browser trusted across origins, an answer that tells the caller too much, a dependency's error passed through among them.
 
 Read each condition's `Exempt` line: a documented public endpoint, a header-authenticated API, a response that distinguishes absent from forbidden only in a development mode.
 
