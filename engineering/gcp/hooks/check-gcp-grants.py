@@ -42,7 +42,7 @@ ALLOW = re.compile(r"gcp-grant-allowed:\s*\S")
 CHECKS = (
     (1, re.compile(r"\broles/(owner|editor|viewer)\b"),
      "basic role {match}; grant the predefined role whose permissions the principal uses"),
-    (4, re.compile(r"resource\s+\"google_service_account_key\"|\bkeys\s+(create|upload)\b"),
+    (4, re.compile(r"resource\s+\"google_service_account_key\"|\bservice-accounts\s+keys\s+(create|upload)\b"),
      "service account key ({match}); attach the service account, or use Workload Identity Federation"),
     (5, re.compile(r"\ballAuthenticatedUsers\b|\ballUsers\b"),
      "public principal {match}; grant to the callers that need it"),

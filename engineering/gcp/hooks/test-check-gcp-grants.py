@@ -40,6 +40,8 @@ CLEAN = [
     ("comment", "main.tf", "# never grant allUsers here\n"),
     ("allowed with a reason", "site.tf", '# gcp-grant-allowed: public website assets\nmember = "allUsers"\n'),
     ("markdown is not read", "notes.md", "roles/owner allUsers\n"),
+    ("a Cloud KMS key", "kms.sh", "gcloud kms keys create k --keyring r --purpose encryption --rotation-period 90d\n"),
+    ("an API key", "apikey.sh", "gcloud services api-keys create --display-name web\n"),
 ]
 
 
