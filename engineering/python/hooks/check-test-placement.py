@@ -30,8 +30,9 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from sources import display, sources
+
 RULE = "test-placement"
-SKIP_NAMES = frozenset({"__pycache__", "node_modules", "venv", "build", "dist"})
 NOT_MODULES = frozenset({"__init__.py", "__main__.py", "conftest.py"})
 TEST_DIRECTORIES = frozenset({"test", "tests"})
 UNIT_TYPES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
@@ -44,13 +45,6 @@ class Finding:
 
     def __str__(self) -> str:
         return f"{self.where}\n    [{RULE}] condition 1: {self.message}"
-
-
-def display(path: Path, base: Path) -> str:
-    try:
-        return path.relative_to(base).as_posix()
-    except ValueError:
-        return path.as_posix()
 
 
 def is_test(path: Path) -> bool:
@@ -105,23 +99,6 @@ def check(path: Path, rel: str, findings: list[Finding]) -> bool:
             )
         )
     return True
-
-
-def _skipped(relative: Path) -> bool:
-    return any(part.startswith(".") or part in SKIP_NAMES for part in relative.parts)
-
-
-def _walk(root: Path) -> list[Path]:
-    if root.is_file():
-        return [root] if root.suffix == ".py" else []
-    return [path for path in root.rglob("*.py") if not _skipped(path.relative_to(root))]
-
-
-def sources(roots: list[Path]) -> list[Path]:
-    found: list[Path] = []
-    for root in roots:
-        found.extend(_walk(root))
-    return sorted(set(found))
 
 
 def report(findings: list[Finding], checked: int, unparsed: int) -> int:

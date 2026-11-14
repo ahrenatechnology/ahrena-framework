@@ -65,9 +65,10 @@ import sys
 import tokenize
 from dataclasses import dataclass
 from pathlib import Path
+
+from sources import display, sources
 from typing import Union
 
-SKIP_NAMES = frozenset({"__pycache__", "node_modules", "venv", "build", "dist"})
 
 FunctionNode = Union[ast.FunctionDef, ast.AsyncFunctionDef]
 FUNCTION_TYPES = (ast.FunctionDef, ast.AsyncFunctionDef)
@@ -175,8 +176,6 @@ SHELL_ON_REQUEST = frozenset(
 UNVERIFIED_CONTEXTS = frozenset({"ssl._create_unverified_context"})
 
 
-
-
 @dataclass
 class Finding:
     where: str
@@ -203,15 +202,6 @@ def where(source: Source, node: ast.AST) -> str:
 
 def in_domain(source: Source) -> bool:
     return DOMAIN in source.parts
-
-
-
-
-def display(path: Path, base: Path) -> str:
-    try:
-        return path.relative_to(base).as_posix()
-    except ValueError:
-        return path.as_posix()
 
 
 def comments_in(text: str) -> dict[int, str]:
@@ -252,8 +242,6 @@ def load(path: Path, rel: str) -> Source | None:
         print(f"{rel}\n    skipped, this interpreter cannot parse it: {exc}", file=sys.stderr)
         return None
     return Source(rel, Path(rel).parts[:-1], tree, comments, imports_in(tree))
-
-
 
 
 def named(node: ast.AST) -> str:
@@ -327,8 +315,6 @@ def statements_within(body: list[ast.stmt]) -> list[ast.AST]:
             continue
         pending.extend(ast.iter_child_nodes(node))
     return found
-
-
 
 
 def _caught(handler: ast.ExceptHandler) -> list[ast.expr]:
@@ -466,8 +452,6 @@ def check_finally_exits(source: Source, findings: list[Finding]) -> None:
             )
 
 
-
-
 def _record_decorator(source: Source, decorator: ast.expr) -> tuple[str, ast.Call | None]:
     target = decorator.func if isinstance(decorator, ast.Call) else decorator
     call = decorator if isinstance(decorator, ast.Call) else None
@@ -563,8 +547,6 @@ def _mutates_argument(source: Source, at: ast.AST, function: str, name: str) -> 
     )
 
 
-
-
 def _patch_kind(call: ast.Call) -> str:
     """'path' when the first argument is a dotted path, 'object' when it is a target, or ''."""
     text = written(call.func)
@@ -609,8 +591,6 @@ def _patches_inside(source: Source, call: ast.Call, first: ast.expr, target: str
         "test runs against a replacement of the code it exists to check. Double the port the "
         "code depends on instead, at the adapter, and let the domain and the use cases run",
     )
-
-
 
 
 def _security(source: Source, call: ast.Call, condition: int, message: str) -> Finding:
@@ -739,8 +719,6 @@ def check_tls(source: Source, findings: list[Finding]) -> None:
         )
 
 
-
-
 CHECKS = (
     check_base_handlers,
     check_vanilla_raises,
@@ -754,23 +732,6 @@ CHECKS = (
     check_archives,
     check_tls,
 )
-
-
-def _skipped(relative: Path) -> bool:
-    return any(part.startswith(".") or part in SKIP_NAMES for part in relative.parts)
-
-
-def _walk(root: Path) -> list[Path]:
-    if root.is_file():
-        return [root] if root.suffix == ".py" else []
-    return [path for path in root.rglob("*.py") if not _skipped(path.relative_to(root))]
-
-
-def sources(roots: list[Path]) -> list[Path]:
-    found: list[Path] = []
-    for root in roots:
-        found.extend(_walk(root))
-    return sorted(set(found))
 
 
 def report(findings: list[Finding], checked: int, unparsed: int) -> int:
