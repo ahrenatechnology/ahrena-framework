@@ -170,6 +170,9 @@ jobs:
       - name: Test the agency installer
         run: python3 engineering/development/skills/installing-the-agency/scripts/test-install.py
 
+      - name: Test that the agency reaches the stack plugins
+        run: python3 engineering/development/tests/test-stack-wiring.py
+
       - name: Test the AWS plugin's wiring
         run: python3 -B engineering/aws/tests/test-plugin.py
 
