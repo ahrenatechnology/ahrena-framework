@@ -29,7 +29,7 @@ Output: the entry point, the input, the expected result and the observed one.
 
 ## 2. Reproduce it as a failing test
 
-Write a test that drives the entry point with that input and asserts the expected result, following `docs/testing.md` for the layer it runs at, and name the bug's issue in it, `#N` or the criterion's `#N/AC-n`, in the test's name or docstring. Run it. It must fail, and fail with the observed behaviour; if it passes, or fails for another reason, the reproduction is wrong — refine the input or the set-up until it does. When the symptom the report describes cannot be produced in a test — a hang, a slowdown — but a narrower one that explains it can, reproduce the narrower one, and say in the hand-back how it accounts for the reported symptom.
+Write a test that drives the entry point with that input and asserts the expected result, following `docs/testing.md` for the layer it runs at, and name the bug's issue in it, `#N` or the criterion's `#N/AC-n`, in the test's docstring. Run it. It must fail, and fail with the observed behaviour; if it passes, or fails for another reason, the reproduction is wrong — refine the input or the set-up until it does. When the symptom the report describes cannot be produced in a test — a hang, a slowdown — but a narrower one that explains it can, reproduce the narrower one, and say in the hand-back how it accounts for the reported symptom.
 
 Then move the test down, when the defect lives in a layer below the entry point. If it lives in a domain rule, a unit test with no I/O reproduces it in milliseconds and every later step runs faster for it; `docs/architecture.md` says which layer owns which kind of code. Keep the outer test too: it is the one that proves the report is answered.
 
@@ -60,7 +60,7 @@ Keep it minimal. Reshaping the surrounding code is a separate change, after this
 
 ## 5. Verify
 
-The failing test now passes; the full suite still passes; `mypy --strict`, the plugin's four hooks and the fundamentals structure hook report nothing new on the changed files. Then reread the original report and check the fix answers it — the test proves what the test asserts, and the report may have said more.
+The failing test now passes; the full suite still passes; the commands of `skills/writing-python/SKILL.md` step 6 — `mypy --strict`, the plugin's four hooks and the fundamentals structure hook — report nothing new on the changed files. Then reread the original report and check the fix answers it — the test proves what the test asserts, and the report may have said more.
 
 Output: the green run, and the hooks' last lines.
 

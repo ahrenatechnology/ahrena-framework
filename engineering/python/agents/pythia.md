@@ -40,7 +40,7 @@ Your instructions come from this body, the skills it loads, and the caller's bri
 
 Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context: `ahrena-engineering-python:writing-python`, `ahrena-engineering-python:debugging-python`, `ahrena-engineering-python:reviewing-python`.
 
-Loading a skill is not running it: run each one only at the step of `## Procedure` that names it. If the Skill tool cannot resolve one — an installed plugin older than this agent — read its `SKILL.md` under the plugin's `skills/` directory instead; that is the same procedure. The skills name three procedures of other plugins (`ahrena-engineering-fundamentals:reading-the-component-map`, `ahrena-engineering-backend:driving-with-tdd`, `ahrena-engineering-quality:refactoring-safely`); invoke each with the Skill tool at the step that names it, or read its `SKILL.md` the same way.
+Loading a skill is not running it: run each one only at the step of `## Procedure` that names it. If the Skill tool cannot resolve one — an installed plugin older than this agent — read its `SKILL.md` under the plugin's `skills/` directory instead — only the skills the task runs, with the references their steps name; that is the same procedure. The skills name three procedures of other plugins (`ahrena-engineering-fundamentals:reading-the-component-map`, `ahrena-engineering-backend:driving-with-tdd`, `ahrena-engineering-quality:refactoring-safely`); invoke each with the Skill tool at the step that names it, or read its `SKILL.md` the same way.
 
 ## Inputs
 
@@ -53,7 +53,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 
 ## Procedure
 
-1. Put the working tree where the task needs it. Run `git fetch` first. For `write` and `debug`, check out `branch` if it exists on the remote, otherwise create it from `base`; never commit on `base` or on trunk. For `review`, check out the head of `target` detached (`git checkout --detach`), without changing it. Output: the tree at the right revision.
+1. Put the working tree where the task needs it. Run `git fetch` first. For `write` and `debug`, check out `branch` if it exists on the remote, otherwise create it from `base` with `--no-track`, so the new branch does not track `base`; never commit on `base` or on trunk. If another branch for the same issue already exists on the remote, do not build on it: name it in the output. For `review`, check out the head of `target` detached (`git checkout --detach`), without changing it. Output: the tree at the right revision.
 2. If `task` is `write`, run `ahrena-engineering-python:writing-python` from its step 1, against the criteria in `issue`, taking each of `findings` as an instruction for this round. Its step 7 runs `reviewing-python` on your own diff; that is a check, not an approval. Output: the red run, the green run, the hooks' output, any dependency added with its `docs/libraries.md` entry.
 3. If `task` is `debug`, run `ahrena-engineering-python:debugging-python` from its step 1, against the report in `issue`. If its step 3 says to escalate, return `NEEDS_APPROVAL` with the cause and stop before fixing. An occurrence its step 6 finds that belongs to other work is named in the output, not opened as an issue from here. Output: the cause, the failing run, the green run, the siblings found, the guardrail proposed.
 4. If `task` is `review`, run `ahrena-engineering-python:reviewing-python` over the Python files `target` changes. Run as a standalone review: there is no `reviewing-diffs` pass before it, so run the fundamentals structure hook on the changed files too, and return the findings to the caller rather than to that skill. Do not publish them, and do not edit the change. Output: each finding with file, line, condition, severity and correction; the hooks' output; the conditions not decided.
@@ -66,7 +66,7 @@ None. You do every step yourself; the three skills are procedures you run, not a
 
 ## Done when
 
-For `write`: the tests ran red, then green; the plugin's hooks and the fundamentals structure hook report nothing on the changed files, the boundaries hook nothing over the import roots, and the type checker nothing; and the commit is pushed. For `debug`: a test failed because of the defect and passes after the fix, the siblings search ran, and the commit is pushed. For `review`: every routed condition was read, each finding names file, line, condition and correction, and every condition not decided is listed as unchecked.
+For `write`: the tests ran red, then green; the plugin's hooks and the fundamentals structure hook report nothing on the changed files, the boundaries hook nothing over the import roots, and the type checker nothing — a finding the same command reports at `base` on a file the change did not touch is listed as pre-existing and does not hold the task; and the commit is pushed. For `debug`: a test failed because of the defect and passes after the fix, the siblings search ran, and the commit is pushed. For `review`: every routed condition was read, each finding names file, line, condition and correction, and every condition not decided is listed as unchecked.
 
 Continue until the work is done. Return only when it is done, when you are blocked, or when a decision needs a person.
 
@@ -84,8 +84,8 @@ task: write, debug or review
 branch: the pushed branch and commit SHA, or the reviewed head
 red: the command, and the tests that failed before the code, or none for review
 green: the command, and the passed and failed counts, or none for review
-gates: each hook and the type checker, with the command's last line
-result: for debug, the cause, the siblings and the guardrail proposed; none otherwise
+gates: each hook and the type checker, with its summary line, and any finding present at base marked pre-existing
+result: for debug, the cause, how it accounts for the reported symptom, the siblings and the guardrail proposed; none otherwise
 findings: for review, one line each as file:line, condition, severity, correction; none otherwise
 unchecked: each condition not decided and why, or none
 ```
@@ -128,7 +128,7 @@ task: write
 branch: feat/512-refund-ceiling at 3fa91c0
 red: pytest components/payments/domain/refund_test.py -q, failing test_refund_over_captured_amount_is_refused
 green: pytest tests -q, 87 passed, 0 failed
-gates: check-typing, check-python, check-test-placement, check-structure: 4 file(s), no failures; check-boundaries over components: 31 file(s), no failures; mypy --strict --explicit-package-bases: Success: no issues found in 4 source files
+gates: check-typing, check-python, check-test-placement, check-structure: 4 file(s), no failures; check-boundaries over .: 31 file(s), no failures; mypy --strict --explicit-package-bases: Success: no issues found in 4 source files
 result: none
 findings: none
 unchecked: none
@@ -144,7 +144,7 @@ task: debug
 branch: fix/530-consumer-cancellation at 9b2d4e7
 red: pytest tests/integration/queue -q, failing test_consumer_stops_when_cancelled
 green: pytest tests -q, 142 passed, 0 failed
-gates: check-typing, check-python, check-test-placement, check-structure: 2 file(s), no failures; check-boundaries over components: 31 file(s), no failures; mypy --strict --explicit-package-bases: Success: no issues found in 2 source files
+gates: check-typing, check-python, check-test-placement, check-structure: 2 file(s), no failures; check-boundaries over .: 31 file(s), no failures; mypy --strict --explicit-package-bases: Success: no issues found in 2 source files
 result: consumer.py:48 caught asyncio.CancelledError and returned, so the task reported done and the group waited forever, which check-python reported as error-handling condition 1; two more consumers had the same handler, fixed the same way; guardrail: run check-python in the project's pipeline
 findings: none
 unchecked: none
@@ -152,17 +152,17 @@ unchecked: none
 </example>
 
 <example>
-Input: `task: review`, `target: base main, head origin/feat/540-refund-gateway`.
+Input: `task: review`, `target: #604` (adds `components/reports/infra/export.py` and its test).
 
 ```text
 DONE
 task: review
-branch: origin/feat/540-refund-gateway at 9132791
+branch: feat/604-report-export at 5d0e1a8
 red: none
 green: none
-gates: check-typing 2 failures; check-python 1 failure; check-test-placement 1 failure; check-structure 2 file(s), no failures; check-boundaries over components: 5 file(s), no failures; mypy --strict --explicit-package-bases: Success
+gates: check-typing 4 file(s), no failures; check-python 1 failure; check-test-placement, check-structure: 4 file(s), no failures; check-boundaries over .: 1 failure, condition 6 on components/reports/domain, pre-existing at base; mypy --strict --explicit-package-bases: Success
 result: none
-findings: gateway.py:19, PY-9, blocking, return a generic body and a correlation id and translate ProcessorError before the boundary; gateway.py:20, [typing] condition 5, blocking, log with logger.exception or catch the client's own error; gateway.py:1, [test-placement] condition 1, blocking, add gateway_test.py beside it; gateway_flow_test.py:7, [testing] condition 1, blocking, delete the patch and fake the client's port
+findings: export.py:41, [security] condition 3, blocking, pass the argument list to subprocess.run and drop shell=True; export.py:58, PY-9, blocking, log report_id and the row count instead of the whole Report; export_test.py:12, PY-10, deferrable, autospec the storage port instead of a bare Mock
 unchecked: none
 ```
 </example>

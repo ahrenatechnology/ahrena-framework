@@ -59,7 +59,7 @@ If the change needs a dependency the project does not have, open `docs/libraries
 
 ## 4. Write the test red
 
-Invoke the backend plugin's `ahrena-engineering-backend:driving-with-tdd` with the Skill tool and follow it at its step for the layer from step 2 — it is named here rather than declared, because that plugin already depends on this one — with `docs/testing.md` open for the Python shapes: which doubles that layer may use, factory fixtures, the async and database set-up. The unit's test is `<stem>_test.py` beside the module it tests, which `rules/test-placement.md` requires; a test of more than one unit goes under `tests/`. Double a port with a fake; never patch a name under `domain/` or `application/`, which `rules/testing.md` reports. Name the acceptance criterion the test covers with its token, `#N/AC-n`, in the test's name or docstring, which is where the contributing plugin's traceability rule reads it.
+Invoke the backend plugin's `ahrena-engineering-backend:driving-with-tdd` with the Skill tool and follow it at its step for the layer from step 2 — it is named here rather than declared, because that plugin already depends on this one — with `docs/testing.md` open for the Python shapes: which doubles that layer may use, factory fixtures, the async and database set-up. The unit's test is `<stem>_test.py` beside the module it tests, which `rules/test-placement.md` requires; a test of more than one unit goes under `tests/`. Double a port with a fake; never patch a name under `domain/` or `application/`, which `rules/testing.md` reports. Name the acceptance criterion the test covers with its token, `#N/AC-n`, in the test's docstring — a function name cannot hold `#` — which is where the contributing plugin's traceability rule reads it.
 
 Run it and confirm it fails for the missing behaviour, not for an import error or a fixture typo.
 
@@ -102,7 +102,9 @@ Read the placeholders this way:
 - **The import roots** are the directories the project's dotted imports resolve against — the one that holds `components/`, usually the project root.
 - **The type check** is the project's own command when `pyproject.toml` declares one. Otherwise `--explicit-package-bases` is what lets mypy map a file under a PEP 420 namespace without `__init__.py` to its dotted name; without it, a module and the test beside it are found twice under two names (mypy documentation, *Mapping file paths to modules*). A finding is fixed, or answered with the reason the rule's own escape asks for, never silenced with a tool directive. `docs/toolchain.md` says why the checker is required and what each hook measured.
 
-Output: each command with its last line.
+A finding that the same command also reports at `base`, on a file the change did not touch, is not this change's: report it as pre-existing beside the command's summary and do not fix it here — a missing per-layer `pyproject.toml` that condition 6 of `rules/module-boundaries.md` reports on a project that never had one is the common case. Every other finding is this change's.
+
+Output: each command with its summary line, and any pre-existing finding marked as such.
 
 ## 7. Read the diff as a reviewer
 

@@ -1,9 +1,14 @@
-"""The source walk check-python.py and check-test-placement.py share.
+"""The source walk the plugin's hooks share.
 
 Both hooks are scripts run as `python3 <path>`, which puts this directory
 first on `sys.path`, so each imports this module by name and needs nothing
 installed. Kept to the walk alone: which files a hook reads, and how a path
-is shown in a finding.
+is shown in a finding. check-typing.py uses it too.
+
+Dot-prefixed directories are skipped by shape rather than by name, so a cache
+nobody has heard of yet is skipped too; SKIP_NAMES holds the vendored and
+generated trees that carry no dot. A root that does not exist is refused,
+because a typo in a path would otherwise read as a clean tree.
 """
 
 from __future__ import annotations

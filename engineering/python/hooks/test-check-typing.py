@@ -447,8 +447,22 @@ def summarise(failed: int, total: int) -> int:
     return 0
 
 
+def missing_path_refused() -> bool:
+    """A path that does not exist is an error, not a tree with nothing wrong in it."""
+    with tempfile.TemporaryDirectory() as tmp:
+        result = subprocess.run(
+            [sys.executable, str(HOOK), "no/such/file.py"], cwd=tmp, capture_output=True, text=True
+        )
+    return result.returncode != 0 and "does not exist" in result.stdout + result.stderr
+
+
 def main() -> int:
     failed = 0
+    if missing_path_refused():
+        print("ok    a path that does not exist is refused")
+    else:
+        failed += 1
+        print("FAIL  a path that does not exist is refused")
     for name, files, expect, ok in CASES:
         code, output = run(files)
         problems = problems_for(expect, ok, code, output)
@@ -457,7 +471,7 @@ def main() -> int:
             report_failure(name, problems, output)
         else:
             print(f"ok    {name}")
-    return summarise(failed, len(CASES))
+    return summarise(failed, len(CASES) + 1)
 
 
 if __name__ == "__main__":

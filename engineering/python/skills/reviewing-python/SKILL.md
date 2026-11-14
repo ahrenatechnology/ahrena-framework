@@ -51,11 +51,15 @@ python3 <python-plugin>/hooks/check-typing.py <changed .py files>
 python3 <python-plugin>/hooks/check-python.py <changed .py files>
 python3 <python-plugin>/hooks/check-test-placement.py <changed .py files>
 python3 <python-plugin>/hooks/check-boundaries.py <import roots>
+python3 <fundamentals-plugin>/hooks/check-structure.py <changed .py files>
+mypy --strict --explicit-package-bases <changed .py files>
 ```
+
+The last two run only when the skill runs on its own; under `reviewing-diffs` the structure hook has already run, and the type check is the project's own command when `pyproject.toml` declares one. `--explicit-package-bases` is what lets mypy read a module beside its test under a PEP 420 namespace (`docs/toolchain.md`).
 
 The plugin directory is where `ahrena-engineering-python` is installed (`engineering/python` in the framework's repository); the import roots are the directories the project's dotted imports resolve against. Pass the changed files, not their directories: a directory brings in findings on lines the change did not touch. The boundaries hook reads the whole graph by nature, so a finding of it on a module the diff did not touch, or with no line, is deferrable, as `ahrena-engineering-quality:docs/review-findings.md` grades a finding outside the diff.
 
-**One identifier per finding.** Where a hook's condition and a PY reading name the same line — a blind handler is condition 5 of `rules/typing.md` and PY-3; an unannotated parameter is condition 2 and PY-T6 — the finding cites the hook's condition, because a script decided it, and the PY reading adds only what the hook did not see.
+**One identifier per finding.** A finding that is also reported at `base`, on a file the change did not touch, is pre-existing and deferrable. Where mypy and a hook name the same line, the hook's condition is cited, and a mypy error no hook decides is condition 1 of `rules/typing.md`. Where a hook's condition and a PY reading name the same line — a blind handler is condition 5 of `rules/typing.md` and PY-3; an unannotated parameter is condition 2 and PY-T6 — the finding cites the hook's condition, because a script decided it, and the PY reading adds only what the hook did not see.
 
 A hook finding that a rule's own escape answers — a reason comment beside an `Any`, a mutable domain record or a `pickle.load` — is not reported. Whether the reason is true is read: a comment saying the bytes are trusted, on a function that loads an upload, is a finding of `reviewing-untrusted-input`, INP-7.
 
