@@ -16,6 +16,10 @@ This is the companion to [`rules/typing.md`](../rules/typing.md). The rule state
 
 It is also a refusal. The document this plugin inherited was a `pyproject.toml` with prose around it, and almost none of that file is here. The argument for the omission is the substance of this page.
 
+## What the specification says, and where this departs from PEP 8
+
+The specification decides none of the toolchain: PEP 484 deliberately proposes no checker, and no PEP chooses a linter. The choices here are practice, made on the premises the triage below states. PEP 8 is the community's style guide and this plugin follows it, with one stated departure: PEP 8 asks for lines of at most 79 characters, and this plugin sets no line length at all, for the reason the formatter section gives — a line count is the formatter's output, and the fundamentals clean-code rule counts statements instead.
+
 ## What the source was, and why it could not ship
 
 The predecessor's tooling manual listed eight tools, a Ruff configuration selecting seventeen rule families, a mypy block, a pytest block, a pre-commit file with three pinned revisions, a dependency table with fourteen version floors, and a six-line CI script. It is a competent configuration. It is not an artifact this framework can ship, for three reasons.
@@ -58,11 +62,11 @@ Run a formatter, accept its output, and stop. These families produce no finding 
 
 **`F`** is pyflakes: undefined name, unused import, f-string with no placeholder. These are real defects and a stdlib reimplementation of them would be a worse pyflakes, shipped to compete with the one every project already has. Criterion 3 excludes it, in the sense that the world already decides it.
 
-**`S`** is bandit, and it is refused on subject rather than on difficulty. A security posture — what counts as a hardcoded secret, whether `assert` is acceptable outside tests, which subprocess call is a finding — is a rule of its own with its own boundary section, and putting it inside a typing document is the same drift that produced the source.
+**`S`** is bandit, and it is refused on subject rather than on difficulty. A security posture — what counts as a hardcoded secret, whether `assert` is acceptable outside tests, which subprocess call is a finding — is a rule of its own with its own boundary section, and putting it inside a typing document is the same drift that produced the source. That rule now exists as [`rules/security.md`](../rules/security.md), and it keeps five of bandit's checks — the ones whose state is the call itself — while its boundary section says where the rest went.
 
 **`DTZ`** — a naive `datetime` where an aware one was meant — is the strongest candidate for the next promotion. It is a defect, a parser decides it, and nothing here covers it. It is not in `rules/typing.md` because it is not about typing, and inventing a home for it inside this rule would be how a rule becomes a bag.
 
-**`A`** is shadowed builtins and **`RUF`** is Ruff's own miscellany; both are style-adjacent. **`T20`** bans `print`, which is right for a service and wrong for the four command-line hooks in this repository, all of which print by design. That is a project decision and it belongs to a logging rule this framework has not written.
+**`A`** is shadowed builtins and **`RUF`** is Ruff's own miscellany; both are style-adjacent. **`T20`** bans `print`, which is right for a service and wrong for the command-line hooks in this repository, all of which print by design. That is a project decision; [`logging-and-observability.md`](logging-and-observability.md) says where a service's records go instead, and no rule here bans the call.
 
 ### Promoted: `B006` and a narrowed `BLE`
 
@@ -123,15 +127,17 @@ python3 engineering/python/hooks/check-typing.py src tests
 mypy --strict src
 ```
 
+On the layout `rules/module-boundaries.md` holds — a PEP 420 namespace with no `__init__.py` at its upper levels, and each module's test beside it — mypy needs `--explicit-package-bases`, or `explicit_package_bases = true` in its configuration, to map a file to its dotted name; without it a module and its colocated test are reported as one file found under two names (mypy documentation, *Mapping file paths to modules*). That is a fact about the layout, not a relaxation of `--strict`.
+
 The first takes no dependencies and decides conditions 2 to 5 on every path it is given. The second decides condition 1 and is the project's to install and configure. Paths that genuinely should not be held are left out of the first command, where the exclusion is visible in the pipeline, rather than hidden in a per-module override.
 
 ## Where this stops
 
 **This document configures nothing.** There is no `pyproject.toml` here, no `.pre-commit-config.yaml`, and no version floor. A project reading it should end up writing its own file and being able to say why each line is in it.
 
-**It has no opinion on the test runner.** The source's pytest block — markers for unit, integration and property tests, `asyncio_mode = "auto"`, `--strict-markers` — is sensible and homeless. Test organisation is a subject with its own conditions and its own boundary, and this framework has not written that rule. Transcribing the block here would put a testing opinion inside a typing document, which is the drift being refused.
+**It has no opinion on the test runner.** The source's pytest block — markers for unit, integration and property tests, `asyncio_mode = "auto"`, `--strict-markers` — is sensible, and transcribing it here would put a testing opinion inside a typing document, which is the drift being refused. The opinion now has its own home: [`testing.md`](testing.md) argues the structure those options produce, and [`rules/testing.md`](../rules/testing.md) holds the one condition about Python tests a parser decides.
 
-**It has no opinion on dependencies or on supply chain.** `pip-audit` in the source's CI list is correct and belongs to a security rule that does not exist yet, beside the bandit family refused above. Until that rule is written, a project that runs `pip-audit` is doing something this framework neither requires nor discourages.
+**It has no opinion on dependencies or on supply chain.** `pip-audit` in the source's CI list is correct, and it is now the recommendation [`libraries.md`](libraries.md) makes for a dependency audit, with the case where it is redundant. Requiring the audit is the security plugin's SUP-6, not a rule about Python source, which cannot see a lock file's advisories.
 
 **pre-commit is not required, and the reason is not that it is bad.** It is a convenience; the gate is CI, as the source itself says. What a mandate would add is a second file in which every tool version lives, kept in agreement with the first by hand. A project that wants the local loop should have it.
 

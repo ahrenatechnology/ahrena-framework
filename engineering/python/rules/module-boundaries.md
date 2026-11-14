@@ -39,6 +39,17 @@ An edge is one import statement, resolved against the import roots the hook is p
 - **`from package import name` reaches the submodule `package/name.py` when that file exists, and `package/__init__.py` otherwise**, because that is what Python binds.
 - **Naming a submodule of another package adds an edge to that package's initializer too**, since Python runs the initializer before the submodule. It is skipped when the importer already lives inside that package: by then the initializer has finished, or is the thing that pulled the importer in.
 
+## What the specification says
+
+- **A module is executed on first import and placed in `sys.modules` before its code runs**, so a module that imports back into one still executing finds it half-built: Language Reference §5.3.1, *The module cache*, and §5.4, *Loading*. That is the runtime failure condition 1 exists for, and why the node is the module.
+- **`from package import name` binds a submodule when one exists**, and importing a submodule first imports its parent package: Language Reference §5.4.2, *Submodules*, and §7.11, *The import statement*.
+- **A relative import resolves against the importing module's package**: Language Reference §5.7, *Package Relative Imports*, and PEP 328.
+- **A directory with no `__init__.py` is a namespace package that several distributions can contribute to**: PEP 420 and Language Reference §5.2.2, *Namespace packages*. Condition 5 is that PEP's consequence.
+- **An import under `typing.TYPE_CHECKING` is not executed**: PEP 484, *Runtime or type checking?*, which is the case condition 4 decides.
+- **A distribution declares its own metadata and dependencies in `pyproject.toml`**: PEP 621 for the `[project]` table, PEP 517 and PEP 518 for the build. Condition 6 is a layer being one.
+
+**This is the plugin's composition rule.** Item 4 of the owner's directive in #285 asks every language plugin for a rule on composition by packages with dependencies in one direction and a named detector for a cycle; for Python this rule is it, and `hooks/check-boundaries.py` is the detector. [`docs/architecture.md`](../docs/architecture.md) extends it to how a package is extended without being modified.
+
 ## Conditions
 
 Each of these is decided by `hooks/check-boundaries.py`.

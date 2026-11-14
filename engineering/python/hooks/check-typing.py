@@ -34,12 +34,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Union
 
-RULE = "typing"
+from sources import MissingPath, display, sources
 
-# Directories a source walk does not enter. Dot-prefixed names are skipped by
-# shape rather than by name, so a cache nobody has heard of yet is skipped
-# too; the list holds the vendored and generated trees that carry no dot.
-SKIP_NAMES = frozenset({"__pycache__", "node_modules", "venv", "build", "dist"})
+RULE = "typing"
 
 # The two node families this hook keeps asking about, once as a union for the
 # annotations and once as a tuple for `isinstance`. Neither tuple is annotated,
@@ -115,13 +112,6 @@ class Source:
 
 
 # --- reading one file ------------------------------------------------------
-
-
-def display(path: Path, base: Path) -> str:
-    try:
-        return path.relative_to(base).as_posix()
-    except ValueError:
-        return path.as_posix()
 
 
 def comments_in(text: str) -> dict[int, str]:
@@ -397,23 +387,6 @@ def _discarded(source: Source, handler: ast.ExceptHandler) -> Finding:
 CHECKS = (check_annotations, check_any, check_defaults, check_handlers)
 
 
-def _skipped(relative: Path) -> bool:
-    return any(part.startswith(".") or part in SKIP_NAMES for part in relative.parts)
-
-
-def _walk(root: Path) -> list[Path]:
-    if root.is_file():
-        return [root] if root.suffix == ".py" else []
-    return [path for path in root.rglob("*.py") if not _skipped(path.relative_to(root))]
-
-
-def sources(roots: list[Path]) -> list[Path]:
-    found: list[Path] = []
-    for root in roots:
-        found.extend(_walk(root))
-    return sorted(set(found))
-
-
 def report(findings: list[Finding], checked: int, unparsed: int) -> int:
     suffix = f" ({unparsed} skipped)" if unparsed else ""
     if not findings:
@@ -432,7 +405,12 @@ def main(argv: list[str]) -> int:
     checked = 0
     unparsed = 0
 
-    for path in sources(roots):
+    try:
+        paths = sources(roots)
+    except MissingPath as missing:
+        print(missing, file=sys.stderr)
+        return 2
+    for path in paths:
         source = load(path, display(path, base))
         if source is None:
             unparsed += 1

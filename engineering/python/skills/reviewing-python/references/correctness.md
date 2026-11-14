@@ -1,6 +1,6 @@
 # Python correctness
 
-Opened by step 2 of `SKILL.md` on every Python change. Each condition gives the state, how it is detected, what exempts it, and the correction. `hooks/check-typing.py` already decides the mutable-default and swallowed-exception conditions on the changed lines; what is here is the reading those leave, and the conditions no parser decides.
+Opened by step 2 of `SKILL.md` on every Python change. Each condition gives the state, how it is detected, what exempts it, and the correction. `hooks/check-typing.py` already decides the mutable-default and the blind, traceless handler, and `hooks/check-python.py` the handler that keeps an interrupt or a cancellation; what is here is the reading those leave, and the conditions no parser decides.
 
 ### PY-1 A mutable default argument
 
@@ -21,7 +21,7 @@ Opened by step 2 of `SKILL.md` on every Python change. Each condition gives the 
 - **State:** an `except` whose body swallows the error — `pass`, a bare `return`/`continue`, or a log with no re-raise — where the caller then proceeds as if the operation succeeded.
 - **Detect:** read each `except` the change adds or widens. A bare `except:` or `except Exception:` around more than the one line that can raise is the common shape.
 - **Exempt:** a genuine best-effort step whose failure is meant to be ignored, with a comment saying so, logging the exception.
-- **Correct:** catch the narrowest exception, around the smallest block; re-raise, translate to a domain error, or handle it — do not continue blind. Never catch `BaseException` (it takes `KeyboardInterrupt` and `SystemExit`).
+- **Correct:** catch the narrowest exception, around the smallest block; re-raise, translate to a domain error, or handle it — do not continue blind. A handler that catches `BaseException` or a cancellation and keeps it is condition 1 of `rules/error-handling.md`, decided by `hooks/check-python.py`; what is left here is whether a narrower handler belongs where it is, and whether the edge translates what reaches it.
 
 ### PY-4 Identity where equality was meant
 
@@ -57,3 +57,17 @@ Opened by step 2 of `SKILL.md` on every Python change. Each condition gives the 
 - **Detect:** read each `async def` for a call that is not awaited and does not yield. A coroutine not awaited runs nothing and warns at garbage-collection, not at the call.
 - **Exempt:** a blocking call wrapped in `run_in_executor` or `asyncio.to_thread`.
 - **Correct:** await the async equivalent; wrap unavoidable blocking work in a thread; await every coroutine or pass it to a task group.
+
+### PY-9 A whole object, error or upstream response reaching an exit
+
+- **State:** a log call, a `print`, an exception message or a response body given a whole object instead of named fields — `vars(x)`, `asdict(x)`, `x.model_dump()`, `x.__dict__`, `json.dumps(response)`, `str(exc)` or `exc.args` of an exception raised by a driver, an SDK or a third party; or a type that carries a credential, personal data, an access policy or a resource identifier with a `__repr__` or `__str__` that shows it.
+- **Detect:** read every log call, `print`, `raise` and response the change adds or edits, and the representation of every type whose fields are sensitive. Follow an exception from the `except` that caught it to every place its text is written.
+- **Exempt:** a field-by-field mapping the change wrote, where each field is named and none is sensitive; the full detail written to an internal log that holds no secret, with only a generic message and a correlation id going to the caller.
+- **Correct:** name the fields that are emitted; give the type `field(repr=False)`, `SecretStr` or a written `__repr__`; translate the upstream exception into the domain's own before the boundary and return the generic body. The rule is the one issue #294 of this framework places in the security plugin, and `docs/logging-and-observability.md` carries the Python form. Severity is blocking: the incident behind that issue was this condition, missed.
+
+### PY-10 A test double that accepts anything
+
+- **State:** a `Mock()` or `MagicMock()` with no `spec`, `spec_set` or `autospec`, standing in for a collaborator the test then asserts through; or a test that covers only the path where the double succeeds, when the unit under test has a branch for the double's failure.
+- **Detect:** read each double the change constructs. A bare `Mock` answers every attribute and every call, so a test passes when the code calls a method the real collaborator does not have, or with arguments it would refuse (Library Reference, `unittest.mock`, *Autospeccing*). Then read the unit's `except` branches and look for a test that drives each one.
+- **Exempt:** a double that is a fake implementing the port's protocol, which `mypy --strict` already checks; a branch the project tests at another layer, when the finding can name the test.
+- **Correct:** `create_autospec(Port, instance=True)` or a fake class implementing the protocol; a test per failure branch, with the double raising the error the real collaborator raises.
