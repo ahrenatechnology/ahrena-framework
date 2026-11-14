@@ -25,7 +25,7 @@ Terraform is written variables first and test first: the module's interface, the
 
 ## 1. Read the repository before writing anything
 
-Read how this repository already writes Terraform: its root configurations and their backends, its `modules/`, its `versions.tf` or `terraform.tf`, its `.tflint.hcl`, its pipeline, its `AGENTS.md` and `CLAUDE.md`. If the project keeps a component map, resolve the names you are about to create against it with `ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md`. Note which CLI it applies with, Terraform or OpenTofu, and which version; the lock file and `required_version` say.
+Read how this repository already writes Terraform: its root configurations and their backends, its `modules/`, its `versions.tf` or `terraform.tf`, its `.tflint.hcl`, its pipeline, its `AGENTS.md` and `CLAUDE.md`. If the project keeps a component map, resolve the names you are about to create against it with `ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md`. Note which CLI it applies with, Terraform or OpenTofu, and which version; the pipeline, `required_version` and the lock file say, and in a repository with none of them, the CLI installed here, said as such.
 
 Output: the CLI and version, the backend in use, the module layout, and where the new code goes.
 
@@ -50,17 +50,17 @@ A secret is a variable with no default and `sensitive = true`, or `ephemeral = t
 
 Write the outputs a caller will read, and nothing else, each with its value referencing the resource that will produce it; the resource does not exist yet, which is what makes step 4 fail. Each is a named attribute; an output that could carry a secret, a policy or a connection string is `sensitive = true`; a root exports no whole object; an output describing access or topology exists only for a consumer you can name (`rules/outputs.md`).
 
-Output: the module's interface, and for each output the consumer that reads it.
-
 Write `terraform.tf` now, before the test: `required_version` and a `required_providers` entry for every provider the module will use, as step 5 describes. Without it, the `init` of step 4 installs nothing and writes no lock file.
+
+Output: the module's interface, `terraform.tf`, and for each output the consumer that reads it and how: a pipeline captures the one value it needs into a variable, never prints `terraform output` to its log (`rules/outputs.md` condition 3).
 
 ## 4. Write the test, and watch it fail
 
 In `modules/<name>/tests/<name>.tftest.hcl`, one `run` block per behaviour the interface promises, with `command = plan` and `mock_provider` or `override_data` wherever a real account would otherwise be needed (`docs/testing.md`). Cover every output a caller reads, every `validation` with a value it accepts and one it refuses (`expect_failures`), and every `count` or `for_each` the inputs drive. No assertion's `error_message` interpolates a sensitive value.
 
-A computed attribute (an `id`, a generated value) is unknown at plan, so an output built from one cannot be asserted with a plain plan. Override the resource with the value the test needs and `override_during = plan` ([Mocks](https://developer.hashicorp.com/terraform/language/tests/mocking)), and make the module's `required_version` cover every feature its own test uses, so a caller's CLI that runs the test can parse it. HashiCorp's page does not say which version introduced `override_during`, so the floor is the CLI version you ran the test with, unless a lower one has been run. A module whose providers create nothing outside Terraform (`hashicorp/random`, `hashicorp/tls`, `terraform_data`) may use `command = apply` instead, and assert the real output through the interface (`docs/testing.md`).
+A computed attribute (an `id`, a generated value) is unknown at plan, so an output built from one cannot be asserted with a plain plan. Override the resource with the value the test needs and `override_during = plan` ([Mocks](https://developer.hashicorp.com/terraform/language/tests/mocking)), and make the module's `required_version` cover every feature its own test uses, so a caller's CLI that runs the test can parse it. The floor is a version that supports every feature the module and its test use: the documented one where HashiCorp gives it (`terraform test` 1.6, mocks 1.7, `ephemeral` 1.10, write-only arguments 1.11), and otherwise, as for `override_during`, whose version the page does not give, the CLI version you ran the test with. A module whose providers create nothing outside Terraform (`hashicorp/random`, `hashicorp/tls`, `terraform_data`) may use `command = apply` instead, and assert the real output through the interface (`docs/testing.md`).
 
-Run `terraform init`, then `terraform test`, from the module's directory, and confirm the test fails for the reason you expect: the resources do not exist yet. A test that passes before the code exists tests nothing. Init writes a `.terraform.lock.hcl` in the module's directory; it belongs to the test run, not to the module, and `.gitignore` excludes it (`modules/**/.terraform.lock.hcl`), because the lock file belongs to a root configuration (`rules/pinning.md` condition 5).
+Run `terraform init`, then `terraform test`, from the module's directory, and confirm the test fails for the reason you expect: the resources do not exist yet. A test that passes before the code exists tests nothing. Init writes a `.terraform.lock.hcl` in the module's directory; it belongs to the test run, not to the module, so add `modules/**/.terraform.lock.hcl` to `.gitignore` when it is not there, because the lock file belongs to a root configuration (`rules/pinning.md` condition 5).
 
 Of `ahrena-engineering-backend:skills/driving-with-tdd/SKILL.md`, take the red, green and refactor discipline, with `terraform test` as the runner; its layer steps (domain, use cases, a real database) do not apply to HCL.
 
@@ -68,7 +68,7 @@ Output: the test file and its red run.
 
 ## 5. Write the resources until the test passes
 
-- **Versions first.** `terraform.tf` holds `required_version` and a `required_providers` entry, with `source` and `version`, for every provider the module uses. A root bounds each from above with `~>`; a reusable module states only a minimum with `>=`. A registry module call takes an exact `version`; a git one a `?ref=` tag or commit (`rules/pinning.md`).
+- **Versions, written in step 3.** Revisit `terraform.tf` when the providers change. It holds `required_version` and a `required_providers` entry, with `source` and `version`, for every provider the module uses. A root bounds each from above with `~>`; a reusable module states only a minimum with `>=`. A registry module call takes an exact `version`; a git one a `?ref=` tag or commit (`rules/pinning.md`).
 - **Backend, in a root only.** A remote backend that locks and encrypts at rest, declared partially, with credentials from the environment and never in the block or on a `-backend-config` command line (`rules/state.md`). The settings for a given cloud's backend are in that cloud's plugin; when that plugin is not installed and the task does not name them, write the partial block and raise the locking and encryption settings as a question to whoever runs `init`.
 - **Resources.** One concern per file; the style guide's names (`main.tf`, `variables.tf`, `outputs.tf`, `locals.tf`, `providers.tf`, `backend.tf`) first, then a file per concern. `count` for near-identical resources, `for_each` otherwise, and sparingly. A secret reaches a resource by a reference, through a write-only argument where the provider has one. An expression that grows past one reading moves to a named local.
 - **Bringing in what already exists** is an `import` block in the change, a rename is a `moved` block, a release is a `removed` block with `destroy = false` (`rules/drift.md`).

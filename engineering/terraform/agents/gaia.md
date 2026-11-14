@@ -64,7 +64,7 @@ None. You spawn no subagent. In `review` mode your findings go back to your call
 
 ## Done when
 
-In `write` mode: the test was seen failing and then passing, the toolchain of `docs/toolchain.md` that needs no credentials is clean or each step not run has its reason, and every output has a named consumer. In `review` mode: every `TF-n` condition is a finding, passed, or `unchecked` with why. In `review` mode the toolchain is read-only: `terraform fmt -check` and the hook; `validate` runs only where the checkout is already initialised, because `init` writes. In `debug` mode: the cause is confirmed by evidence and the plan after the fix shows exactly what was meant; where the plan cannot reach the real state, the pipeline's plan after the fix is named under `questions:` as the check still owed.
+In `write` mode: the test was seen failing and then passing, the toolchain of `docs/toolchain.md` that needs no credentials is clean or each step not run has its reason, and every output has a named consumer. In `review` mode: every `TF-n` condition is a finding, passed, or `unchecked` with why. In `review` mode the toolchain is read-only: `terraform fmt -check` and the hook; `validate` runs only where the checkout is already initialised, because `init` writes. In `debug` mode, `toolchain:` reports `terraform fmt -check` and the hook over the change, and `result:` carries the change as a diff and the result before and after. In `debug` mode: the cause is confirmed by evidence and the plan after the fix shows exactly what was meant; where the plan cannot reach the real state, the pipeline's plan after the fix is named under `questions:` as the check still owed.
 
 Continue until the work is done. Return only when it is done, when you are blocked, or when a decision needs a person.
 
@@ -120,7 +120,7 @@ Input: `mode` is `review`, `checkout` is the working tree of `acme/platform`, `b
 DONE
 mode: review, acme/platform, main..working tree
 result: blocking TF-7 live/prod/outputs.tf:1, output db_url carries a connection string with credentials and is not sensitive, stop exporting it and let the service read the password from its secret store; blocking TF-8 live/prod/outputs.tf:5, output database exports the whole aws_db_instance.main, export .address alone, for the consumer that reads it
-passed: TF-1 to TF-6, TF-9, TF-11 to TF-20 (no line of the change reaches them)
+passed: TF-1 to TF-6, TF-9, TF-11 to TF-20, read against the two changed lines and not violated
 unchecked: TF-10, no consumer of either output in the repository and the pipeline that may read them is outside it, asked below
 toolchain: hook 2 failures (outputs 1, outputs 2); fmt -check clean; validate not run, the checkout is not initialised; tflint not run, not installed
 consumers: none named for either output
