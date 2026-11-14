@@ -1,0 +1,23 @@
+{
+  "name": "ahrena-engineering-gcp",
+  "displayName": "Ahrena Engineering GCP",
+  "version": "0.1.0",
+  "description": "What is specific to Google Cloud: least-privilege IAM without basic roles or service account keys, encryption, no project, policy or resource path in an application's output, labels and budgets, and the service each problem calls for.",
+  "author": {
+    "name": "Ahrena Technology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/gcp",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "gcp",
+    "google-cloud",
+    "iam",
+    "security",
+    "networking",
+    "cost",
+    "cloud"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

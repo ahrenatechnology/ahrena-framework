@@ -77,7 +77,7 @@ A registry module is third-party code that runs with the configuration's credent
 
 ## Nothing sensitive leaves the module
 
-The exposure rule of issue #294 holds at every module boundary, not only at the root. In Terraform's form:
+The exposure rule, [`layer-exposure.md`](../../security/rules/layer-exposure.md), holds at every module boundary, not only at the root. In Terraform's form:
 
 - **An output is an allowlist.** A module returns the named attributes its callers read. A root never exports a whole resource or module object (`rules/outputs.md` condition 2).
 - **Sensitive values are marked where they enter.** A variable that carries a secret is `sensitive` or `ephemeral`; an output that carries one is `sensitive`, or `ephemeral` in a child module (`rules/secrets.md`, `rules/outputs.md`).

@@ -41,7 +41,7 @@ Each environment is its own root configuration, with its own backend and its own
 
 ## Reading another configuration's values
 
-A configuration that needs another's outputs is tempted by `terraform_remote_state`. HashiCorp warns against it where sensitive data is involved, because the reader "must have access to the entire state snapshot", and recommends publishing the values a consumer needs to a separate location instead, so the two can carry different access controls ([`terraform_remote_state`](https://developer.hashicorp.com/terraform/language/state/remote-state-data)). That is the exposure rule of issue #294 in its plainest form: the consumer gets the named value, not the layer. Publish the value as a resource in the producing configuration (a parameter, a DNS record, a key in a store) and read it with a data source in the consumer.
+A configuration that needs another's outputs is tempted by `terraform_remote_state`. HashiCorp warns against it where sensitive data is involved, because the reader "must have access to the entire state snapshot", and recommends publishing the values a consumer needs to a separate location instead, so the two can carry different access controls ([`terraform_remote_state`](https://developer.hashicorp.com/terraform/language/state/remote-state-data)). That is the exposure rule, [`layer-exposure.md`](../../security/rules/layer-exposure.md), in its plainest form: the consumer gets the named value, not the layer. Publish the value as a resource in the producing configuration (a parameter, a DNS record, a key in a store) and read it with a data source in the consumer.
 
 ## Getting a secret to a resource
 

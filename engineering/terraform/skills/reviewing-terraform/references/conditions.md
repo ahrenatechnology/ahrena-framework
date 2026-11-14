@@ -20,7 +20,7 @@ Each condition cites the numbered rule condition it applies and says who decides
 
 ## Outputs and exposure
 
-These are the Terraform form of the exposure rule of issue #294: what a configuration emits is an allowlist.
+These are the Terraform form of the exposure rule, [`layer-exposure.md`](../../../../security/rules/layer-exposure.md): what a configuration emits is an allowlist.
 
 - **TF-7** (hook) — `rules/outputs.md` 1. An output that carries a policy, a credential or a connection string, by its name, its value or the attribute it references, is not marked `sensitive = true`. Correction: stop exporting it and let the consumer read the value from where it is stored, or, where a consumer needs it from this output, mark it.
 - **TF-8** (hook) — `rules/outputs.md` 2. A root output exports a whole resource or module object. Correction: export the named attributes a consumer reads.

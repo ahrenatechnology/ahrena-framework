@@ -1,0 +1,40 @@
+{
+  "routes": [
+    {
+      "id": "gcp-infrastructure",
+      "skill": "ahrena-engineering-gcp:skills/reviewing-gcp/SKILL.md",
+      "opens": [
+        "ahrena-engineering-gcp:skills/reviewing-gcp/references/infrastructure.md",
+        "ahrena-engineering-gcp:rules/identity-and-access.md",
+        "ahrena-engineering-gcp:rules/data-protection.md",
+        "ahrena-engineering-gcp:rules/cost-attribution.md"
+      ],
+      "why": "A change that declares or grants something on Google Cloud: a Terraform google resource, a gcloud command, a Cloud Build, Cloud Run or Config Connector file.",
+      "lines": [
+        "resource\\s+\"google_",
+        "\\bgcloud\\s+[a-z]",
+        "roles/[a-zA-Z]",
+        "allUsers|allAuthenticatedUsers",
+        "serving\\.knative\\.dev|cnrm\\.cloud\\.google\\.com",
+        "gcr\\.io/|-docker\\.pkg\\.dev/"
+      ]
+    },
+    {
+      "id": "gcp-application",
+      "skill": "ahrena-engineering-gcp:skills/reviewing-gcp/SKILL.md",
+      "opens": [
+        "ahrena-engineering-gcp:skills/reviewing-gcp/references/application.md",
+        "ahrena-engineering-gcp:rules/exposure.md"
+      ],
+      "why": "Application code that calls a Google Cloud client library or handles its errors, where the provider's message, a project id or a resource path can reach a caller or a log.",
+      "paths": [
+        "\\.(py|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php)$"
+      ],
+      "lines": [
+        "google\\.cloud|google\\.api_core|googleapiclient|@google-cloud/|cloud\\.google\\.com/go|google-cloud-|com\\.google\\.cloud|Google\\.Cloud\\.",
+        "GoogleAPI(Call)?Error|PermissionDenied|Forbidden\\b|ApiError|googleapi\\.Error|status\\.(Code|FromError)",
+        "\\.iam\\.gserviceaccount\\.com|projects/[^\\s\"']*/|GOOGLE_CLOUD_PROJECT|GCLOUD_PROJECT"
+      ]
+    }
+  ]
+}

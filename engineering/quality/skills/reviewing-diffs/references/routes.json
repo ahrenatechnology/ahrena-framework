@@ -263,6 +263,48 @@
       ]
     },
     {
+      "id": "error-exposure",
+      "skill": "ahrena-engineering-security:skills/reviewing-access/SKILL.md",
+      "why": "an added line hands a caught error, its text or its stack, or a dependency's response, to what the caller or a log receives",
+      "opens": [
+        "ahrena-engineering-security:skills/reviewing-access/references/conditions.md",
+        "ahrena-engineering-security:rules/layer-exposure.md"
+      ],
+      "paths": [
+        "\\.(py|pyi|ts|tsx|mts|cts|js|jsx|mjs|cjs|go|rs|java|kt|kts|cs|rb|php|swift|scala)$"
+      ],
+      "lines": [
+        "\\b(str|repr|String|format)\\(\\s*(e|ex|exc|err|error|exception)\\s*\\)",
+        "\\$?\\{\\s*(e|ex|exc|err|error|exception)(\\.\\w+)?(![rs])?\\s*\\}",
+        "\\b(e|ex|exc|err|error|exception)\\.(message|msg|args|stack|detail|response|body|Error\\(\\)|toString\\(\\)|to_string\\(\\)|getMessage\\(\\))",
+        "\\b(traceback\\.(format_exc|format_exception|print_exc)|printStackTrace|debug\\.Stack)\\(",
+        "\\b\\w*(resp|response|upstream)\\w*\\.(text|content|body|data|raw|json\\(\\)|read\\(\\))"
+      ]
+    },
+    {
+      "id": "layer-exposure",
+      "skill": "ahrena-engineering-security:skills/reviewing-sensitive-data/SKILL.md",
+      "why": "an added line hands a caught error, a dependency's response, an access policy or a whole configuration to an exit, or declares an infrastructure output",
+      "opens": [
+        "ahrena-engineering-security:skills/reviewing-sensitive-data/references/conditions.md",
+        "ahrena-engineering-security:rules/layer-exposure.md",
+        "ahrena-engineering-security:hooks/check-exposure.py"
+      ],
+      "paths": [
+        "\\.(py|pyi|ts|tsx|mts|cts|js|jsx|mjs|cjs|go|rs|java|kt|kts|cs|rb|php|swift|scala|tf)$"
+      ],
+      "lines": [
+        "\\b(str|repr|String|format)\\(\\s*(e|ex|exc|err|error|exception)\\s*\\)",
+        "\\$?\\{\\s*(e|ex|exc|err|error|exception)(\\.\\w+)?(![rs])?\\s*\\}",
+        "\\b(e|ex|exc|err|error|exception)\\.(message|msg|args|stack|detail|response|body|Error\\(\\)|toString\\(\\)|to_string\\(\\)|getMessage\\(\\))",
+        "\\b\\w*(resp|response|upstream)\\w*\\.(text|content|body|data|raw|json\\(\\)|read\\(\\))",
+        "(?i)\\b\\w*(polic(y|ies)|policy_?document)\\b",
+        "\\bos\\.environ\\b(?!\\s*(\\[|\\.get\\b))|\\bprocess\\.env\\b(?!\\s*(\\.|\\[))|\\bvars\\(\\s*\\w+\\s*\\)|\\.__dict__\\b|\\bos\\.Environ\\(\\)",
+        "(?i)\\barn:aws[\\w-]*:|\\b\\d{12}\\b",
+        "^\\s*output\\s+\""
+      ]
+    },
+    {
       "id": "reliability",
       "skill": "ahrena-engineering-reliability:skills/reviewing-reliability/SKILL.md",
       "why": "an added line makes an outbound call, retries, acquires a resource, leans on a dependency, or alters a schema destructively",
