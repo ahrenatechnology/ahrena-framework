@@ -19,6 +19,11 @@ must let through a body that merely uses an internal type, a package that is
 itself internal, a `main` package, a test file, and the exported alias the
 remedy declares.
 
+#288/AC-3: every condition the hook decides, context.md 1 to 3 and
+api-surface.md 2, has a failing case below and the carve-outs beside it.
+#288/AC-6: the last check runs the foundation's artifact gate over the
+corpus this plugin ships in, when the suite runs inside that checkout.
+
 Usage:
     python3 engineering/go/hooks/test-check-source.py
 """
@@ -629,6 +634,22 @@ def summarise(failed: int, total: int) -> int:
     return 0
 
 
+GATE = Path(__file__).resolve().parents[3] / "foundation" / "hooks" / "validate-artifacts.py"
+
+
+def corpus_gate() -> int:
+    """#288/AC-6: the artifact gate passes with this plugin's rules, docs, skills and agent in it."""
+    if not GATE.is_file():
+        print("skip  the artifact gate, outside the framework's checkout")
+        return 0
+    result = subprocess.run([sys.executable, str(GATE), str(GATE.parents[2])], capture_output=True, text=True)
+    if result.returncode == 0:
+        print("ok    the artifact gate passes over the corpus")
+        return 0
+    report_failure("the artifact gate passes over the corpus", ["expected exit 0"], result.stdout + result.stderr)
+    return 1
+
+
 def main() -> int:
     failed = 0
     for name, files, expect, ok in CASES:
@@ -639,7 +660,8 @@ def main() -> int:
             report_failure(name, problems, output)
         else:
             print(f"ok    {name}")
-    return summarise(failed, len(CASES))
+    failed += corpus_gate()
+    return summarise(failed, len(CASES) + 1)
 
 
 if __name__ == "__main__":
