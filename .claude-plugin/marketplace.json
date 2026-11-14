@@ -349,6 +349,29 @@
       ]
     },
     {
+      "name": "ahrena-engineering-gcp",
+      "description": "What is specific to Google Cloud: least-privilege IAM without basic roles or service account keys, encryption, no project, policy or resource path in an application's output, labels and budgets, and the service each problem calls for.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/gcp",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/gcp",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "gcp",
+        "google-cloud",
+        "iam",
+        "security",
+        "networking",
+        "cost",
+        "cloud"
+      ]
+    },
+    {
       "name": "ahrena-engineering-code-review",
       "description": "The code-review engine: the orchestrator that routes a change to the review lenses it calls for, merges their findings into one verdict, drives the fix-and-re-review loop, and hands an approval to the merge decision.",
       "version": "0.2.0",
