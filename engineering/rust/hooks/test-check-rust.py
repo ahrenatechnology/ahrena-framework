@@ -507,7 +507,7 @@ def case(
 CASES = [
     case("a library returning its own error type passes", library(OWN_ERROR), ["no failures"], ok=True),
     case(
-        "anyhow::Result on a public function of a library fails",
+        "anyhow::Result on a public function of a library fails (#287/AC-3)",
         library(ANYHOW_RESULT),
         ["[error-types] condition 1", "parse returns anyhow::Result", "src/lib.rs:2"],
     ),
@@ -584,7 +584,7 @@ CASES = [
     case("a file outside any crate is not read as a library", {"loose.rs": ANYHOW_RESULT}, ["no failures"], ok=True),
     case("tokio's fs awaited inside async passes", library(ASYNC_CLEAN), ["no failures"], ok=True),
     case(
-        "std::thread::sleep by its full path inside async fails",
+        "std::thread::sleep by its full path inside async fails (#287/AC-3)",
         library(FULL_PATH_SLEEP),
         ["[async-blocking] condition 1", "std::thread::sleep", "src/lib.rs:3"],
     ),
@@ -639,7 +639,7 @@ CASES = [
         ["[async-blocking] condition 1", "src/main.rs:3"],
     ),
     case(
-        "two modules that use each other are a cycle",
+        "two modules that use each other are a cycle (#287/AC-3)",
         {"Cargo.toml": MANIFEST, "src/lib.rs": MODULE_ROOT, "src/a.rs": CYCLE_A, "src/b.rs": CYCLE_B},
         ["[dependency-direction] condition 1", "crate::a -> crate::b -> crate::a", "src/a.rs:1"],
     ),
@@ -661,7 +661,7 @@ CASES = [
         ["[dependency-direction] condition 1", "crate::a::inner -> crate::b -> crate::a::inner"],
     ),
     case(
-        "a crate that depends on a crate of a higher layer fails",
+        "a crate that depends on a crate of a higher layer fails (#287/AC-3)",
         {
             "Cargo.toml": WORKSPACE,
             "crates/core/Cargo.toml": member("core", "domain", 'store = { path = "../store" }\n'),
@@ -695,7 +695,7 @@ CASES = [
         ["[dependency-direction] condition 2", "core declares layer domian, which the workspace does not list"],
     ),
     case(
-        "a source file with a function and no test fails",
+        "a source file with a function and no test fails (#287/AC-3)",
         {"Cargo.toml": MANIFEST, "src/lib.rs": UNTESTED},
         ["[unit-tests] condition 1", "src/lib.rs has functions and no #[test] beside them"],
     ),
@@ -744,7 +744,7 @@ CASES = [
         ok=True,
     ),
     case(
-        "a derived Debug over a secret field fails",
+        "a derived Debug over a secret field fails (#287/AC-3)",
         library(SECRET_DEBUG),
         ["[redaction] condition 1", "Config derives Debug over api_key", "src/lib.rs:2"],
     ),
@@ -831,8 +831,24 @@ def summarise(failed: int, total: int) -> int:
     return 0
 
 
+GATE = Path(__file__).resolve().parents[3] / "foundation" / "hooks" / "validate-artifacts.py"
+
+
+def gate_problems() -> list[str]:
+    """Whether the foundation gate passes over this repository, plugin included."""
+    result = subprocess.run([sys.executable, str(GATE)], cwd=GATE.parents[2], capture_output=True, text=True)
+    return [] if result.returncode == 0 else [result.stdout + result.stderr]
+
+
 def main() -> int:
     failed = 0
+    gate = "the Rust plugin's artifacts pass the foundation gate (#287/AC-6)"
+    problems = gate_problems()
+    if problems:
+        failed += 1
+        report_failure(gate, ["expected validate-artifacts.py to pass, it failed"], problems[0])
+    else:
+        print(f"ok    {gate}")
     for name, files, expect, ok in CASES:
         code, output = run(files)
         problems = problems_for(expect, ok, code, output)
@@ -841,7 +857,7 @@ def main() -> int:
             report_failure(name, problems, output)
         else:
             print(f"ok    {name}")
-    return summarise(failed, len(CASES))
+    return summarise(failed, len(CASES) + 1)
 
 
 if __name__ == "__main__":
