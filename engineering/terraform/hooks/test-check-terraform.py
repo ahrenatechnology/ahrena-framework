@@ -62,7 +62,12 @@ output "pet_name" {
 }
 '''
 
-LOCK = "# lock file\n"
+LOCK = '''
+provider "registry.terraform.io/hashicorp/random" {
+  version     = "3.6.3"
+  constraints = "~> 3.6"
+}
+'''
 
 CLEAN_ROOT = {"versions.tf": VERSIONS, "main.tf": MAIN, ".terraform.lock.hcl": LOCK}
 
@@ -237,6 +242,12 @@ resource "random_password" "db" {
 
 SECRET_CASES = [
     ("a secret variable with a default", root_with(SECRET_VARIABLE), ["secrets condition 1"], False),
+    (
+        "a default is reported on its own line",
+        root_with(SECRET_VARIABLE),
+        ["main.tf:13\n    [secrets] secrets condition 1"],
+        False,
+    ),
     ("a secret variable not marked sensitive", root_with(UNMARKED_SECRET_VARIABLE), ["secrets condition 2"], False),
     ("a secret variable taken the right way", root_with(TAKEN_SECRET_VARIABLE), ["no failures"], True),
     ("a literal credential in a provider block", root_with(LITERAL_CREDENTIAL), ["secrets condition 3"], False),
@@ -363,6 +374,12 @@ OUTPUT_CASES = [
         False,
     ),
     (
+        "a global option before the subcommand does not hide the print",
+        tree(CLEAN_ROOT, {".github/workflows/plan.yml": "run: terraform -chdir=live/prod show -json plan.tfplan\n"}),
+        ["outputs condition 3"],
+        False,
+    ),
+    (
         "a pipeline capturing an output into a file or a variable",
         tree(
             CLEAN_ROOT,
@@ -437,8 +454,27 @@ PINNING_CASES = [
     ("a registry module on a range", root_with(REGISTRY_RANGE), ["pinning condition 4"], False),
     ("a git module with no ref", root_with(GIT_UNPINNED), ["pinning condition 4"], False),
     ("a git module on a branch", root_with(GIT_BRANCH), ["pinning condition 4"], False),
+    ("a module pin is reported on its source line", root_with(GIT_BRANCH), ["main.tf:11\n    [pinning] pinning condition 4"], False),
     ("modules pinned exactly", root_with(PINNED_MODULES), ["no failures"], True),
+    (
+        "a github.com source is git, not a registry address",
+        root_with('\nmodule "net" {\n  source = "github.com/acme/network/aws"\n}\n'),
+        ["pinning condition 4", "has no `?ref=`"],
+        False,
+    ),
     ("a root module with no lock file", {"versions.tf": VERSIONS, "main.tf": MAIN}, ["pinning condition 5"], False),
+    (
+        "a lock file that does not list a declared provider",
+        tree(CLEAN_ROOT, {"versions.tf": VERSIONS.replace("    random = {", '    tls = {\n      source  = "hashicorp/tls"\n      version = "~> 4.0"\n    }\n    random = {')}),
+        ["pinning condition 5", "hashicorp/tls"],
+        False,
+    ),
+    (
+        "a stub lock file",
+        tree(CLEAN_ROOT, {".terraform.lock.hcl": "# lock\n"}),
+        ["pinning condition 5", "hashicorp/random"],
+        False,
+    ),
 ]
 
 CYCLE_A = '''
@@ -524,6 +560,12 @@ PARSER_CASES = [
         True,
     ),
     (
+        "a file that cannot be read is reported, not passed as empty",
+        tree(CLEAN_ROOT, {"prod.tfvars": "db_password = \"caf\xe9\"\n"}),
+        ["skipped, cannot be read as UTF-8: prod.tfvars"],
+        False,
+    ),
+    (
         "vendored and generated trees are skipped",
         tree(CLEAN_ROOT, {"node_modules/x/main.tf": WHOLE_RESOURCE_OUTPUT}),
         ["no failures"],
@@ -535,10 +577,12 @@ CASES = STATE_CASES + SECRET_CASES + OUTPUT_CASES + PINNING_CASES + BOUNDARY_CAS
 
 
 def write(root: Path, files: dict[str, str]) -> None:
+    """Write each file as UTF-8, except a `.tfvars` holding Latin-1, written as Latin-1 bytes."""
     for rel, content in files.items():
         target = root / rel
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8")
+        encoding = "latin-1" if rel.endswith(".tfvars") and "\xe9" in content else "utf-8"
+        target.write_text(content, encoding=encoding)
 
 
 def run(files: dict[str, str]) -> tuple[int, str]:

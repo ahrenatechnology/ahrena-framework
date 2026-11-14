@@ -25,6 +25,7 @@ A `run` block applies by default, and HashiCorp says plainly that tests "create 
 
 - **`command = plan`** runs the block without creating anything. Assertions on variables, locals, outputs and planned attributes all work at plan, which covers most of what a module decides: names, tags, counts, which resources exist for which inputs, and every `validation`.
 - **`mock_provider`** (Terraform 1.7 and later) replaces a provider with one that returns generated values, so even an apply touches nothing, and **`override_resource`**, **`override_data`** and **`override_module`** pin the values a specific address returns ([Mocks](https://developer.hashicorp.com/terraform/language/tests/mocking)). A data source the module reads, which would otherwise need a real account, is overridden with the value the test needs.
+- **A computed attribute is unknown at plan.** An output built from a generated `id` cannot be asserted with a plain plan; by default a mock or override supplies its values only at apply. Set `override_during = plan` on the override (or on the `mock_provider`) and the values are there at plan ([Mocks](https://developer.hashicorp.com/terraform/language/tests/mocking)). A module's `required_version` covers every feature its own test uses.
 - **`expect_failures`** names the checkable objects (a variable's validation, a precondition) that a run expects to fail, which is how a test proves the module refuses a bad input.
 
 An apply against real infrastructure is the integration test, and it runs where the credentials are meant to be: a sandbox account, on a schedule or before a release, not on every pull request.
@@ -55,7 +56,7 @@ A `validation` is the first line of a module's contract and the cheapest test it
 
 ## Running it
 
-`terraform test` from the module's directory, after `terraform init`. In a pipeline, every module whose files changed runs its test; a root configuration's check is its plan, posted for review (`docs/toolchain.md`). OpenTofu runs the same files with `tofu test` and, from 1.8, prefers a `.tofutest.hcl` over a `.tftest.hcl` of the same name ([What's new in OpenTofu 1.8](https://opentofu.org/docs/v1.8/intro/whats-new/)).
+`terraform test` from the module's directory, after `terraform init`. That init writes a `.terraform.lock.hcl` in the module's directory. HashiCorp says the lock file "belongs to the configuration as a whole" and lives with the root module ([Dependency lock file](https://developer.hashicorp.com/terraform/language/files/dependency-lock)); in a module's directory it belongs to the test run, so `.gitignore` excludes it (`modules/**/.terraform.lock.hcl`) and the module's tests run against the newest provider its minimum allows, which is what its callers meet. In a pipeline, every module whose files changed runs its test; a root configuration's check is its plan, posted for review (`docs/toolchain.md`). OpenTofu runs the same files with `tofu test` and, from 1.8, prefers a `.tofutest.hcl` over a `.tftest.hcl` of the same name ([What's new in OpenTofu 1.8](https://opentofu.org/docs/v1.8/intro/whats-new/)).
 
 ## Where this stops
 

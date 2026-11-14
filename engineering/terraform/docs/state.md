@@ -37,7 +37,7 @@ Which backend is the cloud's question. Object storage in the account the configu
 
 ## Separating environments
 
-Each environment is its own root configuration, with its own backend and its own credentials, calling the same modules with different values. HashiCorp is direct that CLI workspaces are not the tool for this: they share one backend and so cannot give production different credentials and access controls from staging ([CLI workspaces](https://developer.hashicorp.com/terraform/cli/workspaces)). CLI workspaces are for short-lived copies of one environment, a feature branch's stack for instance, where shared access is acceptable. HCP Terraform workspaces are a different concept, a separate state with its own permissions, and HashiCorp's style guide recommends one per environment there.
+Each environment is its own root configuration, with its own backend and its own credentials, calling the same modules with different values. HashiCorp is direct that CLI workspaces are not the tool for this: they share one backend and so cannot give production different credentials and access controls from staging ([CLI workspaces](https://developer.hashicorp.com/terraform/cli/workspaces)). CLI workspaces are for short-lived copies of one environment, a feature branch's stack for instance, where shared access is acceptable. HCP Terraform workspaces are a different concept, a separate state with its own permissions, and the [style guide](https://developer.hashicorp.com/terraform/language/style) recommends separate workspaces for each environment there.
 
 ## Reading another configuration's values
 

@@ -62,7 +62,7 @@ A module solves one problem and is named for it. HashiCorp's test for a module t
 
 Inside a module a file holds one concern. The style guide's file names are the starting cut; a module large enough to need more splits `main.tf` by concern (`network.tf`, `iam.tf`, `storage.tf`), never by resource type alone. The limits are the ones [`clean-code.md`](../../fundamentals/rules/clean-code.md) holds; Terraform adds no number of its own. What grows past them in HCL is not a function but an expression: a `for` expression nested in a conditional nested in a `merge()`. That expression moves into a `locals` block with a name, which is the HCL form of extracting a function, and is testable on its own through an output in a test.
 
-Cyclomatic complexity in HCL is `count`, `for_each`, `dynamic` blocks and conditional expressions. The style guide says meta-arguments "add complexity, so use them in moderation", and prefers `count` only for nearly identical resources and `for_each` otherwise. A `dynamic` block whose content has its own conditionals is a branch a reader simulates; a module with two of them is two modules.
+Cyclomatic complexity in HCL is `count`, `for_each`, `dynamic` blocks and conditional expressions. The [style guide](https://developer.hashicorp.com/terraform/language/style) says meta-arguments "add complexity, so use them in moderation": `count` for resources that are almost identical, `for_each` when some arguments need distinct values an integer cannot derive. A `dynamic` block whose content has its own conditionals is a branch a reader simulates; a module with two of them is two modules.
 
 ## When to write a module, and when to take one from a registry
 

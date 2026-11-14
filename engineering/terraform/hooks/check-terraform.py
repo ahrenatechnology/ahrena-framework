@@ -55,7 +55,7 @@ PIPELINE_NAMES = frozenset({"Makefile", "Justfile", "Taskfile", "Jenkinsfile"})
 
 STATE_FILE = re.compile(r"(^|/)([^/]*\.tfstate(\.[^/]*)?|\.terraform\.tfstate\.lock\.info|[^/]*\.tfplan)$")
 LOCK_OFF = re.compile(r"-lock=false\b")
-PRINTS_OUTPUTS = re.compile(r"\b(terraform|tofu)\s+(output\b[^|>]*\s-(json|raw)\b|show\b[^|>]*\s-json\b)")
+PRINTS_OUTPUTS = re.compile(r"\b(terraform|tofu)(\s+-\S+)*\s+(output\b[^|>]*\s-(json|raw)\b|show\b[^|>]*\s-json\b)")
 CAPTURED = re.compile(r"[>|`]|\$\(")
 
 SECRET_WORDS = (
@@ -357,10 +357,16 @@ def inventory(root: Path) -> list[str]:
     return sorted(path for path in listed if not skipped(path))
 
 
+UNREADABLE: list[str] = []
+
+
 def read(root: Path, rel: str) -> str:
+    """The file's text; a file that cannot be read is recorded, and the run fails on it."""
     try:
         return (root / rel).read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
+        if rel not in UNREADABLE:
+            UNREADABLE.append(rel)
         return ""
 
 
@@ -471,7 +477,7 @@ def check_secret_variables(repo: Repo) -> None:
             where = f"{tf.rel}:{block.line}"
             default = block.body.attrs.get("default")
             if default is not None and default.value != "null":
-                repo.report(where, "secrets", 1, f'variable "{block.name}" carries a default; a secret has '
+                repo.report(f"{tf.rel}:{default.line}", "secrets", 1, f'variable "{block.name}" carries a default; a secret has '
                             "none, and arrives from the environment or a secret store")
             if not marked(block.body):
                 repo.report(where, "secrets", 2, f'variable "{block.name}" names a secret and is not marked '
@@ -622,10 +628,9 @@ def module_pin_problem(block: Block) -> str:
     """Why this module call is not pinned, or an empty string."""
     source = literal(block.body.attrs.get("source", Attr("", 0)).value)
     version = literal(block.body.attrs.get("version", Attr("", 0)).value)
-    if REGISTRY_SOURCE.match(source) and not EXACT_VERSION.match(version):
-        return f'registry module "{source}" needs an exact `version`, not "{version}"'
     if not GIT_SOURCE.match(source):
-        return ""
+        registry = REGISTRY_SOURCE.match(source) and not EXACT_VERSION.match(version)
+        return f'registry module "{source}" needs an exact `version`, not "{version}"' if registry else ""
     ref = GIT_REF.search(source)
     if ref is None:
         return f'"{source}" has no `?ref=`, so it follows the default branch'
@@ -638,8 +643,24 @@ def check_module_pins(repo: Repo) -> None:
     for module in repo.modules.values():
         for tf, block in module.blocks("module"):
             problem = module_pin_problem(block)
+            line = block.body.attrs.get("source", Attr("", block.line)).line
             if problem:
-                repo.report(f"{tf.rel}:{block.line}", "pinning", 4, problem)
+                repo.report(f"{tf.rel}:{line}", "pinning", 4, problem)
+
+
+def locked_sources(repo: Repo, lock: str) -> set[str]:
+    """The provider sources a lock file records, as `namespace/type` in lower case."""
+    blocks = parse(read(repo.root, lock)).blocks
+    return {"/".join(block.name.lower().split("/")[-2:]) for block in blocks if block.kind == "provider"}
+
+
+def declared_sources(module: Module) -> set[str]:
+    sources = set()
+    for name, requirement in provider_requirements(module).items():
+        found = re.search(r'\bsource\s*=\s*"([^"]*)"', requirement.value)
+        source = found.group(1) if found else f"hashicorp/{name}"
+        sources.add("/".join(source.lower().split("/")[-2:]))
+    return sources
 
 
 def check_lock_file(repo: Repo) -> None:
@@ -650,6 +671,10 @@ def check_lock_file(repo: Repo) -> None:
         if lock not in repo.paths:
             repo.report(where_of(module), "pinning", 5, "no `.terraform.lock.hcl` beside this root module; run "
                         "`terraform init` and commit the lock file it writes")
+            continue
+        for source in sorted(declared_sources(module) - locked_sources(repo, lock)):
+            repo.report(lock, "pinning", 5, f"the lock file records no `{source}`; run `terraform init` "
+                        "and commit the lock file it rewrites")
 
 
 # ---------------------------------------------------------------------------
@@ -741,10 +766,12 @@ CHECKS = (
 
 
 def report(findings: list[Finding], modules: int) -> int:
-    if not findings:
+    for rel in UNREADABLE:
+        print(f"skipped, cannot be read as UTF-8: {rel}", file=sys.stderr)
+    if not findings and not UNREADABLE:
         print(f"{modules} module(s), no failures.")
         return 0
-    print(f"{len(findings)} failure(s) across {modules} module(s):\n")
+    print(f"{len(findings)} failure(s); {modules} module(s) checked:\n")
     for finding in sorted(findings, key=lambda item: (item.where, item.rule, item.condition)):
         print(finding)
     return 1

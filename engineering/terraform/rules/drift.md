@@ -29,11 +29,11 @@ So the rule is not "never touch the console". It is that a change outside code i
 
 5. **Each resource is managed by one configuration, with one tool.** Decided by review. Two configurations, or Terraform and another provisioning tool, managing the same object will each see the other's changes as drift and revert them in turn.
 
+6. **`ignore_changes` names the attributes another system owns, and says which system.** Decided by review. Some drift is expected: an autoscaling group's desired count, a tag a cost tool adds. Excluding it in code, with `lifecycle { ignore_changes = [...] }`, is how condition 2 stays quiet about it, and the exclusion is reviewed like any other line. The list names attributes, never `all`, and a comment beside it points at the issue that records which system owns them; `ignore_changes = all` turns this rule off for that resource.
+
 ## Where this stops
 
 **None of this is decidable from the repository.** Drift is a property of the real infrastructure, and only a plan against it reports drift. The rule names that plan as the detector and leaves running it to the project's pipeline, which is why it declares judgment: there is no hook to stand in for it.
-
-**Some drift is expected and is not this rule's.** An attribute a provider or another system legitimately manages, an autoscaling group's desired count, a tag a cost tool adds, is excluded with `lifecycle { ignore_changes = [...] }` in the code, where the exclusion is reviewed. An `ignore_changes = all` is the rule switched off and is read as such.
 
 **Restricting human write access is a cloud's mechanism.** How production write access is limited (an organisation policy, a role boundary, a separate account) is specific to each cloud and belongs to that cloud's plugin. This rule requires that the pipeline is the normal writer; it does not say how a cloud enforces it.
 

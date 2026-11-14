@@ -26,7 +26,7 @@ Each of these is decided by `hooks/check-terraform.py`. A secret's name is one w
 
 1. **A secret-named variable has no default, or `default = null`.** A default is a literal in the source, read by every plan that does not override it. `null` is accepted because it is how an optional secret says "absent" without carrying one.
 
-2. **A secret-named variable is marked `sensitive = true` or `ephemeral = true`.** Without either, the value is printed in plan and apply output and in any expression derived from it. `sensitive` is available from Terraform 0.15, `ephemeral` from 1.10; [Variable block](https://developer.hashicorp.com/terraform/language/block/variable) defines both.
+2. **A secret-named variable is marked `sensitive = true` or `ephemeral = true`.** Without either, the value is printed in plan and apply output and in any expression derived from it. `sensitive` is available from Terraform 0.15 and `ephemeral` from 1.10 ([Manage sensitive data](https://developer.hashicorp.com/terraform/language/manage-sensitive-data)); [Variable block](https://developer.hashicorp.com/terraform/language/block/variable) defines both.
 
 3. **No secret-named argument, in any block, is given a string literal.** A provider's `access_key`, a backend's `password`, a resource's `password_wo`, a local named `api_token`: each is a secret in the repository. A write-only argument keeps the value out of state and plan, not out of the source, so a literal there is a finding like any other. A reference (`var.db_password`, `ephemeral.<type>.<name>.value`) is the correct form and passes. HashiCorp says the same of backends: credentials belong in environment variables, not in the block ([Backend block](https://developer.hashicorp.com/terraform/language/backend)).
 

@@ -107,7 +107,25 @@
       "paths": [
         "\\.(tf|tofu|tfvars)$",
         "\\.(tftest|tofutest)\\.hcl$",
-        "(^|/)\\.terraform\\.lock\\.hcl$"
+        "(^|/)\\.terraform\\.lock\\.hcl$",
+        "\\.tfstate(\\.[^/]*)?$",
+        "\\.tfplan$",
+        "(^|/)\\.terraform\\.tfstate\\.lock\\.info$"
+      ]
+    },
+    {
+      "id": "terraform-pipeline",
+      "skill": "ahrena-engineering-terraform:skills/reviewing-terraform/SKILL.md",
+      "why": "a script or pipeline line that runs Terraform or OpenTofu, read for locking and for what it prints to the log",
+      "opens": [
+        "ahrena-engineering-terraform:skills/reviewing-terraform/references/conditions.md"
+      ],
+      "paths": [
+        "\\.(ya?ml|sh|bash|zsh|mk|ps1)$",
+        "(^|/)(Makefile|Justfile|Taskfile|Jenkinsfile)$"
+      ],
+      "lines": [
+        "\\b(terraform|tofu)\\b"
       ]
     },
     {

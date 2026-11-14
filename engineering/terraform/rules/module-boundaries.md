@@ -27,7 +27,7 @@ Each of these is decided by `hooks/check-terraform.py`, over the graph of local 
 
 2. **No module calls a root configuration.** A directory that declares a `backend` or a `cloud` block owns state and is run, not called. A call into one gives two configurations one state, or none.
 
-3. **A reusable module declares no `provider` block and no backend.** HashiCorp: "A module intended to be called by one or more other modules must not contain any `provider` blocks", and such a module cannot be used with `count`, `for_each` or `depends_on`, nor removed without first removing its resources ([Providers within modules](https://developer.hashicorp.com/terraform/language/modules/develop/providers)). The caller configures providers and passes them in with `providers = { ... }` where the module needs an aliased one. A backend in a module is state ownership in the wrong place, for the reason condition 2 gives.
+3. **A reusable module declares no `provider` block and no backend.** HashiCorp: "A module intended to be called by one or more other modules must not contain any `provider` blocks", and such a module is not compatible with `count`, `for_each` or `depends_on`; removing it from its caller would also remove the provider configuration while its resources still need it to be destroyed ([Providers within modules](https://developer.hashicorp.com/terraform/language/modules/develop/providers)). The caller configures providers and passes them in with `providers = { ... }` where the module needs an aliased one. A backend in a module is state ownership in the wrong place, for the reason condition 2 gives.
 
 A reusable module is a directory under `modules/`, or one that another configuration calls by a local path and that declares no backend.
 

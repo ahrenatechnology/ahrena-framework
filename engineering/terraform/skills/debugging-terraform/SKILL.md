@@ -25,17 +25,17 @@ Output: the failing command, its exit code and the error text, with any value th
 
 ## 2. Reproduce with a plan
 
-Run, from the failing root configuration and with the same CLI version as the pipeline:
+Use the CLI version the pipeline uses; where the repository has no pipeline file, the one `required_version` and the lock file allow, and say which. Remove the root's `.terraform/` directory first: it is a cache, and one left by an earlier `init` lets `validate` pass on providers the configuration no longer selects. Then, with `<root>` the failing root configuration:
 
 ```sh
-terraform init
-terraform validate
-terraform plan -detailed-exitcode -out=diagnose.tfplan
+terraform -chdir=<root> init -input=false
+terraform -chdir=<root> validate
+terraform -chdir=<root> plan -input=false -detailed-exitcode -out="${TMPDIR:-/tmp}/diagnose.tfplan"
 ```
 
-Exit 0 means the plan is empty, 1 an error, 2 a non-empty plan. Keep `diagnose.tfplan` out of the repository and delete it when done (`rules/state.md`). If the plan proposes changes nobody made in code, also run `terraform plan -refresh-only` to see what moved in the real infrastructure.
+When the failing command is `init` itself, its error is the reproduction, and validate and plan add nothing until it passes. For plan, exit 0 means the plan is empty, 1 an error, 2 a non-empty plan. The plan file is written outside the checkout and deleted when done (`rules/state.md`). If the plan proposes changes nobody made in code, also run `terraform plan -refresh-only` to see what moved in the real infrastructure.
 
-Output: which of the three it is, and the first error or the list of addresses the plan would change.
+Output: the CLI version used, which of the three it is, and the first error or the list of addresses the plan would change.
 
 ## 3. Classify the failure
 
@@ -52,7 +52,7 @@ Every fix is a change to configuration that goes through review and a reviewed p
 - **Drift** is resolved one of two ways, decided with whoever made the change: wanted, so the code is edited to say it and a refresh-only apply records it; unwanted, so an ordinary apply reverts it on purpose (`docs/state.md`).
 - **A stale lock** is released by its owner. Confirm from the lock's ID and who holds it that no run is in progress; only then does the owner run `terraform force-unlock <id>`, which HashiCorp reserves for one's own lock after automatic unlocking failed.
 
-Run the plan again. The fix is done when the plan shows exactly what was meant and nothing else.
+Run the plan again. The fix is done when the plan shows exactly what was meant and nothing else. Where the plan cannot reach the real state (no credentials here, or `-backend=false`), say so: the plan shows a configuration against empty state, and the confirmation is the pipeline's plan after the fix, which the hand-back names as the check still owed.
 
 Output: the change, and the plan before and after.
 

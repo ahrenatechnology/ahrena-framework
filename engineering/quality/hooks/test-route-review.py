@@ -256,6 +256,23 @@ CASES = [
         ],
         ["route  python", "route  go"],
     ),
+    (
+        "#295/AC-5 a committed state file and a pipeline line running Terraform reach reviewing-terraform",
+        {},
+        {
+            "infra/terraform.tfstate": "{}\n",
+            ".github/workflows/plan.yml": "steps:\n  - run: terraform -chdir=infra output -json\n",
+        },
+        None,
+        0,
+        [
+            "route  terraform  ->  ahrena-engineering-terraform:skills/reviewing-terraform/SKILL.md",
+            "on     infra/terraform.tfstate",
+            "route  terraform-pipeline  ->  ahrena-engineering-terraform:skills/reviewing-terraform/SKILL.md",
+            "on     .github/workflows/plan.yml",
+        ],
+        [],
+    ),
 ]
 
 

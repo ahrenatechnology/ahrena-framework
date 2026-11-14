@@ -38,6 +38,8 @@ Read `docs/modules.md` and place the change.
 - **One resource with a few arguments** is written inline in the root; a module that wraps one resource adds a layer and decides nothing.
 - **An existing module needs a new behaviour** is a new module that calls it, or a new variable on it with a default that keeps today's behaviour. Never an edit for one caller's case.
 
+When the task names a shape this step advises against (a reusable module around one resource, with one caller), write what the task names and raise the advice as a question in the hand-back; the task's author holds the second consumer you cannot see.
+
 Output: the module's kind, its directory, and what calls it.
 
 ## 3. Write the interface: variables, then outputs' names
@@ -46,7 +48,7 @@ In `variables.tf`, one `variable` block per input the module needs, each with a 
 
 A secret is a variable with no default and `sensitive = true`, or `ephemeral = true` where it only flows into ephemeral contexts and the Terraform version is 1.10 or later. It arrives at run time from `TF_VAR_<name>` or an ephemeral resource, never as a literal (`rules/secrets.md`, `docs/state.md`).
 
-Write the names of the outputs a caller will read, and nothing else. Each is a named attribute; an output that could carry a secret, a policy or a connection string is `sensitive = true`; a root exports no whole object; an output describing access or topology exists only for a consumer you can name (`rules/outputs.md`).
+Write the outputs a caller will read, and nothing else, each with its value referencing the resource that will produce it; the resource does not exist yet, which is what makes step 4 fail. Each is a named attribute; an output that could carry a secret, a policy or a connection string is `sensitive = true`; a root exports no whole object; an output describing access or topology exists only for a consumer you can name (`rules/outputs.md`).
 
 Output: the module's interface, and for each output the consumer that reads it.
 
@@ -54,33 +56,39 @@ Output: the module's interface, and for each output the consumer that reads it.
 
 In `modules/<name>/tests/<name>.tftest.hcl`, one `run` block per behaviour the interface promises, with `command = plan` and `mock_provider` or `override_data` wherever a real account would otherwise be needed (`docs/testing.md`). Cover every output a caller reads, every `validation` with a value it accepts and one it refuses (`expect_failures`), and every `count` or `for_each` the inputs drive. No assertion's `error_message` interpolates a sensitive value.
 
-Run it with `terraform test` from the module's directory and confirm it fails for the reason you expect: the resources do not exist yet. A test that passes before the code exists tests nothing. The red-then-green discipline is `ahrena-engineering-backend:skills/driving-with-tdd/SKILL.md`; follow it, with `terraform test` as the runner.
+A computed attribute (an `id`, a generated value) is unknown at plan, so an output built from one cannot be asserted with a plain plan. Override the resource with the value the test needs and `override_during = plan` ([Mocks](https://developer.hashicorp.com/terraform/language/tests/mocking)), and make the module's `required_version` cover every feature its own test uses, so a caller's CLI that runs the test can parse it.
+
+Run `terraform init`, then `terraform test`, from the module's directory, and confirm the test fails for the reason you expect: the resources do not exist yet. A test that passes before the code exists tests nothing. Init writes a `.terraform.lock.hcl` in the module's directory; it belongs to the test run, not to the module, and `.gitignore` excludes it (`modules/**/.terraform.lock.hcl`), because the lock file belongs to a root configuration (`rules/pinning.md` condition 5).
+
+Of `ahrena-engineering-backend:skills/driving-with-tdd/SKILL.md`, take the red, green and refactor discipline, with `terraform test` as the runner; its layer steps (domain, use cases, a real database) do not apply to HCL.
 
 Output: the test file and its red run.
 
 ## 5. Write the resources until the test passes
 
 - **Versions first.** `terraform.tf` holds `required_version` and a `required_providers` entry, with `source` and `version`, for every provider the module uses. A root bounds each from above with `~>`; a reusable module states only a minimum with `>=`. A registry module call takes an exact `version`; a git one a `?ref=` tag or commit (`rules/pinning.md`).
-- **Backend, in a root only.** A remote backend that locks and encrypts at rest, declared partially, with credentials from the environment and never in the block or on a `-backend-config` command line (`rules/state.md`). The settings for a given cloud's backend are in that cloud's plugin.
+- **Backend, in a root only.** A remote backend that locks and encrypts at rest, declared partially, with credentials from the environment and never in the block or on a `-backend-config` command line (`rules/state.md`). The settings for a given cloud's backend are in that cloud's plugin; when that plugin is not installed and the task does not name them, write the partial block and raise the locking and encryption settings as a question to whoever runs `init`.
 - **Resources.** One concern per file; the style guide's names (`main.tf`, `variables.tf`, `outputs.tf`, `locals.tf`, `providers.tf`, `backend.tf`) first, then a file per concern. `count` for near-identical resources, `for_each` otherwise, and sparingly. A secret reaches a resource by a reference, through a write-only argument where the provider has one. An expression that grows past one reading moves to a named local.
 - **Bringing in what already exists** is an `import` block in the change, a rename is a `moved` block, a release is a `removed` block with `destroy = false` (`rules/drift.md`).
 
-Hold every file and every block to the single-responsibility limits of [`clean-code.md`](../../../fundamentals/rules/clean-code.md), [`kiss.md`](../../../fundamentals/rules/kiss.md) and [`solid.md`](../../../fundamentals/rules/solid.md). No Terraform tool measures them in HCL: the structure hook parses Python only, and tflint reports unused declarations and untyped variables, not size. So the limit is held by writing to it, and a reviewer reads it.
+Hold every file and every block to the single-responsibility limits of [`clean-code.md`](../../../fundamentals/rules/clean-code.md), [`kiss.md`](../../../fundamentals/rules/kiss.md) and [`solid.md`](../../../fundamentals/rules/solid.md). The unit in Terraform is the module, and inside it the file and the expression (`docs/modules.md`). No Terraform tool reports a breach of those limits in HCL: the structure hook parses Python only, and the nearest tflint rules (`terraform_unused_declarations`, `terraform_standard_module_structure`) report dead declarations and layout, not size. So the limit is held by writing to it from the first line, and a reviewer reads it; this is said plainly rather than naming a tool that does not decide it.
 
 Run `terraform test` until it passes. Output: the code and the green run.
 
 ## 6. Run the toolchain, in order
 
-From the repository root, the steps of `docs/toolchain.md` that need no credentials:
+The steps of `docs/toolchain.md` that need no credentials. `fmt`, the hook and tflint run from the repository root; `init` and `validate` run in each root and each module directory, because run from a root that holds no `.tf` file they validate an empty configuration and report success:
 
 ```sh
 terraform fmt -check -recursive
-terraform init -backend=false && terraform validate
+for dir in $(find . -name '*.tf' -not -path '*/.terraform/*' -exec dirname {} \; | sort -u); do
+  terraform -chdir="$dir" init -backend=false -input=false && terraform -chdir="$dir" validate || exit 1
+done
 python3 "${CLAUDE_PLUGIN_ROOT}/hooks/check-terraform.py" .
 tflint --recursive
 ```
 
-Then the project's security scanner, if it has one (`docs/libraries.md`). Fix every finding; a hook finding names the rule and condition it breaks and says what to write instead. A root configuration's plan runs in the pipeline, with read-only credentials, and is what the reviewer reads; never print `terraform output -json` or `terraform show -json` to a log while checking your work.
+A tool that is not installed is reported as not run, with that reason; it is not installed by this skill. Then the project's security scanner, if it has one (`docs/libraries.md`). Fix every finding; a hook finding names the rule and condition it breaks and says what to write instead. A root configuration's plan runs in the pipeline, with read-only credentials, and is what the reviewer reads; never print `terraform output -json` or `terraform show -json` to a log while checking your work.
 
 Output: each command with its result.
 

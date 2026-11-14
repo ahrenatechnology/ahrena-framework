@@ -34,7 +34,7 @@ Before the conditions, read how the repository runs Terraform: which CLI and ver
 python3 "${CLAUDE_PLUGIN_ROOT}/hooks/check-terraform.py" <checkout>
 ```
 
-Every failure it prints names a rule and a condition, and is a finding as it stands, at the severity `references/conditions.md` gives it. Report only those on files the change touches, or that the change caused (a new module with no test, a new root with no lock file).
+Every failure it prints names a rule and a condition, and is a finding as it stands, at the severity the tests of `ahrena-engineering-quality:docs/review-findings.md` give it (blocking on a line the change introduces or edits). Report only those on files the change touches, or that the change caused (a new module with no test, a new root with no lock file).
 
 ## 3. Read the conditions the hook cannot decide
 
@@ -56,6 +56,6 @@ Hand the set back to `reviewing-diffs`. Do not publish from here, and do not edi
 
 **A cloud's design.** Whether the bucket should be public, the role's permissions, the network's shape: those are the cloud plugin's review and the security disciplines (`reviewing-access`, `reviewing-sensitive-data`). This skill reads the Terraform that expresses the design, not the design.
 
-**A pipeline file that runs Terraform.** The supply-chain discipline reads the pipeline definition; this skill reads a pipeline line only for what `TF-8` and `TF-3` name.
+**A pipeline file that runs Terraform.** The supply-chain discipline reads the pipeline definition; this skill reads a pipeline line only for what `TF-3` and `TF-9` name.
 
 **Another language in the same change.** A `.py` or `.ts` file is read by that language's skill.
