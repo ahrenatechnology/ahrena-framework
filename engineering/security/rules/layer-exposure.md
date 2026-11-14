@@ -39,7 +39,7 @@ Standard output and standard error; a log; a trace or metric attribute; an error
 
 ## Where this stops
 
-**The hook decides three shapes and can only miss.** It recognises an exit by its call or its shape and a caught error by its binding, so an error renamed into a plain variable, a logger it does not know, or a whole object of any other kind passes it. A pass from the hook is not a pass from the rule: condition 4 is the larger half.
+**The hook decides three shapes and is written to miss rather than misfire.** It recognises an exit by its call or its shape and a caught error by its binding, so an error renamed into a plain variable, a logger it does not know, or a whole object of any other kind passes it. A pass from the hook is not a pass from the rule: condition 4 is the larger half.
 
 **A named field the reader needs is not a leak.** A role identifier handed from the infrastructure layer to the application as one configuration input, an output marked sensitive and read by the one module that needs it, an error code returned to a caller: each is a field, named, crossing to a reader that needs it. The rule forbids the whole thing and the field nobody asked for, not the field.
 

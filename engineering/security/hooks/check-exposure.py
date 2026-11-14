@@ -65,6 +65,7 @@ SKIP_DIRS = frozenset(".git .venv venv node_modules __pycache__ dist build vendo
 
 SPEC_OPTIONS = ("--cached", "--staged")
 PINNED = ("--no-color", "--no-ext-diff", "--no-textconv", "--src-prefix=a/", "--dst-prefix=b/", "--unified=0")
+UNMERGED = ("diff --cc ", "diff --combined ", "* Unmerged path ")
 HUNK = re.compile(r"^@@ -\d+(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 EXIT_PATTERNS = (
@@ -115,7 +116,11 @@ UPSTREAM = re.compile(
 WHOLE_CONFIG = re.compile(
     r"\bos\.environ\b(?!\s*(\[|\.get\b))|\bprocess\.env\b(?!\s*(\.|\[))|\bvars\(\s*\w+\s*\)|\.__dict__\b|\bos\.Environ\(\)"
 )
-POLICY = re.compile(r"\b\w*(polic(y|ies)|PolicyDocument|policy_document)\b(?!\s*[\[.(=]|\s*:\s)", re.IGNORECASE)
+POLICY = re.compile(
+    r"\b((iam|bucket|access|role|resource|key|trust|inline|managed|assume_?role|permissions?)_?)?"
+    r"polic(y|ies)(_?(document|version|json))?\b(?!\s*[\[.(=]|\s*:\s)",
+    re.IGNORECASE,
+)
 
 TF_OUTPUT = re.compile(r'^\s*output\s+"([^"]+)"')
 TF_VALUE = re.compile(r"^\s*value\s*=\s*(.+?)\s*$")
@@ -253,7 +258,7 @@ def changed_lines(spec: str) -> dict[Path, frozenset[int]]:
         raise Unavailable(f"{spec!r} is not a revision or range; the only options --changed takes are {', '.join(SPEC_OPTIONS)}")
     top = Path(git(["rev-parse", "--show-toplevel"], Path.cwd()).strip()).resolve()
     diff = git(["-c", "color.ui=false", "diff", spec, *PINNED], top)
-    if "\ndiff --cc " in f"\n{diff}" or "* Unmerged path " in diff:
+    if any(row.startswith(UNMERGED) for row in diff.split("\n")):
         raise Unavailable("the diff holds an unresolved merge, so no line can be scoped")
     return parse_diff(diff, top)
 

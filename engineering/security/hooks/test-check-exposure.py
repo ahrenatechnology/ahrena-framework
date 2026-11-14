@@ -131,6 +131,18 @@ CASES = [
         [],
     ),
     (
+        "#294/AC-2 a policy that is not an access policy is not reported",
+        {},
+        {"svc/jobs.py": "def describe(retry_policy, logger):\n    logger.info(retry_policy)\n    return {\"retry\": retry_policy}\n"},
+        [],
+    ),
+    (
+        "#294/AC-2 an added line that spells an unmerged-path marker does not stop the run",
+        {},
+        {"svc/notes.py": "MARKER = \"* Unmerged path \"\n"},
+        [],
+    ),
+    (
         "#294/AC-2 a line the change did not add is not reported",
         {"svc/old.py": "def view(x):\n    try:\n        x()\n    except Exception as e:\n        return {\"body\": str(e)}\n"},
         {"svc/old.py": "def view(x):\n    try:\n        x()\n    except Exception as e:\n        return {\"body\": str(e)}\n\n\ndef other():\n    return 1\n"},
