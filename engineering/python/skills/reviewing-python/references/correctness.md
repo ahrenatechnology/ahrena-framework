@@ -21,7 +21,7 @@ Opened by step 2 of `SKILL.md` on every Python change. Each condition gives the 
 - **State:** an `except` whose body swallows the error — `pass`, a bare `return`/`continue`, or a log with no re-raise — where the caller then proceeds as if the operation succeeded.
 - **Detect:** read each `except` the change adds or widens. A bare `except:` or `except Exception:` around more than the one line that can raise is the common shape.
 - **Exempt:** a genuine best-effort step whose failure is meant to be ignored, with a comment saying so, logging the exception.
-- **Correct:** catch the narrowest exception, around the smallest block; re-raise, translate to a domain error, or handle it — do not continue blind. Never catch `BaseException` (it takes `KeyboardInterrupt` and `SystemExit`).
+- **Correct:** catch the narrowest exception, around the smallest block; re-raise, translate to a domain error, or handle it — do not continue blind. A handler that catches `BaseException` or a cancellation and keeps it is condition 1 of `rules/error-handling.md`, decided by `hooks/check-python.py`; what is left here is whether a narrower handler belongs where it is, and whether the edge translates what reaches it.
 
 ### PY-4 Identity where equality was meant
 

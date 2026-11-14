@@ -58,11 +58,11 @@ Run a formatter, accept its output, and stop. These families produce no finding 
 
 **`F`** is pyflakes: undefined name, unused import, f-string with no placeholder. These are real defects and a stdlib reimplementation of them would be a worse pyflakes, shipped to compete with the one every project already has. Criterion 3 excludes it, in the sense that the world already decides it.
 
-**`S`** is bandit, and it is refused on subject rather than on difficulty. A security posture — what counts as a hardcoded secret, whether `assert` is acceptable outside tests, which subprocess call is a finding — is a rule of its own with its own boundary section, and putting it inside a typing document is the same drift that produced the source.
+**`S`** is bandit, and it is refused on subject rather than on difficulty. A security posture — what counts as a hardcoded secret, whether `assert` is acceptable outside tests, which subprocess call is a finding — is a rule of its own with its own boundary section, and putting it inside a typing document is the same drift that produced the source. That rule now exists as [`rules/security.md`](../rules/security.md), and it keeps five of bandit's checks — the ones whose state is the call itself — while its boundary section says where the rest went.
 
 **`DTZ`** — a naive `datetime` where an aware one was meant — is the strongest candidate for the next promotion. It is a defect, a parser decides it, and nothing here covers it. It is not in `rules/typing.md` because it is not about typing, and inventing a home for it inside this rule would be how a rule becomes a bag.
 
-**`A`** is shadowed builtins and **`RUF`** is Ruff's own miscellany; both are style-adjacent. **`T20`** bans `print`, which is right for a service and wrong for the four command-line hooks in this repository, all of which print by design. That is a project decision and it belongs to a logging rule this framework has not written.
+**`A`** is shadowed builtins and **`RUF`** is Ruff's own miscellany; both are style-adjacent. **`T20`** bans `print`, which is right for a service and wrong for the command-line hooks in this repository, all of which print by design. That is a project decision; [`logging-and-observability.md`](logging-and-observability.md) says where a service's records go instead, and no rule here bans the call.
 
 ### Promoted: `B006` and a narrowed `BLE`
 
@@ -129,9 +129,9 @@ The first takes no dependencies and decides conditions 2 to 5 on every path it i
 
 **This document configures nothing.** There is no `pyproject.toml` here, no `.pre-commit-config.yaml`, and no version floor. A project reading it should end up writing its own file and being able to say why each line is in it.
 
-**It has no opinion on the test runner.** The source's pytest block — markers for unit, integration and property tests, `asyncio_mode = "auto"`, `--strict-markers` — is sensible and homeless. Test organisation is a subject with its own conditions and its own boundary, and this framework has not written that rule. Transcribing the block here would put a testing opinion inside a typing document, which is the drift being refused.
+**It has no opinion on the test runner.** The source's pytest block — markers for unit, integration and property tests, `asyncio_mode = "auto"`, `--strict-markers` — is sensible, and transcribing it here would put a testing opinion inside a typing document, which is the drift being refused. The opinion now has its own home: [`testing.md`](testing.md) argues the structure those options produce, and [`rules/testing.md`](../rules/testing.md) holds the one condition about Python tests a parser decides.
 
-**It has no opinion on dependencies or on supply chain.** `pip-audit` in the source's CI list is correct and belongs to a security rule that does not exist yet, beside the bandit family refused above. Until that rule is written, a project that runs `pip-audit` is doing something this framework neither requires nor discourages.
+**It has no opinion on dependencies or on supply chain.** `pip-audit` in the source's CI list is correct, and it is now the recommendation [`libraries.md`](libraries.md) makes for a dependency audit, with the case where it is redundant. Requiring the audit is the security plugin's SUP-6, not a rule about Python source, which cannot see a lock file's advisories.
 
 **pre-commit is not required, and the reason is not that it is bad.** It is a convenience; the gate is CI, as the source itself says. What a mandate would add is a second file in which every tool version lives, kept in agreement with the first by hand. A project that wants the local loop should have it.
 

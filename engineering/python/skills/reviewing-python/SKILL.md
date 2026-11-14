@@ -7,6 +7,11 @@ subclade: quality
 references:
   - rules/typing.md
   - rules/module-boundaries.md
+  - rules/error-handling.md
+  - rules/immutability.md
+  - rules/testing.md
+  - rules/security.md
+  - docs/architecture.md
   - ahrena-engineering-quality:docs/review-findings.md
   - ahrena-engineering-quality:docs/review-routes.md
 ---
@@ -14,6 +19,19 @@ references:
 # Reviewing Python
 
 The language-agnostic pass in `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md` has already read the change against the rules that hold in any language, and `hooks/check-structure.py` has decided the mechanical conditions over the changed Python. This skill reads what is left: the defects that need a Python reader.
+
+Six rules in this plugin hold Python, and three hooks decide them:
+
+| Rule | Decided by |
+|---|---|
+| `rules/typing.md` | `hooks/check-typing.py`, conditions 2 to 5; condition 1 is the project's `mypy --strict` |
+| `rules/module-boundaries.md` | `hooks/check-boundaries.py` |
+| `rules/error-handling.md` | `hooks/check-python.py` |
+| `rules/immutability.md` | `hooks/check-python.py`, under `domain/` |
+| `rules/testing.md` | `hooks/check-python.py` |
+| `rules/security.md` | `hooks/check-python.py` |
+
+A hook's finding cites its rule and condition, as `[error-handling] condition 1`, and is reported as it is. What this skill adds is the reading the hooks cannot do.
 
 The conditions are checklists in `references/`, identified by a prefix and a number. A finding cites the identifier. Severity and route follow `ahrena-engineering-quality:docs/review-findings.md`.
 
@@ -23,6 +41,16 @@ The router fired the `python` route on the changed `.py` and `.pyi` files. Those
 
 Before the checklists, read how this repository writes Python: its `pyproject.toml` for the Python version and the type-checker and linter configuration, its `AGENTS.md` and `CLAUDE.md`, and the layering its own `rules/module-boundaries.md` describes. A condition the project's own configuration already decides — a linter that bans bare `except`, a formatter that fixes a style — is not reported again. What a green check decided is settled.
 
+Then run the three hooks over the changed files and keep their findings for step 5:
+
+```sh
+python3 engineering/python/hooks/check-typing.py <changed .py files>
+python3 engineering/python/hooks/check-python.py <changed .py files>
+python3 engineering/python/hooks/check-boundaries.py <import roots>
+```
+
+A hook finding that a rule's own escape answers — a reason comment beside an `Any`, a mutable domain record or a `pickle.load` — is not reported. Whether the reason is true is read: a comment saying the bytes are trusted, on a function that loads an upload, is a finding of `reviewing-untrusted-input`, INP-7.
+
 ## 2. Open the checklists the change calls for
 
 | What the change touches | Reference |
@@ -30,6 +58,10 @@ Before the checklists, read how this repository writes Python: its `pyproject.to
 | any Python file | `references/correctness.md`, the conditions that hold for every change |
 | a function signature, an annotation, a dataclass, a public callable | `references/types-and-contracts.md`, with `rules/typing.md` |
 | an import, a package boundary, a module's public surface, an `__init__.py` | `references/idioms-and-structure.md`, with `rules/module-boundaries.md` |
+| an `except`, a `raise` or a `finally` | PY-3 in `references/correctness.md`, with `rules/error-handling.md` |
+| a dataclass, or a function, under `domain/` | PY-T3 in `references/types-and-contracts.md`, with `rules/immutability.md` and `docs/architecture.md` |
+| a test, a fixture or a `conftest.py` | `rules/testing.md`, for the doubles a reader sees and the hook does not |
+| `eval`, `exec`, a deserialiser, a subprocess, an archive, a TLS setting | `rules/security.md`, then the security discipline its condition names |
 
 A change that only edits a string or a comment inside one function opens `correctness.md` alone.
 

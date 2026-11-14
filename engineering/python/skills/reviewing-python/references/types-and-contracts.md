@@ -21,7 +21,7 @@ Opened by step 2 of `SKILL.md` when the change touches a signature, an annotatio
 - **State:** a `@dataclass` (no `frozen=True`) used as a value that is put in a set, used as a dict key, or shared and assumed immutable; or `eq=True` with `frozen=False`, which sets `__hash__` to `None` and breaks hashing silently.
 - **Detect:** read the class and how instances are used. A value object that two owners share must not be mutable.
 - **Exempt:** an entity whose identity is a field and whose mutation is intended.
-- **Correct:** `@dataclass(frozen=True)` for a value; a stated identity and `eq`/`hash` on it for an entity.
+- **Correct:** `@dataclass(frozen=True)` for a value; a stated identity and `eq`/`hash` on it for an entity. Under `domain/`, a dataclass that is not frozen and carries no reason is condition 1 of `rules/immutability.md`, decided by `hooks/check-python.py`; outside it, this reading is the only check.
 
 ### PY-T4 `Optional` collapsed without a check
 
