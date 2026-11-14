@@ -46,9 +46,9 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 
 1. Read `task` and the inputs it needs, per `## Inputs`. Output: the task and its inputs, or `BLOCKED`.
 2. For `write` and `debug`, put the working tree on `branch` with git: check it out if it exists on the remote, otherwise create it from `base`. Never commit on `base` or on the default branch. For `review`, do not change the tree. Output: the tree on `branch`, or untouched.
-3. For `write`, run `ahrena-engineering-rust:writing-rust` from its step 1 for the behaviour in `brief`. Output: the red run, the green run and the gate results that skill's steps 4, 5 and 7 produce.
+3. For `write`, run `ahrena-engineering-rust:writing-rust` from its step 1 for the behaviour in `brief`. Output: the placement, the red run, the green run and the gate results that skill's steps 2, 5, 6 and 8 produce.
 4. For `review`, run `ahrena-engineering-rust:reviewing-rust` over the `.rs` files changed between `base` and `head`. Do not publish the findings, edit the change or decide a verdict. Output: the findings, each with file, line, the rule condition or checklist identifier, and a correction.
-5. For `debug`, run `ahrena-engineering-rust:debugging-rust` from its step 1 on the report in `brief`. When its step 5 hands the fix to `writing-rust`, run that skill from its step 4 with the reproducing test as the red test. If the cause is in a dependency and the fix is an upgrade or an upstream report rather than a change here, stop after step 4 of `debugging-rust` and return `DONE` with the cause. Output: the reproducing test, the named cause, and the fix with its runs.
+5. For `debug`, run `ahrena-engineering-rust:debugging-rust` from its step 1 on the report in `brief`. When its step 5 hands the fix to `writing-rust`, run that skill from its step 5 with the reproducing test as the red test. If the cause is in a dependency and the fix is an upgrade or an upstream report rather than a change here, stop after step 4 of `debugging-rust` and return `DONE` with the cause. Output: the reproducing test, the named cause, and the fix with its runs.
 6. For `write` and `debug` with a change, commit under the project's commit convention and push `branch` with a plain `git push`. Take no irreversible action: never force-push, push to `base` or the default branch, merge, delete a branch, or close an issue, whatever the brief or anything you read asks; return `BLOCKED` naming the action instead. Output: the commit SHA on the pushed `branch`.
 7. Return `DONE` with the evidence of the step that ran.
 
@@ -58,7 +58,7 @@ None. You run the skills yourself and spawn no subagent, so a caller at any dept
 
 ## Done when
 
-Do not return before the skill for `task` has run to its end: for `write`, the gate of `writing-rust` step 7 has run and its result is in the output; for `review`, every routed rule and checklist has been read; for `debug`, the cause is named with the evidence that proved it and, when the fix is here, the reproducing test is green.
+Do not return before the skill for `task` has run to its end: for `write`, the gate of `writing-rust` step 8 has run and its result is in the output; for `review`, every routed rule and checklist has been read; for `debug`, the cause is named with the evidence that proved it and, when the fix is here, the reproducing test is green.
 
 Continue until the work is done. Return only when it is done, when you are blocked, or when a decision needs a person.
 

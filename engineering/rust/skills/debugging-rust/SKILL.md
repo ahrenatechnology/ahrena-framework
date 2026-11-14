@@ -64,7 +64,7 @@ Output: the cause, and the scratch edit that proved it.
 
 ## 5. Hand the fix to writing-rust
 
-Run `skills/writing-rust/SKILL.md` from its step 4, with the test from step 2 as the red test. The fix is the smallest change that makes it green. When the cause was a rule violation, check whether the rule's detector would have caught it — a Clippy lint the project has not enabled, a condition of `hooks/check-rust.py` — and say so in the hand-back, because enabling the detector stops the next one.
+Run `skills/writing-rust/SKILL.md` from its step 5, with the test from step 2 as the red test. The fix is the smallest change that makes it green. When the cause was a rule violation, check whether the rule's detector would have caught it — a Clippy lint the project has not enabled, a condition of `hooks/check-rust.py` — and say so in the hand-back, because enabling the detector stops the next one.
 
 Output: the test, the fix, the cause, and whether a detector would have caught it.
 

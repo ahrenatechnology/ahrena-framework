@@ -6,6 +6,7 @@ subclade: rust
 title: Testing Rust
 summary: Where unit, integration and doc tests live and what each can see, how a test reaches behaviour rather than structure, what property, snapshot and fuzz tests add and when, and how async and I/O code is tested without a flaky suite.
 references:
+  - rules/unit-tests.md
   - rules/utf8-io.md
   - rules/panics.md
   - docs/libraries.md
@@ -15,9 +16,11 @@ references:
 
 Cargo builds three kinds of test into the language's own tooling, and the choice between them is a choice about what the test can see. This page ports the predecessor's `codex-rust-testing-docs`, built on the Rust book's chapters on testing and documentation, and adds what that edition of the book predates: property tests, snapshot tests, fuzzing and the async test harness. What to test and in which order is `ahrena-engineering-backend`'s `driving-with-tdd`; this page is how those tests are written in Rust.
 
+**What the specification says.** The Reference defines the `test` configuration and the `#[test]` attribute ([Conditional compilation, `test`](https://doc.rust-lang.org/reference/conditional-compilation.html#test); [The `test` attribute](https://doc.rust-lang.org/reference/attributes/testing.html#the-test-attribute)); Cargo defines `tests/` as the home of integration tests ([Cargo Targets](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#integration-tests)) and runs doc tests from the documentation of a library. Where a unit test lives is left to convention, and the convention this page follows is the Rust book's, which [`rules/unit-tests.md`](../rules/unit-tests.md) makes a condition.
+
 ## The three kinds
 
-**Unit tests** live in the file they test, in a `#[cfg(test)] mod tests` at the bottom, and see everything in that module including private items. They are compiled only for `cargo test`. They are where a domain rule is pinned: a function, a type's invariants, a parser's edge cases.
+**Unit tests** live in the file they test, in a `#[cfg(test)] mod tests` at the bottom, and see everything in that module including private items. They are compiled only for `cargo test`. They are where a domain rule is pinned: a function, a type's invariants, a parser's edge cases. Every file that defines a function carries them, and [`rules/unit-tests.md`](../rules/unit-tests.md) gives the reason for the in-file module over a sibling file: it is where a Rust reader looks, it reaches private items without widening their visibility, and a file whose tests no longer fit beside it is a file to split.
 
 **Integration tests** live in `tests/` at the crate root. Each file is compiled as a separate crate that depends on the library, so it sees exactly the public API and nothing else. They are where the crate is used as a caller would use it. Helpers shared between them go in `tests/common/mod.rs` (a directory, so Cargo does not compile the helper as a test of its own). A binary crate has no library for `tests/` to import, which is the strongest argument for putting a binary's logic in `src/lib.rs` and keeping `main.rs` to argument parsing and wiring.
 

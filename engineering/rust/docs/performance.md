@@ -15,6 +15,8 @@ references:
 
 This is the companion to [`rules/regex-compilation.md`](../rules/regex-compilation.md) and [`rules/utf8-io.md`](../rules/utf8-io.md). It ports the predecessor's `codex-rust-performance-and-search`, built on Andrew Gallant's articles on [ripgrep](https://burntsushi.net/ripgrep/), [regex internals](https://burntsushi.net/regex-internals/), [`fst`](https://burntsushi.net/transducers/) and [`bstr`](https://burntsushi.net/bstr/). The source stated ripgrep's design decisions as rules for every program — "never use memory maps", "never use `str::contains` in a hot path" — and they are not. They are what one search tool measured for its workload, and they are kept here as that.
 
+**What the specification says.** Nothing about speed: the Reference specifies what a program means, not how fast it runs, and the optimisations below are properties of the standard library, of `regex` and of ripgrep's design. Two language facts bear on them: integer overflow wraps when overflow checks are off, which they are by default in a release profile ([Overflow](https://doc.rust-lang.org/reference/expressions/operator-expr.html#overflow); RFC 560, [integer overflow](https://rust-lang.github.io/rfcs/0560-integer-overflow.html)), and a `str` must hold valid UTF-8 as a library invariant ([String slice type](https://doc.rust-lang.org/reference/types/str.html)), which is what makes decoding a cost a byte-oriented program can skip.
+
 ## Measure, then change
 
 Rust is fast by default, and most code is not on the path that decides how fast the program is. An optimisation starts from a measurement that says where the time goes, and ends with a measurement that says it went down.

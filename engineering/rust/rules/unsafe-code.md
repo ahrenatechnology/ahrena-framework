@@ -17,6 +17,8 @@ Inside an `unsafe` block the compiler stops checking five things: dereferencing 
 
 The rule merges the predecessor's `lex-rust-unsafe-isolation`, drawn from TiKV's buffer types and Alacritty's platform code, with the `unsafe` half of `lex-rust-ffi-safety`, drawn from the Rust book's chapter on unsafe code. The FFI half is [`ffi.md`](ffi.md).
 
+**What the specification says.** The Reference lists the operations only an `unsafe` context may perform ([Unsafety](https://doc.rust-lang.org/reference/unsafety.html)) and the behaviour that is undefined if an `unsafe` block gets them wrong ([Behavior considered undefined](https://doc.rust-lang.org/reference/behavior-considered-undefined.html)). RFC 2585, [unsafe block in unsafe fn](https://rust-lang.github.io/rfcs/2585-unsafe-block-in-unsafe-fn.html), stopped treating an `unsafe fn` body as an `unsafe` block, which is condition 3. The `// SAFETY:` comment and the `# Safety` heading are the community's convention, from the API Guidelines ([C-FAILURE](https://rust-lang.github.io/api-guidelines/documentation.html#c-failure)) and the standard library's own source; the specification asks for no comment, and Clippy is what holds it.
+
 ## Conditions
 
 1. **Every `unsafe` block and every `unsafe impl` carries a `// SAFETY:` comment directly above it, stating why each operation inside is sound.** Decided by Clippy's `clippy::undocumented_unsafe_blocks`, from the `restriction` group, denied. The comment names the invariant and where it is established: "the index was checked against `len()` on the line above", not "this is safe".

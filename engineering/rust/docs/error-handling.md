@@ -8,12 +8,15 @@ summary: Where the line between a panic and a returned error falls and why, how 
 references:
   - rules/panics.md
   - rules/error-types.md
+  - rules/redaction.md
   - docs/libraries.md
 ---
 
 # Errors in Rust, from the failure to the caller
 
 This is the companion to [`rules/panics.md`](../rules/panics.md) and [`rules/error-types.md`](../rules/error-types.md). The rules state what is not allowed; this explains the model they come from. It ports the predecessor's `codex-rust-error-handling`, which was built on Andrew Gallant's [Error Handling in Rust](https://burntsushi.net/rust-error-handling/) and [Using unwrap() in Rust is Okay](https://burntsushi.net/unwrap/), and keeps their argument while dropping the source's restatements of the rules.
+
+**What the specification says.** RFC 236, [Error conventions](https://rust-lang.github.io/rfcs/0236-error-conventions.html), is the source of the split this page argues: contract violations fail the thread, obstructions are `Result`s. The Reference's [Panic](https://doc.rust-lang.org/reference/panic.html) chapter defines unwinding and abort; the `?` operator is defined in [The try propagation expression](https://doc.rust-lang.org/reference/expressions/operator-expr.html#r-expr.try); the `Error` trait is the standard library's. What an error type should look like is community practice, from the API Guidelines' [C-GOOD-ERR](https://rust-lang.github.io/api-guidelines/interoperability.html#c-good-err).
 
 ## A panic is a bug report
 
@@ -66,6 +69,22 @@ A `From` that flattens distinct failures into one variant hides the distinction 
 ## `Option` is not an error
 
 `Option<T>` says a value may be absent and that absence is normal: a lookup that finds nothing, an iterator that ends. Converting it to an error is a decision the caller makes with `.ok_or(Error::NotFound { key })` when absence is a failure in its context. A library returns `Option` for "not found" and leaves that decision to the caller, rather than returning `Err(NotFound)` and forcing every caller who expected absence to match it away.
+
+## Translating an error at the boundary
+
+An error carries its cause, and the cause carries whatever the dependency put in it: an SDK's access-denied message names the account, the role, the action and the resource; a driver's error names the host and the query. That detail is what the operator needs and what the caller must never see, and the 2026-11-12 incident that [`rules/redaction.md`](../rules/redaction.md) begins with is this mistake. So the boundary of each layer translates:
+
+```rust
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        let id = Uuid::new_v4();
+        tracing::error!(error_id = %id, error = %self.source_chain(), "request failed");
+        (self.status(), Json(Problem::new(self.kind(), id))).into_response()
+    }
+}
+```
+
+The response carries a status, a kind the API documents and a correlation id; the full chain goes to the log, under the field allowlist [`rules/redaction.md`](../rules/redaction.md) condition 2 asks for. A library does the same one level down: its error enum names the kind of failure and keeps the dependency's error as `#[source]`, so the decision about how much to show is left to the application that owns the boundary. A `Display` that interpolates `{source}` into its own message, as `#[error("upload failed: {0}")]` does, moves the dependency's text into every place the error is printed; `#[error("upload failed")]` with the source attached keeps it in the chain, where a logger that walks `source()` finds it and a response that prints only `Display` does not.
 
 ## Panics in a server
 

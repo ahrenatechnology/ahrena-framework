@@ -1,6 +1,6 @@
 # Rust panics and safety
 
-Opened by step 2 of `SKILL.md` when the change touches an `as` cast, arithmetic or a fallible call whose result is dropped. Each condition gives the state, how it is detected, what exempts it, and the correction.
+Opened by step 2 of `SKILL.md` when the change touches an `as` cast, arithmetic, an index or a range, or a fallible call whose result is dropped. Each condition gives the state, how it is detected, what exempts it, and the correction.
 
 A panic on a path that can fail and an `unsafe` block are not here: they are `rules/panics.md` and `rules/unsafe-code.md`, cited by their conditions. RS-1, RS-2 and RS-3 were retired into those rules and their identifiers are not reused.
 
@@ -24,3 +24,11 @@ A panic on a path that can fail and an `unsafe` block are not here: they are `ru
 - **Detect:** each fallible call whose outcome is dropped. The compiler warns on a bare unused `Result`, so the suppressed ones (`let _ =`) are where the reader looks.
 - **Exempt:** a genuinely best-effort call whose failure is meant to be ignored, with `let _ =` making it visible and a comment.
 - **Correct:** propagate with `?`, handle with `match`, or log; reserve `let _ =` for the deliberate, commented case.
+
+### RS-18 An index or a range on a value input can reach
+
+- **State:** `v[i]`, `&v[a..b]`, `&s[a..b]` or `slice.split_at(n)` where `i`, `a`, `b` or `n` comes from input, from arithmetic on input, or from a length that is not the slice's own — a parsed offset, a user-supplied position, a header field, `len - k`.
+- **Detect:** read where the index comes from. Each of these panics when it is out of range, and `rules/panics.md` leaves indexing to this condition because denying `clippy::indexing_slicing` crate-wide fires on every safe loop.
+- **Exempt:** an index the code bounds on the line before (`if i < v.len()`), one produced by the slice itself (`position`, `iter().enumerate()`), a constant into an array of known length.
+- **Correct:** `v.get(i)` and handle `None`; `v.get(a..b)`; `checked_sub` on the arithmetic; for a `str`, the boundaries `rules/strings.md` condition 1 asks for.
+

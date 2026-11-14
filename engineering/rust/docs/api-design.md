@@ -12,11 +12,14 @@ references:
   - rules/unsafe-code.md
   - rules/ffi.md
   - rules/error-types.md
+  - docs/architecture.md
 ---
 
 # Designing a Rust public surface
 
 This is the companion to five rules that are each about one part of a crate's surface: [`ownership.md`](../rules/ownership.md) and [`strings.md`](../rules/strings.md) for what a function accepts, [`non-exhaustive.md`](../rules/non-exhaustive.md) for how a type grows, and [`unsafe-code.md`](../rules/unsafe-code.md) and [`ffi.md`](../rules/ffi.md) for what a safe surface hides. It merges three of the predecessor's codex: `codex-rust-api-design`, built on Andrew Gallant's design of `regex`, `csv` and `bstr`; `codex-rust-traits-generics`, from the Rust book; and the versioning half of `codex-rust-oss-maintenance`. Where the [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/) have an item for a point, its identifier is given.
+
+**What the specification says, and whose guidance fills the rest.** The language defines visibility ([Visibility and privacy](https://doc.rust-lang.org/reference/visibility-and-privacy.html)), traits and their coherence ([Traits](https://doc.rust-lang.org/reference/items/traits.html); [Trait implementation coherence](https://doc.rust-lang.org/reference/items/implementations.html#trait-implementation-coherence)), dyn compatibility ([Dyn compatibility](https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility)) and `impl Trait` ([Impl trait type](https://doc.rust-lang.org/reference/types/impl-trait.html)); Cargo's [SemVer guide](https://doc.rust-lang.org/cargo/reference/semver.html), refining RFC 1105, says which changes break callers. How to shape a surface within that is the community's, and this plugin follows the Rust API Guidelines as written. It departs in one place: C-DEBUG asks every public type to implement `Debug`, and a type that holds a secret implements it by hand, redacting, rather than deriving it ([`rules/redaction.md`](../rules/redaction.md)), which keeps the guideline's letter and changes its usual form. How the surfaces of several crates compose, and how SOLID and inversion of control are written in Rust, is [`architecture.md`](architecture.md).
 
 ## What a function accepts
 

@@ -17,6 +17,8 @@ A Rust `String` is valid UTF-8 by construction, so turning bytes into one is a c
 
 Inherited from the predecessor's `lex-rust-no-assume-utf8-on-io`, drawn from Andrew Gallant's [A byte string library for Rust](https://burntsushi.net/bstr/).
 
+**What the specification says.** A `str` is valid UTF-8 as a library invariant, not a language one: the Reference treats `str` like `[u8]` and says the methods working on it "assume and ensure" valid UTF-8 ([String slice type](https://doc.rust-lang.org/reference/types/str.html)), and does not list invalid UTF-8 as undefined behaviour. The standard library is what enforces it, which is why `String::from_utf8` and `BufRead::lines` return an error on invalid bytes and `from_utf8_unchecked` is `unsafe`. Which bytes are text is a property of the input, not of Rust, and the conditions below are about the input.
+
 ## Conditions
 
 1. **Bytes read from a source whose encoding no protocol guarantees are not converted with `String::from_utf8(…).unwrap()`, `read_to_string`, `BufRead::lines` or `str::from_utf8(…)?` as the only path.** Decided by a reviewer. A source is guaranteed when a protocol or a schema states the encoding and the program rejects what violates it — a JSON body, a database column with a declared UTF-8 encoding, a configuration file this program wrote. Anything else is read as bytes (`Vec<u8>`, `&[u8]`, `bstr`'s `ByteSlice` and `BufReadExt::byte_lines`), converted lossily where the output is for display (`String::from_utf8_lossy`), or validated with the invalid case handled as a value, not as a failure of the whole read.

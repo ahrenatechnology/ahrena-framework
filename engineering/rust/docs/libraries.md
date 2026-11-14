@@ -6,10 +6,12 @@ subclade: rust
 title: The crate to reach for, per problem
 summary: For each kind of problem a Rust service, library or tool meets, the one crate this framework recommends, why, and the case where it is the wrong choice; with the evidence behind each choice and the crates deliberately not recommended.
 references:
+  - docs/architecture.md
   - docs/error-handling.md
   - docs/async-and-concurrency.md
   - docs/testing.md
   - docs/performance.md
+  - rules/redaction.md
 ---
 
 # The crate to reach for, per problem
@@ -19,6 +21,8 @@ An agent writing Rust meets the same dozen problems in every project, and the ec
 **How the choices were made.** A crate is recommended when it is maintained (a release or a commit in the last year), widely used, and either the ecosystem's de facto standard or the one the other recommended crates are built around, so that choosing it does not fork the dependency tree. Download counts are crates.io's figures for the 90 days to 14 November 2026, read from its API on that date, and are given only where they decide between two candidates. Versions are deliberately not pinned here; the project's lock file pins them.
 
 The predecessor's `codex-rust-burntsushi-ecosystem` mapped Andrew Gallant's crates to their uses. Its entries for text search, bytes, CSV and dates are carried into the sections below; its entries for internals (`regex-automata`, `regex-syntax`) and for `fst` move to [`performance.md`](performance.md), where they are a choice about speed rather than a default.
+
+**What the specification says.** Nothing: the Reference and the RFCs define the language, not its ecosystem, and every choice on this page is the second source the owner's directive on #285 allows, community practice. Each is argued from the premises [`architecture.md`](architecture.md) states — maintainability first, with a crate that forks the dependency tree counted against it — and dated, because the evidence ages.
 
 ## Runtime and network
 
@@ -97,6 +101,12 @@ The predecessor's `codex-rust-burntsushi-ecosystem` mapped Andrew Gallant's crat
 **Why.** One error type for everything a binary can fail with, `.context("reading config")` to say what it was doing, and a chain of causes printed at the top. It is the right tool exactly where `thiserror` is not: at the last caller, where nobody matches on the error.
 
 **Wrong when** the code is a library, by [`rules/error-types.md`](../rules/error-types.md). `eyre` is the same design with pluggable reports; `color-eyre` makes them pretty for a CLI. `anyhow` is the default because it is the one most code already uses.
+
+### Secrets in memory: `secrecy`
+
+**Why.** `SecretString` and `SecretBox` hold a value whose `Debug` prints `[REDACTED]`, which implements no `Serialize` unless the type opts in, and which is zeroed when dropped. Reading it takes an explicit `.expose_secret()`, so every place the secret is used is a line a reviewer can find. It is what [`rules/redaction.md`](../rules/redaction.md) condition 1 points to.
+
+**Wrong when** the secret never enters the process as a value — a credential the cloud SDK reads from its own provider chain, a key held by a KMS — where the best handling is not to load it at all.
 
 ## Tools and operations
 

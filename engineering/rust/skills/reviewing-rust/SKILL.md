@@ -1,6 +1,6 @@
 ---
 name: reviewing-rust
-description: Use when a change under review edits Rust (.rs) and the question is what a Rust reader would catch - an unwrap or expect on a path that can fail, an unsafe block that does not justify itself, a blocking call in async code, an opaque library error, an as cast that truncates, a clone that hides a design problem, a Result swallowed, a public surface that leaks or over-constrains. Reads the routed files against this plugin's Rust rules and the conditions below; every finding names the rule condition or the checklist condition.
+description: Use when a change under review edits Rust (.rs) and the question is what a Rust reader would catch - an unwrap or expect on a path that can fail, an unsafe block that does not justify itself, a blocking call in async code, an opaque library error, a module cycle or a dependency against the layers, a unit with no test beside it, a secret or a dependency's error reaching an output, a pattern imported from another language, an as cast that truncates, a clone that hides a design problem, a Result swallowed, a public surface that leaks or over-constrains. Reads the routed files against this plugin's Rust rules and the conditions below; every finding names the rule condition or the checklist condition.
 type: skill
 clade: engineering
 subclade: quality
@@ -15,6 +15,10 @@ references:
   - rules/regex-compilation.md
   - rules/ownership.md
   - rules/strings.md
+  - rules/dependency-direction.md
+  - rules/unit-tests.md
+  - rules/redaction.md
+  - docs/architecture.md
   - docs/toolchain.md
   - ahrena-engineering-quality:docs/review-findings.md
   - ahrena-engineering-quality:docs/review-routes.md
@@ -32,7 +36,7 @@ The router fired the `rust` route on the changed `.rs` files. Those are the file
 
 Read whether the crate is a library or a binary (`Cargo.toml`, `lib.rs` vs `main.rs`): `rules/error-types.md` and `rules/non-exhaustive.md` bind a library and not a binary, and an `anyhow` that is right in `main.rs` is a finding in `lib.rs`. Read the project's Clippy configuration and whether CI runs `cargo clippy -- -D warnings`. A rule condition decided by a lint the project denies — `clippy::unwrap_used`, `clippy::undocumented_unsafe_blocks` — is settled by a green run and not reported again; one decided by a lint the project has not enabled is read here, by eye, and the finding says which lint would have decided it, as `docs/toolchain.md` lists them.
 
-Run the plugin's hook over the changed crate. It decides condition 1 of `rules/error-types.md` and of `rules/async-blocking.md`, and each line it prints on a changed line is a finding as it stands.
+Run the plugin's hook over the changed crate. It decides condition 1 of `rules/error-types.md`, `rules/async-blocking.md`, `rules/unit-tests.md` and `rules/redaction.md`, and conditions 1 and 2 of `rules/dependency-direction.md`; each line it prints on a changed line, or about a file or module the change added, is a finding as it stands.
 
 ```sh
 python3 <rust-plugin>/hooks/check-rust.py <crate-dir>
@@ -55,6 +59,11 @@ python3 <rust-plugin>/hooks/check-rust.py <crate-dir>
 | a regex, `aho-corasick`, a matcher built at run time | `rules/regex-compilation.md` | |
 | an error type, a `?` conversion, a `map_err` | `rules/error-types.md` | `references/errors-and-surface.md` |
 | a `pub` enum or struct, a trait, a generic bound, a re-export | `rules/non-exhaustive.md` | `references/errors-and-surface.md` |
+| a new crate, module, `use` across modules, or dependency in `Cargo.toml` | `rules/dependency-direction.md` | `references/errors-and-surface.md`, with `docs/architecture.md` |
+| a new function, or a new file under `src/` | `rules/unit-tests.md` | |
+| a log, a trace, `#[instrument]`, a `Debug` or `Serialize` derive, an error's `Display`, a response body | `rules/redaction.md` | |
+
+A finding under `rules/redaction.md` is blocking whatever the route says, and cites, beside the condition, the general exposure rule tracked in #294 of `ahrena-framework`: the 2026-11-12 incident that rule records was a dependency's error returned to a caller, and both reviews that read the change passed it.
 
 ## 3. Read beyond the hunk
 

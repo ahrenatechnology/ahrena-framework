@@ -30,9 +30,23 @@ HOOK = Path(__file__).resolve().parent / "check-rust.py"
 MANIFEST = '[package]\nname = "probe"\nversion = "0.1.0"\nedition = "2024"\n'
 
 
+TESTED = """
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn works() {}
+}
+"""
+
+
+def tested(source: str) -> str:
+    """The source with a unit test beside it, as rules/unit-tests.md asks."""
+    return source + TESTED
+
+
 def library(source: str) -> dict[str, str]:
-    """A library crate whose root module is `source`."""
-    return {"Cargo.toml": MANIFEST, "src/lib.rs": source}
+    """A library crate whose root module is `source`, with its unit test."""
+    return {"Cargo.toml": MANIFEST, "src/lib.rs": tested(source)}
 
 
 
@@ -298,6 +312,192 @@ mod tests {
 """
 
 
+# #287: rules/dependency-direction.md, conditions 1 and 2
+
+MODULE_ROOT = tested("pub mod a;\npub mod b;\n")
+
+CYCLE_A = tested("""use crate::b::Beta;
+
+pub struct Alpha;
+
+pub fn from_beta(_: Beta) -> Alpha {
+    Alpha
+}
+""")
+
+CYCLE_B = tested("""pub struct Beta;
+
+pub fn back() -> crate::a::Alpha {
+    crate::a::Alpha
+}
+""")
+
+ONE_WAY_B = tested("""pub struct Beta;
+""")
+
+NESTED_ROOT = tested("pub mod a;\npub mod b;\npub use crate::a::Alpha;\n")
+
+NESTED_A = tested("pub mod inner;\npub struct Alpha;\n")
+
+NESTED_INNER = tested("""use super::super::b::Beta;
+use crate::Alpha;
+
+pub fn pair(_: Alpha, _: Beta) {}
+""")
+
+NESTED_B = tested("""use crate::a::inner;
+
+pub struct Beta;
+
+pub fn call() {
+    inner::pair(crate::a::Alpha, Beta);
+}
+""")
+
+WORKSPACE = """[workspace]
+members = ["crates/*"]
+
+[workspace.metadata.ahrena]
+layers = ["domain", "application", "infrastructure"]
+"""
+
+
+def member(name: str, layer: str, dependencies: str = "") -> str:
+    return (
+        f'[package]\nname = "{name}"\nversion = "0.1.0"\nedition = "2024"\n\n'
+        f'[package.metadata.ahrena]\nlayer = "{layer}"\n\n[dependencies]\n{dependencies}'
+    )
+
+
+# #287: rules/unit-tests.md, condition 1
+
+UNTESTED = """
+pub fn add(a: u8, b: u8) -> u8 {
+    a + b
+}
+"""
+
+ONLY_DECLARATIONS = """
+pub mod parse;
+
+pub use parse::Parsed;
+
+pub trait Source {
+    fn read(&self) -> Vec<u8>;
+}
+"""
+
+ONLY_MAIN = """
+fn main() {
+    probe::run();
+}
+"""
+
+# #287: rules/redaction.md, condition 1
+
+SECRET_DEBUG = """
+#[derive(Debug, Clone)]
+pub struct Config {
+    pub url: String,
+    pub api_key: String,
+}
+"""
+
+SECRET_WRAPPED = """
+#[derive(Debug, Clone)]
+pub struct Config {
+    pub url: String,
+    pub api_key: secrecy::SecretString,
+}
+"""
+
+SECRET_SERIALIZED = """
+#[derive(serde::Serialize)]
+pub struct Login {
+    pub user: String,
+    pub password: String,
+}
+"""
+
+SECRET_VARIANT = """
+#[derive(Debug)]
+pub enum Auth {
+    Anonymous,
+    Bearer { access_token: String },
+}
+"""
+
+HAND_WRITTEN_DEBUG = """
+pub struct Config {
+    pub api_key: String,
+}
+
+impl std::fmt::Debug for Config {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Config").field("api_key", &"[redacted]").finish()
+    }
+}
+"""
+
+INNOCENT_NAMES = """
+#[derive(Debug)]
+pub struct Page {
+    pub cache_key: String,
+    pub token_count: usize,
+    pub tokens: Vec<String>,
+}
+"""
+
+
+CFG_TEST_FIELD = """
+pub struct Probe {
+    #[cfg(test)]
+    pub calls: usize,
+}
+
+impl Probe {
+    pub fn parse(&self) -> anyhow::Result<u8> {
+        Ok(1)
+    }
+}
+"""
+
+NESTED_CFG_TEST = """
+#[cfg(test)]
+mod tests {
+    #[cfg(test)]
+    fn helper() {}
+
+    #[test]
+    fn works() {}
+}
+
+pub async fn wait() {
+    std::thread::sleep(std::time::Duration::from_millis(5));
+}
+"""
+
+NON_SECRET_TYPES = """
+#[derive(Debug)]
+pub struct Waker {
+    pub token: mio::Token,
+    pub brace_token: syn::token::Brace,
+    pub allow_credentials: bool,
+}
+"""
+
+SECRET_OPTION = """
+#[derive(Debug)]
+pub struct Login {
+    pub client_secret: Option<String>,
+}
+"""
+
+TRIANGLE_A = tested("pub fn a() { crate::b::b(); }\n")
+TRIANGLE_B = tested("pub fn b() { crate::c::c(); crate::a::a(); }\n")
+TRIANGLE_C = tested("pub fn c() { crate::a::a(); }\n")
+
+
 def case(
     name: str, files: dict[str, str], expect: list[str], ok: bool = False
 ) -> tuple[str, dict[str, str], list[str], bool]:
@@ -355,13 +555,18 @@ CASES = [
     case("a comment and a string are not signatures", library(IN_COMMENT_AND_STRING), ["no failures"], ok=True),
     case(
         "a binary crate may return anyhow",
-        {"Cargo.toml": MANIFEST, "src/main.rs": BINARY_MAIN},
+        {"Cargo.toml": MANIFEST, "src/main.rs": tested(BINARY_MAIN)},
         ["no failures"],
         ok=True,
     ),
     case(
         "a binary target beside a library may return anyhow",
-        {"Cargo.toml": MANIFEST, "src/lib.rs": OWN_ERROR, "src/bin/tool.rs": BINARY_MAIN, "src/main.rs": BINARY_MAIN},
+        {
+            "Cargo.toml": MANIFEST,
+            "src/lib.rs": tested(OWN_ERROR),
+            "src/bin/tool.rs": tested(BINARY_MAIN),
+            "src/main.rs": tested(BINARY_MAIN),
+        },
         ["no failures"],
         ok=True,
     ),
@@ -369,7 +574,7 @@ CASES = [
         "integration tests and examples of a library are not its surface",
         {
             "Cargo.toml": MANIFEST,
-            "src/lib.rs": OWN_ERROR,
+            "src/lib.rs": tested(OWN_ERROR),
             "tests/load.rs": ANYHOW_RESULT,
             "examples/demo.rs": ANYHOW_RESULT,
         },
@@ -430,12 +635,134 @@ CASES = [
     ),
     case(
         "a binary is held to the async condition too",
-        {"Cargo.toml": MANIFEST, "src/main.rs": FULL_PATH_SLEEP},
+        {"Cargo.toml": MANIFEST, "src/main.rs": tested(FULL_PATH_SLEEP)},
         ["[async-blocking] condition 1", "src/main.rs:3"],
     ),
+    case(
+        "two modules that use each other are a cycle",
+        {"Cargo.toml": MANIFEST, "src/lib.rs": MODULE_ROOT, "src/a.rs": CYCLE_A, "src/b.rs": CYCLE_B},
+        ["[dependency-direction] condition 1", "crate::a -> crate::b -> crate::a", "src/a.rs:1"],
+    ),
+    case(
+        "a dependency in one direction is not a cycle",
+        {"Cargo.toml": MANIFEST, "src/lib.rs": MODULE_ROOT, "src/a.rs": CYCLE_A, "src/b.rs": ONE_WAY_B},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "super paths resolve, nested files count, and a module may use its ancestors",
+        {
+            "Cargo.toml": MANIFEST,
+            "src/lib.rs": NESTED_ROOT,
+            "src/a.rs": NESTED_A,
+            "src/a/inner.rs": NESTED_INNER,
+            "src/b.rs": NESTED_B,
+        },
+        ["[dependency-direction] condition 1", "crate::a::inner -> crate::b -> crate::a::inner"],
+    ),
+    case(
+        "a crate that depends on a crate of a higher layer fails",
+        {
+            "Cargo.toml": WORKSPACE,
+            "crates/core/Cargo.toml": member("core", "domain", 'store = { path = "../store" }\n'),
+            "crates/core/src/lib.rs": tested(""),
+            "crates/store/Cargo.toml": member("store", "infrastructure"),
+            "crates/store/src/lib.rs": tested(""),
+        },
+        ["[dependency-direction] condition 2", "core (domain) depends on store (infrastructure)"],
+    ),
+    case(
+        "a crate that depends downward passes, and dev-dependencies are not read",
+        {
+            "Cargo.toml": WORKSPACE,
+            "crates/core/Cargo.toml": member("core", "domain") + '\n[dev-dependencies]\nstore = { path = "../store" }\n',
+            "crates/core/src/lib.rs": tested(""),
+            "crates/store/Cargo.toml": member(
+                "store", "infrastructure", 'domain-core = { package = "core", path = "../core" }\n'
+            ),
+            "crates/store/src/lib.rs": tested(""),
+        },
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a member whose layer the workspace does not list is reported",
+        {
+            "Cargo.toml": WORKSPACE,
+            "crates/core/Cargo.toml": member("core", "domian"),
+            "crates/core/src/lib.rs": tested(""),
+        },
+        ["[dependency-direction] condition 2", "core declares layer domian, which the workspace does not list"],
+    ),
+    case(
+        "a source file with a function and no test fails",
+        {"Cargo.toml": MANIFEST, "src/lib.rs": UNTESTED},
+        ["[unit-tests] condition 1", "src/lib.rs has functions and no #[test] beside them"],
+    ),
+    case(
+        "a file of declarations owes no test",
+        {"Cargo.toml": MANIFEST, "src/lib.rs": ONLY_DECLARATIONS, "src/parse.rs": tested("pub struct Parsed;")},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a main that only calls the library owes no test",
+        {"Cargo.toml": MANIFEST, "src/lib.rs": tested(""), "src/main.rs": ONLY_MAIN},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "an integration test file is not a unit",
+        {"Cargo.toml": MANIFEST, "src/lib.rs": tested(UNTESTED), "tests/add.rs": UNTESTED},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a derived Debug over a secret field fails",
+        library(SECRET_DEBUG),
+        ["[redaction] condition 1", "Config derives Debug over api_key", "src/lib.rs:2"],
+    ),
+    case("a secret held in a redacting type passes", library(SECRET_WRAPPED), ["no failures"], ok=True),
+    case(
+        "a derived Serialize over a password fails",
+        library(SECRET_SERIALIZED),
+        ["[redaction] condition 1", "Login derives Serialize over password"],
+    ),
+    case(
+        "a secret field of an enum variant counts",
+        library(SECRET_VARIANT),
+        ["[redaction] condition 1", "Auth derives Debug over access_token"],
+    ),
+    case("a hand-written Debug is the redaction", library(HAND_WRITTEN_DEBUG), ["no failures"], ok=True),
+    case("names that only resemble a secret pass", library(INNOCENT_NAMES), ["no failures"], ok=True),
+    case(
+        "a cfg(test) field does not hide the impl after it",
+        library(CFG_TEST_FIELD),
+        ["[error-types] condition 1", "parse returns anyhow::Result"],
+    ),
+    case(
+        "a cfg(test) inside a test module does not hide the item after the module",
+        {"Cargo.toml": MANIFEST, "src/lib.rs": NESTED_CFG_TEST},
+        ["[async-blocking] condition 1", "std::thread::sleep"],
+    ),
+    case("a token or a flag that is not text is not a secret", library(NON_SECRET_TYPES), ["no failures"], ok=True),
+    case(
+        "a secret inside an Option is still text",
+        library(SECRET_OPTION),
+        ["[redaction] condition 1", "Login derives Debug over client_secret"],
+    ),
+    case(
+        "one cycle among three modules is one finding, however many paths run round it",
+        {
+            "Cargo.toml": MANIFEST,
+            "src/lib.rs": tested("pub mod a;\npub mod b;\npub mod c;\n"),
+            "src/a.rs": TRIANGLE_A,
+            "src/b.rs": TRIANGLE_B,
+            "src/c.rs": TRIANGLE_C,
+        },
+        ["1 failure(s)", "crate::a -> crate::b -> crate::a; crate::c is in the same cycle"],
+    ),
 ]
-
-
 
 
 def write(root: Path, files: dict[str, str]) -> None:

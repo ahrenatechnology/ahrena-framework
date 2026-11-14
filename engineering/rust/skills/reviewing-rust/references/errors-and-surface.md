@@ -1,6 +1,6 @@
 # Rust errors and surface
 
-Opened by step 2 of `SKILL.md` when the change touches a `Result`/`Option` handled, a `?` conversion, a `pub` item, a trait or a generic bound.
+Opened by step 2 of `SKILL.md` when the change touches a `Result`/`Option` handled, a `?` conversion, a `pub` item, a trait or a generic bound, or the way components reach each other.
 
 A library's opaque or cause-dropping error type is not here: it is `rules/error-types.md`. RS-13 was retired into that rule and its identifier is not reused.
 
@@ -31,3 +31,11 @@ A library's opaque or cause-dropping error type is not here: it is `rules/error-
 - **Detect:** read the trait and its impls the change adds. A `Default` that produces an invalid state is the common trap.
 - **Exempt:** a deliberate design with a comment.
 - **Correct:** a default method where impls would repeat; a hand-written `Default` or none; keep `Eq`/`Hash`/`Ord` mutually consistent.
+
+### RS-19 A pattern imported from another language against Rust's grain
+
+- **State:** a design that reproduces another language's mechanism where Rust has its own: a service locator, a global registry or a `lazy_static` container of `Box<dyn Any>` in place of collaborators passed to a constructor; `Deref` implemented to emulate inheritance from a "base" struct; a getter and a setter for every field of a plain data type; a trait per concrete type with one implementation and no test that needs a second; `Rc<RefCell<…>>` threaded through every object to recreate a garbage-collected object graph; `panic!` and `catch_unwind` used as exceptions.
+- **Detect:** read how the change's components reach each other against `docs/architecture.md`: a collaborator is a trait the consumer owns, passed in by the binary's `main`; extension is a trait implementation or a new crate; shared state is owned by one place.
+- **Exempt:** a pattern the Rust API Guidelines or the standard library use in the same shape — a builder, a newtype, a sealed trait, `Deref` on a smart pointer.
+- **Correct:** the Rust form `docs/architecture.md` names: constructor injection with a generic or a trait object, composition and trait implementation, plain `pub` fields on a data type with no invariants, `Result` for failure. The trait-with-one-implementation case is also `ahrena-engineering-fundamentals:rules/yagni.md` condition 1.
+

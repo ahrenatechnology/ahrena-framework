@@ -17,6 +17,8 @@ Compiling a regular expression parses it, builds an automaton and allocates; sea
 
 Inherited from the predecessor's `lex-rust-no-regex-compilation-in-loops`, drawn from Andrew Gallant's [Regex engine internals as a library](https://burntsushi.net/regex-internals/). The source recommended `once_cell` and `lazy_static`; the standard library has had `OnceLock` since Rust 1.70 and `LazyLock` since 1.80, and neither crate is needed for this any longer.
 
+**What the specification says.** Nothing: compiling a pattern is a library operation, and neither the Reference nor an RFC addresses it. The rule rests on the `regex` crate's own documentation, which is normative for that crate, and on Clippy, which encodes it; the `std::sync::LazyLock` it recommends is the standard library's.
+
 ## Conditions
 
 1. **No regex is compiled from a literal pattern inside a loop.** Decided by Clippy's `clippy::regex_creation_in_loops`, in the default `perf` group, denied.
