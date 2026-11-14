@@ -31,7 +31,7 @@ Your instructions come from this body, the skills it loads, and the caller's bri
 
 Before doing anything else, invoke each of these with the Skill tool, so its procedure is in your context: `ahrena-engineering-rust:writing-rust`, `ahrena-engineering-rust:reviewing-rust`, `ahrena-engineering-rust:debugging-rust`.
 
-Loading a skill is not running it: run each one only at the step of `## Procedure` that names it.
+Loading a skill is not running it: run each one only at the step of `## Procedure` that names it. All three are loaded whatever `task` is, because a `debug` hands over to `writing-rust` and a `write` reads its diff against `reviewing-rust` at its last step.
 
 ## Inputs
 
@@ -64,7 +64,7 @@ Continue until the work is done. Return only when it is done, when you are block
 
 ## When blocked
 
-Blocked is: a missing input; a crate that does not build at `base` before any change; a test that cannot go green without changing code in another language, another service or a dependency's source; a defect that does not reproduce after the environment differences have been chased; a push the remote rejects; a brief that asks for an irreversible action. Return `BLOCKED` with what stopped the run and what the caller must supply.
+Blocked is: a missing input; a crate that does not build at `base` before any change; a test that cannot go green without changing code in another language, another service or a dependency's source; a defect that does not reproduce after the environment differences have been chased; a toolchain component the gate needs that is not installed (`rustfmt`, `clippy`), which you do not install; a push the remote rejects, or a repository with no remote to push to; a brief that asks for an irreversible action. Return `BLOCKED` with what stopped the run and what the caller must supply.
 
 ## Output
 

@@ -40,7 +40,7 @@ This skill writes Rust for one behaviour, test first, so that the code that come
 
 ## 1. Read the crate before writing in it
 
-Run `ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md` for the component, for the project's words, its sanctioned folders and its test tools.
+Run `ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md` for the component, for the project's words, its sanctioned folders and its test tools. Where that plugin is not installed or the project has no map, take the words and folders from the crate as it stands and say so in the output.
 
 Then read the crate itself. Whether it is a library or a binary (`src/lib.rs`, `src/main.rs`, `[lib]` and `[[bin]]` in `Cargo.toml`) decides which rules bind it: a library is held to `rules/error-types.md` and `rules/non-exhaustive.md`, a binary is not. Read the `edition` and the `rust-version`: an API stabilised after the MSRV cannot be used, however convenient. Read `[lints]`, `[workspace.lints]` and `clippy.toml`, and compare them with the table in `docs/toolchain.md`. A lint the project has not enabled is still a condition of the rule that names it, so the code is written as though it were on.
 
@@ -127,7 +127,7 @@ cargo test --all-features
 python3 <rust-plugin>/hooks/check-rust.py <crate-dir>
 ```
 
-Clippy runs with the lints `docs/toolchain.md` lists added on the command line when the project has not configured them (`-W clippy::unwrap_used` and the rest), and with `too-many-arguments-threshold = 5` in `clippy.toml`, which backs the parameter limit of step 6 counting the receiver as Clippy does; the rest of step 6's limits are held by writing to them, because no lint measures them as the fundamentals define them. Every finding on a line this change touched is fixed, not allowed. `<rust-plugin>` is where this plugin is installed, `engineering/rust` in the framework repository. `check-rust.py` decides condition 1 of `rules/error-types.md`, `rules/async-blocking.md`, `rules/unit-tests.md` and `rules/redaction.md`, and conditions 1 and 2 of `rules/dependency-direction.md`. A finding on a line the change did not touch is reported in the hand-back, not fixed here.
+Clippy runs with the lints `docs/toolchain.md` lists added on the command line when the project has not configured them (`-W clippy::unwrap_used` and the rest), and with `too-many-arguments-threshold = 5` when the project's `clippy.toml` sets it; Clippy reads that threshold only from the file, so a project without one is not edited for this change, and the parameter limit is held by writing to it like the rest of step 6's limits, which no lint measures as the fundamentals define them. Every finding on a line this change touched is fixed, not allowed. `<rust-plugin>` is where this plugin is installed, `engineering/rust` in the framework repository. `check-rust.py` decides condition 1 of `rules/error-types.md`, `rules/async-blocking.md`, `rules/unit-tests.md` and `rules/redaction.md`, and conditions 1 and 2 of `rules/dependency-direction.md`. A finding on a line the change did not touch is reported in the hand-back, not fixed here.
 
 Output: each command and its result.
 

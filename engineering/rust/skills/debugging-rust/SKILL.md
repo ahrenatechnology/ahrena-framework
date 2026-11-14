@@ -56,7 +56,7 @@ Output: what each tool showed.
 
 ## 4. Name the cause, and prove it
 
-State the cause as a claim the evidence supports: "`parse_header` slices at byte 4, inside `ç`, when the name is not ASCII". Then prove it: change the one thing the claim says is wrong, in a scratch edit, and watch the test from step 2 go green; revert the edit. A cause that cannot be proved this way is a hypothesis, and step 3 continues.
+State the cause as a claim the evidence supports: "`parse_header` slices at byte 4, inside `ç`, when the name is not ASCII". Then prove it: change the one thing the claim says is wrong, in a scratch edit, and watch the test from step 2 go green; revert the edit. A cause that cannot be proved this way is a hypothesis, and step 3 continues. When the edit that proves the cause is already the whole fix — a one-line change — keep it rather than reverting it, say so in the output, and step 5 adds the tests that pin it.
 
 If the cause is in a dependency, reproduce it against the dependency alone, check its issue tracker and changelog for the version in the lock file, and decide between upgrading, working around it in this crate, and reporting it upstream.
 
@@ -64,7 +64,7 @@ Output: the cause, and the scratch edit that proved it.
 
 ## 5. Hand the fix to writing-rust
 
-Run `skills/writing-rust/SKILL.md` from its step 5, with the test from step 2 as the red test. The fix is the smallest change that makes it green. When the cause was a rule violation, check whether the rule's detector would have caught it — a Clippy lint the project has not enabled, a condition of `hooks/check-rust.py` — and say so in the hand-back, because enabling the detector stops the next one.
+Run `skills/writing-rust/SKILL.md` from its step 5, with the test from step 2 as the red test: that step is then the check that it fails for the cause step 4 named, and any further test the fix needs is added there. The fix is the smallest change that makes it green. When the cause was a rule violation, check whether the rule's detector would have caught it — a Clippy lint the project has not enabled, a condition of `hooks/check-rust.py` — and say so in the hand-back, because enabling the detector stops the next one.
 
 Output: the test, the fix, the cause, and whether a detector would have caught it.
 
