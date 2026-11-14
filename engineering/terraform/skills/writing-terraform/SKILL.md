@@ -52,11 +52,13 @@ Write the outputs a caller will read, and nothing else, each with its value refe
 
 Output: the module's interface, and for each output the consumer that reads it.
 
+Write `terraform.tf` now, before the test: `required_version` and a `required_providers` entry for every provider the module will use, as step 5 describes. Without it, the `init` of step 4 installs nothing and writes no lock file.
+
 ## 4. Write the test, and watch it fail
 
 In `modules/<name>/tests/<name>.tftest.hcl`, one `run` block per behaviour the interface promises, with `command = plan` and `mock_provider` or `override_data` wherever a real account would otherwise be needed (`docs/testing.md`). Cover every output a caller reads, every `validation` with a value it accepts and one it refuses (`expect_failures`), and every `count` or `for_each` the inputs drive. No assertion's `error_message` interpolates a sensitive value.
 
-A computed attribute (an `id`, a generated value) is unknown at plan, so an output built from one cannot be asserted with a plain plan. Override the resource with the value the test needs and `override_during = plan` ([Mocks](https://developer.hashicorp.com/terraform/language/tests/mocking)), and make the module's `required_version` cover every feature its own test uses, so a caller's CLI that runs the test can parse it.
+A computed attribute (an `id`, a generated value) is unknown at plan, so an output built from one cannot be asserted with a plain plan. Override the resource with the value the test needs and `override_during = plan` ([Mocks](https://developer.hashicorp.com/terraform/language/tests/mocking)), and make the module's `required_version` cover every feature its own test uses, so a caller's CLI that runs the test can parse it. HashiCorp's page does not say which version introduced `override_during`, so the floor is the CLI version you ran the test with, unless a lower one has been run. A module whose providers create nothing outside Terraform (`hashicorp/random`, `hashicorp/tls`, `terraform_data`) may use `command = apply` instead, and assert the real output through the interface (`docs/testing.md`).
 
 Run `terraform init`, then `terraform test`, from the module's directory, and confirm the test fails for the reason you expect: the resources do not exist yet. A test that passes before the code exists tests nothing. Init writes a `.terraform.lock.hcl` in the module's directory; it belongs to the test run, not to the module, and `.gitignore` excludes it (`modules/**/.terraform.lock.hcl`), because the lock file belongs to a root configuration (`rules/pinning.md` condition 5).
 
@@ -73,7 +75,7 @@ Output: the test file and its red run.
 
 Hold every file and every block to the single-responsibility limits of [`clean-code.md`](../../../fundamentals/rules/clean-code.md), [`kiss.md`](../../../fundamentals/rules/kiss.md) and [`solid.md`](../../../fundamentals/rules/solid.md). The unit in Terraform is the module, and inside it the file and the expression (`docs/modules.md`). No Terraform tool reports a breach of those limits in HCL: the structure hook parses Python only, and the nearest tflint rules (`terraform_unused_declarations`, `terraform_standard_module_structure`) report dead declarations and layout, not size. So the limit is held by writing to it from the first line, and a reviewer reads it; this is said plainly rather than naming a tool that does not decide it.
 
-Run `terraform test` until it passes. Output: the code and the green run.
+Run `terraform init` again whenever the providers change, then `terraform test` until it passes. In a root, record the lock file's checksums for the platforms the pipeline runs on as well as yours, with `terraform providers lock -platform=<os_arch>` for each, or the pipeline's `init` fails on a package it has no checksum for. A root's `required_version` states the minimum the configuration was written for (`>=`), as the style guide's example does; the exact CLI is the pipeline's choice. Output: the code and the green run.
 
 ## 6. Run the toolchain, in order
 
@@ -81,12 +83,12 @@ The steps of `docs/toolchain.md` that need no credentials. `fmt`, the hook and t
 
 ```sh
 terraform fmt -check -recursive
-for dir in $(find . -name '*.tf' -not -path '*/.terraform/*' -exec dirname {} \; | sort -u); do
-  terraform -chdir="$dir" init -backend=false -input=false && terraform -chdir="$dir" validate || exit 1
-done
+bash "${CLAUDE_PLUGIN_ROOT}/skills/writing-terraform/scripts/validate-each.sh" .
 python3 "${CLAUDE_PLUGIN_ROOT}/hooks/check-terraform.py" .
 tflint --recursive
 ```
+
+`scripts/validate-each.sh` runs `init -backend=false`, `validate` and, where the module has tests, `terraform test` in each directory, and stops at the first failure.
 
 A tool that is not installed is reported as not run, with that reason; it is not installed by this skill. Then the project's security scanner, if it has one (`docs/libraries.md`). Fix every finding; a hook finding names the rule and condition it breaks and says what to write instead. A root configuration's plan runs in the pipeline, with read-only credentials, and is what the reviewer reads; never print `terraform output -json` or `terraform show -json` to a log while checking your work.
 

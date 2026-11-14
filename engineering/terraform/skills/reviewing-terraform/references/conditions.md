@@ -4,7 +4,7 @@ Each condition cites the numbered rule condition it applies and says who decides
 
 **Severity is never a property of the condition.** It follows the tests of `ahrena-engineering-quality:docs/review-findings.md`: blocking when the violating line is one this change introduces or edits; deferrable when the line, or the fix, is outside the diff; question when deciding needs an input only the author or the organisation holds; unchecked when nothing could decide it. A condition below that is gated by the abstraction trigger of `yagni.md` is a question by that document's own rule, and says so.
 
-**One line, one finding.** When a line violates more than one condition (an output that carries a policy is TF-7 and, with no consumer, TF-10), write one finding that cites every condition it violates. A credential under a name the hook does not recognise is the baseline secrets discipline's `SEC-n` finding, routed on every change, and is not repeated here.
+**One line, one finding.** When a line violates more than one condition (an output that carries a policy is TF-7 and, with no consumer, TF-10), write one finding that cites every condition it violates. It takes the highest severity among its parts, and a part that is a question is named as the question inside it. A credential under a name the hook does not recognise is the baseline secrets discipline's `SEC-n` finding, routed on every change, and is not repeated here.
 
 ## State
 

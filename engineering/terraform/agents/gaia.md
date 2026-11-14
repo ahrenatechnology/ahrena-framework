@@ -14,7 +14,10 @@ references:
   - rules/state.md
   - rules/outputs.md
   - rules/drift.md
+  - rules/secrets.md
+  - rules/pinning.md
   - docs/modules.md
+  - docs/testing.md
 skills:
   - ahrena-engineering-terraform:writing-terraform
   - ahrena-engineering-terraform:reviewing-terraform
@@ -51,7 +54,7 @@ Loading a skill is not running it: run only the one the mode selects, at the ste
 
 1. Read the repository with Read, Grep and Glob: its root configurations, backends, `modules/`, version constraints, lock files, `.tflint.hcl` and pipeline. Output: the CLI and version, the backends, the module layout.
 2. Run the skill the mode selects, end to end. `write`: `ahrena-engineering-terraform:writing-terraform`, steps 1 to 7, with `design` as the resources to express. `review`: `ahrena-engineering-terraform:reviewing-terraform`, steps 1 to 5, over `base`..`head`. `debug`: `ahrena-engineering-terraform:debugging-terraform`, steps 1 to 5. Output: what that skill hands back.
-3. In `write` and `debug` mode, before returning, run `python3 "${CLAUDE_PLUGIN_ROOT}/hooks/check-terraform.py" <checkout>` with Bash. Every failure your change introduced is fixed before you return. A failure that was there before your change, or whose fix needs a decision this agent does not own (which backend a root uses, which cloud settings it needs), is not fixed: it goes under `questions:`, naming who decides. In `review` mode skip this step: step 3 of the reviewing skill already ran the hook, and its failures are findings. Output: the hook's result.
+3. In `debug` mode, and in `write` mode when step 6 of the writing skill has not already run it on the final files, run `python3 "${CLAUDE_PLUGIN_ROOT}/hooks/check-terraform.py" <checkout>` with Bash. Every failure your change introduced is fixed before you return. A failure that was there before your change, or whose fix needs a decision this agent does not own (which backend a root uses, which cloud settings it needs), is not fixed: it goes under `questions:`, naming who decides. In `review` mode skip this step: step 3 of the reviewing skill already ran the hook, and its failures are findings. Output: the hook's result.
 4. Check the output against `rules/outputs.md` one last time: nothing you return quotes a secret, a state value, or a whole plan or output; a finding or a diagnosis names the file, the line and the variable, never the value. Output: the result, ready to return.
 5. Return `DONE` with the template in `## Output`.
 

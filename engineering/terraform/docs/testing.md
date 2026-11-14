@@ -28,7 +28,7 @@ A `run` block applies by default, and HashiCorp says plainly that tests "create 
 - **A computed attribute is unknown at plan.** An output built from a generated `id` cannot be asserted with a plain plan; by default a mock or override supplies its values only at apply. Set `override_during = plan` on the override (or on the `mock_provider`) and the values are there at plan ([Mocks](https://developer.hashicorp.com/terraform/language/tests/mocking)). A module's `required_version` covers every feature its own test uses.
 - **`expect_failures`** names the checkable objects (a variable's validation, a precondition) that a run expects to fail, which is how a test proves the module refuses a bad input.
 
-An apply against real infrastructure is the integration test, and it runs where the credentials are meant to be: a sandbox account, on a schedule or before a release, not on every pull request.
+A module whose providers create nothing outside Terraform (`hashicorp/random`, `hashicorp/tls`, `terraform_data`) is the exception: applying it creates values in the test's own state and nothing else, so its unit test may apply and assert the real output through the interface, which a plan with an override cannot do. An apply against real infrastructure is the integration test, and it runs where the credentials are meant to be: a sandbox account, on a schedule or before a release, not on every pull request.
 
 ## What a module's test owes
 

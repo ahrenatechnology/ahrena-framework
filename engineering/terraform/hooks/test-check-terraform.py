@@ -346,6 +346,18 @@ OUTPUT_CASES = [
     ("an output named for a connection string", root_with(CONNECTION_OUTPUT), ["connection_string"], False),
     ("an output carrying a credential", root_with(CREDENTIAL_OUTPUT), ["outputs condition 1", '"admin"'], False),
     ("a generated secret's result", root_with(CREDENTIAL_OUTPUT), ['"db"'], False),
+    (
+        "a whole object of a secret type is sensitive as well as whole",
+        root_with('\nresource "random_password" "db" {\n  length = 32\n}\n\noutput "db" {\n  value = random_password.db\n}\n'),
+        ["outputs condition 1", "outputs condition 2"],
+        False,
+    ),
+    (
+        "findings sort by line number, not by text",
+        root_with(SECRET_VARIABLE + "\n" * 90 + '\noutput "api_token" {\n  value = var.db_password\n}\n'),
+        ["main.tf:13\n    [secrets] secrets condition 1: variable \"db_password\" carries a default; a secret has none, and arrives from the environment or a secret store\nmain.tf:106"],
+        False,
+    ),
     ("an output echoing a sensitive variable", root_with(SENSITIVE_VARIABLE_OUTPUT), ["outputs condition 1"], False),
     ("sensitive outputs and an identifier", root_with(MARKED_OUTPUTS), ["no failures"], True),
     ("a root output of a whole resource", root_with(WHOLE_RESOURCE_OUTPUT), ["outputs condition 2"], False),
@@ -438,6 +450,12 @@ PINNING_CASES = [
     ("a provider with no version", tree(CLEAN_ROOT, {"versions.tf": UNPINNED_PROVIDER}), ["pinning condition 2"], False),
     ("no required_version", tree(CLEAN_ROOT, {"versions.tf": NO_REQUIRED_VERSION}), ["pinning condition 1"], False),
     ("a provider used but not declared", root_with(UNDECLARED_PROVIDER), ["pinning condition 2", "tls"], False),
+    (
+        "an undeclared provider is reported where it is first used",
+        root_with(UNDECLARED_PROVIDER),
+        ["main.tf:10\n    [pinning] pinning condition 2"],
+        False,
+    ),
     (
         "a root provider with no upper bound",
         tree(CLEAN_ROOT, {"versions.tf": VERSIONS.replace("~> 3.6", ">= 3.6")}),

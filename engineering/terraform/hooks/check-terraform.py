@@ -521,10 +521,12 @@ def sensitive_reference(chain: str, sensitive_vars: set[str]) -> bool:
     if segments[0] in NAMED_ROOTS:
         hidden = segments[0] == "var" and segments[1] in sensitive_vars
         return hidden or any(sensitive_name(part) for part in segments[1:])
-    final = segments[-1] if len(segments) > 2 else ""
-    if final and sensitive_name(final):
+    if len(segments) == 2:
+        return sensitive_name(segments[0])
+    final = segments[-1]
+    if sensitive_name(final):
         return True
-    return bool(final) and sensitive_name(segments[0]) and not LOCATOR.search(final)
+    return sensitive_name(segments[0]) and not LOCATOR.search(final)
 
 
 def carries(block: Block, sensitive_vars: set[str]) -> str:
@@ -594,6 +596,16 @@ def used_providers(module: Module) -> set[str]:
     return {name for name in used if name and name not in BUILTIN_PROVIDERS}
 
 
+def first_use(module: Module, provider: str) -> str:
+    """Where the module first uses `provider`, as `file:line`, or the module's folder."""
+    for kind in ("provider", "resource", "data", "ephemeral"):
+        for tf, block in module.blocks(kind):
+            name = block.name if kind == "provider" else block.name.split("_")[0]
+            if name == provider:
+                return f"{tf.rel}:{block.line}"
+    return where_of(module)
+
+
 def check_required_version(repo: Repo) -> None:
     for module in configurations(repo):
         if not any("required_version" in block.body.attrs for _, block in module.blocks("terraform")):
@@ -605,7 +617,7 @@ def check_provider_versions(repo: Repo) -> None:
     for module in configurations(repo):
         requirements = provider_requirements(module)
         for name in sorted(used_providers(module) - set(requirements)):
-            repo.report(where_of(module), "pinning", 2, f"provider `{name}` is used and not declared in "
+            repo.report(first_use(module, name), "pinning", 2, f"provider `{name}` is used and not declared in "
                         "`required_providers` with a source and a version")
         for name, requirement in sorted(requirements.items()):
             check_constraint(repo, module, name, requirement)
@@ -765,6 +777,14 @@ CHECKS = (
 )
 
 
+def order(finding: Finding) -> tuple[str, int, str, int]:
+    """Sort by path, then by line as a number, so `:3` comes before `:25`."""
+    path, _, line = finding.where.rpartition(":")
+    if not line.isdigit():
+        return (finding.where, 0, finding.rule, finding.condition)
+    return (path, int(line), finding.rule, finding.condition)
+
+
 def report(findings: list[Finding], modules: int) -> int:
     for rel in UNREADABLE:
         print(f"skipped, cannot be read as UTF-8: {rel}", file=sys.stderr)
@@ -772,7 +792,7 @@ def report(findings: list[Finding], modules: int) -> int:
         print(f"{modules} module(s), no failures.")
         return 0
     print(f"{len(findings)} failure(s); {modules} module(s) checked:\n")
-    for finding in sorted(findings, key=lambda item: (item.where, item.rule, item.condition)):
+    for finding in sorted(findings, key=order):
         print(finding)
     return 1
 

@@ -24,7 +24,7 @@ The language-agnostic pass in `ahrena-engineering-quality:skills/reviewing-diffs
 
 ## 1. Take the route, and read the repository first
 
-The router fired the `terraform` route on the changed `.tf`, `.tofu`, `.tfvars`, `.tftest.hcl` and `.terraform.lock.hcl` files. Those are the files this skill reads.
+The router fired the `terraform` route on the changed `.tf`, `.tofu`, `.tfvars`, `.tftest.hcl`, `.tofutest.hcl` and `.terraform.lock.hcl` files and on any committed state or plan file, and the `terraform-pipeline` route on a script or pipeline file whose added lines run `terraform` or `tofu`. Those are the files this skill reads. When no router ran (a person or an agent called this skill directly), select the same files by hand: the changed files those two routes in `ahrena-engineering-quality:skills/reviewing-diffs/references/routes.json` would match.
 
 Before the conditions, read how the repository runs Terraform: which CLI and version (`required_version`, the lock file), which backend each root uses, its `modules/` layout, its `.tflint.hcl`, its scanner configuration and its pipeline. What a green check already decided (tflint, the scanner, `terraform validate`) is not reported again.
 
@@ -34,7 +34,7 @@ Before the conditions, read how the repository runs Terraform: which CLI and ver
 python3 "${CLAUDE_PLUGIN_ROOT}/hooks/check-terraform.py" <checkout>
 ```
 
-Every failure it prints names a rule and a condition, and is a finding as it stands, at the severity the tests of `ahrena-engineering-quality:docs/review-findings.md` give it (blocking on a line the change introduces or edits). Report only those on files the change touches, or that the change caused (a new module with no test, a new root with no lock file).
+Every failure it prints names a rule and a condition, and is a finding as it stands, at the severity the tests of `ahrena-engineering-quality:docs/review-findings.md` give it (blocking on a line the change introduces or edits). A failure on a line the change did not touch, and that the change did not cause, is recorded as deferrable, as that document says, so the next person has it; it does not gate this change. To tell the two apart, run the hook on the base revision too (`git archive <base>` into a scratch folder) and compare.
 
 ## 3. Read the conditions the hook cannot decide
 
