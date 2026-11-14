@@ -21,6 +21,7 @@ Opened by step 2 of `SKILL.md`. Every compiler code and runtime message below wa
 | Symptom | Likely cause | First check |
 |---|---|---|
 | `TypeError: Cannot read properties of undefined` on a value typed as defined | a hole on the value's path: an assertion on untyped input, an `any`, a `!` | step 4 of `SKILL.md`: the hooks over the files on the path |
+| `TypeError: x is not iterable`, `x.map is not a function` on parsed data | the data's shape changed and an assertion hid it: an envelope, a renamed field, a single value where a list was | `hooks/check-untyped-input.py` on the parse; replace the assertion with a schema |
 | `ReferenceError: Cannot access 'x' before initialization` at startup | an import cycle evaluated mid-way | `hooks/check-boundaries.py`; delete one of the reported edges |
 | `ERR_PACKAGE_PATH_NOT_EXPORTED` | a deep import past a package's `exports` | import an exported entry, or export the subpath on purpose |
 | `SyntaxError [ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX]` under `node file.ts` | an `enum`, a namespace or a parameter property, which type stripping cannot erase | rewrite it as erasable syntax and turn `erasableSyntaxOnly` on |
