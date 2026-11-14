@@ -116,6 +116,9 @@ jobs:
       - name: Test the agency installer
         run: python3 engineering/development/skills/installing-the-agency/scripts/test-install.py
 
+      - name: Test the AWS plugin's wiring
+        run: python3 -B engineering/aws/tests/test-plugin.py
+
       - name: Test the costs plugin's record step
         run: python3 costs/runtime/test-record.py
 
