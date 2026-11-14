@@ -29,11 +29,11 @@ This plugin ships its routes as a fragment, `review-routes.json` at the plugin r
 Then run the two hooks over the same change, each with `--changed` set to the range the review reads, so they report only the lines the change adds:
 
 - this plugin's `hooks/check-gcp-grants.py` on the files `gcp-infrastructure` fired on, which decides the basic-role, key and public-principal literals of `rules/identity-and-access.md`;
-- `hooks/check-exposure.py` from the root of `ahrena-engineering-security` on the files `gcp-application` fired on, which decides the line-level shapes of the vendor-agnostic exposure rule.
+- `hooks/check-exposure.py` from the root of `ahrena-engineering-security` (the directory that holds its `.claude-plugin/plugin.json`) on the files `gcp-application` fired on, which decides the line-level shapes of the vendor-agnostic exposure rule.
 
 Each exits 0 when it reports nothing, 1 when it reports a condition and 2 when it could not run; a 2 makes the conditions it decides `unchecked`. What a hook reported is a blocking finding already decided, carried into step 5 with its condition; the checklists read what the hooks cannot see. Where a hook and a checklist condition name the same line for the same defect, write one finding that cites both; where one line breaks two conditions with different corrections (a basic role granted on the project is GCI-1 and GCI-2), write one per condition.
 
-Before the checklists, take what the installation has already decided; when Hyperion runs this skill, its step 1 has read it, and otherwise read the installation's records as Hyperion's step 1 defines them: its owner label key, its budgets, the organization policies it enforces, the identity it uses in CI. A condition an enforced organization policy already refuses (a key, when `iam.disableServiceAccountKeyCreation` holds on the project) is not reported again, but say which policy settled it.
+Before the checklists, take what the installation has already decided; when Hyperion runs this skill, its step 1 has read it, and otherwise read the installation's records (the component map, `AGENTS.md` and `CLAUDE.md`, and the infrastructure code: Terraform variables and provider defaults, organization-policy and budget resources, the CI identity's federation): its owner label key, its budgets, the organization policies it enforces, the identity it uses in CI. A condition an enforced organization policy already refuses (a key, when `iam.disableServiceAccountKeyCreation` holds on the project) is not reported again, but say which policy settled it.
 
 ## 2. Open the checklists the route calls for
 

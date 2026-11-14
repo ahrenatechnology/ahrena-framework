@@ -44,9 +44,9 @@ Opened by step 2 of `SKILL.md` when the `gcp-application` route fired: a changed
 - **Exempt:** Application Default Credentials, which resolve to the attached service account; a key the change names with the reason no alternative serves.
 - **Correct:** use Application Default Credentials and the attached service account; read secrets from Secret Manager. Rules: `rules/identity-and-access.md` condition 4, `rules/data-protection.md` condition 4.
 
-### GCA-7 A secret or project fixed in the code
+### GCA-7 A secret read as `latest` in production
 
-- **State:** a Secret Manager reference to `versions/latest` in code that runs in production, or a project ID, project number or full resource name written as a literal in source.
-- **Detect:** string literals beginning `projects/`, `//`-prefixed resource names, and values of the project-holding settings set in code rather than read from configuration.
-- **Exempt:** a test fixture with an invented project; a version alias the installation records as its rotation mechanism.
-- **Correct:** pin the secret version and read it, and the project, from configuration. Rules: `rules/data-protection.md` condition 4, `rules/exposure.md` condition 3 (a literal resource name is one interpolation away from an exit).
+- **State:** a Secret Manager reference to `versions/latest` in code that runs in production.
+- **Detect:** the version segment of every Secret Manager name the change reads, and where that name comes from.
+- **Exempt:** a version alias the installation records as its rotation mechanism.
+- **Correct:** pin the version, read from configuration. Rule: `rules/data-protection.md` condition 4. A project ID or resource name that reaches an exit is GCA-3, not this condition.

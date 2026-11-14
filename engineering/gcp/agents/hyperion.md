@@ -128,8 +128,8 @@ Input: `mode` is `review`, `checkout` is the working tree of `acme/billing`, `ba
 
 ```text
 DONE
-mode: review, main..working tree, given
-result: blocking GCI-1 infra/run.tf:14, the service gains every write on the project, grant roles/secretmanager.secretAccessor on the one secret instead; blocking GCA-1 src/payments/handler.py:41, the caller reads the project ID, the service account and the secret's path from the provider message, return {"error": "payment_unavailable", "correlation_id": cid} and log the detail with cid
+mode: review, main..working tree, given, none
+result: blocking GCI-1 infra/run.tf:14 (check-gcp-grants.py, identity-and-access condition 1), the service gains every write on the project, grant roles/secretmanager.secretAccessor on the one secret instead; blocking GCA-1 src/payments/handler.py:41, the caller reads the project ID, the service account and the secret's path from the provider message, return {"error": "payment_unavailable", "correlation_id": cid} and log the detail with cid
 noted: none
 questions: none
 unchecked: whether iam.automaticIamGrantsForDefaultServiceAccounts holds on the project, run gcloud org-policies describe

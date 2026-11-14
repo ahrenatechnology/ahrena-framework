@@ -92,7 +92,14 @@ def check_changed() -> list[str]:
         quiet = subprocess.run([sys.executable, str(HOOK), "--changed", "HEAD~1...HEAD"], cwd=root, capture_output=True, text=True)
         tf.write_text('role = "roles/editor"\nname = "unrelated"\nmember = "allUsers"\n', encoding="utf-8")
         loud = subprocess.run([sys.executable, str(HOOK), "--changed", "HEAD"], cwd=root, capture_output=True, text=True)
+        git(root, "config", "diff.noprefix", "true")
+        noprefix = subprocess.run([sys.executable, str(HOOK), "--changed", "HEAD"], cwd=root, capture_output=True, text=True)
+        option = subprocess.run([sys.executable, str(HOOK), "--changed", "--name-only"], cwd=root, capture_output=True, text=True)
     errors: list[str] = []
+    if noprefix.returncode != 1 or "main.tf:3" not in noprefix.stdout:
+        errors.append(f"--changed lost the added line under diff.noprefix: {noprefix.stdout!r}{noprefix.stderr!r}")
+    if option.returncode != 2:
+        errors.append(f"--changed accepted an option as the range: {option.returncode} {option.stdout!r}")
     if quiet.returncode != 0:
         errors.append(f"--changed reported a line the range did not add: {quiet.stdout!r}{quiet.stderr!r}")
     if loud.returncode != 1 or "main.tf:3" not in loud.stdout or "main.tf:1" in loud.stdout:

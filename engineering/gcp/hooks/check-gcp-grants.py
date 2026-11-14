@@ -19,8 +19,9 @@ A grant the change means to make anyway is allowed by a comment carrying
 `gcp-grant-allowed:` and a reason, on the line itself or the line above. The
 marker without a reason does not count, because the rule asks for the reason.
 
-With `--changed <range>` the hook reads only the lines that range adds, as
-`git diff` reports them (`base...head`, or `base` alone for the working tree),
+With `--changed <range>` the hook reads only the lines that range adds, as a
+`git diff` with pinned options reports them (`base...head`, `base` alone for
+the working tree, or `--cached`; any other value starting with `-` is refused),
 so a pre-existing grant in a modified file is not reported as the change's.
 Without it, every line of every file under the paths is read.
 
@@ -46,7 +47,10 @@ RULE = "identity-and-access"
 SUFFIXES = (".tf", ".tf.json", ".tfvars", ".sh", ".bash", ".yaml", ".yml")
 SKIP_NAMES = frozenset({"node_modules", "vendor", "build", "dist"})
 
-HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@")
+SPEC_OPTIONS = ("--cached", "--staged")
+PINNED = ("--no-color", "--no-ext-diff", "--no-textconv", "--src-prefix=a/", "--dst-prefix=b/", "--unified=0")
+UNMERGED = ("diff --cc ", "diff --combined ", "* Unmerged path ")
+HUNK = re.compile(r"^@@ -\d+(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 ALLOW = re.compile(r"gcp-grant-allowed:\s*\S")
 
@@ -131,26 +135,48 @@ def report(findings: list[Finding], checked: int) -> int:
 
 def parse_diff(text: str, top: Path) -> dict[Path, set[int]]:
     added: dict[Path, set[int]] = {}
-    current: Path | None = None
-    for line in text.splitlines():
-        if line.startswith("+++ "):
-            name = line[4:]
-            current = None if name == "/dev/null" else (top / name[2:]).resolve()
+    current: set[int] | None = None
+    remaining = 0
+    for row in text.split("\n"):
+        if remaining:
+            remaining -= 0 if row.startswith("\\") else 1
             continue
-        match = HUNK.match(line)
-        if match and current is not None:
-            start, count = int(match.group(1)), int(match.group(2) or "1")
-            added.setdefault(current, set()).update(range(start, start + count))
+        if row.startswith("+++ b/"):
+            current = added.setdefault((top / row[6:]).resolve(), set())
+        elif row.startswith("+++ /dev/null"):
+            current = None
+        match = HUNK.match(row)
+        if match:
+            removed, start, count = int(match.group(1) or "1"), int(match.group(2)), int(match.group(3) or "1")
+            remaining = removed + count
+            if current is not None:
+                current.update(range(start, start + count))
     return added
 
 
-def changed_lines(spec: str) -> dict[Path, set[int]] | None:
-    top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
-    diff = subprocess.run(["git", "diff", "--unified=0", "--no-color", spec], capture_output=True, text=True)
-    if top.returncode != 0 or diff.returncode != 0:
-        print(f"cannot read the changes in {spec!r}: {(top.stderr or diff.stderr).strip()}", file=sys.stderr)
+def git(args: list[str], cwd: Path) -> str | None:
+    done = subprocess.run(["git", *args], cwd=cwd, capture_output=True)
+    if done.returncode != 0:
+        print(f"git {args[0]} failed: {done.stderr.decode('utf-8', 'replace').strip()}", file=sys.stderr)
         return None
-    return parse_diff(diff.stdout, Path(top.stdout.strip()))
+    return done.stdout.decode("utf-8", "replace")
+
+
+def changed_lines(spec: str) -> dict[Path, set[int]] | None:
+    if spec.startswith("-") and spec not in SPEC_OPTIONS:
+        print(f"{spec!r} is not a revision or range; the only options --changed takes are {', '.join(SPEC_OPTIONS)}", file=sys.stderr)
+        return None
+    top = git(["rev-parse", "--show-toplevel"], Path.cwd())
+    if top is None:
+        return None
+    root = Path(top.strip()).resolve()
+    diff = git(["-c", "color.ui=false", "diff", spec, *PINNED], root)
+    if diff is None:
+        return None
+    if any(row.startswith(UNMERGED) for row in diff.split("\n")):
+        print("the diff holds an unresolved merge, so no line can be scoped", file=sys.stderr)
+        return None
+    return parse_diff(diff, root)
 
 
 def under(path: Path, roots: list[Path]) -> bool:
