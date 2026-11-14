@@ -217,6 +217,17 @@ type Manager struct {
 '''
 
 
+
+ANONYMOUS_SECRET_TYPES = '''package vault
+
+var accounts []struct{ Password string }
+
+var keys = map[string]struct{ APIKey string }{}
+
+type Pair [2]struct{ Secret string }
+'''
+
+
 Case = tuple[str, dict[str, str], list[str], bool]
 
 
@@ -225,6 +236,12 @@ def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) 
 
 
 CASES = [
+    case(
+        "a slice, map or array of anonymous structs has no name to carry methods, and is not read",
+        module({"vault/anon.go": ANONYMOUS_SECRET_TYPES}),
+        ["1 file(s), no failures"],
+        ok=True,
+    ),
     case(
         "an exported generic struct carrying a secret is read",
         module({"vault/vault.go": GENERIC_SECRET}),

@@ -357,6 +357,19 @@ var g = func(n int, ctx context.Context) Result[int] {
 '''
 
 
+
+LITERAL_AS_A_WRAPPED_ARGUMENT = '''package api
+
+import "context"
+
+func wrap(f func(int, context.Context) func()) int { return 0 }
+
+var wrapped = wrap(
+	func(a int, ctx context.Context) func() { return nil },
+)
+'''
+
+
 Case = tuple[str, dict[str, str], list[str], bool]
 
 
@@ -365,6 +378,11 @@ def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) 
 
 
 CASES = [
+    case(
+        "a literal starting a line inside a call's parentheses is not a declaration",
+        module(LITERAL_AS_A_WRAPPED_ARGUMENT),
+        ["[context] condition 2", "func literal takes its context.Context as parameter 2", "a.go:8"],
+    ),
     case(
         "a generation marker inside a string is not a generated file",
         module(GENERATOR_WITH_MARKER_IN_A_TEMPLATE),

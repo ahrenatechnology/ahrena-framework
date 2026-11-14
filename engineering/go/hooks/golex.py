@@ -51,6 +51,8 @@ TYPE_KEYWORDS = frozenset({"func", "map", "chan", "struct", "interface"})
 
 OPENERS = {"(": ")", "[": "]", "{": "}"}
 
+OPERATORS = frozenset({"+", "-", "*", "/", "%", "<", ">", "&", "|", "^"})
+
 SIGNATURE_ENDS = frozenset({"\n", ",", ")", "]", ";", "}", "=", ":"})
 
 
@@ -265,6 +267,19 @@ def receiver_type(group: list[Token]) -> str:
     return names[-1] if names else ""
 
 
+def nesting(tokens: list[Token]) -> list[int]:
+    """The depth each token sits at, counting `()`, `[]` and `{}` together."""
+    depths: list[int] = []
+    depth = 0
+    for token in tokens:
+        if token.text in OPENERS.values():
+            depth -= 1
+        depths.append(depth)
+        if token.text in OPENERS:
+            depth += 1
+    return depths
+
+
 def is_declaration(tokens: list[Token], index: int, depths: list[int]) -> bool:
     """Whether the `func` at `index` opens a top-level declaration, the only place a receiver can be."""
     return depths[index] == 0 and (index == 0 or tokens[index - 1].text in ("\n", ";"))
@@ -289,7 +304,7 @@ def signature_at(tokens: list[Token], index: int, declaration: bool) -> Signatur
 
 
 def signatures(tokens: list[Token]) -> list[Signature]:
-    depths = brace_depths(tokens)
+    depths = nesting(tokens)
     found = (
         signature_at(tokens, index, is_declaration(tokens, index, depths))
         for index, token in enumerate(tokens)
@@ -298,18 +313,49 @@ def signatures(tokens: list[Token]) -> list[Signature]:
     return [signature for signature in found if signature is not None]
 
 
+def opening_before(tokens: list[Token], close: int) -> int:
+    """The index of the `[` that the `]` at `close` closes."""
+    depth = 0
+    for cursor in range(close, -1, -1):
+        depth += {"]": 1, "[": -1}.get(tokens[cursor].text, 0)
+        if depth == 0:
+            return cursor
+    return 0
+
+
+def is_type_parameter_list(inside: list[Token]) -> bool:
+    """Whether a bracket's contents are type parameters, `[T any]`, rather than an array length or nothing."""
+    inside = strip_newlines(inside)
+    return len(inside) >= 2 and inside[0].kind == "ident" and inside[1].text not in OPERATORS
+
+
+def in_type_group(tokens: list[Token], index: int) -> bool:
+    """Whether `index` sits directly inside a `type ( … )` group."""
+    depth = 0
+    for cursor in range(index - 1, -1, -1):
+        depth += {")": 1, "(": -1}.get(tokens[cursor].text, 0)
+        if depth < 0:
+            return cursor > 0 and tokens[cursor - 1].text == "type"
+    return False
+
+
 def type_name_before(tokens: list[Token], index: int) -> str:
-    """The name a `struct` or `interface` at `index` is declared under, past any type parameters."""
+    """The name a `struct` or `interface` at `index` is declared under by a type declaration, or nothing.
+
+    A slice, map or array of an anonymous struct, a field or a variable of one,
+    has no declared name and cannot carry methods, so it returns nothing.
+    """
     cursor = index - 1
     if cursor >= 0 and tokens[cursor].text == "]":
-        depth = 0
-        while cursor >= 0:
-            depth += {"]": 1, "[": -1}.get(tokens[cursor].text, 0)
-            if depth == 0:
-                break
-            cursor -= 1
-        cursor -= 1
-    return tokens[cursor].text if cursor >= 0 and tokens[cursor].kind == "ident" else ""
+        start = opening_before(tokens, cursor)
+        if not is_type_parameter_list(tokens[start + 1 : cursor]):
+            return ""
+        cursor = start - 1
+    if cursor < 1 or tokens[cursor].kind != "ident":
+        return ""
+    before = tokens[cursor - 1].text
+    declared = before == "type" or (before in ("\n", ";", "(") and in_type_group(tokens, cursor))
+    return tokens[cursor].text if declared else ""
 
 
 def is_generated(text: str) -> bool:
