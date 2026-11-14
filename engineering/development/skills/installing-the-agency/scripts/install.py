@@ -27,7 +27,7 @@ consumer's own files, which no corpus check should do.
 
 Usage:
     python3 install.py [--check] [--platform claude|codex]
-                       [--language python|typescript|go|rust[,...]] [root]
+                       [--language python|typescript|go|rust|terraform[,...]] [root]
 
 With no flags it writes. `--check` writes nothing: it reports the directive
 state per file and each plugin as enabled, missing or disabled, counting the
@@ -357,7 +357,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--language",
         action="append",
         default=[],
-        help="python, typescript, go or rust; repeatable or a comma list; replaces detection",
+        help="python, typescript, go, rust or terraform; repeatable or a comma list; replaces detection",
     )
     parser.add_argument("root", nargs="?", help="the repository root; default is the current directory")
     return parser

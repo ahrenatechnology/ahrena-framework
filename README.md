@@ -47,7 +47,7 @@ The agency is nine plugins from the `ahrena` marketplace, plus one per language 
 | `ahrena-contributing` | Issue, plan, branch, commit and pull request rules |
 | `ahrena-foundation` | What an artifact is, and the skills that create and review them |
 
-Language plugins are `ahrena-engineering-python`, `-typescript`, `-go` and `-rust`. The installer enables the ones whose marker file sits at the repository root (`pyproject.toml`, `requirements.txt` or `setup.py`; `tsconfig.json` or `package.json`; `go.mod`; `Cargo.toml`), or the ones `--language` names.
+Language plugins are `ahrena-engineering-python`, `-typescript`, `-go`, `-rust` and `-terraform`. The installer enables the ones whose marker file sits at the repository root (`pyproject.toml`, `requirements.txt` or `setup.py`; `tsconfig.json` or `package.json`; `go.mod`; `Cargo.toml`; `main.tf`, `versions.tf`, `terraform.tf` or `.terraform.lock.hcl`), or the ones `--language` names.
 
 From the root of your repository, with no checkout and no plugin installed:
 

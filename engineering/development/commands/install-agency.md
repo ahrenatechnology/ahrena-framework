@@ -4,7 +4,7 @@ description: Install the agency in this repository, or report what is missing â€
 type: command
 clade: engineering
 subclade: development
-argument-hint: "[--check] [--platform claude|codex] [--language python|typescript|go|rust]"
+argument-hint: "[--check] [--platform claude|codex] [--language python|typescript|go|rust|terraform]"
 references:
   - skills/installing-the-agency/SKILL.md
 ---

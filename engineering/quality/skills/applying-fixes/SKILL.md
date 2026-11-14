@@ -28,7 +28,7 @@ A finding is applicable when all three hold:
 
 - its severity is `blocking` or `deferrable` — never a `question` or an `unchecked`, which carry no correction that can be made without a decision;
 - its correction is a concrete instruction: it names the file, what to replace, and what to replace it with, so applying it needs no choice;
-- its discipline is one where applying that instruction changes only what the finding named — `reviewing-sensitive-data`, `reviewing-untrusted-input`, the language reviewers (`reviewing-python`, `reviewing-typescript`, `reviewing-go`, `reviewing-rust`), clean-code, and `reviewing-secrets` under step 5.
+- its discipline is one where applying that instruction changes only what the finding named — `reviewing-sensitive-data`, `reviewing-untrusted-input`, the language reviewers (`reviewing-python`, `reviewing-typescript`, `reviewing-go`, `reviewing-rust`, `reviewing-terraform`), clean-code, and `reviewing-secrets` under step 5.
 
 Leave every other finding untouched and record why. Architecture, contract and scope findings are not applicable even when their correction reads mechanical, because what they resolve turns on a judgment this procedure cannot make.
 

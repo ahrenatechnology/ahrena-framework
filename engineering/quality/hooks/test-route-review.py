@@ -280,6 +280,40 @@ CASES = [
         ["route  source", "route  python", "route  secrets"],
         ["route  language-models", "reviewing-prompts", "route  untrusted-input", "route  access", "exposure"],
     ),
+    (
+        "#295/AC-5 the shipped table sends a Terraform change to reviewing-terraform",
+        {},
+        {
+            "infra/main.tf": 'resource "random_pet" "name" {}\n',
+            "infra/prod.tfvars": 'region = "eu"\n',
+            "infra/tests/main.tftest.hcl": "run \"plans\" {}\n",
+            "infra/.terraform.lock.hcl": "# lock\n",
+        },
+        None,
+        0,
+        [
+            "route  terraform  ->  ahrena-engineering-terraform:skills/reviewing-terraform/SKILL.md",
+            "on     infra/.terraform.lock.hcl, infra/main.tf, infra/prod.tfvars and 1 more",
+        ],
+        ["route  python", "route  go"],
+    ),
+    (
+        "#295/AC-5 a committed state file and a pipeline line running Terraform reach reviewing-terraform",
+        {},
+        {
+            "infra/terraform.tfstate": "{}\n",
+            ".github/workflows/plan.yml": "steps:\n  - run: terraform -chdir=infra output -json\n",
+        },
+        None,
+        0,
+        [
+            "route  terraform  ->  ahrena-engineering-terraform:skills/reviewing-terraform/SKILL.md",
+            "on     infra/terraform.tfstate",
+            "route  terraform-pipeline  ->  ahrena-engineering-terraform:skills/reviewing-terraform/SKILL.md",
+            "on     .github/workflows/plan.yml",
+        ],
+        [],
+    ),
 ]
 
 
