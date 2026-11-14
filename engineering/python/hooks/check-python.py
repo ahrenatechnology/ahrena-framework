@@ -52,6 +52,11 @@ The closed sets below carry the decisions, and each is argued in its rule:
                         calls that always run a shell, and the ones that run
                         one when `shell=True` asks
     UNVERIFIED_CONTEXTS the standard library's switch for TLS with no checks
+    MOCK_PATCHES        the patch callables, by the dotted name they resolve
+                        to, so an HTTP client's `.patch` is not one
+    CONTAINER_ANNOTATIONS
+                        the annotations that make `+=` and `|=` on a
+                        parameter an in-place change
 
 Usage:
     python3 engineering/python/hooks/check-python.py [path ...]
@@ -174,6 +179,29 @@ SHELL_ON_REQUEST = frozenset(
 )
 
 UNVERIFIED_CONTEXTS = frozenset({"ssl._create_unverified_context"})
+
+MOCK_PATCHES = frozenset({"unittest.mock.patch", "mock.patch", "mocker.patch"})
+
+CONTAINER_ANNOTATIONS = frozenset(
+    {
+        "list",
+        "dict",
+        "set",
+        "deque",
+        "bytearray",
+        "defaultdict",
+        "OrderedDict",
+        "Counter",
+        "List",
+        "Dict",
+        "Set",
+        "Deque",
+        "DefaultDict",
+        "MutableSequence",
+        "MutableMapping",
+        "MutableSet",
+    }
+)
 
 
 @dataclass
@@ -501,8 +529,20 @@ def _method_ids(tree: ast.Module) -> set[int]:
     return marked
 
 
-def _mutated(node: ast.AST, names: set[str]) -> str:
+def _containers(arguments: list[ast.arg]) -> set[str]:
+    """The parameters annotated as a mutable container, which `+=` and `|=` change in place."""
+    found: set[str] = set()
+    for arg in arguments:
+        outer = arg.annotation.value if isinstance(arg.annotation, ast.Subscript) else arg.annotation
+        if outer is not None and named(outer) in CONTAINER_ANNOTATIONS:
+            found.add(arg.arg)
+    return found
+
+
+def _mutated(node: ast.AST, names: set[str], containers: set[str]) -> str:
     """The parameter this node changes in place, or ''."""
+    if isinstance(node, ast.AugAssign) and isinstance(node.target, ast.Name) and node.target.id in containers:
+        return node.target.id
     if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
         owner = node.func.value
         if isinstance(owner, ast.Name) and owner.id in names and node.func.attr in MUTATORS:
@@ -526,11 +566,13 @@ def check_argument_mutation(source: Source, findings: list[Finding]) -> None:
         if not isinstance(node, FUNCTION_TYPES):
             continue
         spec = node.args
-        names = {arg.arg for arg in [*spec.posonlyargs, *spec.args, *spec.kwonlyargs]}
+        arguments = [*spec.posonlyargs, *spec.args, *spec.kwonlyargs]
+        names = {arg.arg for arg in arguments}
         names.discard(_receiver(node, id(node) in methods))
+        containers = _containers(arguments) & names
         reported: set[str] = set()
         for child in statements_within(node.body):
-            name = _mutated(child, names)
+            name = _mutated(child, names, containers)
             if name and name not in reported:
                 reported.add(name)
                 findings.append(_mutates_argument(source, child, node.name, name))
@@ -547,26 +589,26 @@ def _mutates_argument(source: Source, at: ast.AST, function: str, name: str) -> 
     )
 
 
-def _patch_kind(call: ast.Call) -> str:
+def _patch_kind(source: Source, call: ast.Call) -> str:
     """'path' when the first argument is a dotted path, 'object' when it is a target, or ''."""
     text = written(call.func)
-    parts = text.split(".")
-    if not parts or not text:
+    if not text:
         return ""
-    last = parts[-1]
+    last = text.split(".")[-1]
     if text.startswith("monkeypatch.") and last in {"setattr", "delattr"}:
         first = call.args[0] if call.args else None
         return "path" if first is not None and is_string_literal(first) else "object"
-    if last == "patch":
+    dotted = resolved(source, call.func)
+    if dotted in MOCK_PATCHES:
         return "path"
-    if last in {"object", "multiple"} and len(parts) >= 2 and parts[-2] == "patch":
+    if last in {"object", "multiple"} and dotted.rsplit(".", 1)[0] in MOCK_PATCHES:
         return "object" if last == "object" else "path"
     return ""
 
 
 def check_patches(source: Source, findings: list[Finding]) -> None:
     for call in calls(source):
-        kind = _patch_kind(call)
+        kind = _patch_kind(source, call)
         if not kind or not call.args:
             continue
         first = call.args[0]

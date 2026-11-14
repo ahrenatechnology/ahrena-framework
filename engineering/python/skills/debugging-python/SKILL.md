@@ -48,6 +48,8 @@ Then read `references/suspects.md`, the defects Python makes easy, against the c
 
 Output: the cause, in one sentence that names the line and the condition that was false.
 
+Stop here and escalate to a person, before any fix, when the cause has corrupted stored data, exposed a secret or personal data, or crosses into another service: each of those needs a decision before a change. Hand back the cause and the failing test.
+
 ## 4. Fix the cause
 
 Change the line that produced the wrong value, not the line that noticed it. A `try`/`except` added around the symptom, a default returned where the value was wrong, a retry around a deterministic failure: each makes the test pass and leaves the defect. The fix is written under `skills/writing-python/SKILL.md` step 5, so it does not introduce what the rules forbid while removing what they missed.
@@ -68,7 +70,7 @@ Then ask what would have caught this one before it shipped: a stricter type, a r
 
 ## 7. Hand back
 
-The cause in one sentence, the failing run and the green run, the occurrences found in step 6 and what was done with each, and the guardrail proposed. Escalate to a person instead of fixing when the defect has corrupted stored data, exposed a secret or personal data, or crosses into another service: each of those needs a decision before a change.
+The cause in one sentence, the failing run and the green run, the occurrences found in step 6 and what was done with each, and the guardrail proposed.
 
 ## When this skill does not apply
 

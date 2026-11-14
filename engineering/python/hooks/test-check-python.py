@@ -384,6 +384,24 @@ def test_fee(monkeypatch) -> None:
 '''
 
 
+HTTP_PATCH_IS_NOT_A_MOCK = '''
+import httpx
+import requests
+
+
+def update(order_id: str) -> None:
+    httpx.patch("https://api.domain.example/orders", json={"id": order_id})
+    requests.patch("https://payments.application.io/x")
+'''
+
+DOMAIN_EXTENDS_ITS_ARGUMENT_IN_PLACE = '''
+def enrich(tags: list[str], seen: set[str], count: int) -> int:
+    tags += ["enriched"]
+    seen |= {"enriched"}
+    count += 1
+    return count
+'''
+
 EVAL_OF_A_VALUE = '''
 def compute(expression: str) -> int:
     return eval(expression)
@@ -694,6 +712,17 @@ CASES = [
         {"tests/test_fee.py": PATCH_AN_ADAPTER},
         ["no failures"],
         ok=True,
+    ),
+    case(
+        "an HTTP PATCH call is not a mock patch",
+        {"tests/test_orders.py": HTTP_PATCH_IS_NOT_A_MOCK},
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "an augmented assignment on a list or set parameter fails, on an int it does not",
+        {"billing/domain/tags.py": DOMAIN_EXTENDS_ITS_ARGUMENT_IN_PLACE},
+        ["[immutability] condition 2", "`tags`", "`seen`"],
     ),
     case(
         "eval of a value fails",
