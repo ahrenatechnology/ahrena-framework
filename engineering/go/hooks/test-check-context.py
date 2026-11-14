@@ -585,6 +585,17 @@ def corpus_gate() -> int:
     return 1
 
 
+def missing_path() -> int:
+    """A path that does not exist is an error, not a clean run over nothing."""
+    result = subprocess.run([sys.executable, str(HOOK), "no/such/path.go"], capture_output=True, text=True)
+    output = result.stdout + result.stderr
+    if result.returncode == 2 and "does not exist" in output:
+        print("ok    a path that does not exist fails instead of passing over zero files")
+        return 0
+    report_failure("a path that does not exist fails instead of passing over zero files", ["expected exit 2 naming the path"], output)
+    return 1
+
+
 def main() -> int:
     failed = 0
     for name, files, expect, ok in CASES:
@@ -596,7 +607,8 @@ def main() -> int:
         else:
             print(f"ok    {name}")
     failed += corpus_gate()
-    return summarise(failed, len(CASES) + 1)
+    failed += missing_path()
+    return summarise(failed, len(CASES) + 2)
 
 
 if __name__ == "__main__":

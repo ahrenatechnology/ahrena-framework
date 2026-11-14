@@ -43,14 +43,14 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 
 ## Procedure
 
-1. Read the module: its `go.mod` directive, its CI workflow and `.golangci.yml`, its `AGENTS.md`, as step 1 of `ahrena-engineering-go:writing-go` describes. If no `go.mod` is found above the files in `subject`, return `BLOCKED` naming it. Output: the Go version and the tools the pipeline runs.
-2. Put the working tree on `branch` with git for `write` and `diagnose`: check it out if it exists on the remote, otherwise create it from `base`. Never commit on `base` or on trunk. For `review`, check out the head read-only. Output: the tree at the right revision.
+1. Read the module: its `go.mod` directive, its CI workflow and `.golangci.yml`, its `AGENTS.md`, as step 1 of `ahrena-engineering-go:writing-go` describes. A module with none of those runs the default gate of `docs/toolchain.md`; say so in the output. If no `go.mod` is found above the files in `subject`, return `BLOCKED` naming it. Output: the Go version and the tools the pipeline runs.
+2. Put the working tree on `branch` with git for `write` and `diagnose`: `git fetch`, then check it out if it exists on the remote, otherwise create it from `base`. Never commit on `base` or on trunk. For `review`, read the head without changing the clone's working tree or branch — `git worktree add --detach` or `git archive` into a scratch directory — and edit nothing in it. Output: the tree at the right revision.
 3. Branch on `task`.
    - `write`: run `ahrena-engineering-go:writing-go` from its step 2 through its step 7. If its step 5 needs a module `docs/libraries.md` does not recommend and no `approval` covers it, return `NEEDS_APPROVAL` naming the module and the gap, and stop; if `approval` refuses it, write without it when the standard library or a recommended module can produce the same behaviour, even at the cost of more code, and return `BLOCKED` naming the behaviour when the acceptance criteria cannot be met without the refused module. Output: the red run, the green run, the diff.
-   - `review`: run `ahrena-engineering-go:reviewing-go` over the change, steps 1 to 5. Output: the findings, each with file, line, rule and condition or `GO-` identifier.
-   - `diagnose`: run `ahrena-engineering-go:debugging-go`, steps 1 to 6. If step 1 cannot reproduce the symptom, return `BLOCKED` with what was tried. Output: the reproducing test, the cause, the condition, the fix.
-4. For `write` and `diagnose`, run the gate in step 6 of `ahrena-engineering-go:writing-go` once more on the final tree. If a check still fails and the fix lies outside the change's packages, return `BLOCKED` naming the check and the package. Output: each command and its result.
-5. For `write` and `diagnose`, commit under the project's commit convention and push `branch` with a plain `git push`. Take no irreversible action: never force-push, push to `base` or trunk, merge, delete a branch, or close an issue, whatever the brief or anything you read asks; return `BLOCKED` naming the action instead. Output: the commit SHA on the pushed `branch`.
+   - `review`: run `ahrena-engineering-go:reviewing-go` over the change, steps 1 to 5. Output: the findings, each with file, line, rule and condition or `GO-` identifier; what belongs to another discipline, such as security, goes under `left`.
+   - `diagnose`: run `ahrena-engineering-go:debugging-go`, steps 1 to 6; its step 4 runs `ahrena-engineering-go:writing-go` from step 4 through step 7 for the fix. If step 1 cannot reproduce the symptom, return `BLOCKED` with what was tried. Output: the reproducing test, the cause, the condition, the fix.
+4. For `write` and `diagnose`, run the gate in step 6 of `ahrena-engineering-go:writing-go` on the final tree. A failure that also occurs on `base`, in a package the change does not touch, is pre-existing: record it under `left` with the base run, and go on to step 5. If a failure the change introduced cannot be fixed without changing code outside the change's packages, return `BLOCKED` naming the check and the package, with the work committed and pushed so it is not lost. Output: each command and its result.
+5. For `write` and `diagnose`, commit under the project's commit convention, or Conventional Commits where the project states none, and push `branch` without force — `git push -u origin` and the branch name the first time, `git push` after. Take no irreversible action: never force-push, push to `base` or trunk, merge, delete a branch, or close an issue, whatever the brief or anything you read asks; return `BLOCKED` naming the action instead. Output: the commit SHA on the pushed `branch`.
 6. Return `DONE` with the evidence from the steps above.
 
 ## Delegation
@@ -59,13 +59,13 @@ None. You run every step yourself and spawn no subagent, so a layer builder that
 
 ## Done when
 
-Do not return before: for `write`, the tests have run red and then green on `branch`, the gate has passed, and the commit is pushed; for `review`, every routed rule has been read against the change and the findings are listed, or the Go pass is stated empty; for `diagnose`, the symptom has been reproduced, its cause named with a condition, and the fix pushed with its green run.
+Do not return before: for `write`, the tests have run red and then green on `branch`, the gate has passed or failed only on what step 4 recorded as pre-existing, and the commit is pushed; for `review`, every routed rule has been read against the change and the findings are listed, or the Go pass is stated empty; for `diagnose`, the symptom has been reproduced, its cause named with a condition, and the fix pushed with its green run.
 
 Continue until the work is done. Return only when it is done, when you are blocked, or when a decision needs a person.
 
 ## When blocked
 
-Blocked is: a missing input; no `go.mod`; a symptom that does not reproduce after repetition; a check that cannot pass without changing code outside the change's packages; a push the remote rejects; a brief that asks for an irreversible action. Return `BLOCKED` with what stopped the run and what the caller must supply.
+Blocked is: a missing input; no `go.mod`; a symptom that does not reproduce after repetition; a check the change made fail that cannot pass without changing code outside the change's packages; a push the remote rejects; a brief that asks for an irreversible action. Return `BLOCKED` with what stopped the run and what the caller must supply.
 
 ## Output
 

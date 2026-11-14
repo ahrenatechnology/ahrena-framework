@@ -21,7 +21,7 @@ A defect is fixed when a test that failed because of it passes, and the reason i
 
 ## 1. Reproduce it as a failing test
 
-Write the smallest test that shows the symptom, in the package where it occurs, following `docs/testing.md`. Run it alone, bypassing the cache, and watch it fail the way the report describes.
+Write the smallest test that shows the symptom, in the package where it occurs, following `docs/testing.md`; when a test that already exists shows it, that test is the reproduction, and the output names it. Run it alone, bypassing the cache, and watch it fail the way the report describes. A panic in a goroutine the test started can arrive after the test body returns, so the output shows the test's `PASS` and then the panic; that is a reproduction, and the panic's trace is the evidence.
 
 ```sh
 go test ./internal/orders/ -run TestCancelTwice -count=1 -v
@@ -45,7 +45,7 @@ Confirm the cause by changing only what it names and watching the symptom go awa
 
 ## 4. Fix it test-first
 
-The test from step 1 is the red test. Make the smallest change that turns it green, inside the rules, by following `skills/writing-go/SKILL.md` from its step 4. Run it with the race detector even when the defect was not a race, because a fix to concurrent code can introduce one.
+The test from step 1 is the red test. Make the smallest change that turns it green, inside the rules, by following `skills/writing-go/SKILL.md` from its step 4 through its step 7. Run it with the race detector even when the defect was not a race, because a fix to concurrent code can introduce one.
 
 ```sh
 go test ./internal/orders/ -race -count=50 -run TestCancelTwice

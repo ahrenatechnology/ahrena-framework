@@ -137,14 +137,14 @@ go vet ./...
 golangci-lint run ./...
 go test -race -shuffle=on ./...
 govulncheck ./...
-python3 engineering/go/hooks/check-context.py .
-python3 engineering/go/hooks/check-surface.py .
-python3 engineering/go/hooks/check-packages.py .
-python3 engineering/go/hooks/check-test-placement.py .
-python3 engineering/go/hooks/check-exposure.py .
+python3 <plugin>/hooks/check-context.py .
+python3 <plugin>/hooks/check-surface.py .
+python3 <plugin>/hooks/check-packages.py .
+python3 <plugin>/hooks/check-test-placement.py .
+python3 <plugin>/hooks/check-exposure.py .
 ```
 
-`-shuffle=on` randomises test order and reports the seed, so a test that only passes after another one has run is found the first time the order changes, and the failure is reproducible from the seed. The last five lines are this plugin's own hooks. They need Python and nothing else — not even Go — and share one reader of Go source, `hooks/golex.py`. They decide [`rules/context.md`](../rules/context.md), [`rules/test-placement.md`](../rules/test-placement.md), conditions 1 to 3 of [`rules/exposure.md`](../rules/exposure.md), condition 2 of [`rules/api-surface.md`](../rules/api-surface.md) and conditions 2 and 3 of [`rules/package-boundaries.md`](../rules/package-boundaries.md): the conditions the source decides and no linter in the catalogue reports.
+`-shuffle=on` randomises test order and reports the seed, so a test that only passes after another one has run is found the first time the order changes, and the failure is reproducible from the seed. The last five lines are this plugin's own hooks, run from wherever the plugin is installed — `<plugin>` stands for that directory, `engineering/go` in the framework's own checkout. A path given to a hook that does not exist stops it with exit code 2, so a misspelt path cannot pass as a clean run over nothing. They need Python and nothing else — not even Go — and share one reader of Go source, `hooks/golex.py`. They decide [`rules/context.md`](../rules/context.md), [`rules/test-placement.md`](../rules/test-placement.md), conditions 1 to 3 of [`rules/exposure.md`](../rules/exposure.md), condition 2 of [`rules/api-surface.md`](../rules/api-surface.md) and conditions 2 and 3 of [`rules/package-boundaries.md`](../rules/package-boundaries.md): the conditions the source decides and no linter in the catalogue reports.
 
 ## Where this stops
 

@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from golex import Finding, display, imports, load, module_root, report, skipped, sources  # noqa: E402
+from golex import Finding, display, imports, load, module_root, report, roots_of, skipped, sources  # noqa: E402
 
 LAYERS = ("domain", "application", "infra")
 
@@ -152,7 +152,9 @@ def check_module_cycles(modules: list[Module], base: Path, findings: list[Findin
 
 
 def main(argv: list[str]) -> int:
-    roots = [Path(argument).resolve() for argument in argv[1:]] or [Path.cwd()]
+    roots = roots_of(argv)
+    if roots is None:
+        return 2
     base = Path.cwd()
     modules = modules_in(roots)
     findings: list[Finding] = []

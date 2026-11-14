@@ -36,6 +36,8 @@ Each of these is decided by [`hooks/check-context.py`](../hooks/check-context.py
 
 **Condition 1 does not read a field whose type contains a context.** A `map[string]context.Context`, a `[]context.Context` and a `func() context.Context` are all fields that only mention one, and the hook leaves them alone. The first two store contexts as surely as a plain field does, and a reviewer reads them, because telling a container of contexts from a container of factories needs the element type the hook does not resolve; the third is a factory, which is how a struct legitimately reaches for a context it does not own.
 
+**Condition 3 does not read a method whose context sits in its receiver.** A method on a type that stores a context and calls `context.Background()` has no context parameter, so condition 3 has nothing to hold it to; condition 1 reports the stored field, and removing it, as condition 1 asks, gives the method the parameter condition 3 then reads.
+
 **Condition 3 does not follow a context through a call.** A function that receives `ctx` and calls a helper that calls `context.Background()` passes; the helper has no context parameter, so the hook has nothing to hold it to. That interprocedural case is what `contextcheck` exists for, and it needs the type checker the hook refuses to depend on.
 
 **Condition 3 says nothing about `main`, `init` or a test.** They have no context to propagate, so `context.Background()` is where the tree starts, and since Go 1.24 a test should start from `t.Context()`, which [`docs/testing.md`](../docs/testing.md) covers.

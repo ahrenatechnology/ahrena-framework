@@ -36,14 +36,14 @@ Then read what the project's pipeline runs: its CI workflow, its `.golangci.yml`
 
 ## 2. Run the hooks, then open the rules the change calls for
 
-`rules/context.md`, `rules/test-placement.md`, conditions 1 to 3 of `rules/exposure.md`, condition 2 of `rules/api-surface.md` and conditions 2 and 3 of `rules/package-boundaries.md` are decided by scripts that need only Python. Run this plugin's hooks — the lines below are their paths in the framework's own checkout — the first four over the changed files and the package hook over the module, since a layer is decided by the whole tree, and take each report as a finding of the rule it names.
+`rules/context.md`, `rules/test-placement.md`, conditions 1 to 3 of `rules/exposure.md`, condition 2 of `rules/api-surface.md` and conditions 2 and 3 of `rules/package-boundaries.md` are decided by scripts that need only Python. Run this plugin's hooks, which sit in its `hooks/` directory wherever the plugin is installed — written `<plugin>` below, `engineering/go` in the framework's own checkout — the first four over the changed files and the package hook over the module, since a layer is decided by the whole tree, and take each report as a finding of the rule it names.
 
 ```sh
-python3 engineering/go/hooks/check-context.py <changed .go files>
-python3 engineering/go/hooks/check-surface.py <changed .go files>
-python3 engineering/go/hooks/check-test-placement.py <changed .go files>
-python3 engineering/go/hooks/check-exposure.py <changed .go files>
-python3 engineering/go/hooks/check-packages.py .
+python3 <plugin>/hooks/check-context.py <changed .go files>
+python3 <plugin>/hooks/check-surface.py <changed .go files>
+python3 <plugin>/hooks/check-test-placement.py <changed .go files>
+python3 <plugin>/hooks/check-exposure.py <changed .go files>
+python3 <plugin>/hooks/check-packages.py .
 ```
 
 Then open the rules for what the change touches:

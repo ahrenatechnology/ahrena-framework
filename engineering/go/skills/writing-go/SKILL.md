@@ -38,7 +38,7 @@ Every limit below is held from the first line written, not left for the review t
 
 Open `go.mod` and note the `go` directive: it decides which language and library features exist — per-iteration loop variables from 1.22, `context.WithoutCancel` from 1.21, `WaitGroup.Go` from 1.25, `errors.AsType` from 1.26, the `uuid` package from 1.27. Do not use a feature newer than the directive, and do not raise the directive as a side effect. Note whether a `go.work` lists several modules.
 
-Then read what the project already decided: its CI workflow and `.golangci.yml` for which tools run, its `AGENTS.md`, and its component map for the folder and the vocabulary this change belongs in. Where the project is silent on layout, `docs/project-layout.md` is the default. Output: the Go version, the tools the pipeline runs, and the modules in play.
+Then read what the project already decided: its CI workflow and `.golangci.yml` for which tools run, its `AGENTS.md`, and its component map for the folder and the vocabulary this change belongs in. Where the project is silent on layout, `docs/project-layout.md` is the default. Before the first edit, run the gate of step 6 once on `base` and keep its output: it is the base run step 6 judges a failure against. Output: the Go version, the tools the pipeline runs, the modules in play, and the base run.
 
 ## 2. Place the change: package, layer, direction
 
@@ -54,7 +54,7 @@ A function that does I/O or waits takes `ctx context.Context` as its first param
 
 For each file the change creates or edits, the test goes in the `_test.go` file named for it, in the same directory — `orders.go`, `orders_test.go` — which `rules/test-placement.md` holds. Follow `docs/testing.md`: a table of cases with `t.Run` when they differ only in data, failure messages with got before want, `cmp.Diff` for structures, a hand-written fake for each interface from step 2, `t.Context()` for the context under Go 1.24 or later. A store is tested against the real database with migrations applied; that integration test is named for the behaviour it exercises.
 
-Run only that test and read the failure. It must fail because the behaviour is missing — an assertion about the result — not because the code does not compile or a fixture is wrong.
+A test of a function that does not exist yet does not compile, so first write its signature with a body that returns the zero value; the test then compiles and fails on its assertion. Run only that test and read the failure. It must fail because the behaviour is missing — an assertion about the result — not because the code does not compile or a fixture is wrong.
 
 ```sh
 go test ./internal/orders/ -run 'TestCancel' -count=1
@@ -86,25 +86,23 @@ When the standard library does not cover what the code needs, look the problem u
 
 ## 6. Run the gate the pipeline will run
 
-Run what `docs/toolchain.md` lists, in its order, over the changed packages: `golangci-lint` only if the project runs it, and this plugin's five hooks always, since they need nothing but Python. The hook paths below are the ones in the framework's own checkout.
+Run the commands `docs/toolchain.md` lists under *The commands CI runs*, in its order, from the module root and over the whole module. Where the project's CI runs more, run that too; where it does not run `golangci-lint` or `govulncheck`, skip them. This plugin's five hooks always run, since they need nothing but Python: they sit in the plugin's `hooks/` directory wherever the plugin is installed, written `<plugin>` below, which is `engineering/go` in the framework's own checkout.
 
 ```sh
 gofmt -l .
+go mod tidy -diff
 go vet ./...
 go test -race -shuffle=on ./...
-golangci-lint run ./...
-python3 engineering/go/hooks/check-context.py .
-python3 engineering/go/hooks/check-surface.py .
-python3 engineering/go/hooks/check-packages.py .
-python3 engineering/go/hooks/check-test-placement.py .
-python3 engineering/go/hooks/check-exposure.py .
+for h in context surface packages test-placement exposure; do python3 <plugin>/hooks/check-$h.py .; done
 ```
+
+A check that fails is judged against `base`. If it also fails on `base`, in a package the change does not touch, it is pre-existing: record the command and the base run that shows it, and it does not hold up this change. Every other failure is this change's to fix.
 
 A failure is fixed in the code, not silenced: no `//nolint` without the linter's name and a reason, no `_` on an error the documentation does not say is always nil.
 
 ## 7. Refactor under green, then read the diff as a reviewer would
 
-With the tests green, remove duplication and rename until the code says what the behaviour is, running the tests after each step. Then read your own diff against `skills/reviewing-go/SKILL.md`, its rules and its `GO-` conditions, and correct what it finds before anyone else reads it. Output: the red run from step 3, the green run from step 6, and the diff.
+With the tests green, remove duplication and rename until the code says what the behaviour is, running the tests after each step. Then read your own diff against `skills/reviewing-go/SKILL.md`, its rules and its `GO-` conditions, and correct what it finds before anyone else reads it. Output: the red run from step 3, the green run of the same tests after step 4, the gate from step 6, and the diff.
 
 ## When this skill does not apply
 

@@ -423,9 +423,24 @@ def load(path: Path, base: Path) -> GoFile | None:
     return GoFile(path, display(path, base), tokens, module_root(path), package)
 
 
+def roots_of(argv: list[str]) -> list[Path] | None:
+    """The paths a run was given, or None after naming each one that does not exist.
+
+    A path that does not exist would otherwise walk to zero files and report a
+    clean run, which is a gate that passes by seeing nothing.
+    """
+    roots = [Path(argument).resolve() for argument in argv[1:]] or [Path.cwd()]
+    absent = [argument for argument, root in zip(argv[1:], roots) if not root.exists()]
+    for argument in absent:
+        print(f"{argument}: the path does not exist", file=sys.stderr)
+    return None if absent else roots
+
+
 def run(argv: list[str], check: Callable[[GoFile, list[Finding]], None]) -> int:
     """Walk the paths given, check every Go file that is not generated, and report."""
-    roots = [Path(argument).resolve() for argument in argv[1:]] or [Path.cwd()]
+    roots = roots_of(argv)
+    if roots is None:
+        return 2
     base = Path.cwd()
     findings: list[Finding] = []
     checked = 0
