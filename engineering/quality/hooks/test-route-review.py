@@ -314,6 +314,22 @@ CASES = [
         ],
         [],
     ),
+    (
+        "#311/AC-5 a workflow and a composite action reach reviewing-pipelines and still reviewing-supply-chain",
+        {},
+        {
+            ".github/workflows/deploy.yml": "on: push\njobs:\n  d:\n    steps:\n      - run: ./deploy.sh\n",
+            ".github/actions/setup/action.yml": "runs:\n  using: composite\n  steps:\n    - run: make\n      shell: bash\n",
+        },
+        None,
+        0,
+        [
+            "route  pipelines  ->  ahrena-engineering-devops:skills/reviewing-pipelines/SKILL.md",
+            "on     .github/actions/setup/action.yml, .github/workflows/deploy.yml",
+            "route  supply-chain  ->  ahrena-engineering-security:skills/reviewing-supply-chain/SKILL.md",
+        ],
+        [],
+    ),
 ]
 
 

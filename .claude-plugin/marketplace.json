@@ -10,7 +10,7 @@
     {
       "name": "ahrena-foundation",
       "description": "The self-hosting core: what an artifact is, where it lives, how it is named, and the skills that create the others. Every other plugin depends on this one.",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -124,7 +124,7 @@
     {
       "name": "ahrena-engineering-development",
       "description": "Development orchestrated issue→stacked-PRs: Athena, the tech-lead, plans a change, routes each concern deterministic-first — a route table, then the Clef decision gate, then a human — delegates to the build clades, runs the develop→Argos loop before each layer opens, and escalates when it is exhausted. Also installs the agency in a repository, enabling the plugins the build path needs.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -282,7 +282,7 @@
     {
       "name": "ahrena-engineering-quality",
       "description": "The code-review toolkit: the per-discipline review skills, the path router, the findings and verdict docs, and Erodos, the fixer. Argos, the reviewer that runs them, ships in ahrena-engineering-code-review.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -513,6 +513,28 @@
         "hcl",
         "state",
         "modules"
+      ]
+    },
+    {
+      "name": "ahrena-engineering-devops",
+      "description": "GitHub as a delivery platform across AWS, Google Cloud and Azure: least-privilege tokens, pinned actions, OIDC instead of stored cloud keys, no contributor text in a script, no privileged trigger running a fork, nothing sensitive in a pipeline log, deploys approved, serialised and reversible, a timeout on every job; skills to write, review and debug pipelines and plan deployments; and Helios, the DevOps specialist.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/devops",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/devops",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "devops",
+        "github-actions",
+        "ci-cd",
+        "oidc",
+        "deployment",
+        "pipelines"
       ]
     }
   ]

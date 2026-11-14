@@ -63,8 +63,9 @@ Run the same script without `--check`. It does two things:
   and the ten core plugins, plus the language, Terraform or cloud plugin for
   each marker file at the repository root (`pyproject.toml`, `tsconfig.json`,
   `go.mod`, `Cargo.toml`, `main.tf`, `cdk.json`, `cloudbuild.yaml`,
-  `azure.yaml`, and the others the map lists), or the ones
-  `--language python|typescript|go|rust|terraform|aws|gcp|azure` names. The
+  `azure.yaml`, a `.github/workflows/` directory, and the others the map
+  lists), or the ones
+  `--language python|typescript|go|rust|terraform|aws|gcp|azure|devops` names. The
   merge only adds. It keeps every other key and its order, never flips a plugin
   the user disabled, and never overwrites an `ahrena` marketplace entry that
   exists; it reports a disabled plugin and a marketplace that differs. It is not

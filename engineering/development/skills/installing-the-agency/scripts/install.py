@@ -27,7 +27,7 @@ consumer's own files, which no corpus check should do.
 
 Usage:
     python3 install.py [--check] [--platform claude|codex]
-                       [--language python|typescript|go|rust|terraform|aws|gcp|azure[,...]] [root]
+                       [--language python|typescript|go|rust|terraform|aws|gcp|azure|devops[,...]] [root]
 
 With no flags it writes. `--check` writes nothing: it reports the directive
 state per file and each plugin as enabled, missing or disabled, counting the
@@ -172,11 +172,18 @@ def write_directive(path: Path, platform: str) -> bool:
 
 
 def detect_languages(root: Path, agency: dict) -> list[str]:
-    """The languages whose marker file sits at the repository root, in map order."""
+    """The languages whose marker sits at the repository root, in map order.
+
+    A marker ending in `/` names a directory (`.github/workflows/`); any other
+    names a file.
+    """
     return [
         name
         for name, spec in agency["languages"].items()
-        if any((root / marker).is_file() for marker in spec["markers"])
+        if any(
+            (root / marker).is_dir() if marker.endswith("/") else (root / marker).is_file()
+            for marker in spec["markers"]
+        )
     ]
 
 
@@ -357,7 +364,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--language",
         action="append",
         default=[],
-        help="python, typescript, go, rust, terraform, aws, gcp or azure; repeatable or a comma list; replaces detection",
+        help="python, typescript, go, rust, terraform, aws, gcp, azure or devops; repeatable or a comma list; replaces detection",
     )
     parser.add_argument("root", nargs="?", help="the repository root; default is the current directory")
     return parser
