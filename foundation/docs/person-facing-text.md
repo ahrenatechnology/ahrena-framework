@@ -18,12 +18,12 @@ Until this rule, every agent in the framework was written to be called. Its outp
 
 ## What was measured
 
-The owner's prompts were read in every session that launched the tech-lead agent, on the owner's machine and on the remote workstation, opening briefs not counted. A keyword classifier sorted each one; every slice is approximate.
+The owner's prompts were read in every session that launched the tech-lead agent, on the owner's machine and on the remote workstation, opening briefs not counted. A keyword classifier sorted each one by the time it was sent; every slice is approximate. Measured on 14/11/2026. The boundary between the two windows is 12/11/2026 at 02:10 (UTC-3), the time of the earlier measurement: a prompt sent before it is in the first row, one sent after it in the second.
 
 | Window | Sessions | Interventions classified | Asking the agent to explain what it proposed |
 |---|---|---|---|
-| 20/10/2026 to 12/11/2026 | 67 | 955 | 346 (~36%) |
-| 12/11/2026 to 14/11/2026 | 45 | 168 | 74 (~44%) |
+| 20/10/2026 until the boundary | 67 | 955 | 346 (~36%) |
+| The boundary until 14/11/2026 | 45 | 168 | 74 (~44%) |
 
 Over the second window the agency got faster and needed fewer interventions per session. The share of interventions that were requests for explanation did not fall. Speed was not the problem those requests point at; the text was.
 
@@ -34,7 +34,7 @@ One session in the second window shows the cost at its worst: 39 prompts from th
 | Opened with the mechanism | 1, business impact first |
 | Used terms the reader does not use | 2, the reader's words |
 | Skipped how the thing is done today | 3, today before the change |
-| Opened by defending what the system does not do | 6, affirmative statements |
+| Opened by defending what the system does not do | 6, what the thing does |
 | Cited internal records the reader could not open | 9, no internal identifiers |
 
 The owner ended up rebuilding the explanation by asking basic questions one at a time: what the thing is for, what it configures, what happens next. Those questions are the outline the agent should have answered before writing, and condition 5 asks for it.
@@ -67,4 +67,4 @@ Whether a first sentence states a business impact, whether a word is the reader'
 
 ## Where this stops
 
-This document does not define the escalation card (its five parts belong to the issue that owns it), does not say which decisions reach a person, and does not describe how an agent takes a session's role. It explains one rule.
+This document does not define the escalation card (its five parts belong to #262), does not say which decisions reach a person, and does not describe how an agent takes a session's role. It explains one rule.

@@ -21,7 +21,7 @@ The examples are illustrative. The shop, its numbers and its roles are invented,
 
 Two hold before any condition is read.
 
-**The text is in the reader's native language.** For the products built on this framework today that is Brazilian Portuguese. It covers everything the person reads from the agent: the conversation, a plan, a question, an escalation, a result, an error, the title and the brief of a session, and a message drafted for them to send. A person reading their own language spends no effort on translation and keeps all of it for the decision. Text addressed to a person in another language fails, even when every condition below is met. A name behind the scenes stays as it is written (a branch, a file, a command, a field), and so does a term of the trade with no established translation (`API`, `webhook`, `deploy`).
+**The text is in the reader's native language.** That is the language the person writes to the agent in, unless the project's instructions name another. It covers everything the person reads from the agent: the conversation, a plan, a question, an escalation, a result, an error, the title and the brief of a session, and a message drafted for them to send. A person reading their own language spends no effort on translation and keeps all of it for the decision. Text addressed to a person in another language fails, even when every condition below is met. A name behind the scenes stays as it is written (a branch, a file, a command, a field), and so does a term of the trade with no established translation (`API`, `webhook`, `deploy`).
 
 **The text says what changes for the reader and what they do next.** How the system works inside appears only where the reader needs it to decide.
 
@@ -46,7 +46,7 @@ Two hold before any condition is read.
 
 4. **The text proposes.** A problem arrives with what the agent would do about it, why, what is lost by doing it, and what the agent does if no answer comes. A problem reported alone, and a list of options with no recommendation, both fail.
 
-   - Passa: «Eu separaria em duas entregas. A lista de faturas sai esta semana e já resolve a segunda via. O total por mês depende de uma decisão sobre o relatório, e pode vir depois sem segurar a primeira.»
+   - Passa: «Eu separaria em duas entregas. A lista de faturas sai esta semana e já resolve a segunda via. O total por mês depende de uma decisão sobre o relatório, e pode vir depois sem segurar a primeira. O que se perde: o total por mês chega uma semana depois. Se não houver resposta até quinta, sigo com as duas entregas.»
    - Reprova: «Podemos fazer em uma entrega ou em duas. Como você prefere?»
 
 5. **The text teaches.** One idea per sentence. A sequence is written as numbered steps in the order they happen. An abstract idea comes with one concrete example from the reader's own case.
@@ -54,7 +54,7 @@ Two hold before any condition is read.
    - Passa: «Quando o cliente abre a página da conta, acontece isto, em ordem: 1. A página pede as faturas em aberto. 2. O sistema confere se a conta é dele. 3. A lista aparece, da mais antiga para a mais nova.»
    - Reprova: «A listagem respeita o escopo da conta por política de acesso.»
 
-6. **Every statement is affirmative.** The text says what the thing does. A sentence built as "not X, but Y", and a paragraph that opens by defending what the thing does not do, both fail.
+6. **The text says what the thing does.** A sentence built as "not X, but Y", and a paragraph that opens by defending what the thing does not do, both fail. A limit the reader needs in order to decide (what cannot be undone, what an access cannot change) is stated once, after what the thing does.
 
    - Passa: «Cada cliente vê só as faturas da própria conta.»
    - Reprova: «A página não expõe faturas de outros clientes.»
@@ -78,6 +78,9 @@ Two hold before any condition is read.
     - Passa: «Falta a sua decisão sobre o total por mês. Entra nesta entrega?»
 
 11. **A message drafted for a third party names its reader first.** Before drafting, the agent states who will read it and what that person answers for; when it does not know, it asks once. The draft follows conditions 1 to 10 from that reader's side, and is never sent without the person's approval of the final text.
+
+    - Passa: «Antes de escrever: quem vai ler é a pessoa que responde pelos dados de faturamento, e ela decide se libera o acesso. É isso?»
+    - Reprova: um rascunho que começa direto no pedido, sem dizer para quem é.
 
 ## Tone by moment
 
@@ -122,7 +125,7 @@ What fails: it opens with the mechanism (1), uses words the reader does not (2),
 
 > A revisão encontrou o mesmo problema três vezes na tela de faturas: com mais de 500 faturas, a página demora 8 segundos para abrir. Isso segura a entrega da lista, que estava prevista para hoje.
 >
-> Eu mostraria 50 faturas por vez, com um botão para ver mais. Resolve a demora e muda pouco para o cliente, que quase sempre procura as mais recentes. Se você não responder até amanhã, sigo por esse caminho.
+> Eu mostraria 50 faturas por vez, com um botão para ver mais. Resolve a demora: 50 faturas abrem em menos de 1 segundo. O cliente quase não sente a mudança: 9 em cada 10 buscas de outubro foram por faturas dos últimos 3 meses, pelo registro de acessos. Se você não responder até amanhã, sigo por esse caminho.
 >
 > Aprova?
 
