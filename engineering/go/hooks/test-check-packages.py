@@ -45,6 +45,9 @@ def go_mod(path: str, *requires: str) -> str:
     return f"module {path}\n\ngo 1.23\n\nrequire (\n{lines}\n)\n"
 
 
+ARGUMENT = "@argument"
+
+
 Case = tuple[str, dict[str, str], list[str], bool]
 
 
@@ -53,6 +56,16 @@ def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) 
 
 
 CASES = [
+    case(
+        "a run over a subdirectory still finds the module above it",
+        tree(
+            {
+                "internal/orders/domain/order.go": importing("domain", "example.com/m/internal/orders/infra"),
+                ARGUMENT: "internal/orders",
+            }
+        ),
+        ["[package-boundaries] condition 2"],
+    ),
     case(
         "domain importing infra fails",
         tree({"internal/orders/domain/order.go": importing("domain", "example.com/m/internal/orders/infra")}),
@@ -125,9 +138,12 @@ def write(root: Path, files: dict[str, str]) -> None:
 
 
 def run(files: dict[str, str]) -> tuple[int, str]:
+    """Run the hook over the tree, or over the path a case names under ARGUMENT."""
+    files = dict(files)
+    argument = files.pop(ARGUMENT, ".")
     with tempfile.TemporaryDirectory() as tmp:
         write(Path(tmp), files)
-        result = subprocess.run([sys.executable, str(HOOK), "."], cwd=tmp, capture_output=True, text=True)
+        result = subprocess.run([sys.executable, str(HOOK), argument], cwd=tmp, capture_output=True, text=True)
         return result.returncode, result.stdout + result.stderr
 
 

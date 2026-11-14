@@ -39,6 +39,7 @@ from golex import (  # noqa: E402
     signatures,
     strip_newlines,
     struct_fields,
+    type_name_before,
 )
 
 @dataclass
@@ -92,7 +93,7 @@ def member_surface(member: list[Token]) -> tuple[str, list[Token]] | None:
 
 def check_type_surface(source: Surface, index: int, findings: list[Finding]) -> None:
     tokens = source.tokens
-    owner = tokens[index - 1].text if index and tokens[index - 1].kind == "ident" else ""
+    owner = type_name_before(tokens, index)
     if source.depths[index] != 0 or not is_exported(owner):
         return
     word = "field" if tokens[index].text == "struct" else "method"

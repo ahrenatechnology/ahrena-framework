@@ -86,6 +86,15 @@ def tree(files: dict[str, str]) -> dict[str, str]:
     return {"go.mod": GO_MOD, **files}
 
 
+
+FUNC_TYPES_ONLY = '''package middleware
+
+type Handler func(int)
+
+type Middleware func(Handler) func(int)
+'''
+
+
 Case = tuple[str, dict[str, str], list[str], bool]
 
 
@@ -94,6 +103,18 @@ def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) 
 
 
 CASES = [
+    case(
+        "a file of func types declares no function",
+        tree({"middleware/types.go": FUNC_TYPES_ONLY}),
+        ["1 file(s), no failures"],
+        ok=True,
+    ),
+    case(
+        "every GOARCH the go command knows is a constraint suffix",
+        tree({"add/add_ppc.go": FUNCTIONS, "add/add_mips64p32le.go": FUNCTIONS, "add/add_test.go": TEST}),
+        ["3 file(s), no failures"],
+        ok=True,
+    ),
     case(
         "a file of functions with no test beside it fails",
         tree({"orders/orders.go": FUNCTIONS}),

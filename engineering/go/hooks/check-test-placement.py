@@ -37,8 +37,9 @@ GOOS = frozenset(
 
 GOARCH = frozenset(
     {
-        "386", "amd64", "arm", "arm64", "loong64", "mips", "mipsle", "mips64", "mips64le",
-        "ppc64", "ppc64le", "riscv64", "s390x", "sparc64", "wasm",
+        "386", "amd64", "amd64p32", "arm", "armbe", "arm64", "arm64be", "loong64", "mips", "mipsle",
+        "mips64", "mips64le", "mips64p32", "mips64p32le", "ppc", "ppc64", "ppc64le", "riscv", "riscv64",
+        "s390", "s390x", "sparc", "sparc64", "wasm",
     }
 )
 

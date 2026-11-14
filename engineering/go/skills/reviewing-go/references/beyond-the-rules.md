@@ -18,7 +18,7 @@ Opened by step 2 of `SKILL.md` for the defects a Go reader catches that are not 
 
 ### GO-3 A select loop that spins
 
-- **State:** a `for { select { … default: } }` whose `default` branch does nothing or very little, so the loop burns a CPU core polling instead of blocking. `staticcheck`'s `SA5004` reports the empty case; a reader catches the nearly-empty one.
+- **State:** a `for { select { … default: … } }` whose `default` branch performs no blocking operation — no channel send or receive, no lock, no sleep, no call that takes a context — so the loop polls instead of blocking and burns a CPU core while it waits. `staticcheck`'s `SA5004` reports the empty `default`; a reader reads the non-empty one against that list.
 - **Detect:** read every `select` with a `default` inside a loop.
 - **Exempt:** a non-blocking send or receive attempted once, outside a loop.
 - **Correct:** remove the `default` so the `select` blocks, and add `case <-ctx.Done():` so it can still stop.

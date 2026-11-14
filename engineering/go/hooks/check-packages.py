@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from golex import Finding, display, imports, load, report, sources, skipped  # noqa: E402
+from golex import Finding, display, imports, load, module_root, report, skipped, sources  # noqa: E402
 
 LAYERS = ("domain", "application", "infra")
 
@@ -59,14 +59,19 @@ def read_module(go_mod: Path) -> Module | None:
 
 
 def modules_in(roots: list[Path]) -> list[Module]:
+    """The modules at or below each path given, and the one each path itself sits in."""
     found: list[Module] = []
     for root in roots:
+        enclosing = module_root(root if root.is_dir() else root.parent)
+        if enclosing is not None and enclosing != root:
+            module = read_module(enclosing / "go.mod")
+            found += [module] if module else []
         walk = [root] if root.is_file() else root.rglob("go.mod")
         for go_mod in walk:
             if go_mod.name == "go.mod" and not skipped(go_mod.relative_to(root) if root.is_dir() else Path(go_mod.name)):
                 module = read_module(go_mod)
                 found += [module] if module else []
-    return found
+    return list({module.root: module for module in found}.values())
 
 
 def layer_rank(relative: str) -> tuple[int, str] | None:

@@ -126,6 +126,18 @@ func Load() store.Record { return store.Record{} }
 def surface(path: str, source: str) -> dict[str, str]:
     return {"go.mod": GO_MOD, "internal/store/store.go": STORE, path: source}
 
+
+GENERIC_STRUCT = '''package api
+
+import "example.com/m/internal/store"
+
+type Box[T any] struct {
+	Rec store.Record
+	V   T
+}
+'''
+
+
 Case = tuple[str, dict[str, str], list[str], bool]
 
 
@@ -134,6 +146,11 @@ def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) 
 
 
 CASES = [
+    case(
+        "an exported generic struct is read",
+        surface("api/api.go", GENERIC_STRUCT),
+        ["[api-surface] condition 2", "Box exposes store.Record in field Rec"],
+    ),
     case(
         "an exported function returning an internal type fails",
         surface("api/api.go", LEAK_RESULT),

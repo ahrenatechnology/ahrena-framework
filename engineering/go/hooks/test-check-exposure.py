@@ -189,6 +189,34 @@ def module(files: dict[str, str]) -> dict[str, str]:
     return {"go.mod": GO_MOD, **files}
 
 
+
+GENERIC_SECRET = '''package vault
+
+type Vault[T any] struct {
+	Password string
+	Item     T
+}
+'''
+
+VERB_FORMS = '''package config
+
+import "fmt"
+
+func Dump(c any) string { return fmt.Sprintf("%+[1]v", c) }
+
+func Rate(p int) string { return fmt.Sprintf("%d%%+v", p) }
+'''
+
+SECRET_ONLY_IN_THE_TYPE = '''package admin
+
+import "example.com/m/internal/auth"
+
+type Manager struct {
+	Owner *auth.Credentials
+}
+'''
+
+
 Case = tuple[str, dict[str, str], list[str], bool]
 
 
@@ -197,6 +225,22 @@ def case(name: str, files: dict[str, str], expect: list[str], ok: bool = False) 
 
 
 CASES = [
+    case(
+        "an exported generic struct carrying a secret is read",
+        module({"vault/vault.go": GENERIC_SECRET}),
+        ["[exposure] condition 3", "Vault carries Password"],
+    ),
+    case(
+        "an argument index is caught and an escaped percent is not",
+        module({"config/dump.go": VERB_FORMS}),
+        ["1 failure(s)", "[exposure] condition 1", "config/dump.go:5"],
+    ),
+    case(
+        "a field whose type, not name, mentions a secret is not read",
+        module({"admin/manager.go": SECRET_ONLY_IN_THE_TYPE}),
+        ["1 file(s), no failures"],
+        ok=True,
+    ),
     case(
         "the incident: a provider error written to the client as it came fails",
         module({"api/secret.go": INCIDENT}),

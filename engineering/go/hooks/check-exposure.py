@@ -42,9 +42,10 @@ from golex import (  # noqa: E402
     split_top,
     strip_newlines,
     struct_fields,
+    type_name_before,
 )
 
-WHOLE_VALUE_VERB = re.compile(r"%[ \-0]*([+#])[ \-0+#]*\d*(?:\.\d*)?v")
+WHOLE_VALUE_VERB = re.compile(r"%[ \-0]*([+#])[ \-0+#]*(?:\[\d+\])?\d*(?:\.\d*)?(?:\[\d+\])?v")
 
 RESPONSE_CALLS = {"net/http": ("Error",), "google.golang.org/grpc/status": ("Error", "Errorf")}
 
@@ -62,7 +63,7 @@ def check_verbs(source: GoFile, findings: list[Finding]) -> None:
     for token in source.tokens:
         if token.kind not in ("string", "raw"):
             continue
-        for match in WHOLE_VALUE_VERB.finditer(token.text):
+        for match in WHOLE_VALUE_VERB.finditer(token.text.replace("%%", "")):
             findings.append(
                 Finding(
                     f"{source.rel}:{token.line}",
@@ -114,13 +115,22 @@ def methods_in(directory: Path) -> set[tuple[str, str]]:
     return _methods[directory]
 
 
+def field_names(field: list[Token]) -> list[str]:
+    """The names a field declaration declares: its leading identifiers, before the type."""
+    names, cursor = [field[0].text], 1
+    while cursor + 1 < len(field) and field[cursor].text == ",":
+        names.append(field[cursor + 1].text)
+        cursor += 2
+    return names
+
+
 def secret_fields(tokens: list[Token], start: int) -> list[str]:
     """The fields of the struct whose `{` is at `start` that are named for a secret."""
     names: list[str] = []
     for field in struct_fields(tokens, start):
         field = strip_newlines(field)
         if len(field) > 1 and field[0].kind == "ident" and field[1].text != ".":
-            names += [t.text for t in field if t.kind == "ident" and t.text.lower().endswith(SECRET_SUFFIXES)][:1]
+            names += [name for name in field_names(field) if name.lower().endswith(SECRET_SUFFIXES)][:1]
     return names
 
 
@@ -129,7 +139,7 @@ def check_secrets(source: GoFile, findings: list[Finding]) -> None:
     for index in range(1, len(tokens) - 1):
         if tokens[index].text != "struct" or tokens[index + 1].text != "{" or depths[index] != 0:
             continue
-        owner = tokens[index - 1].text if tokens[index - 1].kind == "ident" else ""
+        owner = type_name_before(tokens, index)
         secrets = secret_fields(tokens, index + 1) if owner else []
         declared = methods_in(source.path.parent)
         missing = [m for m in REDACTING_METHODS if (owner, m) not in declared]

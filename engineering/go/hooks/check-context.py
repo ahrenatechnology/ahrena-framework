@@ -43,6 +43,7 @@ from golex import (  # noqa: E402
     strip_newlines,
     struct_fields,
     texts,
+    type_name_before,
 )
 
 @dataclass
@@ -74,7 +75,7 @@ def check_fields(source: Context, findings: list[Finding]) -> None:
     for index, token in enumerate(tokens[:-1]):
         if token.text != "struct" or tokens[index + 1].text != "{":
             continue
-        owner = tokens[index - 1].text if index and tokens[index - 1].kind == "ident" else "an anonymous struct"
+        owner = type_name_before(tokens, index) or "an anonymous struct"
         for field in struct_fields(tokens, index + 1):
             field = strip_newlines(field)
             if len(field) < 3 or not is_context(field[-3:], source.alias):

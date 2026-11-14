@@ -25,7 +25,7 @@ from pathlib import Path
 
 SKIP_NAMES = frozenset({"vendor", "testdata", "node_modules"})
 
-GENERATED = re.compile(r"^// Code generated .* DO NOT EDIT\.$", re.MULTILINE)
+GENERATED = re.compile(r"^// Code generated .* DO NOT EDIT\.$")
 
 GO_DIRECTIVE = re.compile(r"^go\s+(\d+)\.(\d+)", re.MULTILINE)
 
@@ -265,14 +265,19 @@ def receiver_type(group: list[Token]) -> str:
     return names[-1] if names else ""
 
 
-def signature_at(tokens: list[Token], index: int) -> Signature | None:
+def is_declaration(tokens: list[Token], index: int, depths: list[int]) -> bool:
+    """Whether the `func` at `index` opens a top-level declaration, the only place a receiver can be."""
+    return depths[index] == 0 and (index == 0 or tokens[index - 1].text in ("\n", ";"))
+
+
+def signature_at(tokens: list[Token], index: int, declaration: bool) -> Signature | None:
     """The signature that the `func` keyword at `index` opens."""
     name, cursor, receiver = "func literal", index + 1, None
-    if cursor < len(tokens) and tokens[cursor].text == "(":
+    if declaration and cursor < len(tokens) and tokens[cursor].text == "(":
         after = closing(tokens, cursor) + 1
         if after + 1 < len(tokens) and tokens[after].kind == "ident" and tokens[after + 1].text in ("(", "["):
             receiver, cursor = receiver_type(tokens[cursor + 1 : after - 1]), after
-    if cursor < len(tokens) and tokens[cursor].kind == "ident":
+    if declaration and cursor < len(tokens) and tokens[cursor].kind == "ident":
         name, cursor = tokens[cursor].text, after_type_parameters(tokens, cursor + 1)
     if cursor >= len(tokens) or tokens[cursor].text != "(":
         return None
@@ -284,8 +289,37 @@ def signature_at(tokens: list[Token], index: int) -> Signature | None:
 
 
 def signatures(tokens: list[Token]) -> list[Signature]:
-    found = (signature_at(tokens, index) for index, token in enumerate(tokens) if token.text == "func")
+    depths = brace_depths(tokens)
+    found = (
+        signature_at(tokens, index, is_declaration(tokens, index, depths))
+        for index, token in enumerate(tokens)
+        if token.text == "func"
+    )
     return [signature for signature in found if signature is not None]
+
+
+def type_name_before(tokens: list[Token], index: int) -> str:
+    """The name a `struct` or `interface` at `index` is declared under, past any type parameters."""
+    cursor = index - 1
+    if cursor >= 0 and tokens[cursor].text == "]":
+        depth = 0
+        while cursor >= 0:
+            depth += {"]": 1, "[": -1}.get(tokens[cursor].text, 0)
+            if depth == 0:
+                break
+            cursor -= 1
+        cursor -= 1
+    return tokens[cursor].text if cursor >= 0 and tokens[cursor].kind == "ident" else ""
+
+
+def is_generated(text: str) -> bool:
+    """Whether a marker line sits in the header the go command reads it from, before the package clause."""
+    for line in text.splitlines():
+        if line.startswith("package "):
+            return False
+        if GENERATED.match(line):
+            return True
+    return False
 
 
 def is_exported(name: str) -> bool:
@@ -336,7 +370,7 @@ class GoFile:
 def load(path: Path, base: Path) -> GoFile | None:
     """A Go file ready to check, or None when it is generated."""
     text = path.read_text(encoding="utf-8", errors="replace")
-    if GENERATED.search(text):
+    if is_generated(text):
         return None
     tokens = lex(text)
     package = next((tokens[i + 1].text for i, t in enumerate(tokens[:-1]) if t.text == "package"), "")

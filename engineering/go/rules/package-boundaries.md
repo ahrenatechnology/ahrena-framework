@@ -37,7 +37,7 @@ The layer vocabulary — `domain`, `application`, `infra`, in that order — is 
 
 **Condition 2 does not read test files.** An integration test in a `domain` directory that wires the real `infra` adapter is a test of the composition, not a dependency of the domain, and `go build` never links it into the domain package.
 
-**Condition 3 sees only the modules in the tree it is given.** A cycle through a module published from another repository needs both `go.mod` files, and the hook reads only files on disk. On the Go 1.27.4 source of `net/http`, `database`, `context` and `cmd/go` — the `std` and `cmd` modules, 438 files of Go after generated files are skipped — conditions 2 and 3 report nothing: neither module has layer directories, and they do not require each other. That is a measurement of absence on code the conditions do not target, not of precision; no layered Go service was at hand to measure against.
+**Condition 3 sees only the modules in the tree it is given.** A cycle through a module published from another repository needs both `go.mod` files, and the hook reads only files on disk. On the Go 1.27.4 source of `net/http`, `database`, `context` and `cmd/go` — the `std` and `cmd` modules, 440 files of Go after generated files are skipped — conditions 2 and 3 report nothing: neither module has layer directories, and they do not require each other. That is a measurement of absence on code the conditions do not target, not of precision; no layered Go service was at hand to measure against.
 
 **Condition 4 cannot be decided by a script.** Whether a package is promised to outside importers is the author's intent, written in the module's documentation, and a package outside `internal/` is not a defect until somebody depends on it who should not.
 

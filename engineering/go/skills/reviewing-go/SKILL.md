@@ -56,7 +56,7 @@ Then open the rules for what the change touches:
 | a map, a function returning an interface, a type assertion, a pointer returned beside an error | `rules/nil-safety.md` |
 | an exported identifier, a new interface, a constructor, a slice or map crossing the package boundary | `rules/api-surface.md` |
 | a new package or module, an import across packages, a new variant of an existing behaviour | `rules/package-boundaries.md`, with `docs/project-layout.md` |
-| a response, an error returned across a layer, a log or trace call, a `fmt` verb, a type holding a credential | `rules/exposure.md`, the Go form of the security plugin's rule from #294; a finding there is `blocking` |
+| a response, an error returned across a layer, a log or trace call, a `fmt` verb, a type holding a credential | `rules/exposure.md`, the Go form of the security plugin's rule from #294 |
 | any `defer`, `Lock`, `select` in a loop, sub-slice stored, struct used at its zero value, or a pattern from another language | `references/beyond-the-rules.md` |
 
 A change that only edits a pure function's arithmetic opens none of these; say the Go pass found nothing specific.
