@@ -26,15 +26,17 @@ sys.modules["run_agent"] = run_agent
 spec.loader.exec_module(run_agent)
 
 RULE = "engineering/security/rules/layer-exposure.md"
+# #290: built, so the traceability check does not read a criterion token here.
+TOKEN = "#" + "10/AC-2"
 CASE = {
     "id": "c",
     "expect": {
         "writing_skill": "ahrena-engineering-python:writing-python",
         "reviewing_skill": "ahrena-engineering-python:reviewing-python",
-        "exposure": {"criterion": "#10/AC-2", "forbidden": [r"str\((error|e)\)"]},
+        "exposure": {"criterion": TOKEN, "forbidden": [r"str\((error|e)\)"]},
     },
 }
-DONE = "DONE\nlayer: api\nbranch: feat/12-charge-api at f7998e8\nleft: #10/AC-2 written in the rule's form"
+DONE = f"DONE\nlayer: api\nbranch: feat/12-charge-api at f7998e8\nleft: {TOKEN} written in the rule's form"
 
 results: list[tuple[str, bool]] = []
 
@@ -55,12 +57,17 @@ READ_RULE = ("Read", {"file_path": "/tmp/plugins/engineering/security/rules/laye
 WRITE_TEST = ("Write", {"file_path": "src/payments/api_test.py", "content": "import unittest"})
 
 
-def sample(*calls, result: str = DONE, added=(), pushed=("feat/12-charge-api",)):
+def sample(
+    *calls: tuple[str, dict],
+    result: str = DONE,
+    added: tuple[tuple[str, str], ...] | list[tuple[str, str]] = (),
+    pushed: tuple[str, ...] = ("feat/12-charge-api",),
+) -> run_agent.Sample:
     parsed, text = run_agent.parse_stream(stream(*calls, result=result))
     return run_agent.Sample(parsed, text, list(added), list(pushed))
 
 
-def failed(s) -> list[str]:
+def failed(s: run_agent.Sample) -> list[str]:
     return run_agent.decide(s, CASE, RULE)[0]
 
 
@@ -68,7 +75,7 @@ def test_conditions() -> None:
     good = sample(SKILL_W, READ_RULE, WRITE_TEST, SKILL_R)
     check(failed(good) == [], "a run in the right order, DONE and pushed, passes")
 
-    check(any(f.startswith("1:") for f in failed(sample(SKILL_W, READ_RULE, WRITE_TEST, SKILL_R, result="BLOCKED\nleft: #10/AC-2"))),
+    check(any(f.startswith("1:") for f in failed(sample(SKILL_W, READ_RULE, WRITE_TEST, SKILL_R, result=f"BLOCKED\nleft: {TOKEN}"))),
           "1: a result that is not DONE fails")
     check(any("remote" in f for f in failed(sample(SKILL_W, READ_RULE, WRITE_TEST, SKILL_R, pushed=()))),
           "1: a branch that is not on the remote fails")

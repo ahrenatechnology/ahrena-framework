@@ -43,6 +43,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
 REPO = Path(__file__).resolve().parents[2]
 TOOLS = "Bash Skill Read Grep Glob Edit Write"
@@ -111,11 +112,11 @@ def reads_rule(call: Call, rule: str) -> bool:
     return call.name == "Bash" and name in str(call.args.get("command", ""))
 
 
-def first(calls: list[Call], predicate) -> int | None:
+def first(calls: list[Call], predicate: Callable[[Call], bool]) -> int | None:
     return next((i for i, c in enumerate(calls) if predicate(c)), None)
 
 
-def invokes(skill: str):
+def invokes(skill: str) -> Callable[[Call], bool]:
     return lambda c: c.name == "Skill" and str(c.args.get("skill", "")) == skill
 
 
