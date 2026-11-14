@@ -12,7 +12,7 @@ references:
 
 # No Google Cloud Detail in an Application's Output
 
-This is the Google Cloud form of the framework's exposure rule (issue 294 of this repository): nothing sensitive leaves the layer that owns it, and what a layer emits is an allowlist of named fields. [`docs/exposure.md`](../docs/exposure.md) lists what a Google Cloud error and identifier carry, cites the page behind each, and gives the shape of the translation.
+This is the Google Cloud form of the framework's exposure rule, [`layer-exposure.md`](../../security/rules/layer-exposure.md): nothing sensitive leaves the layer that owns it, and what a layer emits is an allowlist of named fields. [`docs/exposure.md`](../docs/exposure.md) lists what a Google Cloud error and identifier carry, cites the page behind each, and gives the shape of the translation.
 
 An **exit** here is a response body or header, an error message returned to a caller, standard output or error, a log line that leaves the project's own logging (to a client, a third party, a ticket, a pull-request comment), a trace or metric attribute, a CLI or tool result, and an infrastructure plan, output or pipeline log.
 
@@ -30,7 +30,7 @@ An **exit** here is a response body or header, an error message returned to a ca
 
 ## Where this stops
 
-**A judgment rule, because the detail is a value and not a call.** Whether `str(err)` reaches a response depends on where the string flows, which a pattern over one line cannot decide. The vendor-agnostic rule of issue 294 (pull request 301) is to ship a hook for the cases a line can show, such as a caught error interpolated into a response; until it lands, condition 1 is decided by review alone, and this rule does not ship a second hook.
+**A judgment rule, because the detail is a value and not a call.** Whether `str(err)` reaches a response depends on where the string flows, which a pattern over one line cannot decide. The vendor-agnostic rule, [`layer-exposure.md`](../../security/rules/layer-exposure.md), carries the detector for the cases a line can show, such as a caught error interpolated into a response; this rule adds the Google Cloud classes for the reviewer and does not ship a second detector.
 
 **The project's own logging is an exit for policy, and not for the error's fields.** Cloud Logging and Error Reporting inside the project are where the error's named fields belong, under IAM; condition 5 still keeps policies, bindings and service account emails out of them. Their content becomes an exit of every class when it is copied outward.
 

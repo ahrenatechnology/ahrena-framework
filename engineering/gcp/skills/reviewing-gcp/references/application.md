@@ -1,6 +1,6 @@
 # Google Cloud in application code
 
-Opened by step 2 of `SKILL.md` when the `gcp-application` route fired: a changed source file that calls a Google Cloud client library or handles its errors. Each condition gives the state, how it is detected, what exempts it, and the correction. The rule behind them is `rules/exposure.md`; `docs/exposure.md` says what a Google Cloud error and identifier carry.
+Opened by step 2 of `SKILL.md` when the `gcp-application` route fired: a changed source file that calls a Google Cloud client library or handles its errors. Each condition gives the state, how it is detected, what exempts it, and the correction. The rule behind them is `rules/exposure.md`; `docs/exposure.md` says what a Google Cloud error and identifier carry. The security plugin's `hooks/check-exposure.py` decides the line-level shapes of the vendor-agnostic rule (a caught error or an upstream response reaching an exit whole); what it reported is settled, and these conditions read the Google Cloud classes it does not name.
 
 ### GCA-1 A Google Cloud error returned to the caller
 

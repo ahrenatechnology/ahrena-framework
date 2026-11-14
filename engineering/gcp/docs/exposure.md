@@ -12,7 +12,7 @@ references:
 
 # What a Google Cloud Error Carries
 
-This is the companion to [`rules/exposure.md`](../rules/exposure.md), the Google Cloud form of the framework's vendor-agnostic exposure rule (issue 294 of this repository: nothing sensitive leaves the layer that owns it). That rule says what is sensitive and what an exit is; this document says what is sensitive in a Google Cloud deployment specifically, and where it comes from. Pages were read on 2026-11-14.
+This is the companion to [`rules/exposure.md`](../rules/exposure.md), the Google Cloud form of the framework's vendor-agnostic exposure rule, [`layer-exposure.md`](../../security/rules/layer-exposure.md) (nothing sensitive leaves the layer that owns it). That rule says what is sensitive and what an exit is; this document says what is sensitive in a Google Cloud deployment specifically, and where it comes from. Pages were read on 2026-11-14.
 
 ## The incident this answers
 
