@@ -1,13 +1,8 @@
 # Rust errors and surface
 
-Opened by step 2 of `SKILL.md` when the change touches a `Result`/`Option` handled, an error type, a `pub` item, a trait or a generic bound.
+Opened by step 2 of `SKILL.md` when the change touches a `Result`/`Option` handled, a `?` conversion, a `pub` item, a trait or a generic bound.
 
-### RS-13 An error type that loses the cause or over-shares
-
-- **State:** an error converted with `.map_err(|_| MyError)` that drops the source; a `Box<dyn Error>` on a library's public surface where callers need to match variants; a single stringly-typed error (`Err("failed".into())`) where the caller must branch on the kind.
-- **Detect:** read how the error is built and what a caller does with it. A dropped source cannot be logged or matched upstream.
-- **Exempt:** a binary's top-level error where `anyhow`-style context is the right tool; an internal error genuinely opaque at the boundary.
-- **Correct:** keep the source (`#[source]`/`#[from]` with `thiserror`, or `.map_err` that wraps); an `enum` of variants on a library surface; context without erasing the cause.
+A library's opaque or cause-dropping error type is not here: it is `rules/error-types.md`. RS-13 was retired into that rule and its identifier is not reused.
 
 ### RS-14 `?` that converts an error the caller cannot interpret
 
@@ -25,10 +20,10 @@ Opened by step 2 of `SKILL.md` when the change touches a `Result`/`Option` handl
 
 ### RS-16 A public item exposed or over-constrained by accident
 
-- **State:** a `pub` (rather than `pub(crate)`) item that leaks an internal type or an implementation detail into the crate's API; a public function taking `Vec<T>`/`String` where `&[T]`/`&str` would accept more callers; a returned concrete type where `impl Trait` was meant, or the reverse.
+- **State:** a `pub` (rather than `pub(crate)`) item that leaks an internal type or an implementation detail into the crate's API; a returned concrete type where `impl Trait` was meant, or the reverse.
 - **Detect:** read the `pub` surface the change adds. In a library, every `pub` is a promise that `semver` then binds.
 - **Exempt:** an item meant to be public, taking an owned value because it stores it.
-- **Correct:** `pub(crate)` for internal items; accept borrowed arguments; expose the narrowest type the callers need.
+- **Correct:** `pub(crate)` for internal items; expose the narrowest type the callers need. A parameter that should be borrowed is `rules/ownership.md` conditions 1 and 2.
 
 ### RS-17 A trait bound, blanket impl or `Default` that is wrong or missing
 
