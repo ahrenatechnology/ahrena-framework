@@ -103,7 +103,7 @@ The reader answers for the billing data. The person in the session will send it.
 
 > Preciso de acesso de leitura às faturas, para a página da conta mostrar as que estão em aberto.
 >
-> Hoje, quando um cliente quer a segunda via, ele escreve para o suporte, e alguém envia o arquivo por e-mail. Foram 212 pedidos em outubro. A proposta é o cliente baixar a fatura sozinho.
+> Hoje, quando um cliente quer a segunda via, ele escreve para o suporte, e alguém envia o arquivo por e-mail. Foram 212 pedidos em outubro, pelo relatório de chamados. A proposta é o cliente baixar a fatura sozinho.
 >
 > O acesso faz três coisas, e só elas:
 >
@@ -119,13 +119,13 @@ What it does: the request and its purpose first (1), today before the change (3)
 
 > **Escopo da permissão (mínimo):** `SELECT` nas tabelas `invoices` e `invoice_items`, via role dedicada. **Por que não uma view:** ela exigiria manutenção a cada mudança de schema. **Detalhes no ADR-012, D4.** Não há risco de escrita nem de acesso cruzado entre contas.
 
-What fails: it opens with the mechanism (1), uses words the reader does not (2), points at a record the reader cannot open (9), and closes defending instead of asking (6, 10).
+What fails: it opens with the mechanism (1), uses words the reader does not (2), points at a record the reader cannot open (9), and closes on a defence instead of a question (10).
 
 ### An escalation
 
 > A revisão encontrou o mesmo problema três vezes na tela de faturas: com mais de 500 faturas, a página demora 8 segundos para abrir. Isso segura a entrega da lista, que estava prevista para hoje.
 >
-> Eu mostraria 50 faturas por vez, com um botão para ver mais. Resolve a demora: 50 faturas abrem em menos de 1 segundo. O cliente quase não sente a mudança: 9 em cada 10 buscas de outubro foram por faturas dos últimos 3 meses, pelo registro de acessos. Se você não responder até amanhã, sigo por esse caminho.
+> Eu mostraria 50 faturas por vez, com um botão para ver mais. Resolve a demora: 50 faturas abrem em menos de 1 segundo, no teste de ontem com a conta de 500 faturas. O cliente quase não sente a mudança: 9 em cada 10 buscas de outubro foram por faturas dos últimos 3 meses, pelo registro de acessos. Se você não responder até amanhã, sigo por esse caminho.
 >
 > Aprova?
 

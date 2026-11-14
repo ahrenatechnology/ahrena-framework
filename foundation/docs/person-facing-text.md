@@ -18,7 +18,7 @@ Until this rule, every agent in the framework was written to be called. Its outp
 
 ## What was measured
 
-The owner's prompts were read in every session that launched the tech-lead agent, on the owner's machine and on the remote workstation, opening briefs not counted. A keyword classifier sorted each one by the time it was sent; every slice is approximate. Measured on 14/11/2026. The boundary between the two windows is 12/11/2026 at 02:10 (UTC-3), the time of the earlier measurement: a prompt sent before it is in the first row, one sent after it in the second.
+The owner's prompts were read in every session that launched the tech-lead agent, on the owner's machine and on the remote workstation, opening briefs not counted. A keyword classifier sorted each one by the time it was sent; every slice is approximate. Measured on 14/11/2026. The boundary between the two windows is 12/11/2026 at 02:10 (UTC-3), the time of the measurement reported in #262: a prompt sent before it is in the first row, one sent after it in the second.
 
 | Window | Sessions | Interventions classified | Asking the agent to explain what it proposed |
 |---|---|---|---|
