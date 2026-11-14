@@ -1,0 +1,39 @@
+{
+  "routes": [
+    {
+      "id": "azure-iac",
+      "skill": "ahrena-engineering-azure:skills/reviewing-azure/SKILL.md",
+      "why": "a Bicep, ARM or Terraform azurerm file, read for Azure identity, reach, data protection, exposure and cost",
+      "opens": [
+        "ahrena-engineering-azure:skills/reviewing-azure/references/where-to-look.md"
+      ],
+      "paths": [
+        "\\.bicep$",
+        "\\.bicepparam$",
+        "\\.tf$",
+        "\\.json$"
+      ],
+      "contains": [
+        "deploymentTemplate\\.json#",
+        "\\bazurerm_",
+        "(?m)^\\s*resource\\s+\\w+\\s+'Microsoft\\."
+      ]
+    },
+    {
+      "id": "azure-sdk",
+      "skill": "ahrena-engineering-azure:skills/reviewing-azure/SKILL.md",
+      "why": "an added line uses an Azure SDK client, credential or exception, read for what reaches a caller or a log",
+      "opens": [
+        "ahrena-engineering-azure:skills/reviewing-azure/references/where-to-look.md"
+      ],
+      "paths": [
+        "\\.(py|ts|tsx|js|jsx|mjs|cjs|go|java|kt|cs)$"
+      ],
+      "lines": [
+        "\\b(RequestFailedException|HttpResponseError|ResourceNotFoundError|ClientAuthenticationError|RestError|ResponseError)\\b",
+        "\\b(DefaultAzureCredential|ManagedIdentityCredential|ClientSecretCredential|WorkloadIdentityCredential)\\b",
+        "(from\\s+azure\\.|import\\s+azure\\.|@azure/|using\\s+Azure\\.|github\\.com/Azure/azure-sdk-for-go|com\\.azure\\.)"
+      ]
+    }
+  ]
+}
