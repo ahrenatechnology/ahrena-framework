@@ -1,0 +1,22 @@
+{
+  "name": "ahrena-engineering-azure",
+  "displayName": "Ahrena Engineering Azure",
+  "version": "0.1.0",
+  "description": "Azure, grounded in Microsoft's documentation: least-privilege roles and managed identities, encryption and private reach, no Azure identifier or SDK error in an output, and an owner and a budget on every resource.",
+  "author": {
+    "name": "Ahrena Technology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/azure",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "azure",
+    "cloud",
+    "rbac",
+    "entra",
+    "well-architected",
+    "bicep"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

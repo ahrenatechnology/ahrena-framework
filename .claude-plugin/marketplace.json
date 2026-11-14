@@ -395,6 +395,28 @@
       ]
     },
     {
+      "name": "ahrena-engineering-azure",
+      "description": "Azure, grounded in Microsoft's documentation: least-privilege roles and managed identities, encryption and private reach, no Azure identifier or SDK error in an output, and an owner and a budget on every resource.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/azure",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/azure",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "azure",
+        "cloud",
+        "rbac",
+        "entra",
+        "well-architected",
+        "bicep"
+      ]
+    },
+    {
       "name": "ahrena-engineering-code-review",
       "description": "The code-review engine: the orchestrator that routes a change to the review lenses it calls for, merges their findings into one verdict, drives the fix-and-re-review loop, and hands an approval to the merge decision.",
       "version": "0.2.0",

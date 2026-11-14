@@ -1,0 +1,68 @@
+{
+  "routes": [
+    {
+      "id": "azure-bicep",
+      "skill": "ahrena-engineering-azure:skills/reviewing-azure/SKILL.md",
+      "why": "a Bicep file or Bicep parameters file, read for Azure identity, reach, data protection, exposure and cost",
+      "opens": [
+        "ahrena-engineering-azure:skills/reviewing-azure/references/where-to-look.md"
+      ],
+      "paths": [
+        "\\.bicep$",
+        "\\.bicepparam$"
+      ]
+    },
+    {
+      "id": "azure-iac",
+      "skill": "ahrena-engineering-azure:skills/reviewing-azure/SKILL.md",
+      "why": "an ARM template or a Terraform file using the azurerm provider, read for Azure identity, reach, data protection, exposure and cost",
+      "opens": [
+        "ahrena-engineering-azure:skills/reviewing-azure/references/where-to-look.md"
+      ],
+      "paths": [
+        "\\.json$",
+        "\\.tf$"
+      ],
+      "contains": [
+        "deploymentTemplate\\.json#",
+        "deploymentParameters\\.json#",
+        "\\bazurerm\\b"
+      ]
+    },
+    {
+      "id": "azure-pipeline",
+      "skill": "ahrena-engineering-azure:skills/reviewing-azure/SKILL.md",
+      "why": "a pipeline step that signs in to Azure or runs az, read for its credential and for what it prints to the log",
+      "opens": [
+        "ahrena-engineering-azure:skills/reviewing-azure/references/where-to-look.md"
+      ],
+      "paths": [
+        "(^|/)\\.github/workflows/[^/]+\\.ya?ml$",
+        "(^|/)azure-pipelines[^/]*\\.ya?ml$",
+        "(^|/)\\.azure-pipelines/.+\\.ya?ml$",
+        "(^|/)\\.gitlab-ci\\.ya?ml$"
+      ],
+      "lines": [
+        "\\bazure/login@",
+        "\\bAzure(CLI|PowerShell|ResourceManagerTemplateDeployment)@",
+        "(^|[\\s;|&])az\\s+(login|account|deployment|role|ad|group|resource|keyvault|storage|provider|policy)\\b"
+      ]
+    },
+    {
+      "id": "azure-sdk",
+      "skill": "ahrena-engineering-azure:skills/reviewing-azure/SKILL.md",
+      "why": "an added line uses an Azure SDK client, credential or exception, read for what reaches a caller or a log",
+      "opens": [
+        "ahrena-engineering-azure:skills/reviewing-azure/references/where-to-look.md"
+      ],
+      "paths": [
+        "\\.(py|ts|tsx|js|jsx|mjs|cjs|go|java|kt|cs)$"
+      ],
+      "lines": [
+        "\\b(RequestFailedException|HttpResponseError|ResourceNotFoundError|ClientAuthenticationError|RestError|ResponseError)\\b",
+        "\\b(DefaultAzureCredential|ManagedIdentityCredential|ClientSecretCredential|WorkloadIdentityCredential)\\b",
+        "(from\\s+azure\\.|import\\s+azure\\.|@azure/|using\\s+Azure\\.|github\\.com/Azure/azure-sdk-for-go|com\\.azure\\.)"
+      ]
+    }
+  ]
+}
