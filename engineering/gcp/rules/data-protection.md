@@ -4,7 +4,7 @@ type: rule
 clade: engineering
 subclade: gcp
 title: Encrypted Data on Google Cloud
-statement: On Google Cloud, no unencrypted path the platform leaves to the customer, a CMEK key rotates, and a secret is read per secret from Secret Manager.
+statement: On Google Cloud, a change encrypts every path the platform leaves to it, rotates each CMEK key it creates, and reads each secret from Secret Manager.
 enforcement: judgment
 references:
   - docs/data-protection.md

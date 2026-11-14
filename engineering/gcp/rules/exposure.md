@@ -26,13 +26,13 @@ An **exit** here is a response body or header, an error message returned to a ca
 
 4. **No network layout in an exit.** No exit carries a VPC, subnet or range, an internal IP address or hostname, a firewall rule or a VPC Service Controls perimeter. Decided by a reviewer.
 
-5. **The detail goes to an internal log, by named fields.** What condition 1 keeps from the caller is logged inside the project, to Cloud Logging, as named fields with the correlation identifier, never the whole error object, request or response, and never a secret. Decided by a reviewer, with `ahrena-engineering-security:skills/reviewing-sensitive-data/SKILL.md` for the fields themselves.
+5. **The detail goes to an internal log, by named fields, and stops short of policy.** What condition 1 keeps from the caller is logged inside the project, to Cloud Logging, as named fields taken from the error (its type, `reason`, `domain` and status code) with the correlation identifier. Never the whole error object, its message text, the request or the response; never a secret; and never an access policy, a role binding or a service account email, which no diagnosis needs and which Policy Troubleshooter and the audit logs already hold for those allowed to see them. Decided by a reviewer, with `ahrena-engineering-security:skills/reviewing-sensitive-data/SKILL.md` for the fields themselves.
 
 ## Where this stops
 
-**A judgment rule, because the detail is a value and not a call.** Whether `str(err)` reaches a response depends on where the string flows, which a pattern over one line cannot decide. The vendor-agnostic rule's hook (issue 294) reports the cases a line can show, such as a caught error interpolated into a response; this rule adds the Google Cloud classes for the reviewer and does not ship a second hook.
+**A judgment rule, because the detail is a value and not a call.** Whether `str(err)` reaches a response depends on where the string flows, which a pattern over one line cannot decide. The vendor-agnostic rule of issue 294 (pull request 301) is to ship a hook for the cases a line can show, such as a caught error interpolated into a response; until it lands, condition 1 is decided by review alone, and this rule does not ship a second hook.
 
-**The project's own logging is not an exit.** Cloud Logging and Error Reporting inside the project are where the detail belongs, under IAM. They become an exit when their content is copied outward.
+**The project's own logging is an exit for policy, and not for the error's fields.** Cloud Logging and Error Reporting inside the project are where the error's named fields belong, under IAM; condition 5 still keeps policies, bindings and service account emails out of them. Their content becomes an exit of every class when it is copied outward.
 
 **An operator tool that is about the infrastructure** may show project IDs and resource names to its operators, because that is its contract. It still never shows a policy, a credential or the provider's raw error to anyone outside the project's own administrators.
 

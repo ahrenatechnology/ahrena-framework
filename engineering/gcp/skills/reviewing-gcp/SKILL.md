@@ -24,7 +24,7 @@ The conditions are checklists in `references/`, identified by `GCI-n` for infras
 
 ## 1. Take the route, and read the installation first
 
-This plugin ships its routes as a fragment, `review-routes.json` at the plugin root, which the router merges when it is passed with `--plugin-routes` or `ROUTE_REVIEW_FRAGMENTS` (`ahrena-engineering-quality:docs/review-routes.md`). Two routes select this skill: `gcp-infrastructure` and `gcp-application`. Read the files each fired on.
+This plugin ships its routes as a fragment, `review-routes.json` at the plugin root, which the router merges when it is passed with `--plugin-routes` or `ROUTE_REVIEW_FRAGMENTS` (`ahrena-engineering-quality:docs/review-routes.md`). Two routes select this skill: `gcp-infrastructure` and `gcp-application`. Read the files each fired on. On the infrastructure files, run this plugin's hook, `hooks/check-gcp-grants.py`, which decides the basic-role, key and public-principal literals of `rules/identity-and-access.md`; what it reported is settled, and the checklist reads what it cannot see.
 
 Before the checklists, read what the installation has already decided: its owner label key, its budgets, the organization policies it enforces, the identity it uses in CI. A condition an enforced organization policy already refuses (a key, when `iam.disableServiceAccountKeyCreation` holds on the project) is not reported again, but say which policy settled it.
 

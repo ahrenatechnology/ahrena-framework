@@ -52,7 +52,7 @@ So the sensitive classes, in a Google Cloud deployment, are:
 
 ## The translation
 
-The correction is the one the vendor-agnostic rule names: at the boundary where the application answers its caller, a caught Google Cloud error becomes the application's own error, with a code from the application's contract, a generic message, and a correlation identifier; the detail goes to an internal log, by named fields, with no secret in it.
+The correction is the one the vendor-agnostic rule names: at the boundary where the application answers its caller, a caught Google Cloud error becomes the application's own error, with a code from the application's contract, a generic message, and a correlation identifier; the detail goes to an internal log, by named fields taken from the error (type, reason, domain, status), with no secret, no message text and no policy, binding or service account email in it.
 
 What the caller learns from the code is what the caller can act on: the request was refused, the resource does not exist for this caller, the service is unavailable and the request can be retried. AIP-193 makes the same choice for Google's own APIs, in the other direction: an API returns `PERMISSION_DENIED` before checking existence, so that a caller without access cannot learn whether a resource exists ([AIP-193](https://google.aip.dev/193)). An application that passes the provider's message through gives its caller more than Google gives the application.
 

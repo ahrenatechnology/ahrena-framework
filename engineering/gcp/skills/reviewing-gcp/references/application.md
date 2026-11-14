@@ -34,8 +34,8 @@ Opened by step 2 of `SKILL.md` when the `gcp-application` route fired: a changed
 
 - **State:** a log call handed a whole client-library exception, request, response or resource object rather than named fields, or a log line holding a secret read from Secret Manager.
 - **Detect:** each log call near a Google Cloud call.
-- **Exempt:** logging the exception through the logger's exception mechanism into Cloud Logging inside the project, where it stays.
-- **Correct:** log named fields with the correlation identifier; never the secret's payload. Rule: `rules/exposure.md` condition 5, with `ahrena-engineering-security:skills/reviewing-sensitive-data/SKILL.md` for the fields.
+- **Exempt:** a log call into Cloud Logging inside the project that passes named fields taken from the error (its type, `reason`, `domain`, status code) with the correlation identifier.
+- **Correct:** log named fields with the correlation identifier; never the message text, the secret's payload, a policy, a binding or a service account email. Rule: `rules/exposure.md` condition 5, with `ahrena-engineering-security:skills/reviewing-sensitive-data/SKILL.md` for the fields.
 
 ### GCA-6 A credential or key file in the application
 

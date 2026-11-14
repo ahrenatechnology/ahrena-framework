@@ -1,6 +1,6 @@
 # Google Cloud infrastructure
 
-Opened by step 2 of `SKILL.md` when the `gcp-infrastructure` route fired: a change that declares or grants something on Google Cloud, in Terraform, a `gcloud` script, a Cloud Build or Cloud Run file, or a Config Connector manifest. Each condition gives the state, how it is detected, what exempts it, and the correction. The detector named after each is the vendor's, which reports the same state on a deployed project; the reviewer is the one that reads it in the change.
+Opened by step 2 of `SKILL.md` when the `gcp-infrastructure` route fired: a change that declares or grants something on Google Cloud, in Terraform, a `gcloud` script, a Cloud Build or Cloud Run file, or a Config Connector manifest. Each condition gives the state, how it is detected, what exempts it, and the correction. `hooks/check-gcp-grants.py` has already reported the literal forms of GCI-1, GCI-3 and GCI-4 on the changed files; a grant it let through because of a `gcp-grant-allowed:` comment is read here for whether the reason holds. The detector named after each is the vendor's, which reports the same state on a deployed project; the reviewer is the one that reads it in the change.
 
 ### GCI-1 A basic role
 
