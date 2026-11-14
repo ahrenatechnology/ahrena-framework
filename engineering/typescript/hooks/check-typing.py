@@ -4,8 +4,8 @@
 Decides five of the seven conditions stated in
 engineering/typescript/rules/typing.md:
 
-    2. no tsconfig turns `strict` or a flag it governs off, and every tsconfig
-       tsc runs from turns `noUncheckedIndexedAccess` on
+    2. every tsconfig tsc runs from sets `strict: true`, turns no flag it
+       governs off, and turns `noUncheckedIndexedAccess` on
     4. an explicit `any` carries a reason, on its line or the line above
     5. no `@ts-ignore` or `@ts-nocheck`, and a `@ts-expect-error` says why
     6. an assertion through `unknown` or `any` carries a reason
@@ -162,11 +162,11 @@ def check_compiler_options(roots: list[Path], base: Path, findings: list[Finding
         for flag in STRICT_FAMILY:
             if options.get(flag) is False:
                 findings.append(Finding(RULE, where, 2, f"turns {flag} off; delete the line, and fix what the compiler then reports"))
+        missing = f" (its base {', '.join(unresolved)} is not installed, so this hook cannot read it)" if unresolved else ""
+        if "strict" not in options:
+            findings.append(Finding(RULE, where, 2, f"does not set strict{missing}; the default changed in 6.0, so write strict: true"))
         if options.get("noUncheckedIndexedAccess") is not True:
-            missing = f" (its base {', '.join(unresolved)} is not installed, so this hook cannot read it)" if unresolved else ""
-            findings.append(
-                Finding(RULE, where, 2, f"does not turn noUncheckedIndexedAccess on{missing}; set it in compilerOptions")
-            )
+            findings.append(Finding(RULE, where, 2, f"does not turn noUncheckedIndexedAccess on{missing}; set it in compilerOptions"))
     return len(configs)
 
 

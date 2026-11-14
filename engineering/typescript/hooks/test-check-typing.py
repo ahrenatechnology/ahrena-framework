@@ -24,7 +24,7 @@ from harness import Case, case, main  # noqa: E402
 
 HOOK = Path(__file__).resolve().parent / "check-typing.py"
 
-STRICT = '{\n  // comments and trailing commas are JSONC, as tsc reads it\n  "compilerOptions": {\n    "noUncheckedIndexedAccess": true,\n  },\n}\n'
+STRICT = '{\n  // comments and trailing commas are JSONC, as tsc reads it\n  "compilerOptions": {\n    "strict": true,\n    "noUncheckedIndexedAccess": true,\n  },\n}\n'
 
 CLEAN = """
 export function add(left: number, right: number): number {
@@ -36,12 +36,13 @@ export function add(left: number, right: number): number {
 
 STRICT_OFF = '{ "compilerOptions": { "strict": false, "noUncheckedIndexedAccess": true } }'
 FAMILY_OFF = '{ "compilerOptions": { "strictNullChecks": false, "noUncheckedIndexedAccess": true } }'
+STRICT_BY_DEFAULT = '{ "compilerOptions": { "noUncheckedIndexedAccess": true } }'
 NO_INDEX = '{ "compilerOptions": { "strict": true } }'
-BASE = '{ "compilerOptions": { "noUncheckedIndexedAccess": true } }'
+BASE = '{ "compilerOptions": { "strict": true, "noUncheckedIndexedAccess": true } }'
 CHILD = '{ "extends": "./tsconfig.base.json", "include": ["src"] }'
 CHILD_UNSETS = '{ "extends": "./tsconfig.base.json", "compilerOptions": { "noUncheckedIndexedAccess": false } }'
 PACKAGE_BASE = '{ "extends": "@tsconfig/strictest/tsconfig.json" }'
-INSTALLED_BASE = '{ "compilerOptions": { "noUncheckedIndexedAccess": true } }'
+INSTALLED_BASE = '{ "compilerOptions": { "strict": true, "noUncheckedIndexedAccess": true } }'
 
 # --- condition 4: explicit any ----------------------------------------------
 
@@ -213,6 +214,7 @@ CASES: list[Case] = [
     # --- condition 2
     case("strict turned off fails", {"tsconfig.json": STRICT_OFF}, ["condition 2", "turns strict off"]),
     case("a strict-family flag turned off fails", {"tsconfig.json": FAMILY_OFF}, ["condition 2", "strictNullChecks"]),
+    case("strict left to the compiler's default fails", {"tsconfig.json": STRICT_BY_DEFAULT}, ["condition 2", "does not set strict"]),
     case("noUncheckedIndexedAccess unset fails", {"tsconfig.json": NO_INDEX}, ["condition 2", "noUncheckedIndexedAccess"]),
     case(
         "a relative base that sets the flag passes",
