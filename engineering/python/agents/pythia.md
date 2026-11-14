@@ -162,7 +162,7 @@ red: none
 green: none
 gates: check-typing 4 file(s), no failures; check-python 1 failure; check-test-placement, check-structure: 4 file(s), no failures; check-boundaries over .: 1 failure, condition 6 on components/reports/domain, pre-existing at base; mypy --strict --explicit-package-bases: Success
 result: none
-findings: export.py:41, [security] condition 3, blocking, pass the argument list to subprocess.run and drop shell=True; export.py:58, PY-9, blocking, log report_id and the row count instead of the whole Report; export_test.py:12, PY-10, deferrable, autospec the storage port instead of a bare Mock
+findings: export.py:41, [security] condition 3, blocking, pass the argument list to subprocess.run and drop shell=True; export.py:58, PY-9, blocking, log report_id and the row count instead of the whole Report; export_test.py:12, PY-10, blocking, build the storage double with create_autospec(StoragePort, instance=True) instead of a bare Mock()
 unchecked: none
 ```
 </example>
