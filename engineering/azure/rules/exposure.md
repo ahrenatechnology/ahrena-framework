@@ -37,11 +37,11 @@ A closed list. Each item is sensitive whatever its value happens to be today.
 
 4. **No developer error page is reachable outside a development environment.** ASP.NET Core's documentation ([Handle errors in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling)) says not to enable the Developer Exception Page unless the app runs in the Development environment, and not to share detailed exception information publicly in production; the same holds for any framework's detailed-error or debug mode. The state that fails is a production deployment, an App Service app setting or a Container Apps environment variable that turns one on. Decided by a reviewer reading the deployment configuration.
 
-5. **A pipeline or deployment log does not print an item of the list as a side effect.** A step that runs `az role assignment list`, `az account show`, prints a deployment's outputs or echoes a what-if result into a log that people outside the platform team can read fails. Decided by a reviewer reading the pipeline definition.
+5. **A pipeline or deployment log does not print an item of the list as a side effect.** A step that runs `az role assignment list`, `az account show`, prints a deployment's outputs or echoes a what-if result into a pipeline or deployment log fails, whoever can read that log today. Decided by a reviewer reading the pipeline definition.
 
 ## Where this stops
 
-**An identifier inside the workload's own configuration is not an exit.** A resource id in a Bicep file or an environment variable the platform injects is where the identifier lives. A log is never inside that boundary, whoever can read it today: condition 2 holds for every log, trace and metric, because who reads a log store changes without the code changing.
+**An identifier inside the workload's own configuration is not an exit.** A resource id in a Bicep file or an environment variable the platform injects is where the identifier lives. A log is never inside that boundary, whoever can read it today: conditions 2 and 5 hold for every log, trace and metric, because who reads a log store changes without the code changing.
 
 **The operator's own diagnosis is not a violation.** Reading a full deployment error in the portal or in `az deployment operation group list` is how a failure is diagnosed. Copying it into an issue, a pull request comment or a chat message that a client can read is an exit, and the diagnosis skill of this plugin writes its report without those items.
 

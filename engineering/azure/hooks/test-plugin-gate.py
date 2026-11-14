@@ -14,6 +14,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+sys.dont_write_bytecode = True
+
 PLUGIN = Path(__file__).resolve().parent.parent
 REPO = PLUGIN.parent.parent
 GATE = REPO / "foundation" / "hooks" / "validate-artifacts.py"

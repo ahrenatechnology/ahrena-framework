@@ -39,7 +39,7 @@ A lookup, not a restatement: the condition's text is in its rule. Property names
 | 2 | the same exception, a deployment's outputs, a credential or a client object handed whole to a logger, a span attribute or an exception tracker; the correction logs named fields: operation, status, error code, correlation id. |
 | 3 | a tag value, a resource name or a template `output` holding a secret, a connection string, `listKeys()`, personal data, or a principal id meant to stay internal. |
 | 4 | `ASPNETCORE_ENVIRONMENT=Development` or an equivalent debug flag in a production app setting or container environment. |
-| 5 | a pipeline step running `az role assignment list`, `az account show`, `az ad sp show` or printing deployment outputs or what-if results to a log readable outside the platform team. |
+| 5 | a pipeline step running `az role assignment list`, `az account show`, `az ad sp show` or printing deployment outputs or what-if results to a log. |
 
 ## cost-attribution
 
