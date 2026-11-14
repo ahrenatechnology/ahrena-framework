@@ -1,0 +1,23 @@
+{
+  "name": "ahrena-engineering-aws",
+  "displayName": "Ahrena Engineering AWS",
+  "version": "0.1.0",
+  "description": "AWS as the vendor documents it: least-privilege identity, encryption at rest and in transit, no account or IAM detail in an application's output, an owner tag and a budget on every resource, and a specialist that designs, reviews and diagnoses on AWS.",
+  "author": {
+    "name": "Ahrena Technology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/aws",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "aws",
+    "iam",
+    "well-architected",
+    "cloud",
+    "encryption",
+    "cost",
+    "infrastructure"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

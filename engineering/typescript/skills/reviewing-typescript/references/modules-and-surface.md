@@ -1,6 +1,8 @@
 # TypeScript modules and surface
 
-Opened by step 2 of `SKILL.md` when the change touches an export, a barrel, a public declaration or a `.d.ts`. These are the conditions about what the change offers the code that imports it.
+Opened by step 4 of `SKILL.md` when the change touches an export, a barrel, a public declaration or a `.d.ts`. These are the conditions about what the change offers the code that imports it.
+
+The import graph and the package boundary are `rules/module-boundaries.md`, decided by `hooks/check-boundaries.py`: a cycle, a relative import into another package, and a deep import past a package's `exports` are reported under that rule, not here. An exported function with no return type is condition 7 of `rules/typing.md`.
 
 ### TS-15 A barrel that pulls in more than the importer needs
 
@@ -19,16 +21,16 @@ Opened by step 2 of `SKILL.md` when the change touches an export, a barrel, a pu
 ### TS-17 A breaking change to an exported type with no version
 
 - **State:** an exported type, interface or function signature narrowed or renamed — a field removed, a parameter added without a default, a return widened — that a consumer outside this module compiles against.
-- **Detect:** compare the exported surface with its base version; find importers. This is the contract question, and `ahrena-engineering-fundamentals:skills/detecting-contract-breaks/SKILL.md` owns it when the surface is a published contract.
+- **Detect:** compare the exported surface with its base version; find importers. This is the contract question, and `ahrena-engineering-quality:skills/detecting-contract-breaks/SKILL.md` owns it when the surface is a published contract.
 - **Exempt:** a purely additive change (an optional field, a new overload).
 - **Correct:** keep it compatible, or ship it as a version per the contract-break procedure.
 
 ### TS-18 A type-only import or export not marked
 
-- **State:** a value import used only as a type (or the reverse) in a project with `isolatedModules`/`verbatimModuleSyntax`, which can pull a module into the runtime bundle that was only needed at compile time.
-- **Detect:** read what each imported name is used as. A type imported as a value keeps the module in the build.
-- **Exempt:** a project without those flags, where it does not matter.
-- **Correct:** `import type` / `export type` for type-only names.
+- **State:** a name used only as a type imported without `type`, in a project with `verbatimModuleSyntax`, which keeps the import and loads the module at runtime; or `import { type A }` where every name is a type, which `verbatimModuleSyntax` rewrites to `import {} from "…"` and so still loads the module.
+- **Detect:** read what each imported name is used as. Under condition 2 of `rules/module-boundaries.md`, only a statement-level `import type` is erased, so the other two forms are edges of the graph and can close a cycle.
+- **Exempt:** a project without `verbatimModuleSyntax` or `isolatedModules`, where the compiler elides unused imports itself.
+- **Correct:** `import type` / `export type` at the statement level for type-only names.
 
 ### TS-19 A module-level side effect
 
