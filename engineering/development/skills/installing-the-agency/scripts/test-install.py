@@ -255,6 +255,12 @@ def test_language_detection() -> None:
         "versions.tf": "ahrena-engineering-terraform",
         "terraform.tf": "ahrena-engineering-terraform",
         ".terraform.lock.hcl": "ahrena-engineering-terraform",
+        "cdk.json": "ahrena-engineering-aws",
+        "samconfig.toml": "ahrena-engineering-aws",
+        "cloudbuild.yaml": "ahrena-engineering-gcp",
+        ".gcloudignore": "ahrena-engineering-gcp",
+        "azure.yaml": "ahrena-engineering-azure",
+        "host.json": "ahrena-engineering-azure",
     }
     for marker, plugin in cases.items():
         with Case() as c:

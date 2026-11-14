@@ -1,7 +1,7 @@
 {
   "name": "ahrena-engineering-azure",
-  "version": "0.1.0",
-  "description": "Azure, grounded in Microsoft's documentation: least-privilege roles and managed identities, encryption and private reach, no Azure identifier or SDK error in an output, and an owner and a budget on every resource.",
+  "version": "0.1.1",
+  "description": "Azure, grounded in Microsoft's documentation: least-privilege roles and managed identities, encryption and private reach, no Azure identifier or SDK error in an output, an owner and a budget on every resource; and Ouranos, a specialist that designs, reviews and diagnoses on Azure.",
   "author": {
     "name": "Ahrena Technology",
     "url": "https://github.com/ahrenatechnology"

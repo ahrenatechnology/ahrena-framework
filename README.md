@@ -26,13 +26,13 @@ The gate takes no dependencies, so the check CI runs is the check a consumer run
 
 `ahrena-engineering-fundamentals` is the second plugin and the first consumer of that core: SOLID, KISS and YAGNI alongside nine more, written as detectable conditions with a single arbitration between them, plus the reviewer that applies them to a pull request.
 
-`ahrena-engineering-python` is what is specific to one language — a dependency direction a script proves acyclic, and the typing a checker decides. `ahrena-contributing` governs the repository rather than the code in it, as one flow from issue to trunk with two gates and a person landing the change: how an issue is opened, a change planned and its acceptance criteria traced to tests, what a branch is called, what a commit message carries, how a pull request closes its issues, how a stack of them lands, natively or run by the framework, and what may reach trunk, with a detector for each that can have one.
+The language plugins — `ahrena-engineering-python`, `-typescript`, `-go` and `-rust` — each hold what is specific to one language: rules with a named detector each, references that ground them in the language's specification, skills to write, review and debug it, and a specialist agent. `ahrena-engineering-terraform` does the same for infrastructure as code, and `-aws`, `-gcp` and `-azure` for one cloud each. The layer builders reach a language through its writing skill and the security plugin's exposure rule, loaded before they write the first test, and through its review skill afterwards. `ahrena-contributing` governs the repository rather than the code in it, as one flow from issue to trunk with two gates and a person landing the change: how an issue is opened, a change planned and its acceptance criteria traced to tests, what a branch is called, what a commit message carries, how a pull request closes its issues, how a stack of them lands, natively or run by the framework, and what may reach trunk, with a detector for each that can have one.
 
 A plugin may reference another by the name the marketplace gives it, as `ahrena-engineering-fundamentals:docs/simplicity.md`, and that graph is acyclic. Everything else is tracked in the issues of this repository.
 
 ## Install the agency
 
-The agency is nine plugins from the `ahrena` marketplace, plus one per language the repository uses.
+The agency is ten plugins from the `ahrena` marketplace, plus one per language, infrastructure tool or cloud the repository uses.
 
 | Plugin | What it is |
 |---|---|
@@ -43,11 +43,24 @@ The agency is nine plugins from the `ahrena` marketplace, plus one per language 
 | `ahrena-engineering-code-review` | Argos, who conducts the review: routes the lenses, publishes one verdict, loops through Erodos, lands |
 | `ahrena-engineering-quality` | Erodos and the review skills: route, review, publish the verdict, apply fixes, land |
 | `ahrena-engineering-fundamentals` | The language-agnostic engineering rules and the code graph |
-| `ahrena-engineering-security` | Janus and the six security review disciplines |
+| `ahrena-engineering-security` | Janus, the six security review disciplines, and the rule that nothing sensitive leaves the layer that owns it |
 | `ahrena-contributing` | Issue, plan, branch, commit and pull request rules |
 | `ahrena-foundation` | What an artifact is, and the skills that create and review them |
 
-Language plugins are `ahrena-engineering-python`, `-typescript`, `-go`, `-rust` and `-terraform`. The installer enables the ones whose marker file sits at the repository root (`pyproject.toml`, `requirements.txt` or `setup.py`; `tsconfig.json` or `package.json`; `go.mod`; `Cargo.toml`; `main.tf`, `versions.tf`, `terraform.tf` or `.terraform.lock.hcl`), or the ones `--language` names.
+The language, infrastructure and cloud plugins each bring a specialist, the entry point for work in that stack that is not one layer of a build, and the skills the builders load:
+
+| Plugin | Specialist | Skills |
+|---|---|---|
+| `ahrena-engineering-python` | Pythia (`python-engineer`) | `writing-python`, `reviewing-python`, `debugging-python` |
+| `ahrena-engineering-typescript` | Proteus (`typescript-specialist`) | `writing-typescript`, `reviewing-typescript`, `debugging-typescript` |
+| `ahrena-engineering-go` | Ariadne (`go-specialist`) | `writing-go`, `reviewing-go`, `debugging-go` |
+| `ahrena-engineering-rust` | Talos (`rust-specialist`) | `writing-rust`, `reviewing-rust`, `debugging-rust` |
+| `ahrena-engineering-terraform` | Gaia (`terraform-engineer`) | `writing-terraform`, `reviewing-terraform`, `debugging-terraform` |
+| `ahrena-engineering-aws` | Atlas (`aws-specialist`) | `designing-on-aws`, `reviewing-aws`, `diagnosing-aws-deployments` |
+| `ahrena-engineering-gcp` | Hyperion (`gcp-architect`) | `designing-on-gcp`, `reviewing-gcp`, `diagnosing-gcp-deployments` |
+| `ahrena-engineering-azure` | Ouranos (`azure-specialist`) | `designing-on-azure`, `reviewing-azure`, `diagnosing-azure-deployments` |
+
+The installer enables the ones whose marker file sits at the repository root (`pyproject.toml`, `requirements.txt` or `setup.py`; `tsconfig.json` or `package.json`; `go.mod`; `Cargo.toml`; `main.tf`, `versions.tf`, `terraform.tf` or `.terraform.lock.hcl`; `cdk.json` or `samconfig.toml`; `cloudbuild.yaml` or `.gcloudignore`; `azure.yaml` or `host.json`), or the ones `--language` names.
 
 From the root of your repository, with no checkout and no plugin installed:
 
@@ -72,7 +85,7 @@ claude plugin install ahrena-engineering-development@ahrena --scope project
 # the same for each plugin in the table
 ```
 
-The directive names `clio`, the data builder, which lives in `ahrena-engineering-data` with `mnemosyne`, its implementer, and is not one of the nine. To add it, run `claude plugin install ahrena-engineering-data@ahrena --scope project`, or add `"ahrena-engineering-data@ahrena": true` to `enabledPlugins`.
+The directive names `clio`, the data builder, which lives in `ahrena-engineering-data` with `mnemosyne`, its implementer, and is not one of the ten. To add it, run `claude plugin install ahrena-engineering-data@ahrena --scope project`, or add `"ahrena-engineering-data@ahrena": true` to `enabledPlugins`.
 
 ## License
 

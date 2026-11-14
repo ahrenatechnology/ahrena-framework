@@ -1,8 +1,8 @@
 {
   "name": "ahrena-engineering-python",
   "displayName": "Ahrena Engineering Python",
-  "version": "0.1.0",
-  "description": "What is specific to Python: a distribution per layer under a PEP 420 namespace root, a dependency direction that only runs downward, and an import graph a script proves acyclic.",
+  "version": "0.2.0",
+  "description": "Python, written and reviewed against its own rules: typing a checker decides, errors translated before they cross a layer, immutability, a test beside each module and an import graph a script proves acyclic; docs on toolchain, libraries, architecture, persistence and web services; skills to write, review and debug Python; and Pythia, the Python specialist.",
   "author": { "name": "Ahrena Technology" },
   "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/python",
   "repository": "https://github.com/ahrenatechnology/ahrena-framework",

@@ -1,8 +1,8 @@
 {
   "name": "ahrena-engineering-gcp",
   "displayName": "Ahrena Engineering GCP",
-  "version": "0.1.0",
-  "description": "What is specific to Google Cloud: least-privilege IAM without basic roles or service account keys, encryption, no project, policy or resource path in an application's output, labels and budgets, and the service each problem calls for.",
+  "version": "0.1.1",
+  "description": "What is specific to Google Cloud: least-privilege IAM without basic roles or service account keys, encryption, no project, policy or resource path in an application's output, labels and budgets, and the service each problem calls for; and Hyperion, a specialist that designs, reviews and diagnoses on Google Cloud.",
   "author": {
     "name": "Ahrena Technology"
   },

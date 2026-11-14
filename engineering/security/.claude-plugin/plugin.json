@@ -1,7 +1,7 @@
 {
   "name": "ahrena-engineering-security",
-  "version": "0.2.0",
-  "description": "Application security as review disciplines: secrets and supply chain, untrusted input, access and sensitive data, and the use of language models and agents.",
+  "version": "0.2.1",
+  "description": "Application security: six review disciplines (secrets, supply chain, untrusted input, access, sensitive data, and the use of language models and agents), the rule that nothing sensitive leaves the layer that owns it with a hook for its decidable shapes, and Janus, who applies them inside the delivery flow.",
   "author": {
     "name": "Ahrena Technology",
     "url": "https://github.com/ahrenatechnology"

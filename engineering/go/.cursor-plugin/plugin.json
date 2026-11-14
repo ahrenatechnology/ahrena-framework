@@ -1,8 +1,8 @@
 {
   "name": "ahrena-engineering-go",
   "displayName": "Ahrena Engineering Go",
-  "version": "0.1.0",
-  "description": "Go, complete: rules with named detectors for errors, goroutines, contexts, resources, nil traps and the exported surface; docs on toolchain, libraries, layout and testing; skills to write, review and debug Go; and Ariadne, the Go specialist.",
+  "version": "0.2.0",
+  "description": "Go: rules with named detectors for errors, goroutines, contexts, resources, nil traps, the exported surface, package direction and what leaves a layer; docs on toolchain, libraries, layout and testing; skills to write, review and debug Go; and Ariadne, the Go specialist.",
   "author": {
     "name": "Ahrena Technology"
   },

@@ -54,6 +54,27 @@
         "terraform.tf",
         ".terraform.lock.hcl"
       ]
+    },
+    "aws": {
+      "plugin": "ahrena-engineering-aws",
+      "markers": [
+        "cdk.json",
+        "samconfig.toml"
+      ]
+    },
+    "gcp": {
+      "plugin": "ahrena-engineering-gcp",
+      "markers": [
+        "cloudbuild.yaml",
+        ".gcloudignore"
+      ]
+    },
+    "azure": {
+      "plugin": "ahrena-engineering-azure",
+      "markers": [
+        "azure.yaml",
+        "host.json"
+      ]
     }
   }
 }
