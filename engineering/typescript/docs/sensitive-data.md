@@ -12,7 +12,7 @@ references:
 
 # Keeping sensitive data in its layer, in TypeScript
 
-**Nothing sensitive leaves the layer that owns it.** The rule is language-agnostic and belongs to the security plugin, under issue #294; its origin is an application built by this agency that printed AWS IAM policies to its output, which neither the review nor the security guardian reported. Until that rule lands, the security disciplines' conditions that already exist apply — DAT-1 of `reviewing-sensitive-data` (personal data, payment data, a credential, a session token, a whole request or response body) and ACC-8 of `reviewing-access` (an error that returns a stack trace or a query). This page says how TypeScript code holds the rule: what is written, and what is never written, so that the property holds from the first line rather than being found at review.
+**Nothing sensitive leaves the layer that owns it.** The rule is language-agnostic and belongs to the security plugin: `engineering/security/rules/layer-exposure.md`, proposed in pull request #301 for issue #294; its origin is an application built by this agency that printed AWS IAM policies to its output, which neither the review nor the security guardian reported. Until that rule lands, the security disciplines' conditions that already exist apply — DAT-1 of `reviewing-sensitive-data` (personal data, payment data, a credential, a session token, a whole request or response body) and ACC-8 of `reviewing-access` (an error that returns a stack trace or a query). This page says how TypeScript code holds the rule: what is written, and what is never written, so that the property holds from the first line rather than being found at review.
 
 The sensitive classes are those #294 names: a credential or token, personal data, an access policy or role, a resource identifier (an ARN, an account or subscription id), infrastructure layout (hosts, networks, a plan or a state), and a whole configuration, error or upstream response. The exits are every place a value leaves the unit: a return value that crosses a boundary, an HTTP response, a log line, a trace attribute, an error message, a metric label, standard output, and a client bundle.
 
@@ -54,7 +54,7 @@ Code that runs in a browser ships to every visitor. A bundler inlines the enviro
 
 ## Where this stops
 
-**The rule and its detector are #294's.** That issue gives the closed list of classes and exits, and a hook for the clearest cases; this page is the TypeScript form, and `reviewing-typescript` holds the language's part of it as TS-20. When #294 lands, the rule is cited by its path, and this page changes only that sentence.
+**The rule and its detector are #294's.** That issue gives the closed list of classes and exits, and a hook for the clearest cases; this page is the TypeScript form, and `reviewing-typescript` holds the language's part of it as TS-20. When pull request #301 lands, the rule's path above becomes a link, and this page changes only that sentence.
 
 **An allowlist is not an access check.** Who may read a field at all is `reviewing-access`; this page is about the field not leaving by accident once read.
 
