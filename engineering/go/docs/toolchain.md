@@ -12,6 +12,11 @@ references:
   - rules/resources.md
   - rules/nil-safety.md
   - rules/api-surface.md
+  - rules/package-boundaries.md
+  - rules/test-placement.md
+  - docs/sources.md
+  - ahrena-engineering-fundamentals:rules/clean-code.md
+  - ahrena-engineering-fundamentals:rules/kiss.md
 ---
 
 # The Go toolchain, and what each part decides
@@ -73,6 +78,16 @@ The rules then ask a project to enable these, each because a condition does not 
 | `revive` with `unexported-return` | an exported function returning an unexported type | [`api-surface.md`](../rules/api-surface.md) condition 1 |
 | `revive` with `exported` | an exported name without a doc comment | [`api-surface.md`](../rules/api-surface.md) condition 4 |
 
+Three `revive` rules hold the fundamentals plugin's single-responsibility limits in Go, because the fundamentals' own detector reads Python only. The limits are the fundamentals' — this plugin adds no number — and `revive`'s defaults are looser, so the arguments are set to them:
+
+| `revive` rule and argument | Holds | Fundamentals rule |
+|---|---|---|
+| `function-length`, statements `30`, lines `0` | a function body of at most 30 statements | `clean-code.md` condition 1 |
+| `max-control-nesting`, `3` | control flow nested at most 3 deep | `kiss.md` condition 1 |
+| `flag-parameter` | a boolean parameter that steers the function's own branching | `kiss.md` condition 2 |
+
+`revive` counts statements and nesting by its own reading of Go's syntax, which is close to the fundamentals' definition and not identical to it; where they differ on a function, the fundamentals' definition is the rule and `revive` is the prompt. `revive`'s defaults are 50 statements and a nesting of 5, which is why the arguments are not left at them.
+
 Two more are worth enabling beside the [`context`](../rules/context.md) hook, because they read with types where the hook reads spelling: `containedctx`, which reports a context field the hook's spelling misses, and `contextcheck`, which follows a non-inherited context through a call. Neither is required; the hook decides the rule's conditions without them.
 
 **Refused, with the reason.**
@@ -102,6 +117,10 @@ No rule in this plugin names it, because a vulnerable dependency is a supply-cha
 
 Since Go 1.24 the `tool` directive records a tool a module runs — `go get -tool` adds it, `go tool` runs it — and pins it in `go.mod` with the rest of the dependencies. That is the right home for `staticcheck`, `govulncheck` and `goimports` when a project runs them directly; it is not the home for `golangci-lint`, for the reason its documentation gives above.
 
+## Workspaces
+
+A repository whose packages are released apart holds several modules, and `go.work` — in the toolchain since Go 1.18 — builds them together during development. [`docs/project-layout.md`](project-layout.md) argues when several modules are worth having, why a workspace is the recommended tool for them, and when a `replace` directive or a build system is the better choice. CI builds each module as its consumers will, which is with `GOWORK=off`, so that a requirement only the workspace satisfies fails there rather than after release.
+
 ## go fix
 
 Since Go 1.26 `go fix` is "the home of Go's modernizers", built on the same analysis framework as `go vet`. It rewrites code to newer idioms — a loop that `slices.Contains` replaces, a `WaitGroup` pattern that `WaitGroup.Go` replaces — and Go 1.27 adds more. It is a tool a person runs and reviews the diff of, not a gate: a modernizer's suggestion is a style change, and none of this plugin's conditions depends on one.
@@ -117,10 +136,13 @@ go vet ./...
 golangci-lint run ./...
 go test -race -shuffle=on ./...
 govulncheck ./...
-python3 engineering/go/hooks/check-source.py .
+python3 engineering/go/hooks/check-context.py .
+python3 engineering/go/hooks/check-surface.py .
+python3 engineering/go/hooks/check-packages.py .
+python3 engineering/go/hooks/check-test-placement.py .
 ```
 
-`-shuffle=on` randomises test order and reports the seed, so a test that only passes after another one has run is found the first time the order changes, and the failure is reproducible from the seed. The last line is this plugin's own hook; it needs Python and nothing else, and decides [`rules/context.md`](../rules/context.md) and condition 2 of [`rules/api-surface.md`](../rules/api-surface.md), the one condition no linter in the catalogue reports.
+`-shuffle=on` randomises test order and reports the seed, so a test that only passes after another one has run is found the first time the order changes, and the failure is reproducible from the seed. The last four lines are this plugin's own hooks. They need Python and nothing else — not even Go — and share one reader of Go source, `hooks/golex.py`. They decide [`rules/context.md`](../rules/context.md), [`rules/test-placement.md`](../rules/test-placement.md), condition 2 of [`rules/api-surface.md`](../rules/api-surface.md) and conditions 2 and 3 of [`rules/package-boundaries.md`](../rules/package-boundaries.md): the conditions the source decides and no linter in the catalogue reports.
 
 ## Where this stops
 
@@ -132,4 +154,4 @@ python3 engineering/go/hooks/check-source.py .
 
 **Supply chain and security are not here.** `govulncheck` is described because it belongs to a Go pipeline; deciding what a finding means, and what else a supply-chain review reads, is the security plugin's.
 
-**The hook has not been measured on a public corpus**, and [`rules/context.md`](../rules/context.md) says so. The tools above have, by their own projects, over years; the hook has its fixtures.
+**The hooks were measured on one corpus, not many.** The Go 1.27.4 source of `net/http`, `database`, `context` and `cmd/go` is what they were run over, and each rule's boundary section reports what they found there. That is a standard library and a command, not a layered service, so the layer condition of [`rules/package-boundaries.md`](../rules/package-boundaries.md) has only been measured to report nothing where there are no layers.

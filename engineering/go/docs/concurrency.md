@@ -24,7 +24,7 @@ So the first question about a `go` statement is whether the function should star
 
 ## Every goroutine has an owner
 
-When a goroutine is warranted, Code Review Comments, *Goroutine Lifetimes*, says "make it clear when - or whether - they exit", and names the usual leak: a goroutine blocked on a channel send or receive, which the garbage collector "will not terminate … even if the channels it is blocked on are unreachable." The Uber guide's *Don't fire-and-forget goroutines* says the same in production terms.
+The Go Specification, *Go statements*, defines a goroutine as "an independent concurrent thread of control" and gives the `go` statement no result: nothing it returns can be waited on or stopped. When a goroutine is warranted, Code Review Comments, *Goroutine Lifetimes*, says "make it clear when - or whether - they exit", and names the usual leak: a goroutine blocked on a channel send or receive, which the garbage collector "will not terminate … even if the channels it is blocked on are unreachable." The Uber guide's *Don't fire-and-forget goroutines* says the same in production terms.
 
 The owner is whatever started the goroutine, and it holds two things: a way to tell it to stop, and a way to wait until it has. In practice there are three shapes.
 
@@ -58,7 +58,7 @@ Maps deserve their own sentence: since Go 1.6 the runtime detects some concurren
 
 A `context.Context` carries the deadline and the cancellation of the operation that created it, and every function below inherits them only if it is passed down. The `context` package documentation fixes how: "Do not store Contexts inside a struct type; instead, pass a Context explicitly to each function that needs it. The Context should be the first parameter, typically named ctx." The Go blog's *Contexts and structs* argues the first half; [`rules/context.md`](../rules/context.md) holds all three conditions with a hook.
 
-A goroutine started inside a request takes the request's context, so it stops when the request is abandoned. Work that must outlive the request — an audit write after the response is sent — takes `context.WithoutCancel(ctx)`, added in Go 1.21, which keeps the request's values (its trace, its tenant) and drops its cancellation. Reaching for `context.Background()` instead drops the values too, and the trace breaks.
+The Go Specification has no notion of cancellation; it is the `context` package's, and its documentation is the normative text for this section. A goroutine started inside a request takes the request's context, so it stops when the request is abandoned. Work that must outlive the request — an audit write after the response is sent — takes `context.WithoutCancel(ctx)`, added in Go 1.21 by accepted proposal golang/go#40221, which keeps the request's values (its trace, its tenant) and drops its cancellation. Reaching for `context.Background()` instead drops the values too, and the trace breaks.
 
 Every `WithCancel`, `WithTimeout` and `WithDeadline` returns a `CancelFunc` that is called on every path, usually by `defer cancel()` on the next line; `go vet`'s `lostcancel` checks it. Go 1.20 and 1.21 added `WithCancelCause`, `WithDeadlineCause` and `WithTimeoutCause`, whose cause `context.Cause` reports — worth using where "context canceled" in a log would leave the reader asking why.
 

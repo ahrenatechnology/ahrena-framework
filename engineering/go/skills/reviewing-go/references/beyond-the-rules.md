@@ -5,7 +5,7 @@ Opened by step 2 of `SKILL.md` for the defects a Go reader catches that are not 
 ### GO-1 A deferred call that captures a value too early
 
 - **State:** a `defer` whose arguments are evaluated when the `defer` statement runs, not when the deferred call does, so it acts on a stale value — `defer log.Printf("took %v", time.Since(start))` reports zero, `defer fmt.Println(status)` prints the status before the function changed it.
-- **Detect:** read each `defer` the change adds and ask which of its arguments change between the `defer` and the return. The Go specification, *Defer statements*, says the function value and parameters are evaluated when the statement executes.
+- **Detect:** read each `defer` the change adds and ask which of its arguments change between the `defer` and the return. The Go Specification, *Defer statements*, says the function value and parameters are evaluated when the statement executes.
 - **Exempt:** a value captured on purpose at that point, such as the start time itself.
 - **Correct:** wrap the call in a closure, `defer func() { log.Printf("took %v", time.Since(start)) }()`, so the arguments are evaluated at return.
 
@@ -36,3 +36,10 @@ Opened by step 2 of `SKILL.md` for the defects a Go reader catches that are not 
 - **Detect:** read the type's documentation and constructor. A type whose zero value is not useful says so, or returns an error from methods called on it.
 - **Exempt:** a type designed to work at its zero value — `sync.Mutex`, `bytes.Buffer`, `strings.Builder` — which Effective Go, *Allocation with new*, calls the property to aim for.
 - **Correct:** call the constructor; or make the zero value valid by initialising lazily in the methods.
+
+### GO-6 A pattern imported from another language against Go's grain
+
+- **State:** a construct whose premise belongs to another language and that Go expresses differently: an interface declared beside its only implementation and named `IStore` or `StoreInterface`; a constructor that returns an interface "for testability"; a getter named `GetName` (Effective Go, *Getters*: "it's neither idiomatic nor necessary to put Get into the getter's name"); a class hierarchy rebuilt from embedded structs and overridden methods; an error raised as a `panic` and caught with `recover` as an exception; a dependency-injection container or reflection-based wiring in place of constructors called from `main`.
+- **Detect:** read each new type, interface and constructor against `docs/project-layout.md`, section *SOLID and inversion of control, in Go's form*. Several of these are also conditions elsewhere — the producer-side interface is `rules/api-surface.md` condition 3, the panic-as-exception is `rules/errors.md` condition 5 — and a finding cites that rule when it applies.
+- **Exempt:** a name or shape a dependency imposes, such as a method required by a third-party interface.
+- **Correct:** the Go form the project-layout doc names: a concrete type, an interface declared by its consumer, a constructor taking its dependencies as parameters, an error value.

@@ -17,7 +17,7 @@ A log line is written for one reader: the person on call, at night, who has the 
 
 ## slog, and why not the log package
 
-The `log` package prints a line of text. The Go blog's *Structured Logging with slog* introduced `log/slog` in Go 1.21 because logs are increasingly read by machines first: a structured record — a message, a level, and key-value attributes — can be filtered, aggregated and joined to a trace without a regular expression. `slog` ships a `JSONHandler` for production and a `TextHandler` for a terminal, and any backend plugs in by implementing `slog.Handler`. Since Go 1.24 `slog.DiscardHandler` silences a logger in a test, and since Go 1.26 `slog.NewMultiHandler` sends one record to several handlers.
+The `log` package prints a line of text. Accepted proposal golang/go#56345 and the Go blog's *Structured Logging with slog* introduced `log/slog` in Go 1.21 because logs are increasingly read by machines first: a structured record — a message, a level, and key-value attributes — can be filtered, aggregated and joined to a trace without a regular expression. `slog` ships a `JSONHandler` for production and a `TextHandler` for a terminal, and any backend plugs in by implementing `slog.Handler`. Since Go 1.24 `slog.DiscardHandler` silences a logger in a test, and since Go 1.26 `slog.NewMultiHandler` sends one record to several handlers.
 
 The rest of this page assumes `slog`; [`docs/libraries.md`](libraries.md) says when a faster handler is worth swapping in behind it.
 

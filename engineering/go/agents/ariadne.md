@@ -117,7 +117,7 @@ DONE
 task: diagnose
 branch: fix/512-orders-double-close at 4b9e0c1
 evidence: reproduced with go test ./internal/orders/ -run TestCancelTwice -race -count=200 (7 failures); cause: Cancel and the worker's shutdown both close done, breaking rules/concurrency.md condition 7; fix: the worker owns done and closes it once, Cancel cancels the context
-gate: gofmt -l clean; go vet ok; go test -race -shuffle=on ./... ok, 212 passed; check-source.py 0 failures
+gate: gofmt -l clean; go vet ok; go test -race -shuffle=on ./... ok, 212 passed; check-context.py, check-surface.py, check-packages.py and check-test-placement.py 0 failures
 left: none; the same pattern exists in internal/billing/worker.go:88, reported here for its own issue
 ```
 </example>

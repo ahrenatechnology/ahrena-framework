@@ -13,7 +13,7 @@ references:
 
 # Every resource released on every path
 
-Go has no destructor. A file, a response body, a result set, a prepared statement, a transaction and a connection stay open until code closes them, and the garbage collector reclaiming the struct does not reclaim the connection pool slot or the file descriptor behind it. The language gives one tool for this — `defer` — and the conditions below are the three ways it is misused and the two errors it hides.
+Go has no destructor. A file, a response body, a result set, a prepared statement, a transaction and a connection stay open until code closes them, and the garbage collector reclaiming the struct does not reclaim the connection pool slot or the file descriptor behind it. The language gives one tool for this — `defer`, whose call the Go Specification, *Defer statements*, runs "immediately before the surrounding function returns", with its arguments "evaluated as usual and saved anew" when the statement executes — and the conditions below are the three ways it is misused and the two errors it hides.
 
 Three are decided by linters the consuming project enables, one by a `go vet` analyzer that runs by default, one by `staticcheck`'s default set, and the rest by a reader. [`docs/error-handling.md`](../docs/error-handling.md) covers the deferred-close error in a named result; [`docs/toolchain.md`](../docs/toolchain.md) says which linters are enabled and why.
 

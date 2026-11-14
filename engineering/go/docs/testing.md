@@ -10,11 +10,21 @@ references:
   - docs/libraries.md
   - docs/concurrency.md
   - rules/concurrency.md
+  - rules/test-placement.md
+  - docs/sources.md
 ---
 
 # Testing Go with the standard toolchain
 
 Go's test runner, fuzzer, race detector, coverage tool and benchmark harness are all `go test`. This document is how a suite uses them. It is Go's half of the testing discipline: test-first as a procedure is the backend plugin's `driving-with-tdd` skill, and this page is what that procedure looks like when the language is Go.
+
+## The test sits beside the file it tests
+
+The `go` command finds a package's tests only in the package's own directory, in files matching `*_test.go` (the `go` command documentation, *Test packages*). This plugin narrows that to the file: `orders.go` is tested by `orders_test.go`, beside it, which [`rules/test-placement.md`](../rules/test-placement.md) holds with a hook. A file declares a unit — its functions, its methods, the type they belong to — and its test file checks that unit's behaviour on its own, with the unit's collaborators replaced by fakes.
+
+The test file declares `package orders` when it needs the unit's unexported identifiers, and `package orders_test` when it should see only the exported surface, as a caller does; the `go` command compiles the second as a separate package and links it into the same test binary. Prefer the external package for anything that documents the API, and the internal one for a unit whose behaviour is not reachable from outside.
+
+This departs from the Go repository's own habit, which groups tests by feature; [`docs/sources.md`](sources.md) records the departure and its reason. Tests that exercise more than one unit — an integration test of a store against a real database, an end-to-end test of a binary — are named for the behaviour they exercise, not for a file, and condition 1 of the rule does not read them.
 
 ## A test fails with a message a stranger can act on
 

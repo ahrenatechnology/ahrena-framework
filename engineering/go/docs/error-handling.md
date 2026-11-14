@@ -16,6 +16,10 @@ references:
 
 This is the companion of [`rules/errors.md`](../rules/errors.md). The rule states five conditions an error's journey must meet; this document is how an author makes the decisions the conditions leave open, in the order an error meets them: how it is made, how it travels, how it is inspected, where it stops.
 
+## What the language fixes
+
+The Go Specification, *Errors*, defines the predeclared `error` interface — a single `Error() string` method — as "the conventional interface for representing an error condition, with the nil value representing no error", and *Handling panics* defines `panic` and `recover`. Everything else on this page is library and convention: wrapping, `errors.Is` and `errors.As` arrived in Go 1.13 through accepted proposal golang/go#29934, multiple wrapping and `errors.Join` in Go 1.20 through golang/go#53435, and `errors.AsType` in Go 1.26 through golang/go#51945. Where this page follows a style guide, it is choosing among options those texts leave open.
+
 ## Make it: a sentinel, a type, or neither
 
 Most errors need no identity. `fmt.Errorf("parsing %q: %w", name, err)` or `errors.New("empty order")` is enough when no caller will ever branch on which failure it was. An error gets an identity only when a caller is expected to act differently on it, and then it takes one of two forms.

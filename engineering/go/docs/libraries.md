@@ -67,7 +67,7 @@ The state of each module was checked on 2026-11-14 — latest release, whether t
 ## Logging
 
 - **Use** `log/slog`.
-- **Why** since Go 1.21 structured logging is in the standard library — the Go blog's *Structured Logging with slog* — with a JSON and a text handler, a `Handler` interface third parties implement, `DiscardHandler` since Go 1.24 and `NewMultiHandler` since Go 1.26. [`docs/logging-and-observability.md`](logging-and-observability.md) argues how to use it.
+- **Why** since Go 1.21 structured logging is in the standard library — accepted proposal golang/go#56345 and the Go blog's *Structured Logging with slog* — with a JSON and a text handler, a `Handler` interface third parties implement, `DiscardHandler` since Go 1.24 and `NewMultiHandler` since Go 1.26. [`docs/logging-and-observability.md`](logging-and-observability.md) argues how to use it.
 - **Not when** a profile shows the logger on the hot path of a latency-critical service. Even then, keep `slog` as the API and swap the handler for a faster one behind it, so the call sites never change.
 
 ## Tracing and metrics
@@ -103,13 +103,13 @@ The state of each module was checked on 2026-11-14 — latest release, whether t
 ## Concurrency helpers
 
 - **Use** `sync` and, for a group of goroutines that can fail, `golang.org/x/sync/errgroup`.
-- **Why** `sync.WaitGroup` waits but carries no error and cancels nothing; `WaitGroup.Go`, added in Go 1.25, removes the ordering mistake but still carries no error. `errgroup.WithContext` returns the first error and cancels the derived context for the rest, and `SetLimit` bounds how many run at once. [`docs/concurrency.md`](concurrency.md) argues when each fits.
+- **Why** `sync.WaitGroup` waits but carries no error and cancels nothing; `WaitGroup.Go`, added in Go 1.25 by accepted proposal golang/go#63796, removes the ordering mistake but still carries no error. `errgroup.WithContext` returns the first error and cancels the derived context for the rest, and `SetLimit` bounds how many run at once. [`docs/concurrency.md`](concurrency.md) argues when each fits.
 - **Not when** the goroutines cannot fail: then `WaitGroup.Go` is enough and the dependency is not needed.
 
 ## Identifiers
 
 - **Use** the `uuid` package, from Go 1.27.
-- **Why** Go 1.27 adds a top-level `uuid` package that generates and parses UUIDs per RFC 9562, with `New`, `NewV4` and `NewV7`. Before 1.27 the standard library had none.
+- **Why** Go 1.27 adds, through accepted proposal golang/go#62026, a top-level `uuid` package that generates and parses UUIDs per RFC 9562, with `New`, `NewV4` and `NewV7`. Before 1.27 the standard library had none.
 - **Not when** the module's `go` directive is below 1.27. Then `github.com/google/uuid` is the answer until the module raises its version, at which point the dependency is removed.
 
 ## Tests

@@ -1,46 +1,25 @@
-#!/usr/bin/env python3
-"""Detector for the Go conditions the source alone decides.
+"""Reading Go source without Go, shared by this plugin's detectors.
 
-Decides the three conditions of engineering/go/rules/context.md:
+check-context.py, check-surface.py, check-packages.py and
+check-test-placement.py each decide a rule's conditions from Go source, and
+each needs the same reading of it: a lexer that knows Go's comments,
+interpreted strings, raw strings and runes, so that a name inside any of them
+is not code; the brackets that pair; the import declarations; the signatures;
+the module a file belongs to and the version its go.mod declares. That reading
+lives here once, beside them in the same plugin, the way the fundamentals
+plugin's changes.py serves its change-scoped hooks.
 
-    1. no struct field holds a context.Context
-    2. a parameter of type context.Context is the first parameter
-    3. a function with a context.Context parameter does not call
-       context.Background or context.TODO inside its body
-
-and condition 2 of engineering/go/rules/api-surface.md:
-
-    2. no identifier exported from a package outside an internal/ tree
-       carries, in its signature, fields or embedded types, a type declared
-       in an internal/ package
-
-The surface condition comes from the go command's own rule that code under
-internal/ is importable only from beneath its parent: a type from there on a
-public signature is a type the importer cannot name.
-
-All three are taken from the documentation of the context package, which says
-not to store a Context inside a struct type and to pass it as the first
-parameter, and from Go 1.21's context.WithoutCancel, which is the reason
-condition 3 has no legitimate exception left on a module that can call it.
-
-The hook takes nothing but the Python standard library, because a consumer has
-to be able to run exactly what CI runs. It does not need Go installed: it reads
-Go source through a lexer that knows Go's comments, interpreted strings, raw
-strings and runes, so a context named inside any of them is not code. It does
-not type-check. A parameter is a context when it is spelled through the name
-the file imports "context" under, and a type is internal when it is spelled
-through the name the file imports an internal/ path under; that is what makes
-the conditions decidable from one file, and each rule's boundary section says
-what it costs.
-
-Usage:
-    python3 engineering/go/hooks/check-source.py [path ...]
+It takes nothing but the Python standard library, because a consumer has to be
+able to run exactly what CI runs, and it does not type-check: every detector
+that uses it recognises a type by how the file spells it, and each rule's
+boundary section says what that costs.
 """
 
 from __future__ import annotations
 
 import re
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -49,8 +28,6 @@ SKIP_NAMES = frozenset({"vendor", "testdata", "node_modules"})
 GENERATED = re.compile(r"^// Code generated .* DO NOT EDIT\.$", re.MULTILINE)
 
 GO_DIRECTIVE = re.compile(r"^go\s+(\d+)\.(\d+)", re.MULTILINE)
-
-WITHOUT_CANCEL = (1, 21)
 
 LEXEME = re.compile(
     r"""
@@ -72,11 +49,10 @@ VERSION_SUFFIX = re.compile(r"^v\d+$")
 
 TYPE_KEYWORDS = frozenset({"func", "map", "chan", "struct", "interface"})
 
-TESTING_HANDLES = (("*", "testing", ".", "T"), ("*", "testing", ".", "B"), ("*", "testing", ".", "F"), ("testing", ".", "TB"))
-
 OPENERS = {"(": ")", "[": "]", "{": "}"}
 
 SIGNATURE_ENDS = frozenset({"\n", ",", ")", "]", ";", "}", "=", ":"})
+
 
 
 @dataclass(frozen=True)
@@ -95,16 +71,6 @@ class Finding:
 
     def __str__(self) -> str:
         return f"{self.where}\n    [{self.rule}] condition {self.condition}: {self.message}"
-
-
-@dataclass
-class Source:
-    rel: str
-    tokens: list[Token]
-    alias: str
-    detach_available: bool
-    internal: dict[str, str]
-    depths: list[int]
 
 
 @dataclass
@@ -235,10 +201,6 @@ def split_top(tokens: list[Token], separators: frozenset[str]) -> list[list[Toke
     return [piece for piece in pieces if any(token.kind != "newline" for token in piece)]
 
 
-def is_context(type_tokens: list[Token], alias: str) -> bool:
-    return texts(type_tokens) == (alias, ".", "Context")
-
-
 def strip_newlines(tokens: list[Token]) -> list[Token]:
     return [token for token in tokens if token.kind != "newline"]
 
@@ -248,32 +210,6 @@ def struct_fields(tokens: list[Token], start: int) -> list[list[Token]]:
     end = closing(tokens, start)
     fields = split_top(tokens[start + 1 : end], frozenset({"\n", ";"}))
     return [field[:-1] if field[-1].kind in ("string", "raw") else field for field in fields]
-
-
-def field_names(prefix: list[Token]) -> str | None:
-    """The names a field declares, or None when the prefix is not a name list."""
-    names = [token.text for token in prefix if token.text != ","]
-    if all(token.kind == "ident" or token.text == "," for token in prefix):
-        return ", ".join(names)
-    return None
-
-
-def check_fields(source: Source, findings: list[Finding]) -> None:
-    tokens = source.tokens
-    for index, token in enumerate(tokens[:-1]):
-        if token.text != "struct" or tokens[index + 1].text != "{":
-            continue
-        owner = tokens[index - 1].text if index and tokens[index - 1].kind == "ident" else "an anonymous struct"
-        for field in struct_fields(tokens, index + 1):
-            field = strip_newlines(field)
-            if len(field) < 3 or not is_context(field[-3:], source.alias):
-                continue
-            names = field_names(field[:-3])
-            where = f"{source.rel}:{field[0].line}"
-            if names == "":
-                findings.append(Finding(where, "context", 1, f"{owner} embeds context.Context; pass it to each method as its first parameter instead"))
-            elif names is not None:
-                findings.append(Finding(where, "context", 1, f"{owner} stores a context.Context in field {names}; pass it to each method as its first parameter instead"))
 
 
 def is_named_entry(entry: list[Token]) -> bool:
@@ -352,143 +288,8 @@ def signatures(tokens: list[Token]) -> list[Signature]:
     return [signature for signature in found if signature is not None]
 
 
-def context_positions(signature: Signature, alias: str) -> list[int]:
-    return [index for index, kind in enumerate(signature.params) if is_context(kind, alias)]
-
-
-def check_position(source: Source, signature: Signature, findings: list[Finding]) -> None:
-    positions = context_positions(signature, source.alias)
-    if not positions or positions[0] == 0:
-        return
-    before = signature.params[: positions[0]]
-    if all(texts(kind) in TESTING_HANDLES for kind in before):
-        return
-    findings.append(
-        Finding(
-            f"{source.rel}:{signature.line}",
-            "context",
-            2,
-            f"{signature.name} takes its context.Context as parameter {positions[0] + 1}; it goes first",
-        )
-    )
-
-
-def fresh_contexts(tokens: list[Token], body: tuple[int, int], alias: str) -> list[int]:
-    """Indices of `alias.Background(` and `alias.TODO(` inside a body."""
-    start, end = body
-    return [
-        index
-        for index in range(start, end - 3)
-        if tokens[index].text == alias
-        and tokens[index + 1].text == "."
-        and tokens[index + 2].text in ("Background", "TODO")
-        and tokens[index + 3].text == "("
-    ]
-
-
-def check_fresh(source: Source, signature: Signature, reported: set[int], findings: list[Finding]) -> None:
-    if signature.body is None or not context_positions(signature, source.alias):
-        return
-    for index in fresh_contexts(source.tokens, signature.body, source.alias):
-        if index in reported:
-            continue
-        reported.add(index)
-        call = source.tokens[index + 2].text
-        findings.append(
-            Finding(
-                f"{source.rel}:{source.tokens[index].line}",
-                "context",
-                3,
-                f"{signature.name} has a context.Context in scope and calls context.{call}; "
-                "pass the context down, or detach with context.WithoutCancel",
-            )
-        )
-
-
 def is_exported(name: str) -> bool:
     return bool(name) and name[0].isupper()
-
-
-def internal_types(tokens: list[Token], internal: dict[str, str]) -> list[tuple[str, str]]:
-    """Each `name.Type` in a run of tokens whose package is internal, with its path."""
-    by_name = {name: path for path, name in internal.items()}
-    return [
-        (f"{tokens[i].text}.{tokens[i + 2].text}", by_name[tokens[i].text])
-        for i in range(len(tokens) - 2)
-        if tokens[i].text in by_name and tokens[i + 1].text == "." and tokens[i + 2].kind == "ident"
-    ]
-
-
-def leak(source: Source, line: int, subject: str, found: tuple[str, str]) -> Finding:
-    kind, path = found
-    return Finding(
-        f"{source.rel}:{line}",
-        "api-surface",
-        2,
-        f"{subject} {kind}, from internal package {path}, which an importer outside it cannot name",
-    )
-
-
-def check_signature_surface(source: Source, signature: Signature, findings: list[Finding]) -> None:
-    if source.depths[signature.start] != 0 or not is_exported(signature.name):
-        return
-    if signature.receiver is not None and not is_exported(signature.receiver):
-        return
-    header = source.tokens[signature.start : signature.header_end]
-    for found in internal_types(header, source.internal):
-        findings.append(leak(source, signature.line, f"{signature.name} exposes", found))
-
-
-def member_surface(member: list[Token]) -> tuple[str, list[Token]] | None:
-    """A field or method's exported name and the tokens of its type, or None."""
-    if len(member) > 1 and member[0].kind == "ident" and member[1].text not in (".", "\n"):
-        names = [token.text for token in member if token.kind == "ident"][:1] + [
-            member[i + 1].text for i, token in enumerate(member[:-1]) if token.text == ","
-        ]
-        exported = [name for name in names if is_exported(name)]
-        return (exported[0], member[1:]) if exported else None
-    return ("", member)
-
-
-def check_type_surface(source: Source, index: int, findings: list[Finding]) -> None:
-    tokens = source.tokens
-    owner = tokens[index - 1].text if index and tokens[index - 1].kind == "ident" else ""
-    if source.depths[index] != 0 or not is_exported(owner):
-        return
-    word = "field" if tokens[index].text == "struct" else "method"
-    for member in struct_fields(tokens, index + 1):
-        member = strip_newlines(member)
-        surface = member_surface(member) if member else None
-        if surface is None:
-            continue
-        name, kind_tokens = surface
-        subject = f"{owner} embeds" if not name else f"{owner} exposes"
-        for kind, path in internal_types(kind_tokens, source.internal):
-            where = f"{kind}" if not name else f"{kind} in {word} {name}"
-            findings.append(leak(source, member[0].line, subject, (where, path)))
-
-
-def check_surface(source: Source, all_signatures: list[Signature], findings: list[Finding]) -> None:
-    if not source.internal:
-        return
-    for signature in all_signatures:
-        check_signature_surface(source, signature, findings)
-    for index, token in enumerate(source.tokens[:-1]):
-        if token.text in ("struct", "interface") and source.tokens[index + 1].text == "{":
-            check_type_surface(source, index, findings)
-
-
-def check_source(source: Source, findings: list[Finding]) -> None:
-    found = signatures(source.tokens)
-    check_surface(source, found, findings)
-    if not source.alias:
-        return
-    check_fields(source, findings)
-    reported: set[int] = set()
-    for signature in found:
-        check_position(source, signature, findings)
-        if source.detach_available:
-            check_fresh(source, signature, reported, findings)
 
 
 def display(path: Path, base: Path) -> str:
@@ -496,29 +297,6 @@ def display(path: Path, base: Path) -> str:
         return str(path.relative_to(base))
     except ValueError:
         return str(path)
-
-
-def load(path: Path, base: Path) -> Source | None:
-    """A Go file ready to check, or None when it is generated."""
-    text = path.read_text(encoding="utf-8", errors="replace")
-    if GENERATED.search(text):
-        return None
-    tokens = lex(text)
-    root = module_root(path)
-    version = module_version(root)
-    detach = version is None or version >= WITHOUT_CANCEL
-    bound = imports(tokens)
-    surface = {} if not on_surface(path, root, tokens) else {p: n for p, n in bound.items() if is_internal(p)}
-    return Source(display(path, base), tokens, bound.get("context", ""), detach, surface, brace_depths(tokens))
-
-
-def on_surface(path: Path, root: Path | None, tokens: list[Token]) -> bool:
-    """Whether the file's exported identifiers reach importers outside internal/."""
-    if path.name.endswith("_test.go"):
-        return False
-    package = next((tokens[i + 1].text for i, t in enumerate(tokens[:-1]) if t.text == "package"), "")
-    inside = path.parent.relative_to(root).parts if root is not None else path.parent.parts
-    return package != "main" and "internal" not in inside
 
 
 def skipped(relative: Path) -> bool:
@@ -546,7 +324,27 @@ def report(findings: list[Finding], checked: int) -> int:
     return 1
 
 
-def main(argv: list[str]) -> int:
+@dataclass
+class GoFile:
+    path: Path
+    rel: str
+    tokens: list[Token]
+    root: Path | None
+    package: str
+
+
+def load(path: Path, base: Path) -> GoFile | None:
+    """A Go file ready to check, or None when it is generated."""
+    text = path.read_text(encoding="utf-8", errors="replace")
+    if GENERATED.search(text):
+        return None
+    tokens = lex(text)
+    package = next((tokens[i + 1].text for i, t in enumerate(tokens[:-1]) if t.text == "package"), "")
+    return GoFile(path, display(path, base), tokens, module_root(path), package)
+
+
+def run(argv: list[str], check: Callable[[GoFile, list[Finding]], None]) -> int:
+    """Walk the paths given, check every Go file that is not generated, and report."""
     roots = [Path(argument).resolve() for argument in argv[1:]] or [Path.cwd()]
     base = Path.cwd()
     findings: list[Finding] = []
@@ -555,10 +353,6 @@ def main(argv: list[str]) -> int:
         source = load(path, base)
         if source is None:
             continue
-        check_source(source, findings)
+        check(source, findings)
         checked += 1
     return report(findings, checked)
-
-
-if __name__ == "__main__":
-    sys.exit(main(sys.argv))
