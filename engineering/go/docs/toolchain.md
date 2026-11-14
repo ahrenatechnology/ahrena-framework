@@ -14,6 +14,7 @@ references:
   - rules/api-surface.md
   - rules/package-boundaries.md
   - rules/test-placement.md
+  - rules/exposure.md
   - docs/sources.md
   - ahrena-engineering-fundamentals:rules/clean-code.md
   - ahrena-engineering-fundamentals:rules/kiss.md
@@ -140,9 +141,10 @@ python3 engineering/go/hooks/check-context.py .
 python3 engineering/go/hooks/check-surface.py .
 python3 engineering/go/hooks/check-packages.py .
 python3 engineering/go/hooks/check-test-placement.py .
+python3 engineering/go/hooks/check-exposure.py .
 ```
 
-`-shuffle=on` randomises test order and reports the seed, so a test that only passes after another one has run is found the first time the order changes, and the failure is reproducible from the seed. The last four lines are this plugin's own hooks. They need Python and nothing else — not even Go — and share one reader of Go source, `hooks/golex.py`. They decide [`rules/context.md`](../rules/context.md), [`rules/test-placement.md`](../rules/test-placement.md), condition 2 of [`rules/api-surface.md`](../rules/api-surface.md) and conditions 2 and 3 of [`rules/package-boundaries.md`](../rules/package-boundaries.md): the conditions the source decides and no linter in the catalogue reports.
+`-shuffle=on` randomises test order and reports the seed, so a test that only passes after another one has run is found the first time the order changes, and the failure is reproducible from the seed. The last five lines are this plugin's own hooks. They need Python and nothing else — not even Go — and share one reader of Go source, `hooks/golex.py`. They decide [`rules/context.md`](../rules/context.md), [`rules/test-placement.md`](../rules/test-placement.md), conditions 1 to 3 of [`rules/exposure.md`](../rules/exposure.md), condition 2 of [`rules/api-surface.md`](../rules/api-surface.md) and conditions 2 and 3 of [`rules/package-boundaries.md`](../rules/package-boundaries.md): the conditions the source decides and no linter in the catalogue reports.
 
 ## Where this stops
 

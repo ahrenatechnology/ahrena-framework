@@ -53,4 +53,4 @@ Every source above was read in its current text on 2026-11-14 — not recalled �
 
 **The specification is not paraphrased.** A rule cites a section and quotes at most a sentence of it. The specification is the place to read the rest.
 
-**Security guidance is not ranked here.** The security plugin's disciplines have their own sources, including the Go vulnerability database that `govulncheck` reads.
+**Security guidance is not ranked here.** The security plugin's disciplines have their own sources, including the Go vulnerability database that `govulncheck` reads. Where a Go rule serves one of them — [`rules/exposure.md`](../rules/exposure.md) serves the rule from #294 that nothing sensitive leaves its layer — the security rule outranks this plugin, and the Go rule says only how the language holds it.

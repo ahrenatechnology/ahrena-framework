@@ -9,6 +9,7 @@ references:
   - docs/libraries.md
   - docs/error-handling.md
   - rules/errors.md
+  - rules/exposure.md
 ---
 
 # Logging and observability in Go
@@ -39,7 +40,7 @@ Every line written while serving a request carries what identifies the request: 
 
 ## Never log what must not be logged
 
-A credential, a token, a session cookie, a card number, a password or a field of personal data is never an attribute. `slog.LogValuer` lets a type decide how it is logged, so a `User` type logs its id and never its email, and a `Secret` type logs `REDACTED`: the decision is made once, on the type, rather than at every call site. What counts as sensitive is the security plugin's `reviewing-sensitive-data` discipline; this page says only that `LogValuer` is the Go mechanism for keeping to it.
+A credential, a token, a session cookie, a card number, a password or a field of personal data is never an attribute. `slog.LogValuer` lets a type decide how it is logged, so a `User` type logs its id and never its email, and a `Secret` type logs `REDACTED`: the decision is made once, on the type, rather than at every call site. What counts as sensitive is the security plugin's rule from #294, and it is wider than secrets: an access policy, a role, a resource identifier, an internal hostname and a whole upstream error are on its list. [`rules/exposure.md`](../rules/exposure.md) is the Go form of it. `LogValue` covers `slog`; `String` covers `fmt` under `%v`; neither covers `%#v`, which the rule therefore forbids, nor `encoding/json`, which needs `json:"-"` on the field.
 
 ## Traces and metrics through OpenTelemetry
 
@@ -57,4 +58,4 @@ OpenTelemetry's logs signal is a release candidate in its Go documentation. Logs
 
 **Profiling is mentioned only once.** `net/http/pprof` exposes CPU, heap and goroutine profiles, and from Go 1.27 the `goroutineleak` profile; it is how a running service is diagnosed, which the `debugging-go` skill uses. It is not an observability signal a dashboard reads.
 
-**Sensitive data is the security plugin's to define.** This page names the Go mechanism, `LogValuer`, and nothing more.
+**Sensitive data is the security plugin's to define.** This page names the Go mechanisms, and [`rules/exposure.md`](../rules/exposure.md) holds them.

@@ -1,6 +1,6 @@
 ---
 name: writing-go
-description: Use when Go code is to be written or changed to implement a behaviour - a handler, a use case, a store, a worker, a CLI command, a library function. Implements it test-first against this plugin's Go rules and docs - the package it belongs in and the direction it may import, constructor-injected dependencies behind consumer-declared interfaces, functions and files within the single-responsibility limits, a test file beside each file - and leaves the change passing gofmt, go vet, the race detector and the plugin's hooks. Read before writing the first line of Go, not after.
+description: Use when Go code is to be written or changed to implement a behaviour - a handler, a use case, a store, a worker, a CLI command, a library function. Implements it test-first against this plugin's Go rules and docs - the package it belongs in and the direction it may import, constructor-injected dependencies behind consumer-declared interfaces, nothing sensitive in any output, log or error, functions and files within the single-responsibility limits, a test file beside each file - and leaves the change passing gofmt, go vet, the race detector and the plugin's hooks. Read before writing the first line of Go, not after.
 type: skill
 clade: engineering
 subclade: go
@@ -13,6 +13,7 @@ references:
   - rules/api-surface.md
   - rules/package-boundaries.md
   - rules/test-placement.md
+  - rules/exposure.md
   - docs/project-layout.md
   - docs/testing.md
   - docs/libraries.md
@@ -72,7 +73,10 @@ Open the rule for each construct as you reach for it — not after:
 | a context | `rules/context.md` |
 | a file, response body, `sql.Rows`, transaction | `rules/resources.md` |
 | a map, an interface-typed result, a type assertion | `rules/nil-safety.md` |
-| a log line, a span, a metric | `docs/logging-and-observability.md` |
+| a log line, a span, a metric | `docs/logging-and-observability.md`, with `rules/exposure.md` |
+| a response, an error message, a `fmt` verb, a type holding a credential | `rules/exposure.md` |
+
+Nothing sensitive leaves the layer that owns it, from the first line: every output, log line, error message and response is written from named fields, never from a whole struct, configuration, request, response or dependency's error. In Go that means no `%+v` or `%#v`, an error translated before it leaves the adapter that received it and never written into a response, a `String` and `LogValue` method that redact on any type carrying a secret, and a response type built for the response. `rules/exposure.md` holds it, as the Go form of the security plugin's rule from #294.
 
 Prefer a synchronous function; start a goroutine only when the behaviour needs one, and give it an owner in the same change.
 
@@ -82,7 +86,7 @@ When the standard library does not cover what the code needs, look the problem u
 
 ## 6. Run the gate the pipeline will run
 
-Run what `docs/toolchain.md` lists, in its order, over the changed packages: `golangci-lint` only if the project runs it, and this plugin's four hooks always, since they need nothing but Python. The hook paths below are the ones in the framework's own checkout.
+Run what `docs/toolchain.md` lists, in its order, over the changed packages: `golangci-lint` only if the project runs it, and this plugin's five hooks always, since they need nothing but Python. The hook paths below are the ones in the framework's own checkout.
 
 ```sh
 gofmt -l .
@@ -93,6 +97,7 @@ python3 engineering/go/hooks/check-context.py .
 python3 engineering/go/hooks/check-surface.py .
 python3 engineering/go/hooks/check-packages.py .
 python3 engineering/go/hooks/check-test-placement.py .
+python3 engineering/go/hooks/check-exposure.py .
 ```
 
 A failure is fixed in the code, not silenced: no `//nolint` without the linter's name and a reason, no `_` on an error the documentation does not say is always nil.

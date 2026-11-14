@@ -1,7 +1,7 @@
 """Reading Go source without Go, shared by this plugin's detectors.
 
-check-context.py, check-surface.py, check-packages.py and
-check-test-placement.py each decide a rule's conditions from Go source, and
+check-context.py, check-surface.py, check-packages.py,
+check-test-placement.py and check-exposure.py each decide a rule's conditions from Go source, and
 each needs the same reading of it: a lexer that knows Go's comments,
 interpreted strings, raw strings and runes, so that a name inside any of them
 is not code; the brackets that pair; the import declarations; the signatures;

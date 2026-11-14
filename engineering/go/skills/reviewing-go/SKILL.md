@@ -1,6 +1,6 @@
 ---
 name: reviewing-go
-description: Use when a change under review edits Go (.go) and the question is what a Go reader would catch - an error ignored or compared so callers can no longer match it, a goroutine with no owner, a context stored or replaced, a resource left open on an error path, a nil interface that is not nil, an exported function leaking an internal type. Reads the routed files against this plugin's Go rules and the few conditions no rule holds; every finding names the rule and condition.
+description: Use when a change under review edits Go (.go) and the question is what a Go reader would catch - an error ignored or compared so callers can no longer match it, a goroutine with no owner, a context stored or replaced, a resource left open on an error path, a provider's error or a whole struct written to a response or a log, a nil interface that is not nil, an exported function leaking an internal type. Reads the routed files against this plugin's Go rules and the few conditions no rule holds; every finding names the rule and condition.
 type: skill
 clade: engineering
 subclade: quality
@@ -13,6 +13,7 @@ references:
   - rules/api-surface.md
   - rules/package-boundaries.md
   - rules/test-placement.md
+  - rules/exposure.md
   - docs/toolchain.md
   - docs/project-layout.md
   - ahrena-engineering-quality:docs/review-findings.md
@@ -35,12 +36,13 @@ Then read what the project's pipeline runs: its CI workflow, its `.golangci.yml`
 
 ## 2. Run the hooks, then open the rules the change calls for
 
-`rules/context.md`, `rules/test-placement.md`, condition 2 of `rules/api-surface.md` and conditions 2 and 3 of `rules/package-boundaries.md` are decided by scripts that need only Python. Run this plugin's hooks — the lines below are their paths in the framework's own checkout — the first three over the changed files and the package hook over the module, since a layer is decided by the whole tree, and take each report as a finding of the rule it names.
+`rules/context.md`, `rules/test-placement.md`, conditions 1 to 3 of `rules/exposure.md`, condition 2 of `rules/api-surface.md` and conditions 2 and 3 of `rules/package-boundaries.md` are decided by scripts that need only Python. Run this plugin's hooks — the lines below are their paths in the framework's own checkout — the first four over the changed files and the package hook over the module, since a layer is decided by the whole tree, and take each report as a finding of the rule it names.
 
 ```sh
 python3 engineering/go/hooks/check-context.py <changed .go files>
 python3 engineering/go/hooks/check-surface.py <changed .go files>
 python3 engineering/go/hooks/check-test-placement.py <changed .go files>
+python3 engineering/go/hooks/check-exposure.py <changed .go files>
 python3 engineering/go/hooks/check-packages.py .
 ```
 
@@ -54,6 +56,7 @@ Then open the rules for what the change touches:
 | a map, a function returning an interface, a type assertion, a pointer returned beside an error | `rules/nil-safety.md` |
 | an exported identifier, a new interface, a constructor, a slice or map crossing the package boundary | `rules/api-surface.md` |
 | a new package or module, an import across packages, a new variant of an existing behaviour | `rules/package-boundaries.md`, with `docs/project-layout.md` |
+| a response, an error returned across a layer, a log or trace call, a `fmt` verb, a type holding a credential | `rules/exposure.md`, the Go form of the security plugin's rule from #294; a finding there is `blocking` |
 | any `defer`, `Lock`, `select` in a loop, sub-slice stored, struct used at its zero value, or a pattern from another language | `references/beyond-the-rules.md` |
 
 A change that only edits a pure function's arithmetic opens none of these; say the Go pass found nothing specific.

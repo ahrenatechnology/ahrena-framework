@@ -9,6 +9,7 @@ references:
   - rules/errors.md
   - rules/nil-safety.md
   - rules/resources.md
+  - rules/exposure.md
   - docs/logging-and-observability.md
 ---
 
@@ -37,6 +38,8 @@ Naming follows a convention `staticcheck` checks by default (`ST1012`): a sentin
 Each frame an error passes through adds what that frame knows and the next one does not: the operation, the identifier. `fmt.Errorf("loading order %s: %w", id, err)` reads, at the top, as a path from what the program was doing to what failed. Two conventions keep that path readable. The Google Go style guide, best practices, says to prefer `%w` at the end of the string, so the chain reads outer to inner. The Uber Go style guide, *Error Wrapping*, says to keep the context succinct by "avoiding phrases like "failed to"", which every frame would otherwise repeat.
 
 The verb is the decision. `%w` keeps the cause reachable by `errors.Is` and `errors.As`; `%v` keeps only its text. The Go 1.13 blog is explicit that this is an API choice: "Wrap an error to expose it to callers. Do not wrap an error when doing so would expose implementation details." Its own example is a database lookup — wrapping the `sql.ErrNoRows` from a store would let callers depend on the store being SQL. The Google guide's best practices, *Adding information to errors*, says the same at system boundaries — RPC, IPC, storage — where the right move is often to translate the error into the package's own vocabulary rather than wrap the foreign one.
+
+The same translation is what keeps a provider's detail inside: an error from a cloud SDK names the account, the role and the resource it was denied, and passed up untranslated it reaches whatever frame writes the response. [`rules/exposure.md`](../rules/exposure.md) conditions 2 and 4 hold it, and #294 is the incident that made them a rule.
 
 So a store translates: `if errors.Is(err, sql.ErrNoRows) { return Order{}, ErrNotFound }`, and wraps everything else with `%v` or `%w` according to whether the caller may inspect it. Condition 3 of [`rules/errors.md`](../rules/errors.md) asks a reviewer to check exactly that, by following each documented sentinel from where it is made to where it is inspected.
 
