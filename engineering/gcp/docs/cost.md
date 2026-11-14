@@ -38,7 +38,7 @@ Google's recommenders report idle VMs, disks, IP addresses, images and GKE clust
 
 | Mechanism | What it is | What it commits | Page |
 |---|---|---|---|
-| Sustained use discounts | automatic on eligible Compute Engine machine series used more than 25% of a month, up to 30% | nothing | [Sustained use discounts](https://docs.cloud.google.com/compute/docs/sustained-use-discounts) |
+| Sustained use discounts | automatic on eligible Compute Engine machine series used more than 25% of a billing month, up to 30% on some series (less on others) | nothing | [Sustained use discounts](https://docs.cloud.google.com/compute/docs/sustained-use-discounts) |
 | Spot VMs | discounted capacity Google may preempt at any time, with no SLA | the workload must tolerate interruption | [Spot VMs](https://docs.cloud.google.com/compute/docs/instances/spot) |
 | Resource-based committed use discounts | Compute Engine resources in a region for one or three years | cannot be cancelled after purchase | [Resource-based CUDs](https://docs.cloud.google.com/compute/docs/instances/signing-up-committed-use-discounts) |
 | Spend-based committed use discounts | a spend level on Compute Engine, GKE, Cloud Run or a named service, for one or three years, bought at the billing account | the spend, for the term | [Committed use discounts](https://docs.cloud.google.com/docs/cuds) |
