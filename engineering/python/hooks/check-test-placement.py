@@ -30,7 +30,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from sources import display, sources
+from sources import MissingPath, display, sources
 
 RULE = "test-placement"
 NOT_MODULES = frozenset({"__init__.py", "__main__.py", "conftest.py"})
@@ -118,7 +118,12 @@ def main(argv: list[str]) -> int:
     findings: list[Finding] = []
     checked = 0
     unparsed = 0
-    for path in sources(roots):
+    try:
+        paths = sources(roots)
+    except MissingPath as missing:
+        print(missing, file=sys.stderr)
+        return 2
+    for path in paths:
         rel = display(path, base)
         if not owes_a_test(Path(rel)):
             checked += 1

@@ -59,7 +59,7 @@ If the change needs a dependency the project does not have, open `docs/libraries
 
 ## 4. Write the test red
 
-Invoke the backend plugin's `ahrena-engineering-backend:driving-with-tdd` with the Skill tool and follow it at its step for the layer from step 2 — it is named here rather than declared, because that plugin already depends on this one — with `docs/testing.md` open for the Python shapes: which doubles that layer may use, factory fixtures, the async and database set-up. The unit's test is `<stem>_test.py` beside the module it tests, which `rules/test-placement.md` requires; a test of more than one unit goes under `tests/`. Double a port with a fake; never patch a name under `domain/` or `application/`, which `rules/testing.md` reports. Name the acceptance criterion the test covers with its token.
+Invoke the backend plugin's `ahrena-engineering-backend:driving-with-tdd` with the Skill tool and follow it at its step for the layer from step 2 — it is named here rather than declared, because that plugin already depends on this one — with `docs/testing.md` open for the Python shapes: which doubles that layer may use, factory fixtures, the async and database set-up. The unit's test is `<stem>_test.py` beside the module it tests, which `rules/test-placement.md` requires; a test of more than one unit goes under `tests/`. Double a port with a fake; never patch a name under `domain/` or `application/`, which `rules/testing.md` reports. Name the acceptance criterion the test covers with its token, `#N/AC-n`, in the test's name or docstring, which is where the contributing plugin's traceability rule reads it.
 
 Run it and confirm it fails for the missing behaviour, not for an import error or a fixture typo.
 
@@ -87,15 +87,20 @@ Output: the green run — the command and the counts.
 ## 6. Run the plugin's hooks and the type checker
 
 ```sh
-python3 engineering/python/hooks/check-typing.py <paths>
-python3 engineering/python/hooks/check-python.py <paths>
-python3 engineering/python/hooks/check-boundaries.py <import-roots>
-python3 engineering/python/hooks/check-test-placement.py <paths>
-python3 engineering/fundamentals/hooks/check-structure.py <paths>
-mypy --strict <paths>
+python3 <python-plugin>/hooks/check-typing.py <paths>
+python3 <python-plugin>/hooks/check-python.py <paths>
+python3 <python-plugin>/hooks/check-test-placement.py <paths>
+python3 <fundamentals-plugin>/hooks/check-structure.py <paths>
+python3 <python-plugin>/hooks/check-boundaries.py <import-roots>
+mypy --strict --explicit-package-bases <paths>
 ```
 
-The paths are the ones the change wrote, the tests included; the hooks take the plugin's path as installed. A finding is fixed, or answered with the reason the rule's own escape asks for, never silenced with a tool directive. `docs/toolchain.md` says why the checker is required and what each hook measured.
+Read the placeholders this way:
+
+- **The plugin directories** are where `ahrena-engineering-python` and `ahrena-engineering-fundamentals` are installed; in the framework's own repository they are `engineering/python` and `engineering/fundamentals`.
+- **The paths** are the files the change wrote, the tests included, each a separate argument. A hook given a path that does not exist exits with an error rather than reporting nothing; a count of `0 file(s)` means the paths did not reach it.
+- **The import roots** are the directories the project's dotted imports resolve against — the one that holds `components/`, usually the project root.
+- **The type check** is the project's own command when `pyproject.toml` declares one. Otherwise `--explicit-package-bases` is what lets mypy map a file under a PEP 420 namespace without `__init__.py` to its dotted name; without it, a module and the test beside it are found twice under two names (mypy documentation, *Mapping file paths to modules*). A finding is fixed, or answered with the reason the rule's own escape asks for, never silenced with a tool directive. `docs/toolchain.md` says why the checker is required and what each hook measured.
 
 Output: each command with its last line.
 

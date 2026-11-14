@@ -13,6 +13,10 @@ from pathlib import Path
 SKIP_NAMES = frozenset({"__pycache__", "node_modules", "venv", "build", "dist"})
 
 
+class MissingPath(Exception):
+    """A path given to a hook that does not exist, which is a typo rather than an empty tree."""
+
+
 def display(path: Path, base: Path) -> str:
     """The path relative to the working directory, or as given when outside it."""
     try:
@@ -35,5 +39,7 @@ def sources(roots: list[Path]) -> list[Path]:
     """Every Python file under the roots, with dot-prefixed and vendored trees left out."""
     found: list[Path] = []
     for root in roots:
+        if not root.exists():
+            raise MissingPath(f"{root} does not exist; a path that is not there is not a tree with nothing wrong in it")
         found.extend(_walk(root))
     return sorted(set(found))

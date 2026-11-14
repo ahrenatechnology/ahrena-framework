@@ -1,6 +1,6 @@
 # Python correctness
 
-Opened by step 2 of `SKILL.md` on every Python change. Each condition gives the state, how it is detected, what exempts it, and the correction. `hooks/check-typing.py` already decides the mutable-default and swallowed-exception conditions on the changed lines; what is here is the reading those leave, and the conditions no parser decides.
+Opened by step 2 of `SKILL.md` on every Python change. Each condition gives the state, how it is detected, what exempts it, and the correction. `hooks/check-typing.py` already decides the mutable-default and the blind, traceless handler, and `hooks/check-python.py` the handler that keeps an interrupt or a cancellation; what is here is the reading those leave, and the conditions no parser decides.
 
 ### PY-1 A mutable default argument
 
@@ -63,4 +63,11 @@ Opened by step 2 of `SKILL.md` on every Python change. Each condition gives the 
 - **State:** a log call, a `print`, an exception message or a response body given a whole object instead of named fields — `vars(x)`, `asdict(x)`, `x.model_dump()`, `x.__dict__`, `json.dumps(response)`, `str(exc)` or `exc.args` of an exception raised by a driver, an SDK or a third party; or a type that carries a credential, personal data, an access policy or a resource identifier with a `__repr__` or `__str__` that shows it.
 - **Detect:** read every log call, `print`, `raise` and response the change adds or edits, and the representation of every type whose fields are sensitive. Follow an exception from the `except` that caught it to every place its text is written.
 - **Exempt:** a field-by-field mapping the change wrote, where each field is named and none is sensitive; the full detail written to an internal log that holds no secret, with only a generic message and a correlation id going to the caller.
-- **Correct:** name the fields that are emitted; give the type `field(repr=False)`, `SecretStr` or a written `__repr__`; translate the upstream exception into the domain's own before the boundary and return the generic body. The rule is #294's, in the security plugin, and `docs/logging-and-observability.md` carries the Python form. Severity is blocking: the incident behind that issue was this condition, missed.
+- **Correct:** name the fields that are emitted; give the type `field(repr=False)`, `SecretStr` or a written `__repr__`; translate the upstream exception into the domain's own before the boundary and return the generic body. The rule is the one issue #294 of this framework places in the security plugin, and `docs/logging-and-observability.md` carries the Python form. Severity is blocking: the incident behind that issue was this condition, missed.
+
+### PY-10 A test double that accepts anything
+
+- **State:** a `Mock()` or `MagicMock()` with no `spec`, `spec_set` or `autospec`, standing in for a collaborator the test then asserts through; or a test that covers only the path where the double succeeds, when the unit under test has a branch for the double's failure.
+- **Detect:** read each double the change constructs. A bare `Mock` answers every attribute and every call, so a test passes when the code calls a method the real collaborator does not have, or with arguments it would refuse (Library Reference, `unittest.mock`, *Autospeccing*). Then read the unit's `except` branches and look for a test that drives each one.
+- **Exempt:** a double that is a fake implementing the port's protocol, which `mypy --strict` already checks; a branch the project tests at another layer, when the finding can name the test.
+- **Correct:** `create_autospec(Port, instance=True)` or a fake class implementing the protocol; a test per failure branch, with the double raising the error the real collaborator raises.

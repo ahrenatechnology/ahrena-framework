@@ -71,7 +71,7 @@ import tokenize
 from dataclasses import dataclass
 from pathlib import Path
 
-from sources import display, sources
+from sources import MissingPath, display, sources
 from typing import Union
 
 
@@ -794,7 +794,12 @@ def main(argv: list[str]) -> int:
     checked = 0
     unparsed = 0
 
-    for path in sources(roots):
+    try:
+        paths = sources(roots)
+    except MissingPath as missing:
+        print(missing, file=sys.stderr)
+        return 2
+    for path in paths:
         source = load(path, display(path, base))
         if source is None:
             unparsed += 1

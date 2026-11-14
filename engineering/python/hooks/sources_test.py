@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True
 
-from sources import display, sources  # noqa: E402
+from sources import MissingPath, display, sources  # noqa: E402
 
 
 def _tree(root: Path, names: list[str]) -> None:
@@ -59,6 +59,17 @@ def test_overlapping_roots_report_a_file_once() -> None:
         root = Path(tmp)
         _tree(root, ["pkg/a.py"])
         assert sources([root, root / "pkg"]) == [root / "pkg" / "a.py"]
+
+
+def test_a_root_that_does_not_exist_is_refused() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        missing = Path(tmp) / "no" / "such.py"
+        try:
+            sources([missing])
+        except MissingPath as refused:
+            assert str(missing) in str(refused)
+        else:
+            raise AssertionError("a missing root was read as an empty tree")
 
 
 TESTS = [value for name, value in sorted(globals().items()) if name.startswith("test_")]

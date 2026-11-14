@@ -29,9 +29,9 @@ Output: the entry point, the input, the expected result and the observed one.
 
 ## 2. Reproduce it as a failing test
 
-Write a test that drives the entry point with that input and asserts the expected result, following `docs/testing.md` for the layer it runs at, and name the issue's criterion or the bug's issue in it. Run it. It must fail, and fail with the observed behaviour; if it passes, or fails for another reason, the reproduction is wrong — refine the input or the set-up until it does.
+Write a test that drives the entry point with that input and asserts the expected result, following `docs/testing.md` for the layer it runs at, and name the bug's issue in it, `#N` or the criterion's `#N/AC-n`, in the test's name or docstring. Run it. It must fail, and fail with the observed behaviour; if it passes, or fails for another reason, the reproduction is wrong — refine the input or the set-up until it does. When the symptom the report describes cannot be produced in a test — a hang, a slowdown — but a narrower one that explains it can, reproduce the narrower one, and say in the hand-back how it accounts for the reported symptom.
 
-Then move the test down. If the defect lives in a domain rule, a unit test with no I/O reproduces it in milliseconds and every later step runs faster for it; `docs/architecture.md` says which layer owns which kind of code. Keep the outer test too: it is the one that proves the report is answered.
+Then move the test down, when the defect lives in a layer below the entry point. If it lives in a domain rule, a unit test with no I/O reproduces it in milliseconds and every later step runs faster for it; `docs/architecture.md` says which layer owns which kind of code. Keep the outer test too: it is the one that proves the report is answered.
 
 Output: the failing run — the command and the assertion that failed.
 
@@ -47,6 +47,8 @@ Follow the wrong value backwards from the assertion to the line that produced it
 Then read `references/suspects.md`, the defects Python makes easy, against the code on the path. Several of them are decided by the plugin's hooks; run `check-typing.py` and `check-python.py` on the files on the path, because a finding on that path may be the defect itself.
 
 Output: the cause, in one sentence that names the line and the condition that was false.
+
+A rule's escape — the reason comment `rules/error-handling.md` or `rules/security.md` accepts — is not a fix for the defect being diagnosed. If the hook that found the cause offers one, the fix is still the change to the line.
 
 Stop here and escalate to a person, before any fix, when the cause has corrupted stored data, exposed a secret or personal data, or crosses into another service: each of those needs a decision before a change. Hand back the cause and the failing test.
 
@@ -64,7 +66,7 @@ Output: the green run, and the hooks' last lines.
 
 ## 6. Look for the same defect elsewhere
 
-A defect that was easy to write once was written more than once. Search the tree for its shape: run the hooks over the whole tree when it is one they decide, and search for the pattern when it is not — the same call, the same handler, the same assumption about a value. Fix each occurrence the same way, with a test where one is cheap; where an occurrence belongs to other work, open an issue for it rather than leaving it in a comment.
+A defect that was easy to write once was written more than once. Search the tree for its shape: run the hooks over the whole tree when it is one they decide, and search for the pattern when it is not — the same call, the same handler, the same assumption about a value. Fix each occurrence the same way, with a test where one is cheap; where an occurrence belongs to other work, name it in the hand-back for the caller to open an issue, rather than leaving it in a comment.
 
 Then ask what would have caught this one before it shipped: a stricter type, a rule's escape that should not have been used, a test at a layer that had none, a hook condition the defect's shape could become. Name it in the hand-back.
 

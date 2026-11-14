@@ -127,6 +127,8 @@ python3 engineering/python/hooks/check-typing.py src tests
 mypy --strict src
 ```
 
+On the layout `rules/module-boundaries.md` holds — a PEP 420 namespace with no `__init__.py` at its upper levels, and each module's test beside it — mypy needs `--explicit-package-bases`, or `explicit_package_bases = true` in its configuration, to map a file to its dotted name; without it a module and its colocated test are reported as one file found under two names (mypy documentation, *Mapping file paths to modules*). That is a fact about the layout, not a relaxation of `--strict`.
+
 The first takes no dependencies and decides conditions 2 to 5 on every path it is given. The second decides condition 1 and is the project's to install and configure. Paths that genuinely should not be held are left out of the first command, where the exclusion is visible in the pipeline, rather than hidden in a per-module override.
 
 ## Where this stops
