@@ -31,7 +31,7 @@ Open `references/failure-signatures.md` and find the entry whose signature match
 
 ## 4. Confirm before changing anything
 
-Run the confirmation the entry names, which is read-only: Policy Troubleshooter for a permission, the violation analyzer for a perimeter, `gcloud org-policies describe` for a constraint, `gcloud run revisions describe` and the unfiltered log for a start failure, quota usage for an exhausted quota. Where the command cannot run here, name it and mark the cause unconfirmed; never invent its output. For a permission that was granted moments ago, wait out the propagation the entry states before concluding it is missing. A cause that the confirmation does not support is ruled out and recorded as such.
+Run the confirmation the entry names, which is read-only: Policy Troubleshooter for a permission, the violation analyzer for a perimeter, `gcloud org-policies describe` for a constraint, `gcloud run revisions describe` and the unfiltered log for a start failure, quota usage for an exhausted quota. Where the command cannot run here, name it and mark the cause unconfirmed; never invent its output. For a permission that was granted moments ago, wait out the propagation the entry states before concluding it is missing. A cause that the confirmation does not support is ruled out and recorded as such; where no confirmation can run, a signature the error text itself excludes (it names a different failure) may be ruled out on that text, and the diagnosis says so.
 
 ## 5. Propose the smallest fix within the rules
 

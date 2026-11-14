@@ -200,6 +200,9 @@ def targets(argv: list[str]) -> tuple[list[Path], dict[Path, set[int]] | None] |
 
 
 def main(argv: list[str]) -> int:
+    if any(arg in ("-h", "--help") for arg in argv[1:]):
+        print(__doc__)
+        return 0
     chosen = targets(argv)
     if chosen is None:
         return 2

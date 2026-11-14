@@ -107,6 +107,13 @@ def check_changed() -> list[str]:
     return errors
 
 
+def check_help() -> list[str]:
+    result = subprocess.run([sys.executable, str(HOOK), "--help"], capture_output=True, text=True)
+    if result.returncode != 0 or "Usage:" not in result.stdout:
+        return [f"--help did not print the usage: {result.stdout!r}"]
+    return []
+
+
 def check_gate() -> list[str]:
     """#298/AC-6, #307/AC-4: the artifact gate passes with this plugin listed, graph acyclic."""
     gate = REPO / "foundation" / "hooks" / "validate-artifacts.py"
@@ -117,10 +124,10 @@ def check_gate() -> list[str]:
 
 
 def main() -> int:
-    errors = check_failing() + check_clean() + check_changed() + check_gate()
+    errors = check_failing() + check_clean() + check_changed() + check_help() + check_gate()
     for error in errors:
         print(error)
-    total = len(CASES) + len(CLEAN) + 2
+    total = len(CASES) + len(CLEAN) + 3
     print(f"{total - len(errors)} of {total} cases passed.")
     return 1 if errors else 0
 

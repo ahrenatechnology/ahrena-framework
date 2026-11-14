@@ -25,7 +25,7 @@ The output is a design document the builders and the owner read before anything 
 
 ## 1. Read what the installation already decided
 
-When Hyperion runs this skill, its step 1 has done this: take its output and do not read again. Otherwise, run `ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md` for the concern the capability belongs to, and read the installation's records: its component map, `AGENTS.md` and `CLAUDE.md`, and its infrastructure code, for its projects and environments, the organization policies it enforces, its owner label key, its budgets, the identity its CI uses. Those are the client's decisions and the design inherits them (`ahrena-engineering-fundamentals:rules/client-logic.md`). What the installation does not say becomes a question in step 7, not an assumption.
+When Hyperion runs this skill, its step 1 has done this: take its output and do not read again. Otherwise, run `ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md` for each concern the capability spans, for the names the design uses, and read the installation's records: its component map, `AGENTS.md` and `CLAUDE.md`, and its infrastructure code, for its projects and environments, the organization policies it enforces, its owner label key, its budgets, the identity its CI uses. Those are the client's decisions and the design inherits them (`ahrena-engineering-fundamentals:rules/client-logic.md`). What the installation does not say becomes a question in step 7, not an assumption.
 
 Output: the constraints the design must live within, each with where it was read.
 

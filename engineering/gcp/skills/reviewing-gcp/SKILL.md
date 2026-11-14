@@ -26,7 +26,12 @@ The conditions are checklists in `references/`, identified by `GCI-n` for infras
 
 This plugin ships its routes as a fragment, `review-routes.json` at the plugin root, which the router merges when it is passed with `--plugin-routes` or `ROUTE_REVIEW_FRAGMENTS` (`ahrena-engineering-quality:docs/review-routes.md`). Two routes select this skill: `gcp-infrastructure` and `gcp-application`. Read the files each fired on; the router prints each as `path:line` with only the first line that fired, so drop the `:line` to get the path, and read each file whole.
 
-Then run the two hooks over the same change, each with `--changed` set to the range the review reads, so they report only the lines the change adds:
+Then, from the checkout, run the two hooks over the same change, each with `--changed` set to the range the review reads, so they report only the lines the change adds:
+
+- `python3 <ahrena-engineering-gcp root>/hooks/check-gcp-grants.py --changed <base>...<head> <files>`
+- `python3 <ahrena-engineering-security root>/hooks/check-exposure.py --changed <base>...<head> <files>`
+
+where `<files>` are:
 
 - this plugin's `hooks/check-gcp-grants.py` on the files `gcp-infrastructure` fired on, which decides the basic-role, key and public-principal literals of `rules/identity-and-access.md`;
 - `hooks/check-exposure.py` from the root of `ahrena-engineering-security` (the directory that holds its `.claude-plugin/plugin.json`) on the files `gcp-application` fired on, which decides the line-level shapes of the vendor-agnostic exposure rule.
