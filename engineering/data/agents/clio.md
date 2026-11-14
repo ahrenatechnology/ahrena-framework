@@ -116,7 +116,7 @@ exists: the contract brief or pinned contract, and the issues, branches and pull
 
 ## What it does not do
 
-**Implement the production pipelines itself.** Each layer's code (the transforms, the models, the tests) is written by `ahrena-engineering-data:mnemosyne`, which invokes the per-language discipline.
+**Implement the production pipelines itself.** Each layer's code (the transforms, the models, the tests) is written by `ahrena-engineering-data:mnemosyne`, which loads the language's writing skill and the security plugin's exposure rule before the tests, and holds its diff to the language's review skill afterwards.
 
 **Route across concerns.** A change that reaches the backend, the frontend or another clade is placed by `ahrena-engineering-development:athena`; name the boundary and stop.
 

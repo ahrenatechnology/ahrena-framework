@@ -8,6 +8,9 @@ references:
   - ahrena-engineering-fundamentals:rules/contract-first.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
   - ahrena-engineering-python:skills/reviewing-python/SKILL.md
+  - ahrena-engineering-typescript:skills/reviewing-typescript/SKILL.md
+  - ahrena-engineering-go:skills/reviewing-go/SKILL.md
+  - ahrena-engineering-rust:skills/reviewing-rust/SKILL.md
   - ahrena-contributing:skills/writing-acceptance-criteria/SKILL.md
 ---
 
@@ -39,7 +42,7 @@ Run the scenarios and the contract tests against the fully assembled API. This i
 
 ## 6. Hand the per-language discipline to the specialist
 
-The scenario and contract code is still code, and it is reviewed in the language it is written in. The specialist invokes the per-language review skill for the stack — [`ahrena-engineering-python:skills/reviewing-python/SKILL.md`](../../../python/skills/reviewing-python/SKILL.md) for Python, and the TypeScript, Go and Rust equivalents in their own plugins — so the acceptance layer is held to the same idioms and contracts as every other layer.
+The scenario and contract code is still code, and it is written and reviewed in the language it is written in. The specialist writes it under the language's writing skill — `ahrena-engineering-python:writing-python`, `ahrena-engineering-typescript:writing-typescript`, `ahrena-engineering-go:writing-go` or `ahrena-engineering-rust:writing-rust` — and reviews it with the matching review skill: [`ahrena-engineering-python:skills/reviewing-python/SKILL.md`](../../../python/skills/reviewing-python/SKILL.md), [`ahrena-engineering-typescript:skills/reviewing-typescript/SKILL.md`](../../../typescript/skills/reviewing-typescript/SKILL.md), [`ahrena-engineering-go:skills/reviewing-go/SKILL.md`](../../../go/skills/reviewing-go/SKILL.md) or [`ahrena-engineering-rust:skills/reviewing-rust/SKILL.md`](../../../rust/skills/reviewing-rust/SKILL.md). The acceptance layer is held to the same idioms and contracts as every other layer, and an error a scenario provokes reaches the caller as the generic error the exposure rule asks for, never as the dependency's own text.
 
 ## When this skill does not apply
 
