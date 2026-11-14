@@ -88,7 +88,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/hooks/check-terraform.py" .
 tflint --recursive
 ```
 
-`scripts/validate-each.sh` runs `init -backend=false`, `validate` and, where the module has tests, `terraform test` in each directory, and stops at the first failure.
+`scripts/validate-each.sh` runs `init -backend=false` and `validate` in each directory, and stops at the first failure. It runs no test: a test applies by default, and a repository's integration tests create real infrastructure with whatever credentials the shell holds. The tests this skill owes are the ones steps 4 and 5 ran, in the module it wrote.
 
 A tool that is not installed is reported as not run, with that reason; it is not installed by this skill. Then the project's security scanner, if it has one (`docs/libraries.md`). Fix every finding; a hook finding names the rule and condition it breaks and says what to write instead. A root configuration's plan runs in the pipeline, with read-only credentials, and is what the reviewer reads; never print `terraform output -json` or `terraform show -json` to a log while checking your work.
 
