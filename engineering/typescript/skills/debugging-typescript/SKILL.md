@@ -22,7 +22,7 @@ A TypeScript defect is almost always one of two things: the compiler and the cod
 
 ## 1. Reproduce it as a failing test
 
-Write the smallest test that shows the defect with the project's runner — the input, the call, the value or the error expected — and run it red. A defect that only happens in production gets its input from the log or the trace, and the test replays it. If it cannot be reproduced, record what was tried and stop here: a fix for a defect nobody reproduced is a guess with a commit.
+If a test already fails for this defect, it is the reproduction: name it with the criterion token it proves and add the cases the criterion also asks for, such as the rejection of an invalid input. Otherwise write the smallest test that shows the defect with the project's runner — the input, the call, the value or the error expected — and run it red. A defect that only happens in production gets its input from the log or the trace, and the test replays it. If it cannot be reproduced, record what was tried and stop here: a fix for a defect nobody reproduced is a guess with a commit.
 
 Output: the red test, its command and its failure.
 
@@ -77,7 +77,7 @@ Output: the cycle's edges or the deep import, and the edge to delete.
 
 ## 7. Hand the fix over with the test
 
-Write the fix with `writing-typescript`, from its step 4, with the red test of step 1 as its test: the fix is the code that turns it green, and the test stays as the regression test. When the cause was a hole, the fix closes the hole — a schema in place of the assertion, a narrowing in place of the `!` — rather than adjusting the value after it; a fix that patches the symptom leaves the hole for the next value.
+Write the fix with `writing-typescript`, from its step 4 to its step 6 — the code, the gate, and the read of your own diff — with the red test of step 1 as its test: the fix is the code that turns it green, and the test stays as the regression test. When the cause was a hole, the fix closes the hole — a schema in place of the assertion, a narrowing in place of the `!` — rather than adjusting the value after it; a fix that patches the symptom leaves the hole for the next value.
 
 Output: the green run, and the hole closed.
 

@@ -23,13 +23,13 @@ references:
 
 # Writing TypeScript
 
-The discipline of writing test-first is language-agnostic and belongs to `ahrena-engineering-backend:driving-with-tdd`. This skill gives it the TypeScript specifics: which of the four rules the project's own tools already decide, where the change goes, how its test replaces a collaborator, and how the code is written so that `reviewing-typescript` has nothing to report.
+The discipline of writing test-first is language-agnostic and belongs to `ahrena-engineering-backend:driving-with-tdd`. This skill gives it the TypeScript specifics: which of the five rules the project's own tools already decide, where the change goes, how its test replaces a collaborator, and how the code is written so that `reviewing-typescript` has nothing to report.
 
 `<plugin>` below is the directory where `ahrena-engineering-typescript` is installed; in this framework's repository it is `engineering/typescript`.
 
 ## 1. Read what the project already decides
 
-Open the project's `tsconfig*.json`, its ESLint or Oxlint configuration and its `package.json` scripts. Record four facts: whether `strict` and `noUncheckedIndexedAccess` are written (condition 2 of `rules/typing.md`); whether typed linting is on, with which shared configuration; which command type-checks; and which runner runs the tests. Then run the four hooks over the package you are about to change, so that findings already on trunk are known before you add any; record too whether the lint configuration sets `max-statements`, `max-depth` and `max-params` to the fundamentals' numbers (step 4):
+Open the project's `tsconfig*.json`, its ESLint or Oxlint configuration and its `package.json` scripts. Record four facts: whether `strict` and `noUncheckedIndexedAccess` are written (condition 2 of `rules/typing.md`); whether typed linting is on, with which shared configuration; which command type-checks; and which runner runs the tests. Then run the five hooks over the package directory you are about to change, so that findings already on trunk are known before you add any; record too whether the lint configuration sets `max-statements`, `max-depth` and `max-params` to the fundamentals' numbers (step 4):
 
 ```sh
 python3 <plugin>/hooks/check-typing.py <package-dir>
@@ -39,7 +39,7 @@ python3 <plugin>/hooks/check-untyped-input.py <package-dir>
 python3 <plugin>/hooks/check-tests.py <package-dir>
 ```
 
-Output: the four facts and the baseline findings. A finding on trunk is not yours to fix in this change unless the change touches that line; it is a finding to report, not a reason to stop.
+Output: the four facts and the baseline findings. A hook that exits non-zero on the baseline is not a stop: from here on, compare findings, not exit codes. A finding on trunk is not yours to fix in this change unless the change touches that line; it is a finding to report, not a reason to stop.
 
 The failure that recurs here is writing to a stricter or looser setup than the project has. A project without typed linting does not decide condition 3 of `rules/typing.md` or condition 1 of `rules/promises.md`, and you hold those by hand for the code you write.
 
@@ -51,13 +51,13 @@ Output: the files the change will touch, and its boundaries. A project with a co
 
 ## 3. Write the test red
 
-Write the test for the behaviour before the code, with the project's runner, per `docs/testing.md`: `foo.test.ts` beside `foo.ts`, as `rules/colocated-tests.md` requires; collaborators replaced through their port with a typed fake, never with `vi.mock` on a module that has a seam; an HTTP collaborator faked at the network with MSW; a parser covered by a property test with fast-check. A test that covers an acceptance criterion carries its `#<issue>/AC-<n>` token. Run it and confirm it fails for the missing behaviour, not for a type error or a missing import.
+Write the test for the behaviour before the code, with the project's runner, per `docs/testing.md`: `foo.test.ts` beside `foo.ts`, as `rules/colocated-tests.md` requires; collaborators replaced through their port with a typed fake, never with `vi.mock` on a module that has a seam; an HTTP collaborator faked at the network with MSW; a parser covered by a property test with fast-check. A test that covers an acceptance criterion carries its `#<issue>/AC-<n>` token. Run it and confirm it fails for the missing behaviour, not for a type error or a missing import: for a function that does not exist yet, export a stub with the final signature that returns a wrong value or throws, so the test runs and fails on its assertion.
 
 Output: the red run, its command and the failing test names.
 
 ## 4. Write the code to the rules
 
-Write the smallest code that turns the test green, and write it to the four rules as you go rather than after:
+Write the smallest code that turns the test green, and write it to the five rules as you go rather than after:
 
 - **Types** (`rules/typing.md`). No `any`: `unknown` and a narrowing where the shape is not known yet. An exported function declares its return type. No `@ts-ignore`; a `@ts-expect-error` says which error. No `as unknown as`; when the compiler refuses a single `as` with TS2352, the types disagree and the code is wrong more often than the compiler.
 - **Boundaries** (`rules/runtime-validation.md`). Every value from step 2's boundaries is parsed by a schema, its type is derived from the schema (`z.infer`, `v.InferOutput`, or checked against it with `satisfies`), and a failed parse is a failure the caller sees — a 400, a stopped process, a dead letter.

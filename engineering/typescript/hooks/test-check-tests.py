@@ -55,7 +55,7 @@ CASES: list[Case] = [
         ["no failures"],
         ok=True,
     ),
-    # --- condition 1
+    # --- condition 1 #289
     case("a function with no test beside it fails", {"src/order.ts": FUNCTION}, ["condition 1", "src/order.ts", "order.test.ts"]),
     case("an exported arrow with no test fails", {"src/order.ts": ARROW}, ["condition 1"]),
     case("a class with no test fails", {"src/ledger.ts": CLASS}, ["condition 1", "ledger.test.ts"]),
@@ -86,7 +86,7 @@ CASES: list[Case] = [
         ["no failures"],
         ok=True,
     ),
-    # --- condition 2
+    # --- condition 2 #289
     case("a test whose unit is gone fails", {"src/order.test.ts": TEST}, ["condition 2", "src/order.test.ts", "order.ts"]),
     case(
         "a test under a test directory is not an orphan",

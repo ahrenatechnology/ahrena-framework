@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tests for check-boundaries.py.
 
-Covers #289/AC-3 for the four conditions of rules/module-boundaries.md. The
+Covers #289/AC-3 for the six conditions of rules/module-boundaries.md. The
 carve-outs pinned here: a type-only import is erased and closes no cycle, a
 `.js` specifier written for `nodenext` reaches the `.ts` file beside it, a
 package imported by its name and an exported subpath is the public entry, and
@@ -23,7 +23,7 @@ from harness import Case, case, main  # noqa: E402
 
 HOOK = Path(__file__).resolve().parent / "check-boundaries.py"
 
-# --- condition 1: cycles -----------------------------------------------------
+# --- condition 1: cycles #289
 
 CYCLE = {
     "src/a.ts": 'import { b } from "./b";\nexport const a = (): number => b();\n',
@@ -69,7 +69,7 @@ ACYCLIC = {
     "src/note.ts": 'export const doc = "import { a } from \'./a\'";\n',
 }
 
-# --- conditions 3 and 4: packages -------------------------------------------
+# --- conditions 3 and 4: packages #289
 
 WORKSPACE_PACKAGE = '{ "name": "@acme/billing", "exports": { ".": "./src/index.ts", "./testing": "./src/testing.ts" } }'
 WORKSPACE_WILDCARD = '{ "name": "@acme/ui", "exports": { ".": "./src/index.ts", "./icons/*": "./src/icons/*.ts" } }'
@@ -123,7 +123,7 @@ INSIDE_ONE_PACKAGE = {
     "packages/billing/src/money.ts": "export const money = 1;\n",
 }
 
-# --- conditions 5 and 6: the workspace's package graph ------------------------
+# --- conditions 5 and 6: the workspace's package graph #289
 
 PACKAGE_CYCLE = {
     "packages/a/package.json": '{ "name": "@acme/a", "exports": { ".": "./src/index.ts" }, "dependencies": { "@acme/b": "workspace:*" } }',
@@ -146,9 +146,14 @@ UNDECLARED = {
     "packages/b/src/index.ts": "export const b = 2;\n",
 }
 
+BROKEN_MANIFEST = {
+    "packages/a/package.json": '{ "name": "@acme/a", ',
+    "packages/a/src/index.ts": "export const a = 1;\n",
+}
+
 CASES: list[Case] = [
     case("an acyclic tree passes", ACYCLIC, ["no failures"], ok=True),
-    # --- condition 1
+    # --- condition 1 #289
     case(
         "a three-module cycle fails and is reported as the cycle",
         CYCLE,
@@ -156,21 +161,22 @@ CASES: list[Case] = [
     ),
     case("a cycle through a directory index fails", INDEX_CYCLE, ["condition 1", "src/orders/index.ts"]),
     case("a type-only import closes no cycle", TYPE_ONLY, ["no failures"], ok=True),
-    # Under verbatimModuleSyntax, `import { type B }` is rewritten to
-    # `import {} from "./b"` and still loads the module: it is an edge.
+    # Under verbatimModuleSyntax, `import { type B }` is rewritten to (#289)
+    # `import {} from "./b"` and still loads the module: it is an edge. (#289)
     case("an import whose every name is inline type is still an edge", INLINE_TYPE_ONLY, ["condition 1", "src/b.ts"]),
     case("a type-only re-export closes no cycle", EXPORT_TYPE_ONLY, ["no failures"], ok=True),
-    # --- condition 2
+    # --- condition 2 #289
     case("a dynamic import is the same edge", DEFERRED, ["condition 1", "deferred"]),
     case("require is an edge", REQUIRE, ["condition 1", "src/a.cts"]),
-    # --- condition 3
+    # --- condition 3 #289
     case("a relative import into another package fails", RELATIVE_INTO_PACKAGE, ["condition 3", "@acme/billing"]),
     case("relative imports inside one package pass", INSIDE_ONE_PACKAGE, ["no failures"], ok=True),
-    # --- condition 4
+    # --- condition 4 #289
     case("a deep import by name past exports fails", DEEP_BY_NAME, ["condition 4", "@acme/billing/src/charge"]),
     case("exported subpaths, wildcards and third parties pass", PUBLIC_BY_NAME, ["no failures"], ok=True),
-    # --- conditions 5 and 6
+    # --- conditions 5 and 6 #289
     case("a cycle between workspace packages fails", PACKAGE_CYCLE, ["condition 5", "@acme/a -> @acme/b -> @acme/a"]),
+    case("a manifest that does not parse fails, naming it", BROKEN_MANIFEST, ["condition 5", "packages/a/package.json", "does not parse"]),
     case("a workspace whose packages point one way passes", PACKAGE_DAG, ["no failures"], ok=True),
     case("a package imported but not declared fails", UNDECLARED, ["condition 6", "@acme/b", "packages/a/package.json"]),
     case("a subpath of a package with no exports fails", NO_EXPORTS_DEEP, ["condition 4", "declares no exports"]),

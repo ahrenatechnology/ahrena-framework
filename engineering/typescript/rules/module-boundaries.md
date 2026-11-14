@@ -55,7 +55,7 @@ A workspace that type-checks with `tsc --build` mirrors each package's dependenc
 
 **A path alias is not resolved.** `compilerOptions.paths` maps `@/domain/order` to a file, and the hook does not read it; an edge through an alias is invisible, and a cycle that needs one to close is not reported. Resolving aliases means reimplementing `paths`, `baseUrl` (which 6.0 deprecates) and the bundler's own alias table, and they disagree. A project that leans on aliases adds a second detector — dependency-cruiser and madge both report cycles through them — and [`docs/project-layout.md`](../docs/project-layout.md) argues for relative imports inside a package and package names across packages, which this hook reads in full.
 
-**A first-party package imported by name adds no edge.** Conditions 3 and 4 hold the package boundary; a cycle between two workspace packages that import each other by name is a cycle in the workspace's dependency graph, and the package manager reports it when it orders the build.
+**A first-party package imported by name adds no edge to the module graph.** Conditions 3 and 4 hold the package boundary; a cycle between two workspace packages that import each other by name is conditions 5 and 6's: the import has to be declared (6), and the declared package graph is acyclic (5), both decided from the manifests by this hook.
 
 **A third-party deep import is not read.** `lodash/fp` is a public entry of a package that has no `exports`, and `zod/mini` is a declared one; telling them from `some-lib/dist/internal/x` needs the installed package, which a gate does not have. Node enforces `exports` at runtime for a package that declares it, and review reads the rest.
 

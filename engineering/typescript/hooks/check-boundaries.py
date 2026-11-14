@@ -131,14 +131,22 @@ def resolve_relative(importer: Path, specifier: str, known: set[Path]) -> Path |
     return None
 
 
-def packages_in(roots: list[Path]) -> list[Package]:
+def packages_in(roots: list[Path], base: Path, findings: list[Finding]) -> list[Package]:
+    """Every named package.json in the tree; one that does not parse is a failure, never a skip.
+
+    A manifest the hook cannot read leaves conditions 3 to 6 undecided for
+    that package, and a run that said "no failures" over it would be a gate
+    that passes by seeing nothing.
+    """
     found = []
     for path in walk(roots, ("package.json",)):
         if path.name != "package.json":
             continue
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+            reason = f"does not parse ({error}); conditions 3 to 6 cannot be decided for this package"
+            findings.append(Finding(RULE, display(path, base), 5, reason))
             continue
         if isinstance(data, dict) and isinstance(data.get("name"), str):
             found.append(Package(data["name"], path.parent.resolve(), data.get("exports"), declared(data)))
@@ -322,9 +330,9 @@ def main(argv: list[str]) -> int:
     base = Path.cwd()
     files = [path.resolve() for path in walk(roots, SCRIPT)]
     known = set(files)
-    packages = packages_in(roots)
-    tree = Tree(known, packages, {path: [] for path in files})
     findings: list[Finding] = []
+    packages = packages_in(roots, base, findings)
+    tree = Tree(known, packages, {path: [] for path in files})
     for path in files:
         check_file(load(path, display(path, base)), tree, findings)
     check_cycles(tree.graph, base, findings)

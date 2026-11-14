@@ -77,7 +77,7 @@ Read each condition's `Exempt` line. A cast at a true boundary and an `any` on g
 
 Each finding carries the four fields in `ahrena-engineering-quality:docs/review-findings.md`, with the rule condition or the TS identifier, and a correction that is an instruction.
 
-Hand the set back to step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md`. Do not publish from here, and do not edit the change.
+Hand the set back to step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md`; run standalone, outside `reviewing-diffs`, return it to the caller. Do not publish from here, and do not edit the change.
 
 ## When this skill does not apply
 

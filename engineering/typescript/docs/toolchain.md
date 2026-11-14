@@ -62,7 +62,7 @@ Its supported range is TypeScript `>=4.8.4 <6.1.0`, and a maintainer wrote on it
 
 **Inherited.** `noUncheckedIndexedAccess` comes from the predecessor's typing law, which required it with `strict`. The three-character minimum for a `@ts-expect-error` description is typescript-eslint's `ban-ts-comment` default. The list of flags `strict` governs is `tsc --help --all` for 6.0.3 and 7.0.2, read on 2026-11-14.
 
-**Measured.** The four hooks were run on four public codebases, shallow clones read on 2026-11-14:
+**Measured.** The five hooks were run on four public codebases, shallow clones read on 2026-11-14:
 
 | Codebase | Commit | Lines of TypeScript |
 |---|---|---|
@@ -82,7 +82,9 @@ No hook took more than four seconds on any of them. The findings, by rule and co
 | typing 7 (exported return) | 71 | 37 | 18 | 98 |
 | promises 2 / 3 | 0 / 32 | 0 / 21 | 0 / 6 | 2 / 0 |
 | boundaries 1 / 3 | 1 / 6 | 4 / 1 | 2 / 16 | 3 / 2 |
+| boundaries 5 / 6 | 0 / 0 | 0 / 0 | 0 / 14 | 0 / 0 |
 | runtime-validation 2 | 6 | 1 | 6 | 3 |
+| colocated-tests 1 / 2 | 233 / 5 | 89 / 13 | 513 / 1 | 145 / 0 |
 
 Each condition's findings were sampled and read against the source. Two detector defects were found that way and fixed before the numbers above were taken: a line with three `any` counted three times, and a process listener passed by reference was read as one that swallows. One known false positive remains, described in [`rules/runtime-validation.md`](../rules/runtime-validation.md). The volumes are what they are: these are mature, careful codebases, and the rules would ask each of them to write down a reason a few hundred times. That is the measure of how much of their type safety rests on decisions nobody wrote down, not a sign the threshold is wrong — none of the conditions has a threshold to move.
 

@@ -32,7 +32,7 @@ export function add(left: number, right: number): number {
 }
 """
 
-# --- condition 2: tsconfig ---------------------------------------------------
+# --- condition 2: tsconfig #289
 
 STRICT_OFF = '{ "compilerOptions": { "strict": false, "noUncheckedIndexedAccess": true } }'
 FAMILY_OFF = '{ "compilerOptions": { "strictNullChecks": false, "noUncheckedIndexedAccess": true } }'
@@ -44,7 +44,7 @@ CHILD_UNSETS = '{ "extends": "./tsconfig.base.json", "compilerOptions": { "noUnc
 PACKAGE_BASE = '{ "extends": "@tsconfig/strictest/tsconfig.json" }'
 INSTALLED_BASE = '{ "compilerOptions": { "strict": true, "noUncheckedIndexedAccess": true } }'
 
-# --- condition 4: explicit any ----------------------------------------------
+# --- condition 4: explicit any #289
 
 BARE_ANY = """
 export function parse(raw: any): number {
@@ -99,7 +99,7 @@ export function anyOf(values: readonly string[]): boolean {
 }
 """
 
-# --- condition 5: ts directives ---------------------------------------------
+# --- condition 5: ts directives #289
 
 TS_IGNORE = """
 // @ts-ignore
@@ -124,7 +124,7 @@ TS_IGNORE_IN_STRING = """
 export const doc = "write // @ts-ignore above the line";
 """
 
-# --- condition 6: double assertion ------------------------------------------
+# --- condition 6: double assertion #289
 
 DOUBLE_CAST = """
 interface User { id: string }
@@ -147,7 +147,7 @@ export function erase(value: string): unknown {
 }
 """
 
-# --- condition 7: exported return types -------------------------------------
+# --- condition 7: exported return types #289
 
 EXPORT_NO_RETURN = """
 export function total(rows: readonly number[]) {
@@ -201,7 +201,7 @@ export function pick(value: string | number): string | number {
 }
 """
 
-# --- the walk ----------------------------------------------------------------
+# --- the walk #289
 
 VENDORED = """
 export function parse(raw: any) {
@@ -211,7 +211,7 @@ export function parse(raw: any) {
 
 CASES: list[Case] = [
     case("a clean project passes", {"tsconfig.json": STRICT, "src/a.ts": CLEAN}, ["no failures"], ok=True),
-    # --- condition 2
+    # --- condition 2 #289
     case("strict turned off fails", {"tsconfig.json": STRICT_OFF}, ["condition 2", "turns strict off"]),
     case("a strict-family flag turned off fails", {"tsconfig.json": FAMILY_OFF}, ["condition 2", "strictNullChecks"]),
     case("strict left to the compiler's default fails", {"tsconfig.json": STRICT_BY_DEFAULT}, ["condition 2", "does not set strict"]),
@@ -238,7 +238,7 @@ CASES: list[Case] = [
         ["no failures"],
         ok=True,
     ),
-    # --- condition 4
+    # --- condition 4 #289
     case("a bare any fails", {"tsconfig.json": STRICT, "a.ts": BARE_ANY}, ["condition 4", "a.ts:2"]),
     case("an any inside a generic fails", {"tsconfig.json": STRICT, "a.ts": ANY_IN_GENERIC}, ["condition 4"]),
     case("three on one line are one finding", {"tsconfig.json": STRICT, "a.ts": THREE_ON_ONE_LINE}, ["1 failure(s)", "condition 4"]),
@@ -267,7 +267,7 @@ CASES: list[Case] = [
         ["no failures"],
         ok=True,
     ),
-    # --- condition 5
+    # --- condition 5 #289
     case("@ts-ignore fails", {"tsconfig.json": STRICT, "a.ts": TS_IGNORE}, ["condition 5", "@ts-ignore"]),
     case("@ts-nocheck fails", {"tsconfig.json": STRICT, "a.ts": TS_NOCHECK}, ["condition 5", "@ts-nocheck"]),
     case("a bare @ts-expect-error fails", {"tsconfig.json": STRICT, "a.ts": EXPECT_ERROR_BARE}, ["condition 5"]),
@@ -283,7 +283,7 @@ CASES: list[Case] = [
         ["no failures"],
         ok=True,
     ),
-    # --- condition 6
+    # --- condition 6 #289
     case("a double assertion fails", {"tsconfig.json": STRICT, "a.ts": DOUBLE_CAST}, ["condition 6", "a.ts:4"]),
     case(
         "a double assertion with a reason passes",
@@ -292,7 +292,7 @@ CASES: list[Case] = [
         ok=True,
     ),
     case("widening to unknown passes", {"tsconfig.json": STRICT, "a.ts": SINGLE_UNKNOWN}, ["no failures"], ok=True),
-    # --- condition 7
+    # --- condition 7 #289
     case("an exported function with no return type fails", {"tsconfig.json": STRICT, "a.ts": EXPORT_NO_RETURN}, ["condition 7", "total"]),
     case("an exported async function with no return type fails", {"tsconfig.json": STRICT, "a.ts": EXPORT_ASYNC_NO_RETURN}, ["condition 7", "load"]),
     case("a default export with no return type fails", {"tsconfig.json": STRICT, "a.ts": EXPORT_DEFAULT_NO_RETURN}, ["condition 7", "handler"]),
@@ -317,7 +317,7 @@ CASES: list[Case] = [
     ),
     case("a function that is not exported passes", {"tsconfig.json": STRICT, "a.ts": LOCAL_NO_RETURN}, ["no failures"], ok=True),
     case("overload signatures pass", {"tsconfig.json": STRICT, "a.ts": EXPORT_OVERLOADS}, ["no failures"], ok=True),
-    # --- the walk
+    # --- the walk #289
     case(
         "node_modules and dist are not walked",
         {"tsconfig.json": STRICT, "node_modules/x/index.ts": VENDORED, "dist/a.ts": VENDORED},

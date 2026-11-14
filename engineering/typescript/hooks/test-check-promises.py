@@ -32,7 +32,7 @@ export async function saveAll(rows: readonly string[]): Promise<void> {
 }
 """
 
-# --- condition 2: async forEach ---------------------------------------------
+# --- condition 2: async forEach #289
 
 ASYNC_FOREACH = """
 export function saveAll(rows: readonly string[]): void {
@@ -51,7 +51,7 @@ rows.forEach((row) => console.log(row));
 const note = "rows.forEach(async (row) => x)";
 """
 
-# --- condition 3: discarded rejection ---------------------------------------
+# --- condition 3: discarded rejection #289
 
 EMPTY_CATCH_ARROW = """
 export function fire(): void {
@@ -100,7 +100,7 @@ try {
 }
 """
 
-# --- condition 4: process listeners -----------------------------------------
+# --- condition 4: process listeners #289
 
 SWALLOWING_LISTENER = """
 process.on("unhandledRejection", (reason) => {
@@ -134,7 +134,7 @@ process.on("SIGTERM", () => {
 });
 """
 
-# --- condition 5: --unhandled-rejections ------------------------------------
+# --- condition 5: --unhandled-rejections #289
 
 PACKAGE_WARN = '{ "scripts": { "start": "node --unhandled-rejections=warn dist/main.js" } }'
 DOCKERFILE_NONE = 'FROM node:24\nENV NODE_OPTIONS="--unhandled-rejections=none"\nCMD ["node", "main.js"]\n'
@@ -143,24 +143,24 @@ PACKAGE_STRICT = '{ "scripts": { "start": "node --unhandled-rejections=strict di
 
 CASES: list[Case] = [
     case("a clean module passes", {"a.ts": CLEAN}, ["no failures"], ok=True),
-    # --- condition 2
+    # --- condition 2 #289
     case("an async arrow passed to forEach fails", {"a.ts": ASYNC_FOREACH}, ["condition 2", "a.ts:3"]),
     case("an async function passed to forEach fails", {"a.ts": ASYNC_FOREACH_FUNCTION}, ["condition 2"]),
     case("a synchronous forEach passes", {"a.ts": SYNC_FOREACH}, ["no failures"], ok=True),
-    # --- condition 3
+    # --- condition 3 #289
     case("an empty catch arrow fails", {"a.ts": EMPTY_CATCH_ARROW}, ["condition 3", "a.ts:3"]),
     case("an empty catch function fails", {"a.ts": EMPTY_CATCH_FUNCTION}, ["condition 3"]),
     case("an empty catch block fails", {"a.ts": EMPTY_CATCH_BLOCK}, ["condition 3", "a.ts:5"]),
     case("an empty catch with no binding fails", {"a.ts": EMPTY_OPTIONAL_BINDING}, ["condition 3"]),
     case("a catch that says why it is empty passes", {"a.ts": CATCH_WITH_REASON}, ["no failures"], ok=True),
     case("a catch that handles passes", {"a.ts": CATCH_THAT_HANDLES}, ["no failures"], ok=True),
-    # --- condition 4
+    # --- condition 4 #289
     case("an unhandledRejection listener that only logs fails", {"a.ts": SWALLOWING_LISTENER}, ["condition 4", "unhandledRejection"]),
     case("an uncaughtException listener that only logs fails", {"a.ts": SWALLOWING_UNCAUGHT}, ["condition 4", "uncaughtException"]),
     case("listeners that exit or rethrow pass", {"a.ts": EXITING_LISTENER}, ["no failures"], ok=True),
     case("a listener on another event is not read", {"a.ts": OTHER_EVENT}, ["no failures"], ok=True),
     case("a listener passed by reference has no body to read", {"a.ts": LISTENER_BY_REFERENCE}, ["no failures"], ok=True),
-    # --- condition 5
+    # --- condition 5 #289
     case("warn in a package script fails", {"package.json": PACKAGE_WARN}, ["condition 5", "package.json", "warn"]),
     case("none in a Dockerfile fails", {"Dockerfile": DOCKERFILE_NONE}, ["condition 5", "Dockerfile:2"]),
     case("warn-with-error-code in an env file fails", {".env.production": ENV_WARN_CODE}, ["condition 5"]),
