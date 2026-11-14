@@ -8,7 +8,7 @@ Three properties, each one a script can decide:
     2. the plugin is catalogued with its three manifests agreeing (#296/AC-1)
     3. the plugin's review-route fragment selects reviewing-aws for a handler
        that hands an AWS SDK error back to its caller, the anonymised shape of
-       the incident behind issue 294, and for AWS infrastructure files (#296/AC-5)
+       the incident behind the framework's exposure rule, and for AWS infrastructure files (#296/AC-5)
 
 Standard library only. Run from anywhere:
 
