@@ -4,7 +4,7 @@ type: rule
 clade: engineering
 subclade: typescript
 title: Types the compiler holds, and the holes written past it
-statement: Clean tsc under written strict, noUncheckedIndexedAccess and lint no-unsafe-*; no @ts-ignore; an any, @ts-expect-error or double cast says why; exports typed.
+statement: tsc and no-unsafe-* lint clean, strict and noUncheckedIndexedAccess written; no @ts-ignore; any, @ts-expect-error, double cast say why; exports declare returns.
 enforcement: judgment
 references:
   - docs/toolchain.md
