@@ -87,7 +87,7 @@ DEEP_BY_NAME = {
     "packages/billing/package.json": WORKSPACE_PACKAGE,
     "packages/billing/src/index.ts": 'export { charge } from "./charge";\n',
     "packages/billing/src/charge.ts": "export const charge = (): number => 1;\n",
-    "apps/api/package.json": '{ "name": "api" }',
+    "apps/api/package.json": '{ "name": "api", "dependencies": { "@acme/billing": "workspace:*" } }',
     "apps/api/src/main.ts": 'import { charge } from "@acme/billing/src/charge";\nexport const run = (): number => charge();\n',
 }
 
@@ -98,7 +98,7 @@ PUBLIC_BY_NAME = {
     "packages/ui/package.json": WORKSPACE_WILDCARD,
     "packages/ui/src/index.ts": "export const ui = 1;\n",
     "packages/ui/src/icons/star.ts": "export const star = 1;\n",
-    "apps/api/package.json": '{ "name": "api" }',
+    "apps/api/package.json": '{ "name": "api", "dependencies": { "@acme/billing": "workspace:*", "@acme/ui": "workspace:*" } }',
     "apps/api/src/main.ts": (
         'import { charge } from "@acme/billing";\n'
         'import { fake } from "@acme/billing/testing";\n'
@@ -112,7 +112,7 @@ NO_EXPORTS_DEEP = {
     "packages/legacy/package.json": WORKSPACE_NO_EXPORTS,
     "packages/legacy/src/index.ts": "export const old = 1;\n",
     "packages/legacy/src/inner.ts": "export const inner = 1;\n",
-    "apps/api/package.json": '{ "name": "api" }',
+    "apps/api/package.json": '{ "name": "api", "dependencies": { "@acme/legacy": "workspace:*" } }',
     "apps/api/src/main.ts": 'import { inner } from "@acme/legacy/src/inner";\nexport const run = inner;\n',
 }
 
@@ -121,6 +121,29 @@ INSIDE_ONE_PACKAGE = {
     "packages/billing/src/index.ts": 'export { charge } from "./domain/charge";\n',
     "packages/billing/src/domain/charge.ts": 'import { money } from "../money";\nexport const charge = (): number => money;\n',
     "packages/billing/src/money.ts": "export const money = 1;\n",
+}
+
+# --- conditions 5 and 6: the workspace's package graph ------------------------
+
+PACKAGE_CYCLE = {
+    "packages/a/package.json": '{ "name": "@acme/a", "exports": { ".": "./src/index.ts" }, "dependencies": { "@acme/b": "workspace:*" } }',
+    "packages/a/src/index.ts": "export const a = 1;\n",
+    "packages/b/package.json": '{ "name": "@acme/b", "exports": { ".": "./src/index.ts" }, "devDependencies": { "@acme/a": "workspace:*" } }',
+    "packages/b/src/index.ts": "export const b = 2;\n",
+}
+
+PACKAGE_DAG = {
+    "packages/a/package.json": '{ "name": "@acme/a", "exports": { ".": "./src/index.ts" }, "dependencies": { "@acme/b": "workspace:*", "zod": "^4.6.0" } }',
+    "packages/a/src/index.ts": 'import { b } from "@acme/b";\nexport const a = b;\n',
+    "packages/b/package.json": '{ "name": "@acme/b", "exports": { ".": "./src/index.ts" } }',
+    "packages/b/src/index.ts": "export const b = 2;\n",
+}
+
+UNDECLARED = {
+    "packages/a/package.json": '{ "name": "@acme/a", "exports": { ".": "./src/index.ts" } }',
+    "packages/a/src/index.ts": 'import { b } from "@acme/b";\nexport const a = b;\n',
+    "packages/b/package.json": '{ "name": "@acme/b", "exports": { ".": "./src/index.ts" } }',
+    "packages/b/src/index.ts": "export const b = 2;\n",
 }
 
 CASES: list[Case] = [
@@ -146,6 +169,10 @@ CASES: list[Case] = [
     # --- condition 4
     case("a deep import by name past exports fails", DEEP_BY_NAME, ["condition 4", "@acme/billing/src/charge"]),
     case("exported subpaths, wildcards and third parties pass", PUBLIC_BY_NAME, ["no failures"], ok=True),
+    # --- conditions 5 and 6
+    case("a cycle between workspace packages fails", PACKAGE_CYCLE, ["condition 5", "@acme/a -> @acme/b -> @acme/a"]),
+    case("a workspace whose packages point one way passes", PACKAGE_DAG, ["no failures"], ok=True),
+    case("a package imported but not declared fails", UNDECLARED, ["condition 6", "@acme/b", "packages/a/package.json"]),
     case("a subpath of a package with no exports fails", NO_EXPORTS_DEEP, ["condition 4", "declares no exports"]),
 ]
 

@@ -10,6 +10,10 @@ Decides every condition stated in engineering/typescript/rules/module-boundaries
     3. a relative import does not reach into another package's directory
     4. a first-party package imported by name is imported at its root or at a
        subpath its `exports` declares
+    5. the workspace's package graph - each package.json's dependency fields
+       naming another package in the tree - is acyclic
+    6. a first-party package imported by name is declared in the importing
+       package's package.json
 
 The graph is built from the source with the lexical scan in tssource.py and
 the resolution rules TypeScript applies under `moduleResolution: nodenext`
@@ -58,11 +62,24 @@ class Edge:
 
 @dataclass
 class Package:
-    """A package.json in the tree: its name, its directory and its `exports`, None when absent."""
+    """A package.json in the tree: its name, directory, `exports` (None when absent) and declared dependencies."""
 
     name: str
     root: Path
     exports: object
+    depends: frozenset[str]
+
+
+DEPENDENCY_FIELDS = ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies")
+
+
+def declared(data: dict[str, object]) -> frozenset[str]:
+    names: set[str] = set()
+    for field in DEPENDENCY_FIELDS:
+        value = data.get(field)
+        if isinstance(value, dict):
+            names.update(key for key in value if isinstance(key, str))
+    return frozenset(names)
 
 
 def specifier_at(source: Source, quote: int) -> str:
@@ -124,7 +141,7 @@ def packages_in(roots: list[Path]) -> list[Package]:
         except (OSError, json.JSONDecodeError):
             continue
         if isinstance(data, dict) and isinstance(data.get("name"), str):
-            found.append(Package(data["name"], path.parent.resolve(), data.get("exports")))
+            found.append(Package(data["name"], path.parent.resolve(), data.get("exports"), declared(data)))
     return found
 
 
@@ -269,13 +286,35 @@ def check_file(source: Source, tree: Tree, findings: list[Finding]) -> None:
             continue
         name, subpath = split_bare(specifier)
         package = by_name.get(name)
-        if package is None or not subpath or exports_allow(package.exports, subpath):
+        if package is None or package is mine:
+            continue
+        if mine is not None and name not in mine.depends:
+            manifest = display(mine.root / "package.json", Path.cwd())
+            findings.append(Finding(RULE, where, 6, f"imports {name}, which {manifest} does not declare; add it with the workspace protocol"))
+        if not subpath or exports_allow(package.exports, subpath):
             continue
         if package.exports is None:
             reason = f"{name} declares no exports, so {specifier} is a file, not an entry; add it to exports or import the root"
         else:
             reason = f"{specifier} is not in {name}'s exports; import an exported entry, or export this one on purpose"
         findings.append(Finding(RULE, where, 4, reason))
+
+
+def check_package_graph(packages: list[Package], base: Path, findings: list[Finding]) -> None:
+    """Condition 5: the first-party package graph, read from the manifests, has no cycle."""
+    names = {package.name: package for package in packages}
+    graph = {
+        package.root / "package.json": [Edge(names[name].root / "package.json", 0, False) for name in sorted(package.depends) if name in names]
+        for package in packages
+    }
+    by_manifest = {package.root / "package.json": package.name for package in packages}
+    for component in strongly_connected(graph):
+        if len(component) < 2 and not any(edge.target == component[0] for edge in graph.get(component[0], [])):
+            continue
+        loop = cycle_in(component, graph)
+        chain = " -> ".join([by_manifest[node] for node, _ in loop] + [by_manifest[loop[0][0]]])
+        where = display(loop[0][0], base)
+        findings.append(Finding(RULE, where, 5, f"package cycle {chain}; one of these dependencies has to go, or the shared part becomes its own package"))
 
 
 def main(argv: list[str]) -> int:
@@ -289,6 +328,7 @@ def main(argv: list[str]) -> int:
     for path in files:
         check_file(load(path, display(path, base)), tree, findings)
     check_cycles(tree.graph, base, findings)
+    check_package_graph(packages, base, findings)
     return report(findings, len(files))
 
 
