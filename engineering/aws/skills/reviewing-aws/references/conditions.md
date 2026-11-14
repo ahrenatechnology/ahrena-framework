@@ -1,6 +1,6 @@
 # AWS review conditions
 
-The conditions `reviewing-aws` applies. Each gives the state, how it is detected, what exempts it, the correction, and where it comes from: a rule of this plugin, or the Well-Architected best practice and the AWS page behind it. A condition that a named scanner already decided on the change is not reported again; cite the scanner's result instead.
+The conditions `reviewing-aws` applies. Severity is not fixed here: it follows `review-findings.md`, by whether the line is in the diff. Each gives the state, how it is detected, what exempts it, the correction, and where it comes from: a rule of this plugin, or the Well-Architected best practice and the AWS page behind it. A condition that a named scanner already decided on the change is not reported again; cite the scanner's result instead.
 
 Grouped by pillar, as `docs/well-architected.md` describes.
 
@@ -9,7 +9,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 ### IAM-1 Action `*` granted
 
 - **State:** an `Allow` statement whose `Action` is `*`.
-- **Detect:** every policy document, inline or managed, the change writes. Checkov `CKV_AWS_1`, cdk-nag `AwsSolutions-IAM5`.
+- **Detect:** every policy document, inline or managed, the change writes. Checkov `CKV_AWS_1` and Config `iam-policy-no-statements-with-admin-access` decide it on resource `*` only; cdk-nag `AwsSolutions-IAM5` and the reader decide it on any resource.
 - **Exempt:** none.
 - **Correct:** list the actions the work calls.
 - **Source:** `rules/least-privilege.md` condition 1.
@@ -36,7 +36,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 - **Detect:** compare the actions the role is granted with the SDK calls the workload makes. cdk-nag `AwsSolutions-IAM4` reports the managed policy.
 - **Exempt:** a managed policy whose every action the workload calls, recorded as such beside the attachment.
 - **Correct:** replace with a customer managed policy listing the actions used.
-- **Source:** IAM best practices 6 and 7; `SEC03-BP02` ([Security best practices in IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)). Deferrable unless it is IAM-1 or IAM-2.
+- **Source:** IAM best practices 6 and 7; `SEC03-BP02` ([Security best practices in IAM](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html)).
 
 ### IAM-5 Reachable from outside the account
 
@@ -82,9 +82,9 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 
 ### ENC-4 A credential outside Secrets Manager
 
-- **State:** a database password, API key or token in a task definition's or function's plain environment, in EC2 user data, in a Parameter Store `String`, or in a committed file.
+- **State:** a database password, API key or token in a task definition's or function's plain environment, in EC2 user data, in a Parameter Store parameter of any type, or in a committed file.
 - **Detect:** environment blocks and user data the change writes; names that read like credentials. A literal value is `reviewing-secrets`'s `SEC-n`, not this.
-- **Exempt:** a value that is configuration and not a credential.
+- **Exempt:** a value that is configuration and not a credential, which Parameter Store holds, as a `SecureString` when it should not be read in plain text.
 - **Correct:** store it in Secrets Manager and read it from there at run time, with rotation where the secret supports it.
 - **Source:** `rules/data-protection.md` condition 4; `SEC02-BP03`.
 
@@ -96,7 +96,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 - **Detect:** every `except`, `catch` or error branch around an AWS SDK call in the change, and what the branch puts in the response.
 - **Exempt:** none in code a caller reaches.
 - **Correct:** return a generic error and the application's correlation ID; log the operation, the service's error code and the correlation ID as named fields.
-- **Source:** `rules/exposure.md` condition 1. **Blocking.** This is the incident behind issue 294.
+- **Source:** `rules/exposure.md` condition 1. This is the incident behind issue 294.
 
 ### EXP-2 AWS detail in what a caller reads
 
@@ -104,7 +104,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 - **Detect:** each response the change builds and where its fields come from — an environment variable, a describe call, a configuration object.
 - **Exempt:** an application whose purpose is to show the account owner their own AWS resources, as `rules/exposure.md` describes.
 - **Correct:** return the application's own identifier for the thing, and keep the mapping to AWS inside the AWS layer.
-- **Source:** `rules/exposure.md` condition 2. Blocking.
+- **Source:** `rules/exposure.md` condition 2.
 
 ### EXP-3 A whole AWS object in a log or trace
 
@@ -146,7 +146,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 - **Detect:** each log group resource, and each function or service whose log group the platform creates implicitly. Config `cw-loggroup-retention-period-check` does not detect this: it treats never-expire as compliant.
 - **Exempt:** a log group that must be kept indefinitely for a stated obligation.
 - **Correct:** set the retention the project's obligations require.
-- **Source:** `COST04` and `docs/cost.md`. Deferrable.
+- **Source:** `COST04` and `docs/cost.md`.
 
 ### CST-4 AWS-service traffic through NAT
 
@@ -154,7 +154,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 - **Detect:** route tables and endpoints in the change against the services the workload calls.
 - **Exempt:** a VPC with no NAT gateway.
 - **Correct:** add a gateway endpoint, which carries no additional charge ([Gateway endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html)).
-- **Source:** `docs/networking.md`, `docs/cost.md`. Deferrable.
+- **Source:** `docs/networking.md`, `docs/cost.md`.
 
 ## Reliability
 

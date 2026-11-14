@@ -34,7 +34,7 @@ AWS publishes fourteen IAM best practices, in this order, on [Security best prac
 13. Establish permissions guardrails across multiple accounts.
 14. Use permissions boundaries to delegate permissions management within an account.
 
-The rule does not restate the list. It takes the ones a reader of a change can hold the change to — 1, 2, 6, 7, 10, 11 and 12 — and turns each into a condition with a detector. MFA (3) and the root user (5) are properties of an account, not of a change to an application or its infrastructure, so they are left to whoever owns the account; the rule's `Where this stops` says so.
+The rule does not restate the list. It takes the ones a reader of a change can hold the change to: 1, 2, 4, 6, 10, 11 and 12 become conditions with a detector, and 7 is held as review condition `IAM-4`. MFA (3) and the root user (5) are properties of an account, not of a change to an application or its infrastructure, so they are left to whoever owns the account; the rule's `Where this stops` says so.
 
 The same practices appear in the Well-Architected security pillar as `SEC02-BP02 Use temporary credentials`, `SEC03-BP02 Grant least privilege access` and `SEC03-BP07 Analyze public and cross-account access` ([SEC 2](https://docs.aws.amazon.com/wellarchitected/latest/framework/sec-02.html), [SEC 3](https://docs.aws.amazon.com/wellarchitected/latest/framework/sec-03.html)). [`docs/well-architected.md`](well-architected.md) places them in the pillar.
 

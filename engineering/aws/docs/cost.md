@@ -37,7 +37,7 @@ AWS Budgets has six budget types — cost, usage, RI utilization, RI coverage, S
 
 Cost Anomaly Detection "uses machine learning models to detect and alert on anomalous spend patterns", with root causes ranked by impact and alerts by email or SNS ([Detecting unusual spend with AWS Cost Anomaly Detection](https://docs.aws.amazon.com/cost-management/latest/userguide/manage-ad.html)).
 
-**The rule asks for a cost budget with an alert on actual and on forecasted spend.** The forecast alert is the one that arrives before the money is spent, which is the point of a signal. The thresholds of the alert are the project's: the predecessor's 50, 80 and 100 percent had no source, and none of the pages read prescribes a figure. Anomaly detection is recommended in addition and not required, because it needs history to learn from and says nothing in a new account.
+**The rule asks for a cost budget with an alert on forecasted spend.** The forecast alert is the one that arrives before the money is spent, which is the point of a signal; an alert on actual spend is worth adding beside it and is not required. The thresholds of the alert are the project's: the predecessor's 50, 80 and 100 percent had no source, and none of the pages read prescribes a figure. Anomaly detection is recommended in addition and not required, because it needs history to learn from and says nothing in a new account.
 
 ## Services that recommend a smaller footprint
 

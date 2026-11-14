@@ -13,7 +13,7 @@ references:
 
 # Networking on AWS
 
-This is the reference for the network a workload sits in. It argues the defaults [`skills/designing-on-aws`](../skills/designing-on-aws/SKILL.md) applies and the conditions `NET-n` in the review checklist hold a change to. Every claim cites the AWS page it was read from on 2026-11-14.
+This is the reference for the network a workload sits in. It argues the defaults [`skills/designing-on-aws`](../skills/designing-on-aws/SKILL.md) applies and the conditions `IAM-5` and `CST-4` in the review checklist hold a change to. Every claim cites the AWS page it was read from on 2026-11-14.
 
 ## Public and private subnets
 

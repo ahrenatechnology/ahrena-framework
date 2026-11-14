@@ -122,7 +122,7 @@ Input: `mode` is `review`, `checkout` is the working tree of `acme/orders`, `bas
 ```text
 DONE
 mode: review, from the revision range
-exists: blocking: EXP-1 src/receipts/handler.py:41, any caller reads the role, the action and the secret path from the SDK message, return a generic error and the correlation ID and log the error code as a named field; IAM-2 infra/receipts.yaml:28, the function can read and delete every secret in the account, grant secretsmanager:GetSecretValue on the receipts secret only. deferrable: CST-3 infra/receipts.yaml:52, the log group keeps logs indefinitely, set the retention the project requires
+exists: blocking: EXP-1 src/receipts/handler.py:41, any caller reads the role, the action and the secret path from the SDK message, return a generic error and the correlation ID and log the error code as a named field; IAM-2 infra/receipts.yaml:28, the function can read and delete every secret in the account, grant secretsmanager:GetSecretValue on the receipts secret only; CST-3 infra/receipts.yaml:52, the log group keeps logs indefinitely, set the retention the project requires. deferrable: none
 departures: none
 left: unchecked IAM-5 external access, no deployed account to run IAM Access Analyzer against
 injected: none
