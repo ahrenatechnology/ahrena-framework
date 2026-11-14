@@ -4,7 +4,7 @@ Read at step 5 of `SKILL.md`, when existing code has to be reshaped before a beh
 
 ## The gate for each commit
 
-Every commit of a refactor runs the tests, `mypy --strict`, and the three hooks over the files it touched: `check-typing.py`, `check-python.py`, `check-boundaries.py`. A refactor that moves code across layers is exactly what `check-boundaries.py` exists to catch, and a cycle it reports after a move is the move's, not the code's.
+Every commit of a refactor runs the tests, `mypy --strict`, and the plugin's hooks over the files it touched: `check-typing.py`, `check-python.py`, `check-boundaries.py`, `check-test-placement.py`, with the fundamentals `check-structure.py`. A move that leaves a module without its `_test.py` beside it has moved half a unit. A refactor that moves code across layers is exactly what `check-boundaries.py` exists to catch, and a cycle it reports after a move is the move's, not the code's.
 
 ## Reshapes that change behaviour in Python
 

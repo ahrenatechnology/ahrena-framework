@@ -16,6 +16,10 @@ This is the companion to [`rules/typing.md`](../rules/typing.md). The rule state
 
 It is also a refusal. The document this plugin inherited was a `pyproject.toml` with prose around it, and almost none of that file is here. The argument for the omission is the substance of this page.
 
+## What the specification says, and where this departs from PEP 8
+
+The specification decides none of the toolchain: PEP 484 deliberately proposes no checker, and no PEP chooses a linter. The choices here are practice, made on the premises the triage below states. PEP 8 is the community's style guide and this plugin follows it, with one stated departure: PEP 8 asks for lines of at most 79 characters, and this plugin sets no line length at all, for the reason the formatter section gives — a line count is the formatter's output, and the fundamentals clean-code rule counts statements instead.
+
 ## What the source was, and why it could not ship
 
 The predecessor's tooling manual listed eight tools, a Ruff configuration selecting seventeen rule families, a mypy block, a pytest block, a pre-commit file with three pinned revisions, a dependency table with fourteen version floors, and a six-line CI script. It is a competent configuration. It is not an artifact this framework can ship, for three reasons.

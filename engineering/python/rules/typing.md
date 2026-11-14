@@ -28,6 +28,15 @@ The framework's own no-dependency constraint is not in tension with this. That c
 
 `--strict` is taken from mypy unchanged, and this rule does not enumerate what it expands to. Mypy defines the flag as the strictest set of options it currently supports, and that set grows with releases; a transcribed list of the flags behind it would be a second source of truth that is wrong at the next release and silently weaker than the word it replaced. The reason the flag is required rather than the default is that mypy's default does not check the body of an unannotated function, so "mypy passes" on an unannotated codebase is a statement about nothing.
 
+## What the specification says
+
+The claims a tool does not decide rest on these texts.
+
+- **Annotations are not checked at run time; a separate checker does it.** PEP 484, *Rationale and Goals*: the PEP proposes no runtime checking and no checker, which is why condition 1 has to name one and why the choice of mypy is practice, not specification. Annotations are stored on the function by the definition itself (Language Reference §8.7, *Function definitions*).
+- **`Any` is compatible with every type in both directions**, so checking stops where it appears: PEP 484, *The `Any` type*.
+- **A default is evaluated once, when the `def` runs**, and that one value is shared by every call that omits the argument: Language Reference §8.7, which spells out the mutable-default consequence in its own words.
+- **An expression-less `except` matches any exception**: Language Reference §8.4.1, *except clause*. PEP 8, *Programming Recommendations*, says the same handler catches `SystemExit` and `KeyboardInterrupt` and recommends `except Exception:` when everything else is meant; condition 5 follows PEP 8 and goes one step further, by asking what the handler does with what it caught.
+
 ## Conditions
 
 1. **`mypy --strict` reports no error over the project's Python.** Decided by mypy, run by the consuming project's pipeline — not by anything in this plugin, and not by this rule's hook. This is the condition that does not exist without a library, for the reason the section above gives. The threshold is zero errors, which is the only figure available: a type error is not a quantity to stay under, and a tolerance would be a count of accepted lies. Where a third-party library ships no stubs, the escape is `# type: ignore[<code>]` with the code named and a comment saying which library and why, so that the ignore can be deleted when the stubs arrive.

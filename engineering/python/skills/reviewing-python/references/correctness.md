@@ -57,3 +57,10 @@ Opened by step 2 of `SKILL.md` on every Python change. Each condition gives the 
 - **Detect:** read each `async def` for a call that is not awaited and does not yield. A coroutine not awaited runs nothing and warns at garbage-collection, not at the call.
 - **Exempt:** a blocking call wrapped in `run_in_executor` or `asyncio.to_thread`.
 - **Correct:** await the async equivalent; wrap unavoidable blocking work in a thread; await every coroutine or pass it to a task group.
+
+### PY-9 A whole object, error or upstream response reaching an exit
+
+- **State:** a log call, a `print`, an exception message or a response body given a whole object instead of named fields — `vars(x)`, `asdict(x)`, `x.model_dump()`, `x.__dict__`, `json.dumps(response)`, `str(exc)` or `exc.args` of an exception raised by a driver, an SDK or a third party; or a type that carries a credential, personal data, an access policy or a resource identifier with a `__repr__` or `__str__` that shows it.
+- **Detect:** read every log call, `print`, `raise` and response the change adds or edits, and the representation of every type whose fields are sensitive. Follow an exception from the `except` that caught it to every place its text is written.
+- **Exempt:** a field-by-field mapping the change wrote, where each field is named and none is sensitive; the full detail written to an internal log that holds no secret, with only a generic message and a correlation id going to the caller.
+- **Correct:** name the fields that are emitted; give the type `field(repr=False)`, `SecretStr` or a written `__repr__`; translate the upstream exception into the domain's own before the boundary and return the generic body. The rule is #294's, in the security plugin, and `docs/logging-and-observability.md` carries the Python form. Severity is blocking: the incident behind that issue was this condition, missed.

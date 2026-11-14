@@ -11,6 +11,7 @@ references:
   - rules/immutability.md
   - rules/testing.md
   - rules/security.md
+  - rules/test-placement.md
   - docs/architecture.md
   - docs/libraries.md
   - docs/testing.md
@@ -20,6 +21,11 @@ references:
   - docs/toolchain.md
   - skills/reviewing-python/SKILL.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
+  - ahrena-engineering-fundamentals:rules/solid.md
+  - ahrena-engineering-fundamentals:rules/yagni.md
+  - ahrena-engineering-fundamentals:rules/clean-code.md
+  - ahrena-engineering-fundamentals:rules/kiss.md
+  - ahrena-engineering-fundamentals:rules/value-semantics.md
   - ahrena-engineering-quality:skills/refactoring-safely/SKILL.md
 ---
 
@@ -37,7 +43,13 @@ Output: the layer names, the folders the change may write to, the test command, 
 
 Open `docs/architecture.md` and decide which layer each part of the change belongs to: a rule in `domain/`, an operation in `application/`, an adapter — route, repository, client, handler — in `infra/`. A part that does I/O is not in the domain; a part with a business rule is not in a route. Where the change touches an edge, open the doc for it as well: `docs/web-services.md` for HTTP, `docs/persistence.md` for the database, `docs/logging-and-observability.md` for anything that logs, counts or traces.
 
-The step fails when a new abstraction appears here without a second consumer or a test that needs the seam. `docs/architecture.md`'s last section says when not to add a port, a use case or a layer.
+Decide the composition the same way, from `docs/architecture.md`'s premises — maintainability, lower cyclomatic complexity, no circular reference:
+
+- **A dependency is a `Protocol` the consumer owns, handed in through the constructor or a parameter** — SOLID and inversion of control as `ahrena-engineering-fundamentals:rules/solid.md` states them, in the form that page's SOLID section gives Python. No adapter is imported by the code that uses it.
+- **Behaviour added to an existing package for one product or integration is a new distribution** that depends on the base and extends it through a protocol the base accepts or an entry point it reads — never an edit to the base, never a reach into its private names. `docs/architecture.md`, *Extending a package without modifying it*.
+- **Every import points down the layers and closes no cycle**, between modules and between distributions — `rules/module-boundaries.md`.
+
+The step fails when a new abstraction appears here without a second consumer or a test that needs the seam, which is the arbitration `ahrena-engineering-fundamentals:rules/yagni.md` gives SOLID. `docs/architecture.md`'s last section says when not to add a port, a use case or a layer.
 
 Output: the files the change writes, by layer.
 
@@ -47,7 +59,7 @@ If the change needs a dependency the project does not have, open `docs/libraries
 
 ## 4. Write the test red
 
-Invoke the backend plugin's `ahrena-engineering-backend:driving-with-tdd` with the Skill tool and follow it at its step for the layer from step 2 — it is named here rather than declared, because that plugin already depends on this one — with `docs/testing.md` open for the Python shapes: which doubles that layer may use, factory fixtures, the async and database set-up. Double a port with a fake; never patch a name under `domain/` or `application/`, which `rules/testing.md` reports. Name the acceptance criterion the test covers with its token.
+Invoke the backend plugin's `ahrena-engineering-backend:driving-with-tdd` with the Skill tool and follow it at its step for the layer from step 2 — it is named here rather than declared, because that plugin already depends on this one — with `docs/testing.md` open for the Python shapes: which doubles that layer may use, factory fixtures, the async and database set-up. The unit's test is `<stem>_test.py` beside the module it tests, which `rules/test-placement.md` requires; a test of more than one unit goes under `tests/`. Double a port with a fake; never patch a name under `domain/` or `application/`, which `rules/testing.md` reports. Name the acceptance criterion the test covers with its token.
 
 Run it and confirm it fails for the missing behaviour, not for an import error or a fixture typo.
 
@@ -55,13 +67,18 @@ Output: the red run — the command and the failing test names.
 
 ## 5. Write the smallest code that turns it green
 
-Write against the rules as you go rather than fixing their findings afterwards:
+Write against the rules as you go rather than fixing their findings afterwards. Single responsibility first, down to the function and the file, at the fundamentals plugin's limits — this plugin adds no number of its own:
+
+- a function or method does one thing, holds at most 30 statements (`ahrena-engineering-fundamentals:rules/clean-code.md`), nests at most 3 deep and branches on no boolean parameter (`ahrena-engineering-fundamentals:rules/kiss.md`), and takes at most 4 parameters (`ahrena-engineering-fundamentals:rules/value-semantics.md`); a class is cohesive (`ahrena-engineering-fundamentals:rules/solid.md`, condition 1); a module solves one problem, and a second problem is a second module with its own `_test.py`. `ahrena-engineering-fundamentals`'s `hooks/check-structure.py` reports a unit past a limit, and step 6 runs it. Split before the limit is reached, not after the hook fires.
+
+Then the Python rules:
 
 - every parameter and return annotated, `Any` only with a reason, no mutable default, no blind handler left silent — `rules/typing.md`;
 - an interrupt or a cancellation handed back, a raise a caller can name, nothing leaving a `finally` — `rules/error-handling.md`;
 - a domain record frozen, a domain function returning a new value rather than changing its argument — `rules/immutability.md`;
 - `eval`, `pickle`, a shell, a tar extract or `verify=False` only with a reason beside it — `rules/security.md`;
-- imports only downward, and no cycle broken by moving an import into a function — `rules/module-boundaries.md`.
+- imports only downward, and no cycle broken by moving an import into a function — `rules/module-boundaries.md`;
+- nothing sensitive leaves the layer: a log call is given named fields and never a whole object, a type that carries a secret, personal data, a policy or a resource identifier redacts its own `__repr__`, and an upstream error is translated into the domain's own before the boundary — the rule of #294 in the security plugin, in the form `docs/logging-and-observability.md` gives Python, and PY-9 of `reviewing-python`.
 
 Then refactor under green. If the change needs the existing code reshaped before the behaviour fits, do that first, as its own commits, by `ahrena-engineering-quality:skills/refactoring-safely/SKILL.md`; `references/refactoring.md` holds what is specific to Python about keeping a reshape behaviour-free.
 
@@ -73,6 +90,8 @@ Output: the green run — the command and the counts.
 python3 engineering/python/hooks/check-typing.py <paths>
 python3 engineering/python/hooks/check-python.py <paths>
 python3 engineering/python/hooks/check-boundaries.py <import-roots>
+python3 engineering/python/hooks/check-test-placement.py <paths>
+python3 engineering/fundamentals/hooks/check-structure.py <paths>
 mypy --strict <paths>
 ```
 

@@ -11,7 +11,9 @@ references:
   - rules/immutability.md
   - rules/testing.md
   - rules/security.md
+  - rules/test-placement.md
   - docs/architecture.md
+  - docs/logging-and-observability.md
   - ahrena-engineering-quality:docs/review-findings.md
   - ahrena-engineering-quality:docs/review-routes.md
 ---
@@ -20,7 +22,7 @@ references:
 
 The language-agnostic pass in `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md` has already read the change against the rules that hold in any language, and `hooks/check-structure.py` has decided the mechanical conditions over the changed Python. This skill reads what is left: the defects that need a Python reader.
 
-Six rules in this plugin hold Python, and three hooks decide them:
+Seven rules in this plugin hold Python, and four hooks decide them:
 
 | Rule | Decided by |
 |---|---|
@@ -30,6 +32,7 @@ Six rules in this plugin hold Python, and three hooks decide them:
 | `rules/immutability.md` | `hooks/check-python.py`, under `domain/` |
 | `rules/testing.md` | `hooks/check-python.py` |
 | `rules/security.md` | `hooks/check-python.py` |
+| `rules/test-placement.md` | `hooks/check-test-placement.py` |
 
 A hook's finding cites its rule and condition, as `[error-handling] condition 1`, and is reported as it is. What this skill adds is the reading the hooks cannot do.
 
@@ -41,12 +44,13 @@ The router fired the `python` route on the changed `.py` and `.pyi` files. Those
 
 Before the checklists, read how this repository writes Python: its `pyproject.toml` for the Python version and the type-checker and linter configuration, its `AGENTS.md` and `CLAUDE.md`, and the layering its own `rules/module-boundaries.md` describes. A condition the project's own configuration already decides — a linter that bans bare `except`, a formatter that fixes a style — is not reported again. What a green check decided is settled.
 
-Then run the three hooks over the changed files and keep their findings for step 5:
+Then run the four hooks over the changed files and keep their findings for step 5:
 
 ```sh
 python3 engineering/python/hooks/check-typing.py <changed .py files>
 python3 engineering/python/hooks/check-python.py <changed .py files>
 python3 engineering/python/hooks/check-boundaries.py <import roots>
+python3 engineering/python/hooks/check-test-placement.py <changed .py files>
 ```
 
 A hook finding that a rule's own escape answers — a reason comment beside an `Any`, a mutable domain record or a `pickle.load` — is not reported. Whether the reason is true is read: a comment saying the bytes are trusted, on a function that loads an upload, is a finding of `reviewing-untrusted-input`, INP-7.
@@ -62,6 +66,8 @@ A hook finding that a rule's own escape answers — a reason comment beside an `
 | a dataclass, or a function, under `domain/` | PY-T3 in `references/types-and-contracts.md`, with `rules/immutability.md` and `docs/architecture.md` |
 | a test, a fixture or a `conftest.py` | `rules/testing.md`, for the doubles a reader sees and the hook does not |
 | `eval`, `exec`, a deserialiser, a subprocess, an archive, a TLS setting | `rules/security.md`, then the security discipline its condition names |
+| a log call, a `print`, a `raise`, an error handler, a response, a `__repr__` | PY-9 in `references/correctness.md`, with `docs/logging-and-observability.md` |
+| a new module with a function or a class | `rules/test-placement.md`, decided by `hooks/check-test-placement.py` |
 
 A change that only edits a string or a comment inside one function opens `correctness.md` alone.
 

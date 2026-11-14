@@ -56,7 +56,7 @@ Keep it minimal. Reshaping the surrounding code is a separate change, after this
 
 ## 5. Verify
 
-The failing test now passes; the full suite still passes; `mypy --strict` and the three hooks report nothing new on the changed files. Then reread the original report and check the fix answers it — the test proves what the test asserts, and the report may have said more.
+The failing test now passes; the full suite still passes; `mypy --strict`, the plugin's four hooks and the fundamentals structure hook report nothing new on the changed files. Then reread the original report and check the fix answers it — the test proves what the test asserts, and the report may have said more.
 
 Output: the green run, and the hooks' last lines.
 

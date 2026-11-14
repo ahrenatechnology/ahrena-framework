@@ -20,6 +20,13 @@ The predecessor's error-handling law had five parts, and this rule carries the t
 
 The rule sits beside condition 5 of [`typing.md`](typing.md), which decides the most common shape of this subject: a handler that catches everything and leaves no trace at all. The two never report the same handler. A blind handler with no trace is that condition's finding; a blind handler that logs, uses or translates what it caught and still keeps an interrupt is condition 1's.
 
+## What the specification says
+
+- **`BaseException` is the root of the hierarchy and `Exception` is the root of everything that is not an exit signal**: `SystemExit`, `KeyboardInterrupt` and `GeneratorExit` derive from `BaseException` directly (Library Reference, *Built-in Exceptions*, *Exception hierarchy*). Since Python 3.8 so does `asyncio.CancelledError` (Library Reference, *asyncio — Exceptions*), and the asyncio documentation on *Task Cancellation* says a coroutine that catches it should, in almost every case, re-raise it.
+- **PEP 8**, *Programming Recommendations*: derive exceptions from `Exception` rather than `BaseException`, and name specific exceptions when catching instead of a bare `except:`, which also catches `SystemExit` and `KeyboardInterrupt`. Conditions 1 and 2 follow it.
+- **A bare `raise` re-raises the exception being handled, and `raise ... from` sets its cause**: Language Reference §7.8, *The raise statement*, and PEP 3134.
+- **A `return`, `break` or `continue` in a `finally` clause discards the saved exception**: Language Reference §8.4.4, *finally clause*. PEP 765 makes the construct a `SyntaxWarning` from Python 3.14.
+
 ## Conditions
 
 Each of these is decided by `hooks/check-python.py`.

@@ -7,6 +7,7 @@ title: Logs where the failure is handled, measurements at the boundary
 summary: How a Python service meets the observability plugin's four conditions — structured logs through the standard logger tree with structlog, context bound once per request, failures logged where they are handled, spans and metrics from OpenTelemetry at the boundary rather than in the body — and which of the predecessor's logging and telemetry mandates were set aside and why.
 references:
   - docs/libraries.md
+  - rules/security.md
   - docs/web-services.md
   - rules/error-handling.md
   - rules/typing.md
@@ -17,6 +18,12 @@ references:
 The observability plugin owns this concern. Its review skill asks four questions of a change: is a failure logged with something a reader could act on (OBS-1), is a critical operation counted or timed (OBS-2), does a log line say what and to whom (OBS-3), and can a request be followed across services (OBS-4). It names no library. This page is how a Python service answers the four, with the libraries [`libraries.md`](libraries.md) recommends: the standard library's `logging` with structlog for logs, OpenTelemetry for traces and metrics.
 
 It replaces two documents and a procedure from the predecessor — 787 lines on Loguru, a logging decorator, a telemetry decorator and their set-up — and it is shorter because two of their mandates are set aside. The section after next says which and why.
+
+## What the specification says
+
+- **Loggers form a hierarchy named by dotted paths, and a record propagates to its ancestors' handlers**: PEP 282 and the Library Reference, `logging`, *Logger Objects*. That is why one configuration at the root decides output for every library.
+- **Context that follows a request across `await` points** is a context variable: PEP 567 and the Library Reference, `contextvars`. structlog's bound context is built on it.
+- **Trace propagation across services** is the W3C *Trace Context* recommendation; the instrument types for metrics are those of the OpenTelemetry specification's *Metrics API*.
 
 ## One logger tree, structured
 
@@ -43,6 +50,17 @@ OpenTelemetry's instrumentation packages for FastAPI, SQLAlchemy or asyncpg, htt
 What remains is the business operation the platform cannot see: a payment captured, a refund refused, a batch reconciled. Count it where it is declared, once, at a boundary. The fundamentals cross-cutting-concerns rule makes a function that reads the clock twice and subtracts a defect — measurement inside the work cannot be turned off, sampled or relabelled without editing the work — and asks for the measurement at the boundary. In Python the boundary is a decorator on the use case, a middleware, or a domain event a subscriber counts. Which of the three depends on what the count needs to know: a decorator sees arguments and the outcome, a subscriber sees the event's fields.
 
 Metrics follow OpenTelemetry's instrument types. A counter for what only grows — operations completed, by outcome. A histogram for a distribution — a duration, a size — which aggregates across instances where a client-side summary does not. An up-down counter for what rises and falls — items in flight. An observable gauge for what is sampled — a queue's depth. Attributes on a metric are kept to small closed sets — an outcome, a currency, a route template — because every distinct value is a separate time series, and an id as an attribute is a series per request.
+
+## What a unit emits is a list of fields
+
+Nothing sensitive leaves the layer that owns it. The rule is language-agnostic and belongs to the security plugin (#294, which places it under `engineering/security/rules/`): a credential, personal data, an access policy, a resource identifier, infrastructure layout, or a whole configuration, error or upstream response never reaches an output, a log, a trace, an error message or a response, and what a unit emits is an allowlist of named fields. It was written after an access-denied message from a cloud SDK — account id, role, denied action, resource path — reached a client verbatim in a 500 body. This section is how Python holds it.
+
+- **A type that carries something sensitive redacts its own representation.** `repr()` and `str()` are what a log, a traceback and an f-string call (Language Reference §3.3.1, `__repr__` and `__str__`), so the type decides what they show: `field(repr=False)` on a dataclass field (Library Reference, `dataclasses.field`), `SecretStr` or `Field(repr=False)` on a Pydantic model, or a written `__repr__` that names the type and its identifier and nothing else. A settings object holding a connection string is such a type, and so is a domain value holding a document number.
+- **The logger is given named fields, never an object.** `logger.info("policy.applied", policy_id=policy.id)`, not `logger.info("applied %s", policy)`, not `vars(policy)`, `asdict(policy)`, `policy.model_dump()` or `json.dumps(response)`. Each of the latter writes whatever the object holds today and whatever it is given tomorrow; the allowlist is the list of keyword arguments.
+- **An error is translated before it crosses the boundary.** A driver's, an SDK's or a third party's exception carries their detail in its message; `str(exc)` is that message. The adapter that catches it logs it internally — with the request's identifiers and without a secret — and raises the domain's own exception, whose message the service wrote. The edge then returns the generic body and the correlation id, never the original message: [`web-services.md`](web-services.md) shows it. A traceback is the same detail in another form and stays in the internal log.
+- **Exception notes and `__cause__` travel with the exception.** `raise DomainError(...) from exc` keeps the provider's exception on `__cause__` for the internal log (PEP 3134), and that is right; what must not happen is rendering the chain into anything the caller sees.
+
+`reviewing-python` carries the condition (PY-9) a reader checks; the hook that decides the language-agnostic shape is #294's.
 
 ## What was set aside, and why
 

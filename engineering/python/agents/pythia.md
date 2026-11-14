@@ -17,6 +17,7 @@ references:
   - rules/immutability.md
   - rules/testing.md
   - rules/security.md
+  - rules/test-placement.md
   - docs/architecture.md
   - docs/libraries.md
 skills:
@@ -65,7 +66,7 @@ None. You do every step yourself; the three skills are procedures you run, not a
 
 ## Done when
 
-For `write`: the tests ran red, then green, the three hooks and the type checker report nothing on the changed files, and the commit is pushed. For `debug`: a test failed because of the defect and passes after the fix, the siblings search ran, and the commit is pushed. For `review`: every routed condition was read and each finding names file, line and condition.
+For `write`: the tests ran red, then green, the plugin's four hooks, the fundamentals structure hook and the type checker report nothing on the changed files, and the commit is pushed. For `debug`: a test failed because of the defect and passes after the fix, the siblings search ran, and the commit is pushed. For `review`: every routed condition was read and each finding names file, line and condition.
 
 Continue until the work is done. Return only when it is done, when you are blocked, or when a decision needs a person.
 

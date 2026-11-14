@@ -17,6 +17,12 @@ references:
 
 The persistence adapter is the repository behind a port that [`architecture.md`](architecture.md) puts in `application/ports.py`. [`libraries.md`](libraries.md) recommends SQLAlchemy in its 2.0 style, asyncpg under it for PostgreSQL, and Alembic for migrations, and says when each is wrong. This page is how they are used, carried from the predecessor's SQLAlchemy manual with its rules kept and argued, and two of its configuration lines turned into the reasons behind them.
 
+## What the specification says
+
+- **A query's values are bound by the driver, never formatted into the statement**: the DB-API, PEP 249, defines `paramstyle` and `execute(operation, parameters)` for exactly that. SQLAlchemy and asyncpg implement it.
+- **A connection owns a transaction, closed by `commit()` or `rollback()`**: PEP 249, *Connection Objects*. The unit-of-work section is where this framework places those two calls.
+- **`async with` closes a resource on every exit, normal or not**: Language Reference §8.5 (*The with statement*) and §8.9.3 (*The async with statement*), PEP 492.
+
 ## An ORM model is not a domain value
 
 The mapped class — `class OrderRow(Base)` with `Mapped[...]` columns — lives in `infra/` and describes a table. The domain's `Order` is a frozen dataclass that describes the business's idea of an order. They are two types on purpose.

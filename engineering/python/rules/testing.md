@@ -19,6 +19,10 @@ The predecessor's testing law had three parts. This rule carries the one that is
 
 **Where the line is drawn, and why there.** The predecessor said mocks belong only at system boundaries — HTTP clients, databases, the filesystem, clocks, external services — and that internal collaborators must not be mocked. Deciding which collaborator is internal needs a layer map, and this plugin has one: condition 2 of [`module-boundaries.md`](module-boundaries.md) names `domain`, `application` and `infra`, and the fundamentals domain-model rule locates the domain by the same directory name. `domain` and `application` are the code a test exists to run; `infra` is the mechanism a test is allowed to replace. The backend plugin's test-first skill draws the same line from the other side: use-case tests stand a double in for each port, and the domain is tested with no doubles at all because it imports nothing to double. A double for a port is a class implementing a protocol, written in the test tree; it is not a patch, and nothing here reads it.
 
+## What the specification says
+
+**Nothing in the specification governs test doubles**, so this rule rests on the library's documentation and on practice. The Library Reference for `unittest.mock`, *Where to patch*, explains that `patch` replaces a name in the namespace where it is looked up, for the duration of the patch — which is why a patch can reach any module, including the one under test. The decision about where the line is drawn is argued above from the layer map, on the premise of a test that runs the code it is about.
+
 ## Conditions
 
 Decided by `hooks/check-python.py`, in every file it is given.

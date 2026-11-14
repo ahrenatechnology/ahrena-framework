@@ -19,6 +19,12 @@ The predecessor's immutability law had four parts. Two are already decided elsew
 
 **Why only `domain/`.** The predecessor applied both to all code and exempted ORM models and builders by name. A rule over all code would report every SQLAlchemy model, every Pydantic settings object and every accumulator a recursive helper threads through itself, and the exemption list would grow until it was the rule. The domain layer is where the subject lives: [`docs/architecture.md`](../docs/architecture.md) puts values and entities there, and the fundamentals domain-model rule already locates the layer by that directory name, so this rule reuses the convention rather than inventing a second one. A project that lays its domain out under another name gets nothing from this rule, which is the cost the domain-model rule already accepted for the same reason.
 
+## What the specification says
+
+- **Mutability is a property of the object, and an immutable container can still hold mutable objects**: Language Reference §3.1, *Objects, values and types*.
+- **Arguments are passed by assignment**: the callee receives a reference to the caller's object, so changing a list it was passed changes the caller's list (Python Programming FAQ, *How do I write a function with output parameters?*). Condition 2 is that consequence held back in the domain.
+- **A frozen dataclass raises on assignment to a field**, and is hashable when it also defines equality: PEP 557 and the Library Reference, *dataclasses — Frozen instances*. That is what condition 1 asks a domain record to be.
+
 ## Conditions
 
 Each of these is decided by `hooks/check-python.py`, in modules under a `domain/` directory.

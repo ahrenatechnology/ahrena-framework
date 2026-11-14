@@ -3,8 +3,8 @@ id: architecture
 type: doc
 clade: engineering
 subclade: python
-title: What goes in each layer, and how the layers meet
-summary: The inside of the three layers module-boundaries declares — values and rules in the domain, use cases and their ports in application, adapters and the composition root in infra — why a port is a Protocol, where async belongs, how a failure crosses the layers, and when not to abstract at all.
+title: Composing Python by packages and layers
+summary: The premises every choice is argued from, SOLID and inversion of control in Python's own form, extension by a new package rather than an edit, and the inside of the three layers module-boundaries declares — values and rules in the domain, use cases and their ports in application, adapters and the composition root in infra — why a port is a Protocol, where async belongs, how a failure crosses the layers, and when not to abstract at all.
 references:
   - docs/module-boundaries.md
   - rules/module-boundaries.md
@@ -14,9 +14,28 @@ references:
   - docs/persistence.md
 ---
 
-# What goes in each layer, and how the layers meet
+# Composing Python by packages and layers
 
 [`module-boundaries.md`](module-boundaries.md) decides the outside of a context: three layers, `domain`, `application` and `infra`, each its own distribution under `components/{context}/`, importing only downward, with an import graph a script proves acyclic. It says nothing about what goes inside each layer, and on purpose: a script cannot count concepts. This page is the inside. It is the predecessor's architecture manual, rewritten against the layout this plugin already enforces, and it keeps that manual's best section — when not to abstract — nearly whole.
+
+## What the specification says
+
+- **A port is a structural protocol**: PEP 544, *Protocols: Structural subtyping*; a class satisfies one by having the methods, with no inheritance, and a checker verifies it where the object is used.
+- **Coroutines and `await`**: PEP 492 and Language Reference §8.9, *Coroutines*; an `async` function can be awaited only from another coroutine, which is why async spreads from the I/O outward.
+- **Exception chaining across a layer**: Language Reference §7.8 and PEP 3134.
+- **A package is a distribution with its own metadata**, and a namespace can be shared by several: PEP 621 and PEP 420. Entry points let one distribution advertise an implementation another discovers at run time: the PyPA *Entry points specification*, read through `importlib.metadata.entry_points` (Library Reference).
+
+The community's own guidance is followed and cited where it applies: PEP 8 for names and imports, and the typing documentation's *Protocols* and *Reference* pages for how a port is declared. Where this page departs from them it says so.
+
+## The premises every choice here is argued from
+
+A choice between two ways of building something is decided on three premises, stated so a reader can check the argument rather than trust it:
+
+- **Maintainability**: the next change touches as few files as possible, and a reader finds what a change needs in the place its name says.
+- **Lower cyclomatic complexity**: fewer independent paths through a unit. The measured limits are the fundamentals plugin's — at most 30 statements in a function body ([`clean-code.md`](../../fundamentals/rules/clean-code.md)), nesting at most 3 deep and no boolean parameter ([`kiss.md`](../../fundamentals/rules/kiss.md)), at most 4 parameters ([`value-semantics.md`](../../fundamentals/rules/value-semantics.md)), one cohesive class ([`solid.md`](../../fundamentals/rules/solid.md), condition 1) — and this plugin adds no number of its own. In Python the unit those limits apply to is a function or a method, the file is a module that solves one problem, and `ahrena-engineering-fundamentals`'s `hooks/check-structure.py` is the tool that reports a unit past a limit.
+- **No circular reference**: an import graph with no cycle, between modules and between distributions. [`rules/module-boundaries.md`](../rules/module-boundaries.md) is the rule and `hooks/check-boundaries.py` the detector.
+
+Each section below names the premise that decides it.
 
 ## The three layers, from the inside
 
@@ -25,6 +44,32 @@ references:
 **`application/` holds the use cases and the ports they need.** A use case is one business operation: it loads what it needs through a port, asks the domain to decide, and saves or publishes the result through a port. `application/ports.py` declares those ports, which is where `module-boundaries.md`'s layout puts them. The predecessor put repository ports under the domain instead. They belong here because a port is shaped by what a use case needs — `get`, `save`, `publish` are verbs of an operation, not of a rule — and keeping them out of the domain keeps the domain's vocabulary the business's.
 
 **`infra/` holds the adapters and the composition root.** The HTTP routes, the repositories behind the ports, the outbound clients, the event publishers, the settings, and the one place where a concrete adapter is handed to a use case. Everything that names a vendor, a protocol or a driver lives here, and nothing below imports it, which condition 2 of `rules/module-boundaries.md` decides.
+
+## SOLID and inversion of control, the way Python expresses them
+
+The conditions are the fundamentals plugin's [`solid.md`](../../fundamentals/rules/solid.md), and they are not restated here; neither is its arbitration, the abstraction trigger of [`yagni.md`](../../fundamentals/rules/yagni.md) that gates every condition adding structure. What this section says is how Python writes them, and where the language stops them.
+
+- **A component depends on an abstraction it owns.** The abstraction is a `Protocol` declared by the consumer — the use case's `application/ports.py` — and never an import of the concrete adapter (PEP 544). Premise: no circular reference, since the adapter imports the port and the port imports nothing.
+- **The dependency is handed in, not looked up.** Constructor injection for a use case held by the composition root; a parameter for a function. No service locator, no module-level singleton the code reaches for, no container: the dependency is visible in the signature, and `mypy --strict` checks it there. Premise: maintainability — a reader sees what a unit needs from its signature alone.
+- **An interface is small.** A protocol declares the methods its one consumer calls, which is interface segregation without ceremony: two use cases that need different things from a repository declare two protocols, and the one adapter satisfies both structurally.
+- **Open for extension through a seam the base declares**, which is the next section.
+
+**Where Python's form differs from the textbook.** The usual SOLID examples are written for languages with nominal interfaces, and porting them literally is against Python's grain: an abstract base class for every port, an interface per class, a factory per object. Python's typing documentation and PEP 544 give the structural form instead, and a pattern imported from another language where the structural one would do is a finding, in the fundamentals pattern-selection rule's sense. **Where the language stops them:** a protocol is checked statically and not at run time, and nothing stops a caller passing something that only quacks; the checker is what holds the contract, which is why `rules/typing.md` requires it.
+
+**The community guidance followed.** PEP 8 for naming, imports and the programming recommendations the error-handling rule cites; the typing documentation (*Protocols*, *Type system reference*) for how a port is written. This plugin departs from PEP 8 in one place, line length, and `docs/toolchain.md` says why.
+
+## Extending a package without modifying it
+
+A package is open to extension and closed to modification. To change what a component does for one product, one client or one integration, a new distribution depends on the base one and extends it through the base's public extension points; the base is not edited. Premises: maintainability, because the base keeps one behaviour and every extension is a separate, removable package; and no circular reference, because the extension imports the base and the base never imports the extension.
+
+Python gives two extension points, and the base chooses which it offers:
+
+- **A protocol the base accepts.** The base declares a port and takes an implementation in its constructor or its factory; the extension package ships a class satisfying the protocol, and the composition root of the product wires it in. This is the default: it is checked statically and needs nothing at run time.
+- **An entry point the base reads**, when the extension is discovered at run time rather than wired by hand — a plugin, a codec, a storage backend chosen by configuration. The extension declares it in its `pyproject.toml` under `[project.entry-points."group"]`, and the base reads the group with `importlib.metadata.entry_points(group=...)` (PyPA *Entry points specification*). Discovery costs the static check, so it is used only where the set of implementations is not known when the product is built.
+
+In one repository the base and its extensions are separate distributions, each with its own `pyproject.toml`, composed as members of one workspace; [`libraries.md`](libraries.md) names the workspace tool and argues it. `rules/module-boundaries.md` already holds the layers of a context as distributions under the PEP 420 namespace, and an extension is one more distribution in the same graph, whose direction the boundaries hook checks.
+
+**What an extension may not do** is reach into the base's private names, patch it at import time, or subclass a concrete class to override a method the base never meant to be overridden. Each is a modification wearing an extension's clothes: it breaks when the base changes a private detail, and it puts the dependency on something the base never promised.
 
 ## A port is a `Protocol`
 

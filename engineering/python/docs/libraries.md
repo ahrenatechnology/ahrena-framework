@@ -4,7 +4,7 @@ type: doc
 clade: engineering
 subclade: python
 title: The library for each problem, and when it is the wrong one
-summary: For each problem a Python service meets — HTTP, validation, settings, outbound calls, retries, persistence, migrations, logs, traces, CLIs, tests and their doubles, type checking, linting, audit — the one library this framework recommends, why, and the case where it is the wrong choice.
+summary: For each problem a Python service meets — HTTP, a workspace of distributions, validation, settings, outbound calls, retries, persistence, migrations, logs, traces, CLIs, tests and their doubles, type checking, linting, audit — the one library this framework recommends, why, and the case where it is the wrong choice.
 references:
   - rules/typing.md
   - rules/security.md
@@ -24,6 +24,10 @@ Every entry has the same three parts, because a recommendation without the third
 No entry carries a version. A floor is true the day it is typed and wrong on a schedule after that; [`toolchain.md`](toolchain.md) argues that at length, and the lock file is where a project records what it chose.
 
 **A project's own choice wins.** The fundamentals plugin's ubiquitous-language rule says the framework default applies only where the project is silent, and that is the status of every entry here. A repository already on Django, on `requests`, on pyright, is not asked to migrate by this page; it is told what the framework would pick for a new service, and why, so the difference is a decision rather than an accident.
+
+## What the specification says
+
+No specification chooses a library; this page is practice from end to end, chosen on stated reasons. Where an entry rests on a standard, it cites it: asynchronous I/O on PEP 492 and the event loop of `asyncio` (PEP 3156); a parameter bound rather than formatted on the DB-API's `paramstyle` (PEP 249); context carried per request on `contextvars` (PEP 567); a distribution's metadata on PEP 621; extension discovery on the PyPA *Entry points specification*; certificate verification on PEP 476. HTTP semantics are RFC 9110's.
 
 ## The service edge
 
@@ -174,6 +178,14 @@ No entry carries a version. A floor is true the day it is typed and wrong on a s
 **Not when.** The pipeline already provides the database as a service container, or there is no container runtime where the tests run. Then point the tests at what is there; starting a second database inside the first's pipeline buys nothing.
 
 ## The toolchain
+
+### Workspace of distributions
+
+**Use** uv, with its workspaces.
+
+**Why.** `rules/module-boundaries.md` makes each layer a distribution with its own `pyproject.toml`, and [`architecture.md`](architecture.md) extends a package by adding another distribution rather than editing the base. That needs a tool that composes many distributions in one repository: one lock file resolved across all of them, each member installed editable so a change in the base is seen by its extensions at once, and a dependency between members declared in the member's own `pyproject.toml` (PEP 621) so the direction is written where the boundaries hook can check it. uv's workspaces do exactly that from the standard metadata, and the same tool creates environments and runs commands, so a contributor learns one tool.
+
+**Not when.** A repository that is one distribution needs no workspace at all. A repository that builds several languages together, with a build graph and remote caching across all of them, is better served by Pants, which models Python distributions inside that graph; uv's workspace is the Python half of that problem only. And a project already composed with Hatch or Poetry and working gains a faster resolver by moving, at the cost of a migration that is a decision, not a cleanup.
 
 ### Type checking
 

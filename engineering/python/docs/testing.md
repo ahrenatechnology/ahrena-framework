@@ -4,9 +4,10 @@ type: doc
 clade: engineering
 subclade: python
 title: pytest per layer, and the doubles each layer may use
-summary: How a Python suite is laid out by the layer it exercises, what each layer's test may double and why, how fixtures and factory fixtures are scoped, where a property test earns its place, how async tests and a real database are set up, and how to read coverage without making it a gate.
+summary: How a Python suite is laid out — each unit's test beside it, multi-unit tests under tests/ — what each layer's test may double and why, how fixtures and factory fixtures are scoped, where a property test earns its place, how async tests and a real database are set up, and how to read coverage without making it a gate.
 references:
   - rules/testing.md
+  - rules/test-placement.md
   - docs/architecture.md
   - docs/libraries.md
   - docs/persistence.md
@@ -19,16 +20,27 @@ references:
 
 [`libraries.md`](libraries.md) names and argues the tools: pytest, pytest-asyncio, Hypothesis, `httpx.MockTransport`, testcontainers.
 
-## Lay the suite out by what it touches
+## What the specification says
+
+**Nothing in the specification governs tests**, so this page is practice, argued. The sources it rests on: pytest's documentation for discovery (*Conventions for Python test discovery*) and fixtures; the Library Reference's `unittest.mock` for how patching works (*Where to patch*); PEP 492 for coroutine tests. Where this page departs from the commonest layout — every test under one `tests/` tree — it says so in the layout section, and [`rules/test-placement.md`](../rules/test-placement.md) carries the argument.
+
+## Lay the suite out by what a test exercises
 
 ```
+components/billing/domain/fees.py
+components/billing/domain/fees_test.py         the unit's test, beside it
+components/billing/application/refund.py
+components/billing/application/refund_test.py  the use case, its ports faked
 tests/
-├── unit/           domain and use cases; no I/O, nothing to start
 ├── integration/    adapters against what they adapt: a database, an HTTP stub
 └── acceptance/     the service from its edge, adapters real where it matters
 ```
 
-The split is by cost, not by taste. A unit test runs in milliseconds with nothing started, so the whole unit tree runs on every save; an integration test starts a database, so it runs before a push and in the pipeline. A directory per kind lets a command select one kind without a marker on every test, and the markers the predecessor configured — `unit`, `integration`, `property` — are redundant with the directory and drift from it. Where a project already colocates tests beside the code, as `module-boundaries.md`'s layout allows with `foo_test.py`, the same split is made by marker or by name, and the cost argument is the same.
+**A unit's test sits beside the unit**, as `<stem>_test.py` in the same folder. [`rules/test-placement.md`](../rules/test-placement.md) makes that a condition with a detector and argues it: the specification leaves placement open, and the premises that decide it are maintainability — the test is in the same diff as the unit — and a one-way reference, since the test imports the unit and nothing imports the test. pytest collects `*_test.py` without configuration.
+
+**A test that exercises more than one unit lives under `tests/`**, split by what it starts. An integration test starts a database or a stub server, so it runs before a push and in the pipeline rather than on every save; an acceptance test drives the service from its edge. That split is by cost, and the directory is what lets a command select one kind without a marker on every test. The markers the predecessor configured — `unit`, `integration`, `property` — are redundant with placement and drift from it.
+
+**A colocated test does not ship.** A distribution's wheel should not carry `*_test.py`: the build backend's exclude setting leaves them out, and the project's packaging check is where that is confirmed. This is the one cost of the layout, paid once in the build configuration.
 
 The share of each kind is not set here. The predecessor's 70/20/10 was never measured; #34 group Q1 owns the language-agnostic question of a suite's shape.
 

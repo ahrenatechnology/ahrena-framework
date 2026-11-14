@@ -18,6 +18,13 @@ references:
 
 [`architecture.md`](architecture.md) puts the HTTP routes in `infra/`, as adapters: they turn a request into a call to a use case and the result into a response, and they own nothing else. This page is how that reads in FastAPI, which [`libraries.md`](libraries.md) recommends and argues. It is the predecessor's FastAPI manual with its rules kept where they hold, its error handling tied to the rule that now decides part of it, and one of its mandates — frozen response models — argued down to a preference.
 
+## What the specification says
+
+- **Status codes have the meaning RFC 9110 gives them**: `422` for content that is well formed and cannot be processed (§15.5.21), `202` for work accepted and not yet done (§15.3.3), `500` for a failure the server did not expect (§15.6.1).
+- **A machine-readable error body** has a standard form in RFC 9457, *Problem Details for HTTP APIs*; a service that has not chosen a shape should take that one.
+- **The `Idempotency-Key` header** is specified in the IETF HTTP APIs working group's draft, *The Idempotency-Key HTTP Header Field*; it is a draft, and the header is used as it describes.
+- FastAPI runs on ASGI, whose specification is maintained by the Django project's `asgiref`, not by a PEP; WSGI, the synchronous predecessor, is PEP 3333.
+
 ## A route validates, delegates and maps
 
 A route does three things, and a fourth is a defect:
@@ -44,7 +51,7 @@ The domain raises an exception named for what it refused; [`rules/error-handling
 - **One handler for `RequestValidationError`**, mapping FastAPI's 422 into that same shape, so a client parses one error format and not two. The predecessor's debugging procedure found this missing as its worked example, and it is the commonest gap.
 - **One handler for everything else**, which logs the exception with the request's context and returns a generic 500 body with no detail. That handler catches `Exception`, not `BaseException`: an interrupt or a cancellation is the server's to act on, and condition 1 of the error-handling rule reports a handler that keeps one.
 
-No response body carries a stack trace, a query, a driver message or a credential. A message that interpolates the value that failed — `f"token {token} rejected"` — is DAT-1 in the security plugin, and the fix is to name what failed, not to echo it.
+No response body carries a stack trace, a query, a driver message or a credential, and **no response body carries an upstream error as it came**. The incident behind #294 was exactly this: a handler caught a cloud SDK's access-denied exception and returned `str(exc)` in a 500 body, and the message named the account, the role, the denied action and the resource path. The adapter that calls the SDK catches its error, logs it internally with the request's identifiers, and raises a domain exception with a message the service wrote; the catch-all handler returns the generic body and the correlation id. A handler that builds a response from `str(exc)`, `exc.args` or `exc.response` is the finding, whatever the exception happens to say today. [`logging-and-observability.md`](logging-and-observability.md) has the Python means — a redacting representation, named log fields — and PY-9 of the review skill is the condition. A message that interpolates the value that failed — `f"token {token} rejected"` — is DAT-1 in the security plugin, and the fix is to name what failed, not to echo it.
 
 ## Response models: frozen is a preference
 

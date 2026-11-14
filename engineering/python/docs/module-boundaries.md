@@ -13,6 +13,10 @@ references:
 
 This is the companion to [`rules/module-boundaries.md`](../rules/module-boundaries.md). The rule states six conditions and names the script that decides each one; this explains where the layout came from, why the graph is drawn the way it is, and what the four hard cases would cost if they were handled any other way.
 
+## What the specification says
+
+The rule carries the citations — Language Reference chapter 5, *The import system*, for when a module runs and why a cycle finds it half-built; PEP 420 for namespace packages; PEP 621 for a distribution's `pyproject.toml` — and this page argues from them. Where the layout below goes beyond the specification (a distribution per layer, the three layer names), it is practice, and it is the practice this framework teaches.
+
 ## Why this one is a hook
 
 The framework this replaces already had the layer structure. It was written down, in a document, in sentences as direct as "`domain/` MUST NOT import from `infrastructure/`". The direction was correct and nothing enforced it, so it drifted, and the drift was discovered by reading rather than by a build going red.

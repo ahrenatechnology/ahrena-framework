@@ -22,6 +22,17 @@ Five conditions, all decided by `hooks/check-python.py`. Each names a call in Py
 
 This is the rule [`docs/toolchain.md`](../docs/toolchain.md) refused to put inside the typing rule when it triaged Ruff's `S` family: a security posture is a subject of its own. It does not transcribe `S`. Of bandit's checks it keeps the five whose state is the call itself, and the boundary section says where the rest went.
 
+## What the specification says
+
+The Library Reference states each hazard in the module's own documentation, and each condition follows it:
+
+- **`eval` and `exec` run arbitrary code**: Library Reference, *Built-in Functions*, `eval()` and `exec()`.
+- **`pickle` is not secure, and unpickling can execute arbitrary code**; only data you trust should be unpickled: Library Reference, `pickle`, the warning at the top of the module. `marshal` and `shelve` carry the same warning.
+- **A shell invoked with untrusted input is vulnerable to injection**: Library Reference, `subprocess`, *Security Considerations*.
+- **Tar extraction writes members where their names say unless a filter is given**: Library Reference, `tarfile`, *Extraction filters*, and PEP 706, which added `filter=` and made `data` the default from 3.14.
+- **Certificate and hostname verification is on by default in the standard library**, and turning it off is an explicit act: PEP 476, and Library Reference, `ssl`, *Security considerations*.
+- **`assert` statements are removed when optimisation is requested**: Language Reference §7.3, *The assert statement*, which is why a check written as one is not a check.
+
 ## Conditions
 
 Each of these is decided by `hooks/check-python.py`, and each is satisfied by a comment that is not a tool directive, on the call's line or the line above, saying why the input is trusted.
