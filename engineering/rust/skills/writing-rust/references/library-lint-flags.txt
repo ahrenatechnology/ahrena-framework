@@ -1,0 +1,1 @@
+-W clippy::exhaustive_enums -W clippy::exhaustive_structs -W clippy::missing_panics_doc
