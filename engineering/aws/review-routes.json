@@ -1,0 +1,63 @@
+{
+  "routes": [
+    {
+      "id": "aws-application",
+      "skill": "ahrena-engineering-aws:skills/reviewing-aws/SKILL.md",
+      "why": "an added line imports or calls an AWS SDK or the CDK, or handles an AWS SDK error, so what the code returns, logs and grants is read against the AWS rules",
+      "opens": [
+        "ahrena-engineering-aws:rules/exposure.md",
+        "ahrena-engineering-aws:rules/least-privilege.md",
+        "ahrena-engineering-aws:rules/data-protection.md",
+        "ahrena-engineering-aws:rules/cost-ownership.md",
+        "ahrena-engineering-aws:skills/reviewing-aws/references/conditions.md"
+      ],
+      "paths": ["\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb|php)$"],
+      "lines": [
+        "\\b(boto3|botocore|aioboto3|aiobotocore)\\b",
+        "@aws-sdk/|['\"]aws-sdk['\"]|aws-cdk-lib|\\baws_cdk\\b",
+        "github\\.com/aws/aws-sdk-go",
+        "\\baws_sdk_[a-z0-9_]+|\\baws_config\\b",
+        "software\\.amazon\\.awssdk|\\bAmazon\\.[A-Z][A-Za-z]+\\b|\\bAws\\:\\:[A-Z]",
+        "\\b(ClientError|NoCredentialsError|ServiceException|AmazonServiceException|AwsServiceException|SdkError)\\b",
+        "arn:aws[a-z-]*:"
+      ]
+    },
+    {
+      "id": "aws-templates",
+      "skill": "ahrena-engineering-aws:skills/reviewing-aws/SKILL.md",
+      "why": "a CloudFormation or SAM template declares AWS resources",
+      "opens": [
+        "ahrena-engineering-aws:rules/least-privilege.md",
+        "ahrena-engineering-aws:rules/data-protection.md",
+        "ahrena-engineering-aws:rules/cost-ownership.md",
+        "ahrena-engineering-aws:skills/reviewing-aws/references/conditions.md"
+      ],
+      "paths": ["\\.(json|ya?ml|template)$"],
+      "contains": ["AWSTemplateFormatVersion", "Type:\\s*['\"]?AWS::[A-Za-z0-9]+::", "\"Type\"\\s*:\\s*\"AWS::[A-Za-z0-9]+::"]
+    },
+    {
+      "id": "aws-terraform",
+      "skill": "ahrena-engineering-aws:skills/reviewing-aws/SKILL.md",
+      "why": "a Terraform file declares an AWS resource or the AWS provider, so what the resources grant, expose, encrypt and tag is read; Terraform as a language is not this route",
+      "opens": [
+        "ahrena-engineering-aws:rules/least-privilege.md",
+        "ahrena-engineering-aws:rules/data-protection.md",
+        "ahrena-engineering-aws:rules/cost-ownership.md",
+        "ahrena-engineering-aws:skills/reviewing-aws/references/conditions.md"
+      ],
+      "paths": ["\\.tf(\\.json)?$"],
+      "contains": ["(resource|data)\\s+\"aws_", "provider\\s+\"aws\""]
+    },
+    {
+      "id": "aws-policy-documents",
+      "skill": "ahrena-engineering-aws:skills/reviewing-aws/SKILL.md",
+      "why": "a file holds an IAM policy document",
+      "opens": [
+        "ahrena-engineering-aws:rules/least-privilege.md",
+        "ahrena-engineering-aws:skills/reviewing-aws/references/conditions.md"
+      ],
+      "paths": ["\\.json$"],
+      "contains": ["\"Version\"\\s*:\\s*\"2012-10-17\""]
+    }
+  ]
+}
