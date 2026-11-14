@@ -127,7 +127,7 @@ cargo test --all-features
 python3 <rust-plugin>/hooks/check-rust.py <crate-dir>
 ```
 
-Clippy runs with the lints `docs/toolchain.md` lists added on the command line when the project has not configured them (`-W clippy::unwrap_used` and the rest), and with `too-many-arguments-threshold = 4` and `excessive-nesting-threshold = 3` in `clippy.toml` for the limits of step 6. Every finding on a line this change touched is fixed, not allowed. `<rust-plugin>` is where this plugin is installed, `engineering/rust` in the framework repository. `check-rust.py` decides condition 1 of `rules/error-types.md`, `rules/async-blocking.md`, `rules/unit-tests.md` and `rules/redaction.md`, and conditions 1 and 2 of `rules/dependency-direction.md`. A finding on a line the change did not touch is reported in the hand-back, not fixed here.
+Clippy runs with the lints `docs/toolchain.md` lists added on the command line when the project has not configured them (`-W clippy::unwrap_used` and the rest), and with `too-many-arguments-threshold = 5` in `clippy.toml`, which backs the parameter limit of step 6 counting the receiver as Clippy does; the rest of step 6's limits are held by writing to them, because no lint measures them as the fundamentals define them. Every finding on a line this change touched is fixed, not allowed. `<rust-plugin>` is where this plugin is installed, `engineering/rust` in the framework repository. `check-rust.py` decides condition 1 of `rules/error-types.md`, `rules/async-blocking.md`, `rules/unit-tests.md` and `rules/redaction.md`, and conditions 1 and 2 of `rules/dependency-direction.md`. A finding on a line the change did not touch is reported in the hand-back, not fixed here.
 
 Output: each command and its result.
 

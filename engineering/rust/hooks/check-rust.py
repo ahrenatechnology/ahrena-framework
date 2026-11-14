@@ -111,6 +111,7 @@ BLOCKING_PREFIXES = ("reqwest::blocking::",)
 MODULE_PATH = re.compile(r"\b(?:crate|super|self)(?:\s*::\s*[A-Za-z_]\w*)+")
 FUNCTION = re.compile(r"\bfn\s+([A-Za-z_]\w*)")
 TEST_ATTRIBUTE = re.compile(r"#\[\s*(?:\w+\s*::\s*)*test\b")
+EXTERNAL_TESTS = re.compile(r"#\[\s*cfg\s*\(\s*test\s*\)\s*\]\s*mod\s+tests\s*;")
 DERIVE = re.compile(r"#\[\s*derive\s*\(([^)]*)\)\s*\]")
 TYPE_ITEM = re.compile(r"\b(struct|enum)\s+([A-Za-z_]\w*)")
 REVEALING_DERIVES = ("Debug", "Serialize")
@@ -840,21 +841,44 @@ def module_path(path: Path) -> tuple[Path, tuple[str, ...]] | None:
     """The crate and module a file under `src/` is, or None for any other file.
 
     `lib.rs` is the crate root, and so is `main.rs` when there is no
-    `lib.rs`; `src/bin/` holds other crates, and is left out.
+    `lib.rs`. Each binary under `src/bin/` is a crate of its own, rooted at
+    `src/bin/<name>.rs` or `src/bin/<name>/main.rs`.
     """
     root = crate_root(path)
     if root is None:
         return None
     parts = path.relative_to(root).parts
-    if parts[:1] != ("src",) or parts[1:2] == ("bin",):
+    if parts[:1] != ("src",):
         return None
+    if parts[1:2] == ("bin",):
+        return binary_module(root, parts[2:])
     if parts == ("src", "main.rs") and (root / "src" / "lib.rs").is_file():
         return None
-    if parts[1:] in (("lib.rs",), ("main.rs",)):
-        return root, ()
-    module = list(parts[1:])
+    return root, module_of(parts[1:])
+
+
+def module_of(parts: tuple[str, ...]) -> tuple[str, ...]:
+    """The module a file is, from its path below the crate root's directory."""
+    if parts in (("lib.rs",), ("main.rs",)):
+        return ()
+    module = list(parts)
     module[-1] = module[-1].removesuffix(".rs")
-    return root, tuple(module[:-1] if module[-1] == "mod" else module)
+    return tuple(module[:-1] if module[-1] == "mod" else module)
+
+
+def binary_module(root: Path, parts: tuple[str, ...]) -> tuple[Path, tuple[str, ...]] | None:
+    if len(parts) == 1:
+        return root / "src" / "bin" / parts[0].removesuffix(".rs"), ()
+    return root / "src" / "bin" / parts[0], module_of(parts[1:])
+
+
+def sibling_tested(path: Path, masked: str) -> bool:
+    """Whether the file declares a `tests.rs` beside it that holds a test."""
+    if not EXTERNAL_TESTS.search(masked):
+        return False
+    folder = path.parent if path.name in ("lib.rs", "main.rs", "mod.rs") else path.parent / path.stem
+    sibling = folder / "tests.rs"
+    return sibling.is_file() and bool(TEST_ATTRIBUTE.search(mask(sibling.read_text(encoding="utf-8", errors="replace"))))
 
 
 def load(path: Path, base: Path) -> Source:
@@ -869,7 +893,7 @@ def load(path: Path, base: Path) -> Source:
         boxed_aliases(code),
         located[1] if located else None,
         located[0] if located else None,
-        bool(TEST_ATTRIBUTE.search(masked)),
+        bool(TEST_ATTRIBUTE.search(masked)) or sibling_tested(path, masked),
     )
 
 

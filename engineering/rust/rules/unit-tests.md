@@ -21,7 +21,7 @@ A reader who opens a unit finds its tests beside it, and a change to the unit sh
 
 ## Conditions
 
-1. **A source file under a crate's `src/` that defines a function with a body, other than `main`, carries at least one test attribute.** Decided by `hooks/check-rust.py`. Any attribute whose last segment is `test` counts — `#[test]`, `#[tokio::test]`, `#[sqlx::test]` — so an async test satisfies it. A file of declarations alone (`mod`, `use`, types, trait signatures) owes no test, and neither does a `main.rs` whose only function is `main`. Files under `src/bin/` are other crates and are read as their own roots. A file named `tests.rs` is the sibling form and is not itself read.
+1. **A source file under a crate's `src/` that defines a function with a body, other than `main`, carries at least one test attribute.** Decided by `hooks/check-rust.py`. Any attribute whose last segment is `test` counts — `#[test]`, `#[tokio::test]`, `#[sqlx::test]` — so an async test satisfies it. A file of declarations alone (`mod`, `use`, types, trait signatures) owes no test, and neither does a `main.rs` whose only function is `main`. Each binary under `src/bin/` is a crate of its own, read as its own root. A file that declares `#[cfg(test)] mod tests;` is tested when the `tests.rs` it declares — beside `lib.rs`, `main.rs` or `mod.rs`, or in the folder named after any other file — carries a test attribute; that `tests.rs` is not itself read as a unit.
 
 2. **The tests of a file are in that file's `#[cfg(test)] mod tests`, or in a sibling `tests.rs` declared from it with `#[cfg(test)] mod tests;`, never in another module's tests.** Decided by a reviewer. A function tested only from another file's test module is a function whose test a reader of its file cannot find.
 

@@ -88,14 +88,17 @@ The library-only lints — `exhaustive_enums`, `exhaustive_structs`, `missing_pa
 
 ## Lints set to the single-responsibility limits
 
-[`docs/architecture.md`](architecture.md) holds every function and file to the limits of `ahrena-engineering-fundamentals`, and this plugin adds no number of its own. Two of those limits have a Clippy lint that counts the same thing, and `clippy.toml` sets each to the fundamentals' figure. Both lints are in the default `complexity` group, so setting the threshold is enough to turn them on, which a probe crate on Clippy 0.1.99 confirmed.
+[`docs/architecture.md`](architecture.md) holds every function and file to the limits of `ahrena-engineering-fundamentals`, and this plugin adds no number of its own. Only one of those limits has a Clippy lint that can be set so it never reports a function the fundamentals allow, and even that lint counts differently, so it is a backstop and a reviewer holds the limit.
 
 | Setting | Lint | Fundamentals limit |
 |---|---|---|
-| `too-many-arguments-threshold = 4` | `clippy::too_many_arguments` | `rules/value-semantics.md` condition 1, at most 4 named parameters; the receiver is not counted by either |
-| `excessive-nesting-threshold = 3` | `clippy::excessive_nesting` | `rules/kiss.md` condition 1, control flow nested at most 3 deep; Clippy counts nested blocks, closures included, so it is the stricter of the two |
+| `too-many-arguments-threshold = 5` | `clippy::too_many_arguments`, default `complexity` group | `rules/value-semantics.md` condition 1, at most 4 named parameters with the receiver excluded |
 
-The other limits have no lint that measures them. `rules/clean-code.md` condition 1 counts statements, and Clippy's `too_many_lines`, from `pedantic`, counts lines, which the fundamentals' [`clean-code.md`](../../fundamentals/docs/clean-code.md) doc refuses as a measure because the formatter decides it; a reviewer counts. A branch on a boolean parameter (`rules/kiss.md` condition 2) and a type whose methods do not share state (`rules/solid.md` condition 1) are a reviewer's too; `clippy::fn_params_excessive_bools` reports more than three boolean parameters, which is a different question.
+Clippy counts the receiver as an argument, as a probe crate on Clippy 0.1.99 showed: at a threshold of 4 it reports `fn f(&self, a, b, c, d)`, which the fundamentals allow. At 5 it reports a method with five named parameters and a free function with six, never one the fundamentals allow, and a reviewer holds a free function to four.
+
+Nesting has no usable lint. `clippy::excessive_nesting` counts every block, the function body and an enclosing `impl` included, so at a threshold of 3 it reports a method with two nested `if`s, which `rules/kiss.md` condition 1 allows; setting it to the fundamentals' figure would be a number of this plugin's own. A reviewer counts the depth the way that rule defines it.
+
+The other limits have no lint that measures them either. `rules/clean-code.md` condition 1 counts statements, and Clippy's `too_many_lines`, from `pedantic`, counts lines, which the fundamentals' [`clean-code.md`](../../fundamentals/docs/clean-code.md) doc refuses as a measure because the formatter decides it; a reviewer counts. A branch on a boolean parameter (`rules/kiss.md` condition 2) and a type whose methods do not share state (`rules/solid.md` condition 1) are a reviewer's too; `clippy::fn_params_excessive_bools` reports more than three boolean parameters, which is a different question.
 
 **What is deliberately not on the list.** `clippy::expect_used` would forbid the `expect` that [`panics.md`](../rules/panics.md) condition 2 allows. `clippy::indexing_slicing` and `clippy::arithmetic_side_effects` decide real defects and fire on every loop over a slice and every sum; denying them crate-wide produces an `allow` per function and no finding. `clippy::pedantic` as a whole is not enabled: it is a collection of opinions, several of which contradict each other's fixes, and a project that wants it can have it. `#![forbid(unsafe_code)]` is recommended for a crate with no `unsafe` and not required, for the reason [`unsafe-code.md`](../rules/unsafe-code.md) gives.
 

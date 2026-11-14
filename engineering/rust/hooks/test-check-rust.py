@@ -712,6 +712,32 @@ CASES = [
         ok=True,
     ),
     case(
+        "a unit whose tests sit in a sibling tests.rs it declares is tested",
+        {
+            "Cargo.toml": MANIFEST,
+            "src/lib.rs": tested("pub mod parse;\n"),
+            "src/parse.rs": UNTESTED + "\n#[cfg(test)]\nmod tests;\n",
+            "src/parse/tests.rs": "#[test]\nfn adds() {}\n",
+        },
+        ["no failures"],
+        ok=True,
+    ),
+    case(
+        "a declared sibling tests.rs with no test in it does not count",
+        {
+            "Cargo.toml": MANIFEST,
+            "src/lib.rs": tested("pub mod parse;\n"),
+            "src/parse.rs": UNTESTED + "\n#[cfg(test)]\nmod tests;\n",
+            "src/parse/tests.rs": "fn helper() {}\n",
+        },
+        ["[unit-tests] condition 1", "src/parse.rs has functions"],
+    ),
+    case(
+        "a binary under src/bin is read as its own root",
+        {"Cargo.toml": MANIFEST, "src/lib.rs": tested(""), "src/bin/tool.rs": ONLY_MAIN + UNTESTED},
+        ["[unit-tests] condition 1", "src/bin/tool.rs has functions"],
+    ),
+    case(
         "an integration test file is not a unit",
         {"Cargo.toml": MANIFEST, "src/lib.rs": tested(UNTESTED), "tests/add.rs": UNTESTED},
         ["no failures"],

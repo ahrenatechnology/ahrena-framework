@@ -63,7 +63,7 @@ python3 <rust-plugin>/hooks/check-rust.py <crate-dir>
 | a new function, or a new file under `src/` | `rules/unit-tests.md` | |
 | a log, a trace, `#[instrument]`, a `Debug` or `Serialize` derive, an error's `Display`, a response body | `rules/redaction.md` | |
 
-A finding under `rules/redaction.md` is blocking whatever the route says, and cites, beside the condition, the general exposure rule tracked in #294 of `ahrena-framework`: the 2026-11-12 incident that rule records was a dependency's error returned to a caller, and both reviews that read the change passed it.
+A finding under `rules/redaction.md` on a line the change adds or edits is blocking whatever the route says; one on a line it does not touch follows the deferrable test of `ahrena-engineering-quality:docs/review-findings.md` like any other. Each cites, beside the condition, the general exposure rule tracked in #294 of `ahrena-framework`: the 2026-11-12 incident that rule records was a dependency's error returned to a caller, and both reviews that read the change passed it.
 
 ## 3. Read beyond the hunk
 

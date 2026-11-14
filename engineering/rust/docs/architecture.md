@@ -73,7 +73,7 @@ In Rust the units are these:
 
 A unit is tested in isolation by the `#[cfg(test)] mod tests` of its own file, which reaches its private items, with any collaborator replaced through the trait it is given (section above). A unit that cannot be tested that way has a hidden collaborator: a global, a `static`, a direct call to the clock, the file system or the network.
 
-The tools that report a unit past the limit, configured to the fundamentals' numbers in `clippy.toml`, are in [`docs/toolchain.md`](toolchain.md): `clippy::too_many_arguments` at 4 and `clippy::excessive_nesting` at 3. Two limits have no Clippy counterpart and are read by a reviewer: the 30-statement count, because Clippy's `too_many_lines` counts lines and [`clean-code.md`](../../fundamentals/docs/clean-code.md) explains why a line count is the wrong measure; and the branch on a boolean parameter.
+One Clippy lint backs these limits, and [`docs/toolchain.md`](toolchain.md) says how it is set: `clippy::too_many_arguments` at a threshold of 5, because Clippy counts the receiver, which reports a method with five named parameters and a free function with six. Everything else is a reviewer's count: four parameters on a free function, nesting depth (Clippy's `excessive_nesting` counts the function body and the `impl` as levels, so it cannot be set to the fundamentals' figure), the 30-statement body, because Clippy's `too_many_lines` counts lines and [`clean-code.md`](../../fundamentals/docs/clean-code.md) explains why a line count is the wrong measure, and the branch on a boolean parameter.
 
 ## Sensitive data stays in its layer
 
