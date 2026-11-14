@@ -56,6 +56,9 @@ jobs:
       - name: Test the artifact gate
         run: python3 foundation/hooks/test-validate-artifacts.py
 
+      - name: Test the prompt-test runner
+        run: python3 foundation/prompt-tests/test-run.py
+
       - name: Test the structure hook
         run: python3 engineering/fundamentals/hooks/test-check-structure.py
 
