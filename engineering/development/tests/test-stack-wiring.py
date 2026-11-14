@@ -27,19 +27,17 @@ BUILDERS = {
     "engineering/data/agents/mnemosyne.md": ("python", "typescript", "go", "rust"),
     "engineering/frontend/agents/aglaia.md": ("typescript",),
 }
-# Files that hold fixtures or a template, not a suite of their own.
+# #290: fixtures and a template, not suites of their own.
 NOT_SUITES = {
     "costs/runtime/test-support.py",
     "foundation/skills/writing-hooks/references/test-template.py",
 }
 
-failures: list[str] = []
+results: list[tuple[str, bool]] = []
 
 
 def check(ok: bool, label: str) -> None:
-    print(f"{'ok  ' if ok else 'FAIL'}  {label}")
-    if not ok:
-        failures.append(label)
+    results.append((label, ok))
 
 
 def tracked(*patterns: str) -> list[str]:
@@ -105,5 +103,8 @@ if __name__ == "__main__":
     test_gate_passes()
     test_builders_load_the_discipline_first()
     test_ci_runs_every_suite()
+    failures = [label for label, ok in results if not ok]
+    for label, ok in results:
+        print(f"{'ok  ' if ok else 'FAIL'}  {label}")
     print(f"\n{'all passed' if not failures else f'{len(failures)} failed'}")
     sys.exit(1 if failures else 0)
