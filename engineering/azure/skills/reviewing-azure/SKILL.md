@@ -20,7 +20,7 @@ The language-agnostic pass in `ahrena-engineering-quality:skills/reviewing-diffs
 
 ## 1. Take the route, and read the repository first
 
-The router fires the `azure-iac` route on Bicep, ARM and Terraform `azurerm` files, and the `azure-sdk` route on application code whose added lines touch an Azure SDK; the routes are in this plugin's `review-routes.json`. Those are the files this skill reads.
+The router fires `azure-bicep` on Bicep and Bicep parameters files, `azure-iac` on ARM templates and Terraform files that use `azurerm`, `azure-pipeline` on a pipeline whose added lines sign in to Azure or run `az`, and `azure-sdk` on application code whose added lines touch an Azure SDK; the routes are in this plugin's `review-routes.json`, and `hooks/test-review-routes.py` checks each one. Those are the files this skill reads.
 
 Before reading a line, find out what the project already decides: the infrastructure-as-code tool, whether the pipeline runs a policy check or `what-if`, the design record if `designing-on-azure` produced one, and which Azure Policy assignments and Defender for Cloud plans the project says are on. A condition a tenant detector already enforces with `deny` is still reported when the change violates it: the review is the earlier gate, and the deployment would only fail later on the same condition.
 

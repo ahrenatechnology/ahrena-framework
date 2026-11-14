@@ -32,7 +32,7 @@ Before choosing anything, write the targets the design is checked against: avail
 
 ## 3. Choose the services
 
-For each problem the workload has, take the recommendation in `docs/services.md` and write the reason it fits, or the reason the design departs from it, citing the page. Then open the service's Well-Architected service guide, if it has one, and note the configuration it calls for.
+For each problem the workload has, take the recommendation in `docs/services.md` and write the reason it fits, or the reason the design departs from it, citing the page. Then open the service's Well-Architected service guide, if it has one, by its URL with a fetch tool, and note the configuration it calls for. A page that cannot be opened is recorded as not read, with its URL, as an open question; it is never filled in from memory.
 
 Two failures recur. Choosing by familiarity (AKS because the team knows Kubernetes, when nothing needs the Kubernetes API) is a departure without a reason. And choosing a service that is retiring (Azure Cache for Redis, Azure AD B2C for a new tenant) buys a migration on day one.
 

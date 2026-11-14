@@ -66,7 +66,7 @@ An Azure landing zone is Microsoft's architecture for governing, securing and sc
 
 Subscriptions are a unit of management, billing and scale ([Subscriptions design area](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/landing-zone/design-area/resource-org-subscriptions)). The management-group guidance keeps the hierarchy flat, ideally three or four levels, and says not to create management groups for production, test and development; where environments must be separated, separate them into different subscriptions in the same management group ([Management groups design area](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/landing-zone/design-area/resource-org-management-groups)).
 
-For this plugin that means one thing: **the landing zone is input, not output.** A workload design names the subscription per environment it needs and the platform services it attaches to, and the client's platform team decides the hierarchy, by [`client-logic.md`](../../fundamentals/rules/client-logic.md). A design that invents management groups for a client is designing the client's estate.
+For this plugin that means one thing: **the landing zone is input, not output.** A workload design names, for each environment, the subscription the client assigns to it (or records the question), and the platform services it attaches to; and the client's platform team decides the hierarchy, by [`client-logic.md`](../../fundamentals/rules/client-logic.md). A design that invents management groups for a client is designing the client's estate.
 
 ## The governance tools that act as detectors
 

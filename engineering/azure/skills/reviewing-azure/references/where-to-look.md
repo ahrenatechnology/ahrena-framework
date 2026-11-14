@@ -8,7 +8,7 @@ A lookup, not a restatement: the condition's text is in its rule. Property names
 |---|---|---|
 | 1 | `Microsoft.Authorization/roleAssignments` | `roleDefinitionId` (which role) and the top-level `scope` (which resource); an assignment with no `scope` applies at the deployment's scope, usually the resource group. Compare with the SDK calls the principal's code makes. |
 | 1 | `Microsoft.Authorization/roleDefinitions` | `permissions[].actions` and `permissions[].dataActions` containing `*`; `assignableScopes` wider than the workload. |
-| 2 | `Microsoft.Authorization/roleAssignments` | `roleDefinitionId` resolving to Owner (`8e3af657-a8ff-443c-a75c-2fe8c4bcb635`) or Contributor (`b24988ac-6180-42a0-ab88-20f7382dd24c`), or to another role under the built-in roles reference's *Privileged* heading, with `principalType` `ServicePrincipal`. |
+| 2 | `Microsoft.Authorization/roleAssignments` | `roleDefinitionId` resolving to Owner (`8e3af657-a8ff-443c-a75c-2fe8c4bcb635`) or Contributor (`b24988ac-6180-42a0-ab88-20f7382dd24c`), or to another role under the built-in roles reference's *Privileged* heading, for any `principalType`. A `User` or `Group` assignment of one is also read under condition 5. |
 | 3 | `Microsoft.Storage/storageAccounts` | `allowSharedKeyAccess` absent or `true` (null means permitted); `listKeys()` in a template or an output; a connection string with `AccountKey=` in an app setting. |
 | 3 | `Microsoft.Web/sites`, `Microsoft.App/containerApps` | a top-level `identity` absent while the app reads a secret, key or password from settings to call an Azure service. |
 | 3 | pipeline definitions | a client secret variable passed to `azure/login` or `az login --service-principal -p`, where a federated credential serves. |

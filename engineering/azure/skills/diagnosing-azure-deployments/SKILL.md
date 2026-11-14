@@ -13,7 +13,7 @@ references:
 
 # Diagnosing Azure deployments
 
-A failed deployment hands back a code, and usually the wrong one first: `DeploymentFailed` is a wrapper whose details hold the error that matters. This skill gets to that error, matches it against Microsoft's troubleshooting pages, and fixes the cause rather than the symptom. The table of codes is `references/error-codes.md`.
+A failed deployment hands back a code, and the outer one is not the one to act on: `DeploymentFailed` is a wrapper whose details hold the error that matters. This skill gets to that error, matches it against Microsoft's troubleshooting pages, and fixes the cause rather than the symptom. The table of codes is `references/error-codes.md`.
 
 ## 1. Name the stage that failed
 
@@ -62,9 +62,9 @@ Three failures go away on retry and are misdiagnosed as wrong configuration:
 
 When the deployment succeeded and the workload did not:
 
-- **Container Apps.** A revision that cannot deploy usually cannot pull its image; one stuck provisioning, or degraded with *0/1 replicas ready*, usually fails its health probes; a request that fails usually meets an ingress whose target port is not the port the container listens on. Read the log stream with *Console* or *System* logs selected, and *Diagnose and solve problems* ([Troubleshooting in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)).
+- **Container Apps.** Microsoft's troubleshooting table maps each symptom to a first check: a new revision that fails to deploy, to whether the image can be pulled; a revision stuck provisioning, or degraded with *0/1 replicas ready*, to the health probes; a request that fails, to the ingress, whose target port must be the port the container listens on. Read the log stream with *Console* or *System* logs selected, and *Diagnose and solve problems* ([Troubleshooting in Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/troubleshooting)).
 - **App Service.** Open *Diagnose and solve problems*, which covers availability, configuration and deployment without setup and is most useful for problems in the last 24 hours ([App Service diagnostics](https://learn.microsoft.com/en-us/azure/app-service/overview-diagnostics)). An ASP.NET Core app that cannot start returns *502.5 Process Failure* ([Handle errors in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling)).
-- **Private networking.** An app that cannot reach a store after its public access was disabled usually resolves the store's public name: check the private endpoint's private DNS zone and its link to the virtual network (`docs/networking.md`).
+- **Private networking.** An app that cannot reach a store after its public access was disabled may still be resolving the store's public name: check the private endpoint's private DNS zone and its link to the virtual network (`docs/networking.md`).
 
 Do not turn on a framework's detailed-error page in production to see the error; read the platform logs instead (`rules/exposure.md`, condition 4).
 
