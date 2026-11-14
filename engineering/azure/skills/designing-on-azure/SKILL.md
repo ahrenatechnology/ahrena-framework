@@ -18,7 +18,7 @@ references:
 
 # Designing on Azure
 
-The output is a design record, a markdown file in the repository (where the project keeps its decision records, or beside the infrastructure code), with one section per step below. Each decision names the Well-Architected checklist code it serves and the rule or doc of this plugin it applies, so a reviewer can check it against the page.
+The output is a design record, a markdown file in the repository (where the project keeps its decision records; else beside the infrastructure code; else `docs/design/` at the repository root), with one section per step below. Each decision names the Well-Architected checklist code it serves and the rule or doc of this plugin it applies, so a reviewer can check it against the page.
 
 ## 1. Take the client's estate as input
 
@@ -52,7 +52,7 @@ For each data store, write its minimum TLS setting, whether HTTP is refused, whe
 
 ## 7. Design the error boundary
 
-Write where an Azure SDK error is caught and translated before it reaches a caller, what the caller receives (a generic message, a status, a correlation id), and which named fields the internal log records (operation, status, Azure error code, correlation id). Apply `rules/exposure.md` conditions 1 and 2. Write which tags and outputs the templates will carry, checked against condition 3.
+Write where an Azure SDK error is caught and translated before it reaches a caller, what the caller receives (a generic message, a status, a correlation id), and which named fields the internal log records (operation, status, Azure error code, correlation id). Apply `rules/exposure.md` conditions 1 and 2. Write which tags and outputs the templates will carry, checked against condition 3, and what the pipeline prints: a what-if run in the pipeline is reduced to a count of changes by type rather than printed whole (condition 5).
 
 This step is the one most designs skip, because nothing fails when it is skipped until a client reads the error. Write it even for a workload with one endpoint.
 
@@ -62,7 +62,7 @@ Write the owner tag's name and how it reaches every resource (set per resource, 
 
 ## 9. Check the record against the checklists
 
-Walk the five Well-Architected checklists in `docs/architecture-framework.md` and mark each item the design addresses, the ones it leaves to the client, and the ones it does not address with the reason. Then list the questions from steps 1 and 2 that are still open. The design is done when every rule condition of this plugin has a line in the record that satisfies it or a recorded reason it does not apply.
+Open the five Well-Architected checklist pages that `docs/architecture-framework.md` links (a page that cannot be opened is recorded as not read, with its URL) and mark each item the design addresses, the ones it leaves to the client, and the ones it does not address with the reason. Then list the questions from steps 1 and 2 that are still open. The design is done when every rule condition of this plugin has a line in the record that satisfies it, a recorded reason it does not apply, or a record that it is the client's, with the question that settles it.
 
 ## When this skill does not apply
 

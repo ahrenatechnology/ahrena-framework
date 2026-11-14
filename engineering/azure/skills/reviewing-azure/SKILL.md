@@ -45,7 +45,7 @@ Work rule by rule, condition by condition. Give the scenario in Azure terms: the
 
 For `exposure/1` and `exposure/2`, follow every `catch` or `except` of an Azure SDK exception in the change to where its value goes. An exception handed whole to a logger, or its message put in a response, is `blocking`. This is the condition the incident behind issue #294 would have met.
 
-A condition whose answer depends on something only the client holds (whether a public endpoint is intended, which data needs a customer-managed key, the budget's recipient) is a `question`, naming who answers it.
+A condition whose answer depends on something only the client holds (whether a public endpoint is intended, which data needs a customer-managed key, who the budget's recipient is) is a `question`, naming who answers it. A state the template decides is not a question: a budget with no `notifications` at all reaches nobody and is `blocking`, whoever the recipient will be.
 
 ## 5. Write the findings
 

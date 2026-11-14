@@ -19,7 +19,7 @@ The failure it exists for is concrete. An Azure Resource Manager authorization e
 
 ## What is sensitive here
 
-A closed list. Each item is sensitive whatever its value happens to be today.
+A closed list. Each item is sensitive whatever its value happens to be today. A role and a scope described in words in a design or a review finding (`Storage Blob Data Reader on the orders account`) are not an item; an assignment as Azure records it, with its ids, is.
 
 - **An identity:** a tenant id, a subscription id, a management group id, the object id, client id or application id of a user, group, service principal or managed identity.
 - **An authorization:** a role assignment, a role definition, a custom role's action list, an Azure Policy assignment or definition id, a Key Vault access policy, a PIM eligibility.
@@ -37,7 +37,7 @@ A closed list. Each item is sensitive whatever its value happens to be today.
 
 4. **No developer error page is reachable outside a development environment.** ASP.NET Core's documentation ([Handle errors in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling)) says not to enable the Developer Exception Page unless the app runs in the Development environment, and not to share detailed exception information publicly in production; the same holds for any framework's detailed-error or debug mode. The state that fails is a production deployment, an App Service app setting or a Container Apps environment variable that turns one on. Decided by a reviewer reading the deployment configuration.
 
-5. **A pipeline or deployment log does not print an item of the list as a side effect.** A step that runs `az role assignment list`, `az account show`, prints a deployment's outputs or echoes a what-if result into a pipeline or deployment log fails, whoever can read that log today. Decided by a reviewer reading the pipeline definition.
+5. **A pipeline or deployment log does not print an item of the list as a side effect.** A step that runs `az role assignment list`, `az account show`, prints a deployment's outputs or echoes a whole what-if result into a pipeline or deployment log fails, whoever can read that log today. A pipeline that previews with what-if reduces the result (its `--no-pretty-print` form is machine-readable) to a count of changes by type before anything is printed. Decided by a reviewer reading the pipeline definition.
 
 ## Where this stops
 
