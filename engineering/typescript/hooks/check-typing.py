@@ -17,9 +17,10 @@ inference from an untyped library is typescript-eslint's, because both need
 the type of every expression. This hook decides the part that the source
 spells, and it holds on a project that has installed nothing.
 
-`STRICT_FAMILY` is the set of flags `strict` turns on, as `tsc --help --all`
-lists them for 6.0 and 7.0; turning one off under `strict: true` reopens the
-hole `strict` was set to close, so each is read on its own. `ANY_BEFORE_*` is
+`STRICT_FAMILY` is `strict`, the eight flags `tsc --help --all` defaults to
+"`true`, unless `strict` is `false`" in 6.0.3 and 7.0.2, and `alwaysStrict`,
+which 5.x let a project turn off; turning one off under `strict: true` reopens
+the hole `strict` was set to close, so each is read on its own. `ANY_BEFORE_*` is
 what may stand before `any` when it is a type: an annotation colon, a type
 argument, a union or intersection, an alias, a conditional, an arrow's return,
 and the type operators that take one. `MINIMUM_DESCRIPTION` is

@@ -1,20 +1,22 @@
 # TypeScript correctness and async
 
-Opened by step 2 of `SKILL.md` when the change touches a promise, async code, an event handler, equality or a number. These are the runtime defects the type system does not catch on its own.
+Opened by step 4 of `SKILL.md` when the change touches a promise, async code, an event handler, equality, a number or a `catch`. These are the runtime defects the type system does not catch on its own.
+
+Where `rules/promises.md` decides a condition, the entry points at it and says only what a reader adds: the finding is reported under the rule. `docs/async.md` and `docs/error-handling.md` argue the corrections.
 
 ### TS-8 A floating promise
 
-- **State:** a call that returns a promise whose result and rejection are neither awaited nor `.then`/`.catch`ed nor assigned — a bare `doAsync()` on its own line, an async function called in a `forEach`, an async handler whose rejection no one catches.
-- **Detect:** find promise-returning calls with no `await`, no `return`, no `.catch`, no `void` marker. The work runs unordered and a rejection becomes an unhandled rejection that can crash Node.
-- **Exempt:** a deliberate fire-and-forget marked `void promise` with a `.catch`, or handed to a tracker.
-- **Correct:** `await` it; or `void` it with an attached `.catch` that logs.
+- **Rule:** condition 1 of `rules/promises.md` (typescript-eslint's `no-floating-promises`), and its condition 2 for an async callback to `forEach`, decided by `hooks/check-promises.py`. Report under the rule.
+- **Read here:** only where the project has no typed linting — a promise-returning call on its own line with no `await`, `return`, `.catch` or `void`.
+- **Correct:** `await` it; or `void` it with an attached `.catch` that logs (`docs/async.md`).
 
 ### TS-9 `await` missing on a returned or guarded promise
 
-- **State:** `if (isReady())` where `isReady` is async (a promise is always truthy); `return doAsync()` inside a `try` that expects to catch its rejection (the rejection escapes the try); `.map(async ...)` passed where sequential awaited results were meant.
-- **Detect:** read each async call in a condition, a `try`, or a place a value is used. A promise in a boolean test is always true.
+- **Rule:** a promise in a condition is condition 1 of `rules/promises.md` (`no-misused-promises`; the compiler also reports it as TS2801). Report under the rule.
+- **State, for what is left:** `return doAsync()` inside a `try` that expects to catch its rejection (the rejection escapes the try); `.map(async …)` passed where sequential awaited results were meant.
+- **Detect:** read each async call in a `try` and each `.map(async …)`. typescript-eslint's `return-await`, in its strict configuration, decides the first where the project enables it.
 - **Exempt:** returning a promise to a caller that will await it, outside a try that was not meant to catch it.
-- **Correct:** `await` before the test or inside the try; `Promise.all` for parallel, a `for await` loop for sequential.
+- **Correct:** `await` inside the try; `Promise.all` for parallel, a `for…of` loop with `await` for sequential.
 
 ### TS-10 `Promise.all` where one rejection should not abort the rest, or vice versa
 
@@ -46,7 +48,6 @@ Opened by step 2 of `SKILL.md` when the change touches a promise, async code, an
 
 ### TS-14 An error of type `unknown` or `any` used without narrowing
 
-- **State:** `catch (e)` where `e` (typed `unknown` under `useUnknownInCatchVariables`, else `any`) is read as `e.message` or re-thrown as a typed error with no check.
-- **Detect:** each `catch` the change adds. The thrown value can be anything, not only an `Error`.
-- **Exempt:** a narrow after an `instanceof Error` check.
-- **Correct:** `if (e instanceof Error)`; otherwise coerce to a message safely.
+- **Rule:** `useUnknownInCatchVariables`, which condition 2 of `rules/typing.md` keeps on, types the binding as `unknown` and makes the compiler refuse `e.message`; `catch (e: any)` reopens it and is that rule's condition 4. Report under the rule.
+- **Read here:** a `.catch((e) => …)` callback, whose parameter the compiler still types as `any` unless typescript-eslint's `use-unknown-in-catch-callback-variable` is on; and an empty handler, which is condition 3 of `rules/promises.md`.
+- **Correct:** `if (e instanceof Error)`; otherwise log the value as it is (`docs/error-handling.md`).
