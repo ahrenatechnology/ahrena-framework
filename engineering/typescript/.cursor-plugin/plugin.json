@@ -1,8 +1,8 @@
 {
   "name": "ahrena-engineering-typescript",
   "displayName": "Ahrena Engineering TypeScript",
-  "version": "0.1.0",
-  "description": "What is specific to TypeScript and the Node and browser code written in it: the type holes a compiler in loose mode lets through, the async mistakes, and the module surface others import.",
+  "version": "0.2.0",
+  "description": "TypeScript and the JavaScript beside it: rules for strict typing, promises, one-way module boundaries, runtime validation at the edge and a test beside each module, each with a dependency-free hook; docs on toolchain, libraries, layout, errors, async and sensitive data; skills to write, review and debug TypeScript; and Proteus, the TypeScript specialist.",
   "author": {
     "name": "Ahrena Technology"
   },

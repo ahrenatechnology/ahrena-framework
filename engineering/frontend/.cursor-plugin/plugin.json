@@ -1,7 +1,7 @@
 {
   "name": "ahrena-engineering-frontend",
   "displayName": "Ahrena Engineering Frontend",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Frontend built outside-in: a validated wireframe before any code, four layers that stack as stacked pull requests, and a red-to-green test arc per layer, all conforming to the project's component map.",
   "author": { "name": "Ahrena Technology" },
   "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/frontend",

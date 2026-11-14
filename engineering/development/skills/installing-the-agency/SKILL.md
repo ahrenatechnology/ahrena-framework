@@ -60,9 +60,11 @@ Run the same script without `--check`. It does two things:
 
 - **Merges the agency into `.claude/settings.json`.** The set is declared in
   [`references/agency.json`](references/agency.json): the `ahrena` marketplace
-  and the nine core plugins, plus the language plugin for each marker file at
-  the repository root (`pyproject.toml`, `tsconfig.json`, `go.mod`,
-  `Cargo.toml`, `main.tf`), or the ones `--language python|typescript|go|rust|terraform` names. The
+  and the ten core plugins, plus the language, Terraform or cloud plugin for
+  each marker file at the repository root (`pyproject.toml`, `tsconfig.json`,
+  `go.mod`, `Cargo.toml`, `main.tf`, `cdk.json`, `cloudbuild.yaml`,
+  `azure.yaml`, and the others the map lists), or the ones
+  `--language python|typescript|go|rust|terraform|aws|gcp|azure` names. The
   merge only adds. It keeps every other key and its order, never flips a plugin
   the user disabled, and never overwrites an `ahrena` marketplace entry that
   exists; it reports a disabled plugin and a marketplace that differs. It is not

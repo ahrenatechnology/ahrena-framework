@@ -4,7 +4,7 @@ description: Install the agency in this repository, or report what is missing â€
 type: command
 clade: engineering
 subclade: development
-argument-hint: "[--check] [--platform claude|codex] [--language python|typescript|go|rust|terraform]"
+argument-hint: "[--check] [--platform claude|codex] [--language python|typescript|go|rust|terraform|aws|gcp|azure]"
 references:
   - skills/installing-the-agency/SKILL.md
 ---
@@ -19,7 +19,7 @@ Invoke `installing-the-agency` with the arguments below.
 |---|---|---|
 | `--check` | no | Report the directive and each plugin as enabled, missing, disabled or invalid, and the marketplace declaration, writing nothing. Without it, the plugins are enabled and the directive is written or refreshed |
 | `--platform claude\|codex` | no | Limit the run to one instruction file. Without it, every file present is written, and both are created when neither exists. A repository with only `AGENTS.md` is a Codex-only run and skips `.claude/settings.json`; pass `--platform claude` to write it. `codex` skips `.claude/settings.json`. A repository with only `AGENTS.md` is a Codex-only run; pass `--platform claude` to write `CLAUDE.md` and the settings |
-| `--language python\|typescript\|go\|rust` | no | Enable that language plugin instead of the ones detected from the repository's marker files. Repeatable, or a comma list |
+| `--language python\|typescript\|go\|rust\|terraform\|aws\|gcp\|azure` | no | Enable that language, Terraform or cloud plugin instead of the ones detected from the repository's marker files. Repeatable, or a comma list |
 
 Without `--check` the skill ensures the plugins and the directive are in place;
 the write is idempotent, so a re-run on an already-installed repository changes

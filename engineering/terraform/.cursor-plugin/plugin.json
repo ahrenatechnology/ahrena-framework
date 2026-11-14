@@ -1,8 +1,8 @@
 {
   "name": "ahrena-engineering-terraform",
   "displayName": "Ahrena Engineering Terraform",
-  "version": "0.1.0",
-  "description": "What is specific to Terraform: state kept remote, locked and out of the repository, no secret in source or output, pinned providers and modules, modules composed one way, a test beside each module.",
+  "version": "0.1.1",
+  "description": "What is specific to Terraform: state kept remote, locked and out of the repository, no secret in source or output, pinned providers and modules, modules composed one way, a test beside each module; skills to write, review and debug Terraform; and Gaia, the Terraform specialist.",
   "author": {
     "name": "Ahrena Technology"
   },

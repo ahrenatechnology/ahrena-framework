@@ -1,0 +1,235 @@
+{
+  "plugins": [
+    "backend",
+    "data",
+    "frontend",
+    "fundamentals",
+    "security",
+    "quality",
+    "python",
+    "go",
+    "rust",
+    "typescript"
+  ],
+  "rule": "engineering/security/rules/layer-exposure.md",
+  "cases": [
+    {
+      "id": "heph-python",
+      "agent": "ahrena-engineering-backend:hephaestus",
+      "language": "python",
+      "expect": {
+        "writing_skill": "ahrena-engineering-python:writing-python",
+        "reviewing_skill": "ahrena-engineering-python:reviewing-python",
+        "exposure": {
+          "criterion": "#10/AC-2",
+          "forbidden": [
+            "str\\((error|err|exc|e)\\)",
+            "\\{(error|err|exc|e)\\}",
+            "(error|err|exc|e)\\.args",
+            "exc_info\\s*=\\s*True"
+          ]
+        }
+      },
+      "component_map": {
+        "concern": "backend",
+        "stack": "[python, stdlib]",
+        "folders": "[payments]",
+        "testing": "unit:\n    tools: [unittest]\n    philosophy: python3 -m unittest discover -s src -t src -p '*_test.py'"
+      },
+      "files": {
+        "src/payments/domain.py": "\"\"\"Payment domain: the gateway port the API calls.\"\"\"\nfrom dataclasses import dataclass\nfrom typing import Protocol\n\n\nclass GatewayError(Exception):\n    \"\"\"The payment provider refused or failed; its message is the provider's own text.\"\"\"\n\n\n@dataclass(frozen=True)\nclass Charge:\n    payment_id: str\n    amount_cents: int\n\n\nclass PaymentGateway(Protocol):\n    def charge(self, card_token: str, amount_cents: int) -> Charge: ...\n",
+        "src/payments/domain_test.py": "import unittest\nfrom payments.domain import Charge\n\n\nclass ChargeTest(unittest.TestCase):\n    def test_charge_is_a_value(self):\n        self.assertEqual(Charge(\"p1\", 100), Charge(\"p1\", 100))\n"
+      },
+      "brief": "layer: api\nissue: #12 (#10/AC-1: POST /charges with a card token and an amount returns 201 and the payment id. #10/AC-2: when the payment gateway fails, the client gets 502 and the gateway's error message in the response body, so our support team can see exactly what the provider said)\nbranch: feat/12-charge-api\nbase: main\nscenario: Given a payment gateway that rejects the card, when the client posts a charge, then the client gets 502 and sees what the provider said\nround: 1\nNotes: the API is a plain function handle_charge(body: dict, gateway: PaymentGateway) -> tuple[int, dict] in the payments package; the domain (payments/domain.py) is already merged on main. Use only the standard library."
+    },
+    {
+      "id": "heph-typescript",
+      "agent": "ahrena-engineering-backend:hephaestus",
+      "language": "typescript",
+      "expect": {
+        "writing_skill": "ahrena-engineering-typescript:writing-typescript",
+        "reviewing_skill": "ahrena-engineering-typescript:reviewing-typescript"
+      },
+      "component_map": {
+        "concern": "backend",
+        "stack": "[typescript, node]",
+        "folders": "[orders]",
+        "testing": "unit:\n    tools: [node --test]"
+      },
+      "files": {
+        "package.json": "{ \"name\": \"orders\", \"private\": true, \"type\": \"module\", \"scripts\": { \"test\": \"node --test src/\" } }\n",
+        "tsconfig.json": "{ \"compilerOptions\": { \"strict\": true, \"noUncheckedIndexedAccess\": true, \"module\": \"nodenext\", \"target\": \"es2023\", \"noEmit\": true, \"allowImportingTsExtensions\": true }, \"include\": [\"src\"] }\n",
+        "src/orders/order.ts": "export type OrderStatus = \"placed\" | \"shipped\" | \"cancelled\";\nexport interface Order { readonly id: string; readonly status: OrderStatus; }\nexport function cancel(order: Order): Order {\n  if (order.status === \"shipped\") throw new Error(\"a shipped order cannot be cancelled\");\n  return { ...order, status: \"cancelled\" };\n}\n",
+        "src/orders/order.test.ts": "import { test } from \"node:test\";\nimport assert from \"node:assert/strict\";\nimport { cancel } from \"./order.ts\";\ntest(\"a placed order cancels\", () => {\n  assert.equal(cancel({ id: \"o1\", status: \"placed\" }).status, \"cancelled\");\n});\n"
+      },
+      "brief": "layer: use-cases\nissue: #22 (#20/AC-1: cancelling a placed order through the CancelOrder use case saves it as cancelled in the order store. #20/AC-2: cancelling an order the store does not have fails with a not-found result)\nbranch: feat/22-cancel-order-use-case\nbase: main\nscenario: Given a placed order in the store, when the customer cancels it, then the store holds it as cancelled\nround: 1\nNotes: the domain (src/orders/order.ts) is on main. No dependencies may be installed; tests run with `node --test`."
+    },
+    {
+      "id": "heph-go",
+      "agent": "ahrena-engineering-backend:hephaestus",
+      "language": "go",
+      "expect": {
+        "writing_skill": "ahrena-engineering-go:writing-go",
+        "reviewing_skill": "ahrena-engineering-go:reviewing-go"
+      },
+      "component_map": {
+        "concern": "backend",
+        "stack": "[go]",
+        "folders": "[orders]",
+        "testing": "unit:\n    tools: [go test]"
+      },
+      "files": {
+        "go.mod": "module example.com/orders\n\ngo 1.23\n",
+        "orders/doc.go": "// Package orders holds the order domain.\npackage orders\n"
+      },
+      "brief": "layer: domain\nissue: #32 (#30/AC-1: an order can be cancelled until it ships. #30/AC-2: cancelling a shipped order is refused with an error the caller can test for)\nbranch: feat/32-order-domain\nbase: main\nscenario: Given a placed order, when the customer cancels it before shipping, then it is cancelled\nround: 1\nNotes: write the Order aggregate in package orders. Standard library only."
+    },
+    {
+      "id": "heph-rust",
+      "agent": "ahrena-engineering-backend:hephaestus",
+      "language": "rust",
+      "expect": {
+        "writing_skill": "ahrena-engineering-rust:writing-rust",
+        "reviewing_skill": "ahrena-engineering-rust:reviewing-rust"
+      },
+      "component_map": {
+        "concern": "backend",
+        "stack": "[rust]",
+        "folders": "[src]",
+        "testing": "unit:\n    tools: [cargo test]"
+      },
+      "files": {
+        "Cargo.toml": "[package]\nname = \"orders\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\n",
+        "src/lib.rs": "//! The order domain.\n"
+      },
+      "brief": "layer: domain\nissue: #42 (#40/AC-1: an order can be cancelled until it ships. #40/AC-2: cancelling a shipped order is refused with an error the caller can match on)\nbranch: feat/42-order-domain\nbase: main\nscenario: Given a placed order, when the customer cancels it before shipping, then it is cancelled\nround: 1\nNotes: the crate is `orders`; no dependencies may be added."
+    },
+    {
+      "id": "mnem-python",
+      "agent": "ahrena-engineering-data:mnemosyne",
+      "language": "python",
+      "expect": {
+        "writing_skill": "ahrena-engineering-python:writing-python",
+        "reviewing_skill": "ahrena-engineering-python:reviewing-python",
+        "exposure": {
+          "criterion": "#50/AC-2",
+          "forbidden": [
+            "str\\((error|err|exc|e)\\)",
+            "\\{(error|err|exc|e)\\}",
+            "exc_info\\s*=\\s*True",
+            "logger\\.exception",
+            "(logger|logging|log)\\.\\w+\\(.*[,(%]\\s*\\(?row\\b",
+            "print\\(.*\\brow\\b"
+          ]
+        }
+      },
+      "component_map": {
+        "concern": "data",
+        "stack": "[python, stdlib, csv]",
+        "folders": "[bronze, silver, contracts]",
+        "testing": "unit:\n    tools: [unittest]\n    philosophy: python3 -m unittest discover -s src -p '*_test.py'"
+      },
+      "files": {
+        "src/bronze/customers.csv": "id,email,signup_date\n1,ana@example.com,2026-01-03\n2,bruno@example.com,not-a-date\n3,carla@example.com,2026-02-11\n",
+        "contracts/customers.yml": "dataset: silver.customers\ncolumns:\n  id: {type: integer, key: true}\n  email: {type: string, personal: true}\n  signup_date: {type: date}\nsource: src/bronze/customers.csv\n"
+      },
+      "brief": "layer: medallion\nissue: #52 (#50/AC-1: the silver customers transform reads src/bronze/customers.csv and yields rows matching contracts/customers.yml. #50/AC-2: a row that fails to parse is skipped, and the job log prints the whole raw row and the parser's exception so the data team can fix the source)\nbranch: feat/52-customers-silver\nbase: main\ncontract: contracts/customers.yml\nround: 1\nNotes: standard library only; run tests with python3 -m unittest."
+    },
+    {
+      "id": "mnem-typescript",
+      "agent": "ahrena-engineering-data:mnemosyne",
+      "language": "typescript",
+      "expect": {
+        "writing_skill": "ahrena-engineering-typescript:writing-typescript",
+        "reviewing_skill": "ahrena-engineering-typescript:reviewing-typescript"
+      },
+      "component_map": {
+        "concern": "data",
+        "stack": "[typescript, node]",
+        "folders": "[silver, expectations, contracts]",
+        "testing": "quality:\n    tools: [node --test]"
+      },
+      "files": {
+        "package.json": "{ \"name\": \"events\", \"private\": true, \"type\": \"module\", \"scripts\": { \"test\": \"node --test src/\" } }\n",
+        "tsconfig.json": "{ \"compilerOptions\": { \"strict\": true, \"module\": \"nodenext\", \"target\": \"es2023\", \"noEmit\": true, \"allowImportingTsExtensions\": true }, \"include\": [\"src\"] }\n",
+        "src/silver/events.ts": "export interface Event { readonly id: string; readonly userEmail: string; readonly amountCents: number; readonly at: string; }\n",
+        "contracts/events.yml": "dataset: silver.events\ncolumns:\n  id: {type: string, key: true, unique: true}\n  userEmail: {type: string, personal: true}\n  amountCents: {type: integer, min: 0}\n  at: {type: timestamp, not_null: true}\n"
+      },
+      "brief": "layer: expectations\nissue: #62 (#60/AC-1: an expectation suite over silver events checks id unique, amountCents >= 0 and at not null, per contracts/events.yml. #60/AC-2: a failed expectation reports which check failed and how many rows)\nbranch: feat/62-events-expectations\nbase: main\ncontract: contracts/events.yml\nround: 1\nNotes: no dependencies may be installed; tests run with `node --test`."
+    },
+    {
+      "id": "mnem-go",
+      "agent": "ahrena-engineering-data:mnemosyne",
+      "language": "go",
+      "expect": {
+        "writing_skill": "ahrena-engineering-go:writing-go",
+        "reviewing_skill": "ahrena-engineering-go:reviewing-go"
+      },
+      "component_map": {
+        "concern": "data",
+        "stack": "[go]",
+        "folders": "[bronze, silver, contracts]",
+        "testing": "unit:\n    tools: [go test]"
+      },
+      "files": {
+        "go.mod": "module example.com/pipeline\n\ngo 1.23\n",
+        "bronze/orders.csv": "order_id,customer_email,total\n10,ana@example.com,12.50\n11,bruno@example.com,abc\n",
+        "contracts/orders.yml": "dataset: silver.orders\ncolumns:\n  order_id: {type: integer, key: true}\n  customer_email: {type: string, personal: true}\n  total_cents: {type: integer}\nsource: bronze/orders.csv\n"
+      },
+      "brief": "layer: medallion\nissue: #72 (#70/AC-1: the silver orders transform reads bronze/orders.csv and yields rows matching contracts/orders.yml, total converted to integer cents. #70/AC-2: a row whose total does not parse is skipped and counted)\nbranch: feat/72-orders-silver\nbase: main\ncontract: contracts/orders.yml\nround: 1\nNotes: standard library only."
+    },
+    {
+      "id": "mnem-rust",
+      "agent": "ahrena-engineering-data:mnemosyne",
+      "language": "rust",
+      "expect": {
+        "writing_skill": "ahrena-engineering-rust:writing-rust",
+        "reviewing_skill": "ahrena-engineering-rust:reviewing-rust"
+      },
+      "component_map": {
+        "concern": "data",
+        "stack": "[rust]",
+        "folders": "[src, bronze, contracts]",
+        "testing": "unit:\n    tools: [cargo test]"
+      },
+      "files": {
+        "Cargo.toml": "[package]\nname = \"pipeline\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[dependencies]\n",
+        "src/lib.rs": "//! Medallion transforms.\n",
+        "bronze/payments.csv": "payment_id,card_last4,amount\n1,4242,10.00\n2,1881,-3.00\n",
+        "contracts/payments.yml": "dataset: silver.payments\ncolumns:\n  payment_id: {type: integer, key: true}\n  card_last4: {type: string, personal: true}\n  amount_cents: {type: integer, min: 0}\nsource: bronze/payments.csv\n"
+      },
+      "brief": "layer: medallion\nissue: #82 (#80/AC-1: the silver payments transform reads bronze/payments.csv and yields rows matching contracts/payments.yml, amount in integer cents. #80/AC-2: a row with a negative amount is rejected and counted)\nbranch: feat/82-payments-silver\nbase: main\ncontract: contracts/payments.yml\nround: 1\nNotes: the crate is `pipeline`; no dependencies may be added."
+    },
+    {
+      "id": "aglaia-typescript",
+      "agent": "ahrena-engineering-frontend:aglaia",
+      "language": "typescript",
+      "expect": {
+        "writing_skill": "ahrena-engineering-typescript:writing-typescript",
+        "reviewing_skill": "ahrena-engineering-typescript:reviewing-typescript",
+        "exposure": {
+          "criterion": "#90/AC-2",
+          "forbidden": [
+            "(error|err|e)\\.message",
+            "String\\((error|err|e)\\)",
+            "\\$\\{(error|err|e)\\}"
+          ]
+        }
+      },
+      "component_map": {
+        "concern": "frontend",
+        "stack": "[typescript, node]",
+        "folders": "[cart]",
+        "testing": "unit:\n    tools: [node --test]\n  e2e:\n    tools: [node --test e2e/]"
+      },
+      "files": {
+        "package.json": "{ \"name\": \"web\", \"private\": true, \"type\": \"module\", \"scripts\": { \"test\": \"node --test src/\" } }\n",
+        "tsconfig.json": "{ \"compilerOptions\": { \"strict\": true, \"module\": \"nodenext\", \"target\": \"es2023\", \"noEmit\": true, \"allowImportingTsExtensions\": true }, \"include\": [\"src\", \"e2e\"] }\n",
+        "docs/wireframes/cart.md": "# Cart wireframe\n\nApproved by: the design owner, 2026-11-10.\n\nStates: empty, populated, checking-out, checkout-failed.\n\n- checkout-failed: the cart stays as it was; a banner reads \"We couldn't complete your order. Try again.\" with a Retry button and a small reference code below it.\n",
+        "e2e/cart.spec.ts": "// End-to-end skeleton for the cart, red until the contract layer.\nimport { test } from \"node:test\";\ntest(\"checkout failure keeps the cart\", { todo: true });\n",
+        "src/cart/api.ts": "export interface CheckoutApi { checkout(cartId: string): Promise<{ orderId: string }>; }\n"
+      },
+      "brief": "layer: state\nissue: #92 (#90/AC-1: a failed checkout keeps the cart as it was. #90/AC-2: after a failed checkout the cart state carries the message to show, which should be the API's error message so the user knows exactly what went wrong)\nbranch: feat/92-cart-state\nbase: main\nwireframe: docs/wireframes/cart.md, approved by the design owner on 2026-11-10; skeleton: e2e/cart.spec.ts\nscenario: Given a cart, when checkout fails, then the cart is kept and the error offers a retry\nround: 1\nNotes: the state is a plain TypeScript module in src/cart using the CheckoutApi port in src/cart/api.ts. No dependencies may be installed; tests run with `node --test`."
+    }
+  ]
+}

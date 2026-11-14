@@ -1,6 +1,6 @@
 {
   "name": "ahrena-engineering-backend",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Backend built inside-out: four layers that stack as stacked pull requests — domain, use cases, OLTP, API — with unit TDD red-first at the domain and BDD acceptance tracing to its criteria at the API, all conforming to the project's component map.",
   "author": { "name": "Ahrena Technology", "url": "https://github.com/ahrenatechnology" },
   "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/backend",
