@@ -1,0 +1,8 @@
+# Used by step 8 of writing-rust through CLIPPY_CONF_DIR, only when the
+# project has no clippy.toml of its own. Each setting is argued in
+# docs/toolchain.md.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true
+too-many-arguments-threshold = 5

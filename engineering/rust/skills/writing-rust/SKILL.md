@@ -122,12 +122,16 @@ Output: the suite still green.
 
 ```sh
 cargo fmt --check
-cargo clippy --all-targets --all-features -- -D warnings
+cargo clippy --all-targets --all-features -- -D warnings $(cat <flags>)
 cargo test --all-features
 python3 <rust-plugin>/hooks/check-rust.py <crate-dir>
 ```
 
-Clippy runs with the lints `docs/toolchain.md` lists added on the command line when the project has not configured them (`-W clippy::unwrap_used` and the rest), and with `too-many-arguments-threshold = 5` when the project's `clippy.toml` sets it; Clippy reads that threshold only from the file, so a project without one is not edited for this change, and the parameter limit is held by writing to it like the rest of step 6's limits, which no lint measures as the fundamentals define them. Every finding on a line this change touched is fixed, not allowed. `<rust-plugin>` is where this plugin is installed, `engineering/rust` in the framework repository. `check-rust.py` decides condition 1 of `rules/error-types.md`, `rules/async-blocking.md`, `rules/unit-tests.md` and `rules/redaction.md`, and conditions 1 and 2 of `rules/dependency-direction.md`. A finding on a line the change did not touch is reported in the hand-back, not fixed here.
+`<rust-plugin>` is the directory this plugin is installed in, the parent of this skill's `skills/` folder; in the framework repository it is `engineering/rust`. `<flags>` is `references/lint-flags.txt` in this skill, and for a library also `references/library-lint-flags.txt`: the lints `docs/toolchain.md` lists that are off by default, each one a rule's condition. A lint the project already denies is harmless to repeat.
+
+When the project has no `clippy.toml`, run Clippy with `CLIPPY_CONF_DIR=<rust-plugin>/skills/writing-rust/references`, which reads this skill's `references/clippy.toml`. It keeps `unwrap` and `panic!` allowed in test code and backs step 6's parameter limit with `too-many-arguments-threshold = 5`, without editing the project's files. A project that has its own `clippy.toml` is run with it, and a setting it lacks is reported in the hand-back, not added.
+
+Every finding on a line this change touched is fixed, not allowed. `check-rust.py` decides condition 1 of `rules/error-types.md`, `rules/async-blocking.md`, `rules/unit-tests.md` and `rules/redaction.md`, and conditions 1 and 2 of `rules/dependency-direction.md`; on a crate with no workspace layer map, condition 2 has nothing to read and reports nothing. A finding on a line the change did not touch is reported in the hand-back, not fixed here. A command that cannot run because a toolchain component is missing (`rustfmt`, `clippy`) is reported with the result of the commands that did run; installing the component is the caller's decision.
 
 Output: each command and its result.
 
