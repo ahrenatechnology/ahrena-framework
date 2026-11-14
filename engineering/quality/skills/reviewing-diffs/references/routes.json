@@ -98,6 +98,19 @@
       ]
     },
     {
+      "id": "terraform",
+      "skill": "ahrena-engineering-terraform:skills/reviewing-terraform/SKILL.md",
+      "why": "a Terraform or OpenTofu file, read for state, secrets, exposure, pinning, module boundaries and drift",
+      "opens": [
+        "ahrena-engineering-terraform:skills/reviewing-terraform/references/conditions.md"
+      ],
+      "paths": [
+        "\\.(tf|tofu|tfvars)$",
+        "\\.(tftest|tofutest)\\.hcl$",
+        "(^|/)\\.terraform\\.lock\\.hcl$"
+      ]
+    },
+    {
       "id": "domain",
       "skill": "skills/reviewing-diffs/SKILL.md",
       "why": "a module under a bounded context's domain directory",

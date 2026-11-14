@@ -45,6 +45,15 @@
       "markers": [
         "Cargo.toml"
       ]
+    },
+    "terraform": {
+      "plugin": "ahrena-engineering-terraform",
+      "markers": [
+        "main.tf",
+        "versions.tf",
+        "terraform.tf",
+        ".terraform.lock.hcl"
+      ]
     }
   }
 }

@@ -77,6 +77,9 @@ jobs:
       - name: Test the typing hook
         run: python3 engineering/python/hooks/test-check-typing.py
 
+      - name: Test the Terraform hook
+        run: python3 engineering/terraform/hooks/test-check-terraform.py
+
       - name: Test the branch-name hook
         run: python3 contributing/hooks/test-check-branch-name.py
 

@@ -1,0 +1,20 @@
+{
+  "name": "ahrena-engineering-terraform",
+  "version": "0.1.0",
+  "description": "What is specific to Terraform: state kept remote, locked and out of the repository, no secret in source or output, pinned providers and modules, modules composed one way, a test beside each module.",
+  "author": {
+    "name": "Ahrena Technology",
+    "url": "https://github.com/ahrenatechnology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/terraform",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "terraform",
+    "opentofu",
+    "infrastructure-as-code",
+    "hcl",
+    "state",
+    "modules"
+  ]
+}

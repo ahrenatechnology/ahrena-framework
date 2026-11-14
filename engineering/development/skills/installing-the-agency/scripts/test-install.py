@@ -251,6 +251,10 @@ def test_language_detection() -> None:
         "package.json": "ahrena-engineering-typescript",
         "go.mod": "ahrena-engineering-go",
         "Cargo.toml": "ahrena-engineering-rust",
+        "main.tf": "ahrena-engineering-terraform",
+        "versions.tf": "ahrena-engineering-terraform",
+        "terraform.tf": "ahrena-engineering-terraform",
+        ".terraform.lock.hcl": "ahrena-engineering-terraform",
     }
     for marker, plugin in cases.items():
         with Case() as c:

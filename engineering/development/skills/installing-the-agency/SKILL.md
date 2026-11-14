@@ -62,7 +62,7 @@ Run the same script without `--check`. It does two things:
   [`references/agency.json`](references/agency.json): the `ahrena` marketplace
   and the nine core plugins, plus the language plugin for each marker file at
   the repository root (`pyproject.toml`, `tsconfig.json`, `go.mod`,
-  `Cargo.toml`), or the ones `--language python|typescript|go|rust` names. The
+  `Cargo.toml`, `main.tf`), or the ones `--language python|typescript|go|rust|terraform` names. The
   merge only adds. It keeps every other key and its order, never flips a plugin
   the user disabled, and never overwrites an `ahrena` marketplace entry that
   exists; it reports a disabled plugin and a marketplace that differs. It is not
