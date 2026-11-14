@@ -37,7 +37,7 @@ Write down, from the issue, the facts a service choice turns on: request-driven 
 
 For each problem the capability has, take the starting recommendation in `docs/services.md` and check its "when not" column against the requirements of step 2. Record the service, the reason, and, where you depart from the recommendation, which "when not" case applies. Prefer the managed service and the smallest one that meets the requirement, the two premises that page argues.
 
-A problem the page has no row for (sending email, accepting a large upload) is chosen on the same two premises, with its facts read from the vendor's page or recorded as a question; never from memory.
+A problem the page has no row for (sending email, or a choice inside a row the row does not settle, such as whether a large upload goes through the service or straight to the bucket) is chosen on the same two premises, with its facts read from the vendor's page or recorded as a question; never from memory.
 
 ## 4. Give each workload an identity
 

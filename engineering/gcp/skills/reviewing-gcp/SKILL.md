@@ -24,14 +24,14 @@ The conditions are checklists in `references/`, identified by `GCI-n` for infras
 
 ## 1. Take the route, and read the installation first
 
-This plugin ships its routes as a fragment, `review-routes.json` at the plugin root, which the router merges when it is passed with `--plugin-routes` or `ROUTE_REVIEW_FRAGMENTS` (`ahrena-engineering-quality:docs/review-routes.md`). Two routes select this skill: `gcp-infrastructure` and `gcp-application`. Read the files each fired on; the router names only the first line that fired, so read each file whole.
+This plugin ships its routes as a fragment, `review-routes.json` at the plugin root, which the router merges when it is passed with `--plugin-routes` or `ROUTE_REVIEW_FRAGMENTS` (`ahrena-engineering-quality:docs/review-routes.md`). Two routes select this skill: `gcp-infrastructure` and `gcp-application`. Read the files each fired on; the router prints each as `path:line` with only the first line that fired, so drop the `:line` to get the path, and read each file whole.
 
 Then run the two hooks over the same change, each with `--changed` set to the range the review reads, so they report only the lines the change adds:
 
 - this plugin's `hooks/check-gcp-grants.py` on the files `gcp-infrastructure` fired on, which decides the basic-role, key and public-principal literals of `rules/identity-and-access.md`;
 - `hooks/check-exposure.py` from the root of `ahrena-engineering-security` on the files `gcp-application` fired on, which decides the line-level shapes of the vendor-agnostic exposure rule.
 
-Each exits 0 when it reports nothing, 1 when it reports a condition and 2 when it could not run; a 2 makes the conditions it decides `unchecked`. What a hook reported is a blocking finding already decided, carried into step 5 with its condition; the checklists read what the hooks cannot see.
+Each exits 0 when it reports nothing, 1 when it reports a condition and 2 when it could not run; a 2 makes the conditions it decides `unchecked`. What a hook reported is a blocking finding already decided, carried into step 5 with its condition; the checklists read what the hooks cannot see. Where a hook and a checklist condition name the same line for the same defect, write one finding that cites both; where one line breaks two conditions with different corrections (a basic role granted on the project is GCI-1 and GCI-2), write one per condition.
 
 Before the checklists, take what the installation has already decided; when Hyperion runs this skill, its step 1 has read it, and otherwise read the installation's records as Hyperion's step 1 defines them: its owner label key, its budgets, the organization policies it enforces, the identity it uses in CI. A condition an enforced organization policy already refuses (a key, when `iam.disableServiceAccountKeyCreation` holds on the project) is not reported again, but say which policy settled it.
 
@@ -60,7 +60,7 @@ Read each condition's `Exempt` line and drop what it excludes.
 
 Each finding carries the four fields in `ahrena-engineering-quality:docs/review-findings.md`, with the condition identifier, and a correction that is an instruction: the line, what to replace, and with what. A `GCA-1` finding is blocking when its line is in the diff, whatever the error happens to carry today.
 
-Hand the set back to step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md`. Do not publish from here, and do not edit the change.
+Hand the set back to whoever ran this skill: step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md` in a full review, or Hyperion's output when Hyperion ran it. Do not publish from here, and do not edit the change.
 
 ## When this skill does not apply
 
