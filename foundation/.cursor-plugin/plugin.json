@@ -1,7 +1,7 @@
 {
   "name": "ahrena-foundation",
   "displayName": "Ahrena Foundation",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "The self-hosting core: what an artifact is, where it lives, how it is named, and the skills that create the others.",
   "author": { "name": "Ahrena Technology" },
   "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/foundation",

@@ -1,0 +1,81 @@
+# Skeleton of a build-once, promote-by-digest deploy workflow.
+# Copy, then replace every UPPER_CASE token. Each line maps to a rule of
+# ahrena-engineering-devops; the rule is named in the comment.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      digest:
+        description: Digest of an earlier image to redeploy (rollback); empty builds main
+        required: false
+        type: string
+
+permissions:
+  contents: read                     # token-permissions: read at the top
+
+jobs:
+  build:
+    if: inputs.digest == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20              # job-timeouts: usual duration with headroom
+    permissions:
+      contents: read
+      packages: write                # push the image
+      id-token: write                # sign the attestation
+      attestations: write
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - id: push
+        run: ./ci/build-and-push.sh  # prints the digest to GITHUB_OUTPUT, nothing else
+      - uses: actions/attest@v4
+        with:
+          subject-name: REGISTRY/IMAGE
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+  deploy-staging:
+    needs: build
+    if: always() && (needs.build.result == 'success' || inputs.digest != '')
+    uses: ./.github/workflows/deploy-environment.yml
+    with:
+      environment: staging
+      digest: ${{ inputs.digest || needs.build.outputs.digest }}
+    permissions:
+      contents: read
+      id-token: write                # cloud-credentials: OIDC, no stored key
+
+  deploy-production:
+    needs: [build, deploy-staging]   # build for its digest output; staging for the order
+    if: always() && needs.deploy-staging.result == 'success'
+    uses: ./.github/workflows/deploy-environment.yml
+    with:
+      environment: production
+      digest: ${{ inputs.digest || needs.build.outputs.digest }}
+    permissions:
+      contents: read
+      id-token: write
+
+# deploy-environment.yml (on: workflow_call) holds the deploy job itself:
+#
+#   jobs:
+#     deploy:
+#       runs-on: ubuntu-latest
+#       timeout-minutes: 15
+#       environment: ${{ inputs.environment }}        # protected-deployments 3, 5
+#       concurrency:
+#         group: deploy-${{ inputs.environment }}     # protected-deployments 1
+#         cancel-in-progress: false                   # protected-deployments 2
+#       permissions:
+#         contents: read
+#         id-token: write
+#       steps:
+#         - CLOUD LOGIN ACTION, pinned by SHA, with OIDC inputs only (docs/cloud-authentication.md)
+#         - DEPLOY STEP that prints the version and environment, never the cloud's whole output (log-exposure)
+#         - SMOKE TEST against the environment's health endpoint

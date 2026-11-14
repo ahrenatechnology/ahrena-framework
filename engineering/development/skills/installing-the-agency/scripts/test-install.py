@@ -261,10 +261,14 @@ def test_language_detection() -> None:
         ".gcloudignore": "ahrena-engineering-gcp",
         "azure.yaml": "ahrena-engineering-azure",
         "host.json": "ahrena-engineering-azure",
+        ".github/workflows/": "ahrena-engineering-devops",
     }
     for marker, plugin in cases.items():
         with Case() as c:
-            (c.root / marker).write_text("", encoding="utf-8")
+            if marker.endswith("/"):
+                (c.root / marker).mkdir(parents=True)
+            else:
+                (c.root / marker).write_text("", encoding="utf-8")
             c.run()
             extra = [p for p in settings(c.root)["enabledPlugins"] if p not in CORE]
             assert extra == [f"{plugin}@ahrena"], f"detect {marker}" + ": " + str(str(extra))
@@ -272,6 +276,12 @@ def test_language_detection() -> None:
     with Case() as c:
         c.run()
         assert list(settings(c.root)["enabledPlugins"]) == CORE, "detect: none leaves only the core"
+
+    with Case() as c:
+        (c.root / ".github").mkdir()
+        (c.root / ".github" / "workflows").write_text("", encoding="utf-8")
+        c.run()
+        assert list(settings(c.root)["enabledPlugins"]) == CORE, "detect: a file named like a directory marker is not one"
 
     with Case() as c:
         (c.root / "go.mod").write_text("", encoding="utf-8")
