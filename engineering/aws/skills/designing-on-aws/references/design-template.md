@@ -12,6 +12,7 @@ Copy this file, replace every line in italics, and delete what does not apply wi
 | Outage tolerance | *recovery time and data loss the project accepts* | |
 | Data held | *categories; personal, payment or regulated?* | |
 | Where data may live | *Region constraint and why* | |
+| Delivery guarantee | *at most once, at least once, no loss; and how a duplicate is made harmless* | |
 | Budget | *monthly amount* | |
 
 ## Flows
@@ -44,8 +45,8 @@ graph LR
 
 ## Data protection and exposure
 
-| Store or listener | Encryption at rest | In transit | Key | Secret source |
-|---|---|---|---|---|
+| Store or listener | Region | Encryption at rest | In transit | Key | Secret source |
+|---|---|---|---|---|---|
 
 *For each component: the layer that calls AWS, what it returns to its caller when an AWS call fails, and the named fields it logs.*
 
@@ -56,6 +57,7 @@ graph LR
 | Owner tag key | |
 | Budget and forecast alert | |
 | Log retention | |
+| NAT for AWS-service traffic | *gateway or interface endpoints, or why NAT carries it* |
 | Estimate | *monthly amount, Region, date, assumptions* |
 
 ## Well-Architected pass

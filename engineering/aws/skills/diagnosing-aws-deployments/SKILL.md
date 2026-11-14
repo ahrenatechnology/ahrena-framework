@@ -32,13 +32,13 @@ Record the account alias or environment name, the Region and the time window. No
 - **Lambda:** decide whether the failure is in deployment (updating code or configuration) or invocation (running it), and read that page's signatures.
 - **CodeDeploy:** read the deployment's failed lifecycle event and its log.
 
-If no event explains the failure, widen to CloudTrail: event history holds 90 days of management events per Region, and is where a call that was denied or that changed a resource out of band appears.
+A step that needs the account and has no credentials to read it is `unchecked`, named, and left to the account's owner; the diagnosis continues from the text it was given. If no event explains the failure, widen to CloudTrail: event history holds 90 days of management events per Region, and is where a call that was denied or that changed a resource out of band appears.
 
 ## 3. If the cause is access denied, read the message
 
 An access-denied message names the principal, the action, often the resource, and the type of policy that denied — explicit or implicit, and which of SCP, RCP, permissions boundary, session, resource-based, trust or identity-based policy. `docs/identity-and-access.md` has the anatomy and the evaluation logic.
 
-The type decides where to look: an identity-based or implicit deny means the role lacks the grant; a resource-based one means the bucket, key or queue policy; a boundary, SCP or RCP means a guardrail the workload's owner may not control. Test the fix against the identity, boundary, SCP and resource policies with the IAM policy simulator; it does not evaluate RCPs, so a suspected RCP is a question to the account's owner.
+The type decides where to look: an identity-based or implicit deny means the role lacks the grant; a resource-based one means the bucket, key or queue policy; a boundary, SCP or RCP means a guardrail the workload's owner may not control. Test the fix against the identity, boundary, SCP and resource policies with the IAM policy simulator where the caller's credentials allow it, and otherwise leave the test to the account's owner as `unchecked`; the simulator does not evaluate RCPs, so a suspected RCP is a question to the account's owner.
 
 The fix is the narrowest grant that lets the failing call through, under `rules/least-privilege.md`. Widening to a wildcard to make the error go away is the failure this rule exists for.
 
@@ -48,11 +48,11 @@ A task that cannot pull its image, a function that times out calling a service, 
 
 ## 5. Name the cause and the fix
 
-State: the layer, the first failure, the cause in one sentence, the evidence (the event, the stop reason or the message type — not its identifiers), and the smallest change that fixes it, as an edit to the infrastructure code or configuration. If a stack is stuck in a rollback-failed state, say so and name AWS's documented path (continue the rollback after fixing the cause, skipping a resource only as a last resort and knowing it leaves that resource inconsistent with the template); that operation is the owner's to run.
+State: the layer, the first failure, the cause in one sentence, the evidence (the event, the stop reason or the message type — not its identifiers), and the smallest change that fixes it, as an edit to the infrastructure code or configuration. When the fix lands outside the repository — a pipeline's deploy role, an account's bootstrap — say where and who owns it. A stack whose rollback completed needs only the fix and a new deployment through the pipeline. A field neither the failure nor the repository gives — the time window, the owner of a fix outside the repository — is written as not stated and becomes a question naming who can answer it. If a stack is stuck in a rollback-failed state, say so and name AWS's documented path (continue the rollback after fixing the cause, skipping a resource only as a last resort and knowing it leaves that resource inconsistent with the template); that operation is the owner's to run.
 
 ## 6. Report without exporting the account
 
-The diagnosis goes into an issue, a pull request or a message to a person. It carries the environment name, the Region, the service and resource type, the action and the policy type — and no account ID, ARN, role or resource name beyond the project's own logical names, and no policy document (`rules/exposure.md`). Paste an error only after replacing those with placeholders.
+The diagnosis goes into an issue, a pull request or a message to a person. It carries the environment name, the Region, the service and resource type, the action and the policy type — and no account ID, ARN or policy document, and no resource or role name read from the account or an error message; what the repository itself declares (a logical ID, a stack name in its pipeline configuration) may be named. A principal declared outside the repository is a placeholder such as `<deploy-role>`. The rule's own boundary lets the account's operators see the detail inside the account; a written report in an issue, a pull request or a message is an exit (`rules/exposure.md`). Paste an error only after replacing those with placeholders.
 
 ## When this skill does not apply
 

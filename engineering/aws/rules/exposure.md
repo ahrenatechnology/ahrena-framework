@@ -35,7 +35,7 @@ A CloudWatch Logs data protection policy is a backstop for one class of what lea
 
 ## Where this stops
 
-**The AWS layer and its operators may see the detail.** A deployment pipeline, an infrastructure plan, a CloudTrail record and a diagnosis by the account's own operators are where AWS detail belongs, and this rule does not reach them. Infrastructure outputs and plans are governed by the exposure rule of issue 294 and by the infrastructure-as-code plugin, not here.
+**The AWS layer and its operators may see the detail.** A deployment pipeline, an infrastructure plan, a CloudTrail record and the account's own operators working inside the account are where AWS detail belongs, and this rule does not reach them. A diagnosis written up in an issue, a pull request or a message leaves the account and is an exit. Infrastructure outputs and plans are governed by the exposure rule of issue 294 and by the infrastructure-as-code plugin, not here.
 
 **A correlation ID is not AWS detail.** The application's own request ID, returned to the caller and written to the log beside the named fields, is what lets an operator find the failure without the caller seeing it.
 

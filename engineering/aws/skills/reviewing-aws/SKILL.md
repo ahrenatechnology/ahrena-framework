@@ -19,7 +19,7 @@ references:
 
 The language-agnostic pass in `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md` and the language skill for the changed files have read what holds in any cloud. This skill reads what needs an AWS reader: the identity, data, exposure and cost conditions of this plugin's four rules, and the reliability conditions the Well-Architected framework gives a change.
 
-The conditions are in `references/conditions.md`, identified by a prefix and a number (`IAM-n`, `ENC-n`, `EXP-n`, `CST-n`, `REL-n`) and grouped by pillar. A finding cites the identifier. Severity and route follow `ahrena-engineering-quality:docs/review-findings.md`.
+The conditions are in `references/conditions.md`, identified by a prefix and a number (`IAM-n`, `ENC-n`, `EXP-n`, `CST-n`, `REL-n`) and grouped by pillar. A finding cites the identifier. When two conditions fire on one line, report the stronger (`IAM-2` over `IAM-4`) and say the same correction meets the other. Severity and route follow `ahrena-engineering-quality:docs/review-findings.md`.
 
 ## 1. Take the route, and read the project first
 
@@ -28,7 +28,7 @@ This plugin ships its route fragment, `review-routes.json` at the plugin root; t
 | Route | Fires on | Opens |
 |---|---|---|
 | `aws-application` | an added source line that imports or calls an AWS SDK or the CDK, handles an AWS SDK error, or writes an ARN | the four rules, `EXP-n` first |
-| `aws-templates` | a CloudFormation or SAM template | the identity, data and cost rules, every group of conditions |
+| `aws-templates` | a CloudFormation or SAM template | the identity, data and cost rules; the conditions step 2 selects |
 | `aws-terraform` | a Terraform file that declares an AWS resource or the AWS provider | the same |
 | `aws-policy-documents` | a JSON file holding an IAM policy document | `rules/least-privilege.md`, conditions `IAM-n` |
 
@@ -41,11 +41,11 @@ Before the checklist, read how this project uses AWS: its infrastructure directo
 | a handler, CLI or tool that calls an AWS SDK | `EXP-1` to `EXP-4` |
 | a policy, role, user, trust policy or resource policy | `IAM-1` to `IAM-6` |
 | a security group, subnet, route table, endpoint or public-access setting | `IAM-5`, `CST-4` |
-| a database, volume, bucket, topic, listener or secret | `ENC-1` to `ENC-4`, `REL-2` |
+| a database, volume, bucket, queue, topic, listener or secret the change declares, or a secret its code reads or writes | `ENC-1` to `ENC-4`, `REL-2` |
 | any taggable resource, an account or environment, a log group | `CST-1` to `CST-3` |
 | a production service, database or NAT gateway | `REL-1` |
 
-`EXP-1` is read on every route that fires on application code, whatever else the change touches: it is the condition behind issue 294.
+`EXP-1` is read on every route that fires on application code, whatever else the change touches: an SDK error returned to a caller is the incident the framework's exposure rule was written for.
 
 ## 3. Read beyond the hunk
 
@@ -65,9 +65,9 @@ A condition that needs a deployed account to decide — an Access Analyzer findi
 
 Each finding carries the four fields in `ahrena-engineering-quality:docs/review-findings.md`, with the condition identifier where the rule and condition number go, and a correction that is an instruction: the resource or line, what to change, and to what.
 
-Never quote an account ID, an ARN or a policy from the change into a finding beyond what the line already shows; a finding that repeats AWS detail into a pull-request comment is an exit too (`rules/exposure.md`).
+Never quote an account ID, an ARN or a policy document into a finding; name the logical ID and the action the line shows instead, because a finding that repeats AWS detail into a pull-request comment is an exit too (`rules/exposure.md`).
 
-Hand the set back to step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md`. Do not publish from here, and do not edit the change.
+Hand the set back to the caller: step 7 of `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md`, or the agent that ran this skill. List the selected conditions that did not apply to the change, so a reader can tell them from conditions not read. Do not publish from here, and do not edit the change.
 
 ## When this skill does not apply
 

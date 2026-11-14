@@ -25,6 +25,7 @@ Each section names where the first failure is recorded and the signatures AWS do
 ## Access denied
 
 - **Shape:** "User {user} is not authorized to perform {action} on {resource} because {context}"; the context names the policy type, explicit or implicit, and only one type when several deny ([Troubleshoot access denied error messages](https://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_access-denied.html)).
+- **A deploy that passes a role:** a stack update that creates or changes a function, task or instance which runs under a role fails when the deploying principal may not pass that role. The message names the action `iam:PassRole`, the role as resource and, typically, an implicit deny because no identity-based policy allows it; the fix is a grant of `iam:PassRole` on that role alone in the deploying principal's identity policy, never on `*` (IAM Access Analyzer policy validation warns on a wildcard resource for it, [check reference](https://docs.aws.amazon.com/IAM/latest/UserGuide/access-analyzer-reference-policy-checks.html)).
 - **Test a fix:** the IAM policy simulator evaluates identity-based policies, permissions boundaries, SCPs and resource-based policies without a real request; it does not support RCPs ([IAM policy testing with the IAM policy simulator](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_testing-policies.html)).
 
 ## Across layers

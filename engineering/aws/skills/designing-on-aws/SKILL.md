@@ -26,7 +26,7 @@ The output is one design document, written from `references/design-template.md`,
 
 Read the issue and the project's component map with `ahrena-engineering-fundamentals:reading-the-component-map`: the vocabulary, what already runs on AWS, the deployment tool, the owner tag key, the environments.
 
-Then establish, from the issue or by asking: what the workload does on its main paths; the load it must carry and its shape (steady, spiky, idle most of the day); the latency it must meet; what an outage costs and how much data loss is tolerable; what data it holds and whether any of it is personal, payment or regulated; where that data may live; and the budget it must fit. A design built on a guessed number is a guess, so a missing one that changes the design is a question back to the issue's owner, asked in one batch, before step 2.
+Then establish, from the issue or by asking: what the workload does on its main paths; the load it must carry and its shape (steady, spiky, idle most of the day); the latency it must meet; what an outage costs and how much data loss is tolerable; what data it holds and whether any of it is personal, payment or regulated; where that data may live; and the budget it must fit. A design built on a guessed number is a guess, so a missing one that changes the design is a question back to the issue's owner, asked in one batch, before step 2. Load, outage tolerance, data category, data location and budget always change it; others do when two services in step 3 would each be right depending on the answer.
 
 The recurring failure here is designing for a load nobody stated. Write "not stated" next to any figure the issue did not give and the design assumed.
 
@@ -50,13 +50,13 @@ Private subnets for compute and data; public only for what the internet must rea
 
 ## 6. Protect the data
 
-Encryption at rest for every store, created that way; TLS on every client-facing listener with its policy named; credentials in Secrets Manager; a customer managed key only where the design says who alone may read the data (`rules/data-protection.md`).
+Encryption at rest for every store, created that way; TLS on every client-facing listener, where one exists, with its policy named; credentials in Secrets Manager; a customer managed key only where the design says who alone may read the data (`rules/data-protection.md`).
 
 Then the exposure boundary: name the layer that calls AWS in each component, and state what it returns to its caller when an AWS call fails — a generic error and a correlation ID — and what it logs, as named fields (`rules/exposure.md`). This sentence goes in the design so the builder writes it from the first line.
 
 ## 7. Cost it
 
-Every resource carries the owner tag; the account has a budget with a forecast alert (`rules/cost-ownership.md`). Estimate the monthly cost of the design for its Region and stated load with the AWS Pricing Calculator, record the date of the estimate and the assumptions behind it, and compare it with the budget from step 1. `docs/cost.md` lists the defaults that cost money silently — log retention, NAT for AWS-service traffic — and the design states its value for each.
+Every resource carries the owner tag; the account has a budget with a forecast alert (`rules/cost-ownership.md`). Estimate the monthly cost of the design for its Region and stated load with the AWS Pricing Calculator, record the date of the estimate and the assumptions behind it, and compare it with the budget from step 1. If the estimate cannot be made where the design is written, the cost section says not computed, lists the calculator inputs, and the comparison with the budget is an open question; never a figure from memory. `docs/cost.md` lists the defaults that cost money silently — log retention, NAT for AWS-service traffic — and the design states its value for each.
 
 ## 8. Walk the pillars
 

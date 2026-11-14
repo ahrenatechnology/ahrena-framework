@@ -48,7 +48,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 
 ### IAM-6 A trust or resource policy without its condition
 
-- **State:** a role trusted by a third party's account with no `sts:ExternalId` condition; a resource policy admitting an AWS service principal without `aws:SourceArn` or `aws:SourceAccount`.
+- **State:** a role trusted by a third party's account with no `sts:ExternalId` condition; a resource policy on a resource (a bucket, queue, topic, key or function) admitting an AWS service principal without `aws:SourceArn` or `aws:SourceAccount`. A role's trust policy that lets a service such as Lambda assume it as its execution role is not this condition.
 - **Detect:** every `AssumeRolePolicyDocument` and resource policy the change writes.
 - **Exempt:** a role trusted only by accounts of the same organization, narrowed by `aws:PrincipalOrgID`.
 - **Correct:** add the condition.
@@ -58,7 +58,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 
 ### ENC-1 A store created unencrypted
 
-- **State:** an RDS or Aurora instance or cluster without storage encryption; an EBS volume unencrypted; an SNS topic carrying non-public data without a KMS key.
+- **State:** an RDS or Aurora instance or cluster without storage encryption; an EBS volume unencrypted; an SNS topic carrying non-public data without a KMS key; any other store — a queue, a cache, a file system — created without the encryption at rest its service offers.
 - **Detect:** Checkov `CKV_AWS_16`, `CKV_AWS_3`; cdk-nag `AwsSolutions-RDS2`; Config `rds-storage-encrypted`, `encrypted-volumes`, `sns-encrypted-kms`.
 - **Exempt:** S3 and DynamoDB, which are always encrypted at rest.
 - **Correct:** set encryption at creation. For an RDS instance that already exists unencrypted, encryption cannot be turned on in place: restore from an encrypted snapshot copy or use a blue/green deployment, and plan it as a migration.
@@ -96,7 +96,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 - **Detect:** every `except`, `catch` or error branch around an AWS SDK call in the change, and what the branch puts in the response.
 - **Exempt:** none in code a caller reaches.
 - **Correct:** return a generic error and the application's correlation ID; log the operation, the service's error code and the correlation ID as named fields.
-- **Source:** `rules/exposure.md` condition 1. This is the incident behind issue 294.
+- **Source:** `rules/exposure.md` condition 1. This is the incident the framework's exposure rule was written for.
 
 ### EXP-2 AWS detail in what a caller reads
 
@@ -129,7 +129,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 - **State:** a resource that accepts tags created without the project's owner tag key, or with an empty value.
 - **Detect:** every taggable resource in the change, against the key the project declares; inherited stack- or provider-level default tags count.
 - **Exempt:** a resource AWS creates on the workload's behalf.
-- **Correct:** add the tag, preferably as a default at the stack or provider level.
+- **Correct:** add the tag, preferably as a default at the stack or provider level. Tags applied at deploy time count only when the repository's deploy configuration shows them; when it does not, the finding stands and its correction names the stack-level default.
 - **Source:** `rules/cost-ownership.md` condition 1.
 
 ### CST-2 An account without a budget signal
@@ -143,7 +143,7 @@ Grouped by pillar, as `docs/well-architected.md` describes.
 ### CST-3 A log group kept forever
 
 - **State:** a CloudWatch log group created with no retention, which AWS keeps "indefinitely" ([Working with log groups and log streams](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html)).
-- **Detect:** each log group resource, and each function or service whose log group the platform creates implicitly. Config `cw-loggroup-retention-period-check` does not detect this: it treats never-expire as compliant.
+- **Detect:** each log group resource, and each function or service whose log group the platform creates implicitly. A Lambda function logs by default to `/aws/lambda/` followed by its function name ([LoggingConfig](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-loggingconfig.html)), so a log group declared under another name, or for a function whose name the template leaves generated, is not the one the function writes to. Config `cw-loggroup-retention-period-check` does not detect this: it treats never-expire as compliant.
 - **Exempt:** a log group that must be kept indefinitely for a stated obligation.
 - **Correct:** set the retention the project's obligations require.
 - **Source:** `COST04` and `docs/cost.md`.
