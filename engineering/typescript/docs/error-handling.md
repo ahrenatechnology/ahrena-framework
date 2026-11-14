@@ -16,7 +16,7 @@ references:
 
 ## Two kinds of failure
 
-TypeScript has no checked exceptions: a function's signature does not say what it throws, and `catch` receives a value of type `unknown`. That makes one decision central, and it is made per failure, not per codebase.
+TypeScript has no checked exceptions: a function's signature does not say what it throws, and `catch` receives a value of type `unknown`, because the language lets a `throw` carry any value at all, not only an `Error` (ECMA-262 §14.14, The throw Statement). That makes one decision central, and it is made per failure, not per codebase.
 
 **A failure the caller is expected to handle is returned.** A payment declined, a username taken, an input that does not parse: each is an outcome of the operation, the caller has a decision to make about it, and the compiler should make the caller make it. The shape is a discriminated union the compiler narrows:
 
@@ -43,7 +43,7 @@ class OrderNotFound extends Error {
 
 ## Context is added with `cause`, never by replacing
 
-When a low-level failure is rethrown with a message that says what was being attempted, the original goes in `cause` — MDN: "this property can be used to pass the original error". `throw new Error("loading order 42", { cause: error })` keeps the stack and the driver's message under a sentence a person can act on. Replacing the error with a new one that does not carry it is the one way to make a failure harder to diagnose than not catching it.
+When a low-level failure is rethrown with a message that says what was being attempted, the original goes in `cause`, which the `Error` constructor installs from its options (ECMA-262 §20.5.1.1 and §20.5.8.1, InstallErrorCause) — MDN: "this property can be used to pass the original error". `throw new Error("loading order 42", { cause: error })` keeps the stack and the driver's message under a sentence a person can act on. Replacing the error with a new one that does not carry it is the one way to make a failure harder to diagnose than not catching it.
 
 ## A caught value is `unknown`, and is narrowed before use
 
@@ -72,4 +72,15 @@ Every failure ends at a boundary, and each boundary has one translation:
 
 **What is logged and at which level, and what a log line must not contain**, is the observability discipline's `reviewing-observability` and the security discipline's `reviewing-sensitive-data`. This page says where the log happens, not what goes in it.
 
+**Returning a union is wrong when every caller rethrows it.** A failure that no caller ever decides about, written as `{ ok: false }`, only makes each caller convert it back into a throw; that is the signal to throw it from the start.
+
+**Upstream detail in an error message is [`sensitive-data.md`](sensitive-data.md)'s.** What a translated error may carry across a boundary is decided there.
+
 **Retries are [`async.md`](async.md)'s.** Whether a failure is retried, how often and with what backoff is decided with the timeout and the idempotency of the call, not with the error's type alone.
+
+## Sources
+
+- ECMA-262, 17th edition (ES2026): §14.14 The throw Statement; §20.5.1.1 Error ( message [ , options ] ); §20.5.8.1 InstallErrorCause. <https://262.ecma-international.org/17.0/>
+- MDN, `Error()` and `cause`: <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Error>.
+- typescript-eslint `only-throw-error`, `prefer-promise-reject-errors`, `use-unknown-in-catch-callback-variable`, `return-await`: <https://typescript-eslint.io/rules/only-throw-error/>, <https://typescript-eslint.io/rules/prefer-promise-reject-errors/>, <https://typescript-eslint.io/rules/use-unknown-in-catch-callback-variable/>, <https://typescript-eslint.io/rules/return-await/>.
+- Zod `safeParse`: <https://zod.dev/basics>.

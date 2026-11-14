@@ -48,7 +48,7 @@ Output: the cause, named as an option, a path or a line.
 
 ## 4. For a value that is not what its type says, find the hole on its path
 
-Follow the value backwards from where it is wrong to where it entered, and list every point where the compiler was told to stop checking. The four hooks list them mechanically over the files on the path:
+Follow the value backwards from where it is wrong to where it entered, and list every point where the compiler was told to stop checking. Two of the plugin's hooks list them mechanically over the files on the path:
 
 ```sh
 python3 <plugin>/hooks/check-typing.py <files on the path>

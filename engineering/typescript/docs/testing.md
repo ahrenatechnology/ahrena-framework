@@ -16,13 +16,13 @@ What is specific to testing in TypeScript: which runner, where tests live, how a
 
 ## The runner
 
-**Vitest by default**, for the reasons [`libraries.md`](libraries.md) gives: TypeScript and ESM without configuration, Jest's API, and type tests built in. **`node:test` for a library with no dependencies**, which keeps its test suite dependency-free too: stable since Node 20, and it matches `*.test.ts` files through type stripping "unless `--no-strip-types` is supplied".
+**Vitest by default**, for the reasons [`libraries.md`](libraries.md) gives: TypeScript and ESM without configuration, Jest's API, and type tests built in. **`node:test` for a library with no dependencies**, which keeps its test suite dependency-free too: stable since Node 20, and it matches `*.test.ts` files through type stripping "unless `--no-strip-types` is supplied" (Node's test-runner documentation).
 
 **A test run does not type-check.** Vitest and Node both strip types and run what is left, so a test file with a type error passes. `tsc --noEmit` over the source and the tests is a separate step in the pipeline, and it is condition 1 of [`rules/typing.md`](../rules/typing.md); a suite is green only when both are.
 
 ## Where tests live, and what kinds there are
 
-**Unit tests beside the module** they test, as [`project-layout.md`](project-layout.md) argues: `order.ts`, `order.test.ts`. They run in milliseconds, touch no network and no disk, and are most of the suite.
+**Unit tests beside the module** they test: `order.ts`, `order.test.ts`. [`rules/colocated-tests.md`](../rules/colocated-tests.md) requires it and its hook reports a unit with no test beside it. They run in milliseconds, touch no network and no disk, and are most of the suite. A unit is tested in isolation by calling it with fakes for the ports it receives as parameters or constructor arguments ([`design.md`](design.md)).
 
 **Integration tests under the package's `test/`**, run as a separate command because they need something running: a database in a container, a broker. They test an adapter against the real thing it adapts, which is the only test that can tell whether the SQL is right.
 
@@ -51,3 +51,10 @@ A published package's types are part of its contract, and a change that widens a
 **It does not set a coverage threshold.** Vitest's default coverage provider is V8's, and the number it reports is an input to review; this framework's test-quality artifacts own what a coverage figure is allowed to decide.
 
 **It does not restate test-first.** The red run before the green run, the scenario before the code: `driving-with-tdd` and `specifying-with-bdd`.
+
+## Sources
+
+- Vitest: guide <https://vitest.dev/guide/>; testing types (`expectTypeOf`, `--typecheck`) <https://vitest.dev/guide/testing-types>; coverage (V8 by default) <https://vitest.dev/guide/coverage>.
+- Node.js test runner (stability, file patterns under type stripping): <https://nodejs.org/api/test.html>.
+- MSW: <https://mswjs.io/docs/>; fast-check: <https://fast-check.dev/>.
+- TypeScript, unused `@ts-expect-error` is an error: <https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-9.html>.

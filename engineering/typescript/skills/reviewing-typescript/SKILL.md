@@ -1,6 +1,6 @@
 ---
 name: reviewing-typescript
-description: Use when a change under review edits TypeScript or JavaScript (.ts, .tsx, .js, .jsx and their module variants) and the question is what a TypeScript reader would catch - an any or a cast that reopens a hole the compiler would have closed, a floating or unhandled promise, an import cycle or a deep import, untyped input given a type by assertion, == where === was meant, a widened public type. Runs this plugin's hooks, reads the routed files against its rules and the conditions below; every finding names the rule condition or the TS condition.
+description: Use when a change under review edits TypeScript or JavaScript (.ts, .tsx, .js, .jsx and their module variants) and the question is what a TypeScript reader would catch - an any or a cast that reopens a hole the compiler would have closed, a floating or unhandled promise, an import cycle or a deep import, untyped input given a type by assertion, a unit with no test beside it, a whole object or upstream error written to a log or a response, a pattern from another language against TypeScript's grain, == where === was meant, a widened public type. Runs this plugin's hooks, reads the routed files against its rules and the conditions below; every finding names the rule condition or the TS condition.
 type: skill
 clade: engineering
 subclade: quality
@@ -9,6 +9,9 @@ references:
   - rules/promises.md
   - rules/module-boundaries.md
   - rules/runtime-validation.md
+  - rules/colocated-tests.md
+  - docs/design.md
+  - docs/sensitive-data.md
   - docs/error-handling.md
   - docs/async.md
   - ahrena-engineering-quality:docs/review-findings.md
@@ -17,7 +20,7 @@ references:
 
 # Reviewing TypeScript
 
-The language-agnostic pass in `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md` has read the change against the rules that hold in any language. This skill reads what needs a TypeScript reader. It works in two passes: the four rules of this plugin first, decided where a script can decide them; then the conditions in `references/`, which are what is left for a reader.
+The language-agnostic pass in `ahrena-engineering-quality:skills/reviewing-diffs/SKILL.md` has read the change against the rules that hold in any language. This skill reads what needs a TypeScript reader. It works in two passes: the five rules of this plugin first, decided where a script can decide them; then the conditions in `references/`, which are what is left for a reader.
 
 A finding cites a rule condition (`rules/typing.md`, condition 4) or a checklist identifier (`TS-12`). A checklist condition that a rule already decides says so and points at it, and is reported under the rule. Severity and route follow `ahrena-engineering-quality:docs/review-findings.md`.
 
@@ -31,12 +34,13 @@ Read the project's `tsconfig.json` and its lint configuration first. They decide
 
 ## 2. Run the rules' hooks over the change
 
-Run the four hooks over the changed files, and `check-boundaries.py` over the package that holds them, because a cycle is a property of the graph and not of one file:
+Run the hooks over the changed files, and `check-boundaries.py` over the package that holds them, because a cycle is a property of the graph and not of one file:
 
 ```sh
 python3 <plugin>/hooks/check-typing.py <changed files>
 python3 <plugin>/hooks/check-promises.py <changed files>
 python3 <plugin>/hooks/check-untyped-input.py <changed files>
+python3 <plugin>/hooks/check-tests.py <changed files>
 python3 <plugin>/hooks/check-boundaries.py <package-dir>
 ```
 
@@ -53,8 +57,9 @@ The hooks decide most of the rules, not all. Read the changed lines against what
 | a type, an interface, a cast, a generic, a signature | `references/types.md` |
 | a promise, `async`/`await`, an event handler, equality, a number, a `catch` | `references/correctness-and-async.md` |
 | an export, a barrel, a public declaration, a `.d.ts` | `references/modules-and-surface.md` |
+| a log, a response, an error message, a trace, a serializer, a type that holds a secret; a class, a port, a constructor | `references/exposure-and-design.md` |
 
-A change to a component's internals that adds no type and no async opens `correctness-and-async.md` alone.
+A change to a component's internals that adds no type and no async opens `correctness-and-async.md` alone. Every change that writes to a log, a response or an error opens `exposure-and-design.md` as well.
 
 ## 5. Read beyond the hunk
 

@@ -10,7 +10,7 @@ Opened by step 2 of `SKILL.md`. Every compiler code and runtime message below wa
 | `TS2322: Type 'string \| undefined' is not assignable to type 'string'` on an index read | `noUncheckedIndexedAccess` doing its job | handle the missing element; do not add `!` |
 | `TS18048: 'x' is possibly 'undefined'` | an optional value used before it is checked | narrow it, or make it required if it never is optional |
 | `TS2352: Conversion of type … may be a mistake` | a single `as` between types that do not overlap | the types disagree; parse or narrow instead of adding `as unknown as` |
-| `TS2366: Function lacks ending return statement` | a `switch` over a union that misses a member | add the case; an exhaustive `switch` needs no `default` |
+| `TS2366: Function lacks ending return statement` | a `switch` over a union that misses a member | add the case, and a `default` that assigns the value to `never` (TS-6 of `reviewing-typescript`), so the next member added fails the build too |
 | `TS2801: This condition will always return true since this 'Promise<…>' is always defined` | a promise tested as a boolean | `await` it |
 | `TS7006: Parameter 'x' implicitly has an 'any' type` | an unannotated parameter under `noImplicitAny` | annotate it; `unknown` if its shape is not known yet |
 | `TS5107` or `TS5108` on an option | an option deprecated in 6.0 or removed in 7.0 | `tsc --showConfig`, then the 6.0 release notes' list ([`docs/toolchain.md`](../../../docs/toolchain.md)) |

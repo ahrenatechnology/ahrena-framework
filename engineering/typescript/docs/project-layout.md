@@ -11,7 +11,7 @@ references:
 
 # Laying out a TypeScript project
 
-This is the companion to [`rules/module-boundaries.md`](../rules/module-boundaries.md). The rule holds the graph acyclic and the package boundary closed; this argues the layout that makes both easy, and the choices the rule leaves to a project because no script could hold every codebase to one answer.
+This is the companion to [`rules/module-boundaries.md`](../rules/module-boundaries.md) and [`rules/colocated-tests.md`](../rules/colocated-tests.md), and it takes its premises — no circular reference, lower cyclomatic complexity, maintainability — from [`design.md`](design.md). The rule holds the graph acyclic and the package boundary closed; this argues the layout that makes both easy, and the choices the rule leaves to a project because no script could hold every codebase to one answer.
 
 ## Three kinds of code, three module settings
 
@@ -27,7 +27,7 @@ The hook of [`rules/module-boundaries.md`](../rules/module-boundaries.md) resolv
 
 ## A package and its public entry
 
-A package is a directory with a `package.json`, and it is the unit of publication, of versioning and of the boundary condition 3 of the rule holds. Its `exports` field is its public surface: Node's documentation says that once `exports` is defined, "all subpaths of the package are encapsulated and no longer available to importers". So every package declares `exports`, even one that is never published, because that is what lets condition 4 tell an entry from a file.
+A package is a directory with a `package.json`, and it is TypeScript's unit of composition: of publication, of versioning, of the boundary conditions 3 to 6 of the rule hold, and of extension — a behaviour is extended by a new package that depends on the base, as [`design.md`](design.md) argues. A workspace that type-checks with `tsc --build` gives each package a tsconfig with `composite` and lists the packages it depends on in `references`, so the compiler builds them in order and refuses a circular graph (TS6202). Its `exports` field is its public surface: Node's documentation says that once `exports` is defined, "all subpaths of the package are encapsulated and no longer available to importers". So every package declares `exports`, even one that is never published, because that is what lets condition 4 tell an entry from a file.
 
 The root entry is one `src/index.ts` that exports what the package offers, by name. It is the only barrel in the package. A barrel deeper inside — an `index.ts` that re-exports a whole directory — makes importing one name load every module beside it, is the most common place an import cycle hides (one of the cycles the rule's hook found in a public codebase ran through exactly such a file), and is TS-15 of `reviewing-typescript`. Inside the package, a module imports the module it needs.
 
@@ -62,7 +62,7 @@ The direction is the one condition 6 of the fundamentals' SOLID rule states: pol
 
 ## Where tests live
 
-**Beside the code: `order.ts` and `order.test.ts` in one directory.** Vitest's default `include` and Node's test runner both find `*.test.ts` files wherever they are, and a test beside its module is found, read and deleted with it. A test that needs a running database or another service sits under the package's `test/` directory and runs as a separate command, as [`testing.md`](testing.md) argues.
+**Beside the code: `order.ts` and `order.test.ts` in one directory**, which [`rules/colocated-tests.md`](../rules/colocated-tests.md) requires and its hook checks. Vitest's default `include` and Node's test runner both find `*.test.ts` files wherever they are, and a test beside its module is found, read and deleted with it. A test that needs a running database or another service sits under the package's `test/` directory and runs as a separate command, as [`testing.md`](testing.md) argues.
 
 ## Generated code
 
@@ -73,3 +73,11 @@ The direction is the one condition 6 of the fundamentals' SOLID rule states: pol
 **This is not a framework's layout.** Next.js, Nest, Angular and the rest bring a directory structure of their own, and inside them the framework's wins; the package boundary and the import rules above still hold around it. The frontend clade's `ahrena-engineering-frontend` owns the layout of components and state.
 
 **It does not decide how many packages a repository holds.** One deployable and its libraries is the common case; the boundary rule applies the same way to two packages or forty.
+
+## Sources
+
+- TypeScript, *Modules — Choosing Compiler Options*: <https://www.typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html>.
+- TypeScript, Project References: <https://www.typescriptlang.org/docs/handbook/project-references.html>; TS6202 in the diagnostic messages: <https://github.com/microsoft/TypeScript/blob/release-6.0/src/compiler/diagnosticMessages.json>.
+- Node.js, package entry points (`exports`) and subpath imports (`imports`): <https://nodejs.org/api/packages.html>; type stripping ignores `tsconfig.json`: <https://nodejs.org/api/typescript.html>.
+- pnpm, the `workspace:` protocol: <https://pnpm.io/workspaces>.
+- ECMA-262, 17th edition (ES2026), §16.2.1.6 Cyclic Module Records (why a barrel that closes a loop matters): <https://262.ecma-international.org/17.0/>.

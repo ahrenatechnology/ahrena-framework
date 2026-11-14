@@ -4,7 +4,7 @@ type: doc
 clade: engineering
 subclade: typescript
 title: The library for each problem, and when it is the wrong one
-summary: For each problem a TypeScript service or library meets - validation, HTTP serving and calling, persistence and migrations, serialization, configuration, CLI, retries, logging, tracing, time, errors, tests, test doubles, property tests, workspaces - one recommended library, the reason, and the case where it is the wrong choice.
+summary: For each problem a TypeScript service or library meets - validation, HTTP serving and calling, persistence and migrations, serialization, configuration, CLI, retries, logging, tracing, time, errors, tests, test doubles, property tests, workspaces, unused code, architecture checks - one recommended library, the reason, and the case where it is the wrong choice.
 references:
   - rules/runtime-validation.md
 ---
@@ -47,7 +47,7 @@ What makes a library the default here, in order: it is typed from its source rat
 
 ## Serialization
 
-**No library: JSON, through the schema.** `JSON.stringify` on the way out, a schema parse on the way in. The values JSON cannot carry are decided in the schema: dates travel as ISO-8601 strings and are parsed back, and an integer beyond `Number.MAX_SAFE_INTEGER` travels as a string, as TS-12 of `reviewing-typescript` says.
+**No library: JSON, through the schema.** `JSON.stringify` on the way out, a schema parse on the way in. The values JSON cannot carry are decided in the schema: dates travel as ISO-8601 strings and are parsed back, and an integer beyond `Number.MAX_SAFE_INTEGER` — 2^53 − 1, because a Number is an IEEE 754 double (ECMA-262 §6.1.6.1, §21.1.2.6) — travels as a string, as TS-12 of `reviewing-typescript` says.
 
 *Wrong when* messages cross languages at volume, or need a schema evolution story: **`@bufbuild/protobuf`** (2.17) implements Protocol Buffers and describes itself as "fully compliant with the Protobuf conformance tests".
 
@@ -67,7 +67,7 @@ What makes a library the default here, in order: it is typed from its source rat
 
 **cockatiel** (4.0). One library for retry with backoff, circuit breaker, timeout, bulkhead and fallback, composed into one policy. A retry without a breaker turns an outage into a load test, and having both in one composed policy is the reason.
 
-*Wrong when* one call needs a retry and nothing else: **p-retry** is smaller, and its `AbortError` stops retrying on a failure that will not get better. Neither replaces the idempotency key that makes a retried write safe, which is [`async.md`](async.md)'s subject.
+*Wrong when* one call needs a retry and nothing else: **p-retry** (9.0) is smaller, and its `AbortError` stops retrying on a failure that will not get better. Neither replaces the idempotency key that makes a retried write safe, which is [`async.md`](async.md)'s subject.
 
 ## Logging
 
@@ -77,7 +77,7 @@ What makes a library the default here, in order: it is typed from its source rat
 
 ## Tracing and metrics
 
-**OpenTelemetry JS** (`@opentelemetry/sdk-node`). The vendor-neutral standard; its traces and metrics are stable, and its logs signal is still in development, which is why pino owns logging above and is bridged to the trace context rather than replaced.
+**OpenTelemetry JS** (`@opentelemetry/sdk-node` 0.301). The vendor-neutral standard; its traces and metrics are stable, and its logs signal is still in development, which is why pino owns logging above and is bridged to the trace context rather than replaced.
 
 *Wrong when* the platform already instruments the runtime and exports traces itself; a second SDK double-counts spans.
 
@@ -111,15 +111,23 @@ What makes a library the default here, in order: it is typed from its source rat
 
 *Wrong when* the input domain is small enough to enumerate: a table of examples says the same thing and reads faster.
 
-## Workspaces
+## Workspaces: composing packages
 
-**pnpm workspaces.** Its `workspace:` protocol makes pnpm "refuse to resolve to anything other than a local workspace package", so a workspace dependency cannot silently resolve to a published version; its strict `node_modules` layout refuses an import of a package the importer did not declare.
+**pnpm workspaces** (pnpm 12.18). A workspace is how a repository holds several packages, and packages are how this plugin composes and extends code ([`design.md`](design.md)). pnpm's `workspace:` protocol makes it "refuse to resolve to anything other than a local workspace package", so a workspace dependency cannot silently resolve to a published version; its strict `node_modules` layout refuses an import of a package the importer did not declare, which is condition 6 of [`rules/module-boundaries.md`](../rules/module-boundaries.md) enforced at runtime; and its recursive commands run packages in topological order. One setting is turned on: `disallowWorkspaceCycles`, which makes installation fail on a cycle between workspace packages that pnpm otherwise only warns about.
 
-*Wrong when* the repository holds one package: npm is already installed and enough.
+*Wrong when* the repository holds one package: npm is already installed and enough. *A sturdier equivalent is the better choice* when the workspace is large enough that building and testing everything on every change is the bottleneck: **Nx** (24.0) keeps the project graph, runs only what a change affects, caches task results, and its `@nx/enforce-module-boundaries` lint rule "checks TypeScript imports and `package.json` dependencies during linting", which adds tag-based layer constraints to what this plugin's hook holds. It runs on top of a pnpm workspace rather than replacing it.
 
-## Keeping the tree honest
+## Finding unused code and dependencies
 
-**knip** finds unused files, exports and dependencies. **dependency-cruiser** reports import cycles through path aliases, which [`rules/module-boundaries.md`](../rules/module-boundaries.md)'s hook does not resolve, and holds architectural rules beyond the package boundary. Both are optional: a project without aliases needs neither for this plugin's conditions to hold.
+**knip** (6.45). It "finds and fixes unused dependencies, exports and files", which is what a package's `exports` and a composition by packages accumulate: an export no other package imports, a dependency nobody uses any longer.
+
+*Wrong when* the codebase is a single small package, where the compiler's `noUnusedLocals` and a reader are enough.
+
+## Checking architecture beyond the package boundary
+
+**dependency-cruiser** (18.7). It validates the import graph against rules written in its own configuration, resolves `paths` aliases, and reports cycles through them — the two things [`rules/module-boundaries.md`](../rules/module-boundaries.md)'s hook does not do. It is how a project holds the direction between layers inside a package ([`project-layout.md`](project-layout.md)).
+
+*Wrong when* the project has no aliases and no layer map to hold: the rule's hook already decides every condition, and a second detector for the same graph is a second source of truth.
 
 ## Where this stops
 
@@ -128,3 +136,21 @@ What makes a library the default here, in order: it is typed from its source rat
 **The versions will age.** Each one is the npm `latest` on 2026-11-14. A recommendation whose library stops being maintained is wrong from that day, the way tsup's entry was replaced by tsdown's in [`toolchain.md`](toolchain.md).
 
 **Security and supply chain are not judged here.** Whether a dependency is pinned, vetted and free of known vulnerabilities is the security disciplines' `reviewing-supply-chain`, applied to whatever this document recommends.
+
+## Sources
+
+Each library's own documentation, read on 2026-11-14, and its npm `latest` on that date:
+
+- Zod <https://zod.dev/v4>, <https://zod.dev/json-schema>; Valibot <https://valibot.dev/guides/introduction/>; Standard Schema <https://standardschema.dev/schema>.
+- Fastify <https://fastify.dev/>; Hono <https://hono.dev/docs/>.
+- Node.js `fetch` (added in v17.5.0, no longer experimental in v21.0.0, built on undici): <https://nodejs.org/api/globals.html>; MDN `fetch`: <https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch>.
+- Kysely <https://kysely.dev/> (`Migrator` and `FileMigrationProvider` read from the 0.29.9 package); Drizzle <https://orm.drizzle.team/docs/overview>.
+- `@bufbuild/protobuf` <https://github.com/bufbuild/protobuf-es>; commander <https://github.com/tj/commander.js>; Node `util.parseArgs` <https://nodejs.org/api/util.html#utilparseargsconfig>.
+- cockatiel <https://github.com/connor4312/cockatiel>; p-retry <https://github.com/sindresorhus/p-retry>.
+- pino <https://github.com/pinojs/pino>; OpenTelemetry JS <https://opentelemetry.io/docs/languages/js/>.
+- date-fns <https://date-fns.org/>; Temporal, Stage 4 and expected in ES2027: <https://github.com/tc39/proposal-temporal>, MDN <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal>.
+- neverthrow <https://github.com/supermacro/neverthrow>; Effect <https://effect.website/>.
+- Vitest <https://vitest.dev/guide/>; Node test runner <https://nodejs.org/api/test.html>; MSW <https://mswjs.io/docs/>; fast-check <https://fast-check.dev/>.
+- pnpm workspaces <https://pnpm.io/workspaces>; Nx module boundaries <https://nx.dev/docs/features/enforce-module-boundaries>; knip <https://knip.dev/>; dependency-cruiser <https://github.com/sverweij/dependency-cruiser>.
+- ECMA-262, 17th edition (ES2026), §6.1.6.1 The Number Type and §21.1.2.6 Number.MAX_SAFE_INTEGER (why a large integer travels as a string): <https://262.ecma-international.org/17.0/>.
+

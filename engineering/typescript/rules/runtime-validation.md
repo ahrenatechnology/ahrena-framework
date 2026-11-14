@@ -19,7 +19,7 @@ Condition 2 is decided by `hooks/check-untyped-input.py`. Conditions 1, 3 and 4 
 
 ## What a boundary is
 
-A boundary is any point where a value enters the program without a type the compiler checked: an HTTP request body, query or header; a response from another service; `JSON.parse`; `process.env`; a queue or stream message; a row from a database whose driver returns untyped rows; `localStorage`, `sessionStorage`, a cookie or a URL parameter in a browser; a `postMessage` event; a file read from disk; a webhook payload. The standard library marks several of them itself: `JSON.parse` returns `any` in TypeScript's `lib.es5.d.ts`, `Body.json()` returns `Promise<any>` in `lib.dom.d.ts`, and `process.env` is a record of `string | undefined` in `@types/node`.
+A boundary is any point where a value enters the program without a type the compiler checked: an HTTP request body, query or header; a response from another service; `JSON.parse`; `process.env`; a queue or stream message; a row from a database whose driver returns untyped rows; `localStorage`, `sessionStorage`, a cookie or a URL parameter in a browser; a `postMessage` event; a file read from disk; a webhook payload. The standard library marks several of them itself. `JSON.parse` builds whatever value the text describes (ECMA-262 §25.5.2), so TypeScript's `lib.es5.d.ts` declares it to return `any`; `Body.json()` returns `Promise<any>` in `lib.dom.d.ts`; and `process.env` is a record of `string | undefined` in `@types/node`.
 
 ## Conditions
 
@@ -42,3 +42,11 @@ A boundary is any point where a value enters the program without a type the comp
 **Nothing here chooses the library.** The rule says a schema parses at every boundary, and [`docs/libraries.md`](../docs/libraries.md) argues which. A codebase standardised on another runtime validator meets this rule with it unchanged.
 
 **This rule does not reach the frontend clade's own boundaries in full.** A form's fields, a component's props and a store's state are typed by the frontend clade's artifacts in `ahrena-engineering-frontend`; a value read from `localStorage` or a URL parameter is a boundary under this rule wherever it is read.
+
+## Sources
+
+- ECMA-262, 17th edition (ES2026), §25.5.2 JSON.parse: <https://262.ecma-international.org/17.0/>.
+- TypeScript's declarations, read from the 6.0.3 package: `lib.es5.d.ts` line 1161 (`JSON.parse … : any`) and `lib.dom.d.ts` line 5127 (`json(): Promise<any>`); `@types/node` 26.6.6, `process.d.ts` (`ProcessEnv extends Dict<string>`).
+- Zod, `z.infer` and `safeParse`: <https://zod.dev/basics>; Standard Schema: <https://standardschema.dev/schema>.
+- Fastify, validation and serialization: <https://fastify.dev/docs/latest/Reference/Validation-and-Serialization/>.
+- typescript-eslint `no-unsafe-assignment`: <https://typescript-eslint.io/rules/no-unsafe-assignment/>.

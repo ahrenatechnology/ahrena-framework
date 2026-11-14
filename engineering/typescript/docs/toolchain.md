@@ -44,7 +44,7 @@ TypeScript 7 is the native port of the compiler, and its announcement measures "
 
 Conditions 3 of `typing.md` and 1 of `promises.md` need a linter that knows types, and typescript-eslint is the one this plugin names. Its `recommendedTypeChecked` configuration holds every rule those conditions cite, and typed linting is turned on with `parserOptions.projectService: true`, which its documentation calls "our recommended option". The cost is stated by the same page: typed linting incurs "the performance penalty of asking TypeScript to do a build of your project", negligible on a small project and noticeable on a large one, which is why it runs in the pipeline and not on every keystroke.
 
-Its supported range is TypeScript `>=4.8.4 <6.1.0`, and a maintainer wrote on its tracker that it "isn't compatible with TS 7 at this time, because there is no TS 7 API". Under 7 it runs against `@typescript/typescript6`, as above.
+Its supported range is TypeScript `>=4.8.4 <6.1.0`, and a maintainer wrote on its tracker (typescript-eslint issue #12518, with the work tracked in #10940) that it "isn't compatible with TS 7 at this time, because there is no TS 7 API". Under 7 it runs against `@typescript/typescript6`, as above.
 
 **The alternative, and when to take it.** Oxlint's type-aware linting went stable in July 2026 on tsgolint, "built directly on TypeScript v7", so it needs no second compiler. A project that wants one TypeScript in its tree can use it; its rules carry typescript-eslint's names under a `typescript/` prefix (`typescript/no-floating-promises` in oxlint 1.93's configuration schema), and a rule this plugin cites by its typescript-eslint name is the same condition there. Biome 2 implements type-aware rules without the compiler, and its own announcement measures its `noFloatingPromises` at about 75% of what typescript-eslint catches; that is a fine formatter-and-lint tool and a weaker detector for condition 1 of `promises.md`, so this plugin does not count it as deciding that condition.
 
@@ -93,3 +93,15 @@ Each condition's findings were sampled and read against the source. Two detector
 **It does not choose a framework.** Next.js, Remix, Nest, Angular and Vue each bring a build and a tsconfig of their own; the flags above layer on top of them, and the frontend clade's artifacts in `ahrena-engineering-frontend` own the framework.
 
 **It does not cover editors.** The language service is whatever the editor runs, and under 7 that is the native one, except for the Volar-based frameworks the 7.0 announcement says still need 6.
+
+## Sources
+
+- TypeScript 6.0 announcement: <https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/>.
+- TypeScript 7.0 announcement (8x to 12x full builds, no API in 7.0, `@typescript/typescript6` through npm aliases, Volar-based editors): <https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/>.
+- tsconfig reference, each flag above: <https://www.typescriptlang.org/tsconfig/>; `erasableSyntaxOnly`, TypeScript 5.8 release notes: <https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-8.html>.
+- typescript-eslint: supported versions <https://typescript-eslint.io/users/dependency-versions/>; typed linting and its cost <https://typescript-eslint.io/getting-started/typed-linting/>; issue #12518 <https://github.com/typescript-eslint/typescript-eslint/issues/12518> and #10940 <https://github.com/typescript-eslint/typescript-eslint/issues/10940>.
+- Oxlint, type-aware linting stable on tsgolint: <https://oxc.rs/blog/2026-07-22-type-aware-linting-stable>; rule names read from oxlint 1.93's `configuration_schema.json`.
+- Biome 2 announcement (`noFloatingPromises` about 75%): <https://biomejs.dev/blog/biome-v2/>.
+- Node.js, type stripping (history, limits, removal of `--experimental-transform-types` in v26): <https://nodejs.org/api/typescript.html>.
+- tsup, "not actively maintained anymore": <https://github.com/egoist/tsup>; tsdown: <https://tsdown.dev/guide/>; publint: <https://publint.dev/docs/>; Are the Types Wrong: <https://github.com/arethetypeswrong/arethetypeswrong.github.io>.
+- The four measured codebases, at the commits in the table: <https://github.com/colinhacks/zod>, <https://github.com/honojs/hono>, <https://github.com/typescript-eslint/typescript-eslint>, <https://github.com/microsoft/vscode-extension-samples>.
