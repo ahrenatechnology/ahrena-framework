@@ -22,8 +22,10 @@ instruction file is in reach and the rule is the only instruction in play. Anoth
 platform's command is passed with `--runner`; it receives the whole prompt on
 standard input and prints the answer.
 
-Exit 0 when every case passes, 1 when one fails, 2 when the model could not be
-reached. Standard library only.
+Exit 0 when every case passes, 1 when one fails, 2 when nothing was decided for
+a case: the model could not be reached, or the judge's answer lacked a verdict
+for a condition. The report keeps the cases decided before it. Standard library
+only.
 
 Usage:
     python3 foundation/prompt-tests/run.py foundation/prompt-tests/person-facing-text/cases.json
@@ -104,7 +106,6 @@ class Case:
     situation: str
     language: str = "pt"
     allowed_refs: list[str] = field(default_factory=list)
-    skip: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -200,8 +201,7 @@ def write_text(rule: str, case: Case, args: argparse.Namespace) -> str:
 
 def judge_text(rule: str, case: Case, text: str, args: argparse.Namespace) -> dict[str, dict]:
     prompt = f"<rule>\n{rule}\n</rule>\n\n<situation>\n{case.situation}\n</situation>\n\n<text>\n{text}\n</text>"
-    verdicts = parse_verdicts(ask(JUDGE, prompt, args.judge_model, args.runner))
-    return {n: v for n, v in verdicts.items() if n not in case.skip}
+    return parse_verdicts(ask(JUDGE, prompt, args.judge_model, args.runner))
 
 
 def run_case(rule: str, case: Case, args: argparse.Namespace) -> list[Sample]:
@@ -240,23 +240,27 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: list[str]) -> int:
-    args = parse_args(argv)
-    rule, cases = load(args.cases)
-    lines, failed = [f"# Prompt test: {args.cases}", "", f"baseline: {args.baseline}; samples: {args.samples}; model: {args.model}", ""], 0
-    try:
-        for case in cases:
-            samples = run_case(rule, case, args)
-            failed += not passes([not s.failures for s in samples])
-            lines += report(case, samples)
-    except (Unreachable, ValueError) as error:
-        print(f"not run: {error}", file=sys.stderr)
-        return 2
-    lines.append(f"{len(cases)} case(s), {failed} failure(s).")
+def finish(lines: list[str], args: argparse.Namespace) -> None:
     text = "\n".join(lines)
     if args.out:
         args.out.write_text(text + "\n", encoding="utf-8")
     print(text)
+
+
+def main(argv: list[str]) -> int:
+    args = parse_args(argv)
+    rule, cases = load(args.cases)
+    lines, failed = [f"# Prompt test: {args.cases}", "", f"baseline: {args.baseline}; samples: {args.samples}; model: {args.model}", ""], 0
+    for case in cases:
+        try:
+            samples = run_case(rule, case, args)
+        except (Unreachable, ValueError) as error:
+            finish([*lines, f"not run: case {case.id}: {error}"], args)
+            print(f"not run: case {case.id}: {error}", file=sys.stderr)
+            return 2
+        failed += not passes([not s.failures for s in samples])
+        lines += report(case, samples)
+    finish([*lines, f"{len(cases)} case(s), {failed} failure(s)."], args)
     return 1 if failed else 0
 
 

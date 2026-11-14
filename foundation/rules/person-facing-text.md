@@ -54,7 +54,7 @@ Two hold before any condition is read.
    - Passa: «Quando o cliente abre a página da conta, acontece isto, em ordem: 1. A página pede as faturas em aberto. 2. O sistema confere se a conta é dele. 3. A lista aparece, da mais antiga para a mais nova.»
    - Reprova: «A listagem respeita o escopo da conta por política de acesso.»
 
-6. **The proposal comes before the defence.** Two shapes fail, and only these two: a sentence built as «não é X, é Y» or «não X, mas sim Y», and a text whose first paragraph says what the thing does not do. Every other negative sentence passes: a fact («a tela não fica pronta hoje», «ainda não criei nada»), a limit the reader needs in order to decide («não dá para desfazer»), a phrase with «sem» («sem ligar para a recepção»).
+6. **The proposal comes before the defence.** Two shapes fail, and only these two: a sentence built as «não é X, é Y» or «não X, mas sim Y», and a first paragraph that defends the thing by what it does not do («a página não expõe dados de outros», «nada quebrou») before saying what it does or what happened. Every other negative sentence passes, in the first paragraph too: a fact about what stopped or what exists («a tela não fica pronta hoje», «ainda não criei nada»), a limit the reader needs in order to decide («não dá para desfazer»), a phrase with «sem» («sem ligar para a recepção»).
 
    - Passa: «Cada cliente vê só as faturas da própria conta.»
    - Reprova: «A página não é uma listagem geral, é a lista de cada cliente.»

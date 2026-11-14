@@ -76,7 +76,7 @@ It gives a model the rule and one of five situations (a plan for approval, an es
 | The script | the text's language; a protocol field pasted into it; a decision-record number, a file and line, a path or an agent's name; a reference the person need not open; a closing with more than one question or an offer of further help; an adjective in a number's place |
 | A second model call, the judge | conditions 1 to 10, one verdict each, with the words that decided it |
 
-Each case runs three times and passes when two samples pass. The command exits 0 when every case passes, 1 when one fails, and 2 when the model could not be reached, which a reviewer records as not run. `--baseline` writes without the rule, to see what the rule changes; `--out` saves the report, which prints every output.
+Each case runs three times and passes when two samples pass. The command exits 0 when every case passes, 1 when one fails, and 2 when nothing was decided: the model could not be reached, or the judge's answer lacked a verdict for a condition. A reviewer records that as not run; the report keeps the cases decided before it. `--baseline` writes without the rule, to see what the rule changes; `--out` saves the report, which prints every output.
 
 The script's own checks are tested in `foundation/prompt-tests/test-run.py`, which CI runs. The model calls are not in CI: they need a credential, and a rule's review is the moment they are for.
 

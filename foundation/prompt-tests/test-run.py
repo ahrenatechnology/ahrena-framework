@@ -16,7 +16,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -101,6 +103,34 @@ CASES += [
      lambda: raises(lambda: run.parse_verdicts(verdicts(**{"2": {"verdict": "maybe"}})))),
     ("the shipped cases load, each against a rule that exists",
      lambda: len(run.load(HERE / "person-facing-text" / "cases.json")[1]) == 5),
+]
+
+
+def not_run(runner: str, out: Path) -> tuple[int, str]:
+    cases = str(HERE / "person-facing-text" / "cases.json")
+    done = subprocess.run(
+        [sys.executable, str(HERE / "run.py"), cases, "--samples", "1", "--runner", runner, "--out", str(out)],
+        capture_output=True, text=True,
+    )
+    return done.returncode, done.stderr
+
+
+def unreachable_names_its_case() -> bool:
+    with tempfile.TemporaryDirectory() as folder:
+        out = Path(folder) / "report.md"
+        code, stderr = not_run("false", out)
+        return code == 2 and "not run: case plan-for-approval" in stderr and "not run: case plan-for-approval" in out.read_text()
+
+
+def unparsed_judge_is_not_run() -> bool:
+    with tempfile.TemporaryDirectory() as folder:
+        code, stderr = not_run("echo no-verdicts-here", Path(folder) / "report.md")
+        return code == 2 and "the judge returned no JSON object" in stderr
+
+
+CASES += [
+    ("a model that cannot be reached exits 2, names the case and still writes the report", unreachable_names_its_case),
+    ("a judge whose answer cannot be read exits 2, not 1", unparsed_judge_is_not_run),
 ]
 
 
