@@ -74,6 +74,9 @@ jobs:
       - name: Test the Azure review routes
         run: python3 engineering/azure/hooks/test-review-routes.py
 
+      - name: Test that the gate reaches the Azure plugin
+        run: python3 engineering/azure/hooks/test-plugin-gate.py
+
       - name: Test the boundaries hook
         run: python3 engineering/python/hooks/test-check-boundaries.py
 
