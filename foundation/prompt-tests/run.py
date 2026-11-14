@@ -161,16 +161,23 @@ def scripted_failures(text: str, case: Case) -> list[str]:
     return found
 
 
+def unreadable(why: str, answer: str) -> ValueError:
+    return ValueError(f"{why}; the judge answered: {answer[:500]!r}")
+
+
 def parse_verdicts(answer: str) -> dict[str, dict]:
-    start, end = answer.find("{"), answer.rfind("}")
-    if start < 0 or end <= start:
-        raise ValueError("the judge returned no JSON object")
-    raw = json.loads(answer[start : end + 1])
+    start = answer.find("{")
+    if start < 0:
+        raise unreadable("the judge returned no JSON object", answer)
+    try:
+        raw, _ = json.JSONDecoder().raw_decode(answer, start)
+    except json.JSONDecodeError as error:
+        raise unreadable(f"the judge's JSON could not be read ({error.msg})", answer) from error
     verdicts = {}
     for number in JUDGED:
-        entry = raw.get(number)
+        entry = raw.get(number) if isinstance(raw, dict) else None
         if not isinstance(entry, dict) or entry.get("verdict") not in ("pass", "fail", "na"):
-            raise ValueError(f"the judge gave no verdict for condition {number}")
+            raise unreadable(f"the judge gave no verdict for condition {number}", answer)
         verdicts[number] = entry
     return verdicts
 

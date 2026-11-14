@@ -87,6 +87,14 @@ CASES = [
 ]
 
 
+def message(call) -> str:
+    try:
+        call()
+    except ValueError as error:
+        return str(error)
+    return ""
+
+
 def raises(call) -> bool:
     try:
         call()
@@ -96,6 +104,11 @@ def raises(call) -> bool:
 
 
 CASES += [
+    ("a complete answer followed by another object is read, and what follows is ignored",
+     lambda: run.parse_verdicts(verdicts() + '\n{"note": 1}')["10"]["verdict"] == "pass"),
+    ("an answer that cannot be read carries the judge's own words in the error",
+     lambda: "the judge answered: 'all good'" in message(lambda: run.parse_verdicts("all good"))),
+    ("an answer cut off mid-object is an error, not a pass", lambda: raises(lambda: run.parse_verdicts('{"1": {"verdict": '))),
     ("an answer with no JSON object is an error, not a pass", lambda: raises(lambda: run.parse_verdicts("all good"))),
     ("an answer missing a condition is an error, not a pass",
      lambda: raises(lambda: run.parse_verdicts(json.dumps({"1": {"verdict": "pass"}})))),
