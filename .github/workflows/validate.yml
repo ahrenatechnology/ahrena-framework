@@ -59,6 +59,9 @@ jobs:
       - name: Test the prompt-test runner
         run: python3 foundation/prompt-tests/test-run.py
 
+      - name: Test the agent prompt test's deciding logic
+        run: python3 foundation/prompt-tests/test-run-agent.py
+
       - name: Test the structure hook
         run: python3 engineering/fundamentals/hooks/test-check-structure.py
 
