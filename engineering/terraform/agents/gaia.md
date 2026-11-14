@@ -120,7 +120,7 @@ Input: `mode` is `review`, `checkout` is the working tree of `acme/platform`, `b
 DONE
 mode: review, acme/platform, main..working tree
 result: blocking TF-7 and TF-10 live/prod/outputs.tf:1, output db_url carries a connection string with credentials and an internal hostname, is not sensitive, and names no consumer, stop exporting it and let the service read the password from its secret store (the consumer is asked below); blocking TF-8 live/prod/outputs.tf:5, output database exports the whole aws_db_instance.main, export .address alone, for the consumer that reads it
-passed: TF-1 to TF-6, TF-9, TF-11 to TF-15, TF-17 to TF-19, read against the two changed lines and not violated
+passed: TF-1 to TF-3, TF-5, TF-6, TF-9, TF-11 to TF-20, read against the two changed lines and not violated
 unchecked: TF-4, the backend's settings are not in the change
 toolchain: hook 2 failures (outputs 1, outputs 2); fmt -check clean; validate not run in review mode; tflint not run, not installed
 consumers: none named for either output
