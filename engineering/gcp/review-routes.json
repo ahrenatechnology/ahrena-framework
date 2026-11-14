@@ -24,7 +24,8 @@
       "skill": "ahrena-engineering-gcp:skills/reviewing-gcp/SKILL.md",
       "opens": [
         "ahrena-engineering-gcp:skills/reviewing-gcp/references/application.md",
-        "ahrena-engineering-gcp:rules/exposure.md"
+        "ahrena-engineering-gcp:rules/exposure.md",
+        "ahrena-engineering-gcp:rules/data-protection.md"
       ],
       "why": "Application code that calls a Google Cloud client library or handles its errors, where the provider's message, a project id or a resource path can reach a caller or a log.",
       "paths": [

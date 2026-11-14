@@ -19,15 +19,24 @@ A grant the change means to make anyway is allowed by a comment carrying
 `gcp-grant-allowed:` and a reason, on the line itself or the line above. The
 marker without a reason does not count, because the rule asks for the reason.
 
-Standard library only, so a consumer runs exactly what CI runs.
+With `--changed <range>` the hook reads only the lines that range adds, as
+`git diff` reports them (`base...head`, or `base` alone for the working tree),
+so a pre-existing grant in a modified file is not reported as the change's.
+Without it, every line of every file under the paths is read.
+
+Exit status: 0 when nothing is reported, 1 when a condition is reported, 2 when
+the arguments or git cannot be used. Standard library only, so a consumer runs
+exactly what CI runs.
 
 Usage:
     python3 engineering/gcp/hooks/check-gcp-grants.py [path ...]
+    python3 engineering/gcp/hooks/check-gcp-grants.py --changed <range> [path ...]
 """
 
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -36,6 +45,8 @@ RULE = "identity-and-access"
 
 SUFFIXES = (".tf", ".tf.json", ".tfvars", ".sh", ".bash", ".yaml", ".yml")
 SKIP_NAMES = frozenset({"node_modules", "vendor", "build", "dist"})
+
+HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@")
 
 ALLOW = re.compile(r"gcp-grant-allowed:\s*\S")
 
@@ -86,9 +97,11 @@ def is_comment(line: str) -> bool:
     return line.lstrip().startswith(("#", "//"))
 
 
-def scan(lines: list[str], where: str) -> list[Finding]:
+def scan(lines: list[str], where: str, only: set[int] | None = None) -> list[Finding]:
     findings: list[Finding] = []
     for index, line in enumerate(lines):
+        if only is not None and index + 1 not in only:
+            continue
         if is_comment(line) or allowed(lines, index):
             continue
         for condition, pattern, message in CHECKS:
@@ -116,14 +129,61 @@ def report(findings: list[Finding], checked: int) -> int:
     return 1
 
 
+def parse_diff(text: str, top: Path) -> dict[Path, set[int]]:
+    added: dict[Path, set[int]] = {}
+    current: Path | None = None
+    for line in text.splitlines():
+        if line.startswith("+++ "):
+            name = line[4:]
+            current = None if name == "/dev/null" else (top / name[2:]).resolve()
+            continue
+        match = HUNK.match(line)
+        if match and current is not None:
+            start, count = int(match.group(1)), int(match.group(2) or "1")
+            added.setdefault(current, set()).update(range(start, start + count))
+    return added
+
+
+def changed_lines(spec: str) -> dict[Path, set[int]] | None:
+    top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    diff = subprocess.run(["git", "diff", "--unified=0", "--no-color", spec], capture_output=True, text=True)
+    if top.returncode != 0 or diff.returncode != 0:
+        print(f"cannot read the changes in {spec!r}: {(top.stderr or diff.stderr).strip()}", file=sys.stderr)
+        return None
+    return parse_diff(diff.stdout, Path(top.stdout.strip()))
+
+
+def under(path: Path, roots: list[Path]) -> bool:
+    return any(path == root or root in path.parents for root in roots)
+
+
+def targets(argv: list[str]) -> tuple[list[Path], dict[Path, set[int]] | None] | None:
+    args = list(argv[1:])
+    if "--changed" not in args:
+        return sources([Path(a).resolve() for a in args] or [Path.cwd()]), None
+    at = args.index("--changed")
+    if at + 1 >= len(args):
+        print("--changed needs a range", file=sys.stderr)
+        return None
+    added = changed_lines(args[at + 1])
+    if added is None:
+        return None
+    roots = [Path(a).resolve() for a in args[:at] + args[at + 2:]] or [Path.cwd()]
+    paths = sorted(p for p in added if wanted(p) and p.is_file() and under(p, roots))
+    return paths, added
+
+
 def main(argv: list[str]) -> int:
-    roots = [Path(argument).resolve() for argument in argv[1:]] or [Path.cwd()]
+    chosen = targets(argv)
+    if chosen is None:
+        return 2
+    paths, added = chosen
     base = Path.cwd()
     findings: list[Finding] = []
-    paths = sources(roots)
     for path in paths:
         lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
-        findings.extend(scan(lines, display(path, base)))
+        only = added.get(path) if added is not None else None
+        findings.extend(scan(lines, display(path, base), only))
     return report(findings, len(paths))
 
 

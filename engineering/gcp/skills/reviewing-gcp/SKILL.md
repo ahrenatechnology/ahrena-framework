@@ -24,16 +24,23 @@ The conditions are checklists in `references/`, identified by `GCI-n` for infras
 
 ## 1. Take the route, and read the installation first
 
-This plugin ships its routes as a fragment, `review-routes.json` at the plugin root, which the router merges when it is passed with `--plugin-routes` or `ROUTE_REVIEW_FRAGMENTS` (`ahrena-engineering-quality:docs/review-routes.md`). Two routes select this skill: `gcp-infrastructure` and `gcp-application`. Read the files each fired on. On the infrastructure files, run this plugin's hook, `hooks/check-gcp-grants.py`, which decides the basic-role, key and public-principal literals of `rules/identity-and-access.md`; what it reported is settled, and the checklist reads what it cannot see.
+This plugin ships its routes as a fragment, `review-routes.json` at the plugin root, which the router merges when it is passed with `--plugin-routes` or `ROUTE_REVIEW_FRAGMENTS` (`ahrena-engineering-quality:docs/review-routes.md`). Two routes select this skill: `gcp-infrastructure` and `gcp-application`. Read the files each fired on; the router names only the first line that fired, so read each file whole.
 
-Before the checklists, read what the installation has already decided: its owner label key, its budgets, the organization policies it enforces, the identity it uses in CI. A condition an enforced organization policy already refuses (a key, when `iam.disableServiceAccountKeyCreation` holds on the project) is not reported again, but say which policy settled it.
+Then run the two hooks over the same change, each with `--changed` set to the range the review reads, so they report only the lines the change adds:
+
+- this plugin's `hooks/check-gcp-grants.py` on the files `gcp-infrastructure` fired on, which decides the basic-role, key and public-principal literals of `rules/identity-and-access.md`;
+- `hooks/check-exposure.py` from the root of `ahrena-engineering-security` on the files `gcp-application` fired on, which decides the line-level shapes of the vendor-agnostic exposure rule.
+
+Each exits 0 when it reports nothing, 1 when it reports a condition and 2 when it could not run; a 2 makes the conditions it decides `unchecked`. What a hook reported is a blocking finding already decided, carried into step 5 with its condition; the checklists read what the hooks cannot see.
+
+Before the checklists, take what the installation has already decided; when Hyperion runs this skill, its step 1 has read it, and otherwise read the installation's records as Hyperion's step 1 defines them: its owner label key, its budgets, the organization policies it enforces, the identity it uses in CI. A condition an enforced organization policy already refuses (a key, when `iam.disableServiceAccountKeyCreation` holds on the project) is not reported again, but say which policy settled it.
 
 ## 2. Open the checklists the route calls for
 
 | Route | Reference |
 |---|---|
 | `gcp-infrastructure` | `references/infrastructure.md`, with `rules/identity-and-access.md`, `rules/data-protection.md`, `rules/cost-attribution.md` and `docs/networking.md` |
-| `gcp-application` | `references/application.md`, with `rules/exposure.md` and `docs/exposure.md` |
+| `gcp-application` | `references/application.md`, with `rules/exposure.md`, `rules/data-protection.md` and `docs/exposure.md` |
 
 A change that holds both opens both. A change to application code that does not touch a Google Cloud client or its errors does not reach this skill.
 

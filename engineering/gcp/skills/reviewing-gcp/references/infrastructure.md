@@ -1,6 +1,6 @@
 # Google Cloud infrastructure
 
-Opened by step 2 of `SKILL.md` when the `gcp-infrastructure` route fired: a change that declares or grants something on Google Cloud, in Terraform, a `gcloud` script, a Cloud Build or Cloud Run file, or a Config Connector manifest. Each condition gives the state, how it is detected, what exempts it, and the correction. `hooks/check-gcp-grants.py` has already reported the literal forms of GCI-1, GCI-3 and GCI-4 on the changed files; a grant it let through because of a `gcp-grant-allowed:` comment is read here for whether the reason holds. The detector named after each is the vendor's, which reports the same state on a deployed project; the reviewer is the one that reads it in the change.
+Opened by step 2 of `SKILL.md` when the `gcp-infrastructure` route fired: a change that declares or grants something on Google Cloud, in Terraform, a `gcloud` script, a Cloud Build or Cloud Run file, or a Config Connector manifest. Each condition gives the state, how it is detected, what exempts it, and the correction. `hooks/check-gcp-grants.py`, run by step 1 of `SKILL.md` with `--changed`, has already reported the literal forms of GCI-1, GCI-3 and GCI-4 on the lines the change adds; a grant it let through because of a `gcp-grant-allowed:` comment is read here for whether the reason holds. The detector named after each is the vendor's, which reports the same state on a deployed project; the reviewer is the one that reads it in the change.
 
 ### GCI-1 A basic role
 
@@ -33,7 +33,7 @@ Opened by step 2 of `SKILL.md` when the `gcp-infrastructure` route fired: a chan
 ### GCI-5 An open network door
 
 - **State:** a firewall rule allowing `0.0.0.0/0` to anything but the load balancer's ports; SSH or RDP open to the internet; a VM with an external IP; a Cloud SQL instance with a public IP or `0.0.0.0/0` authorized; Cloud Run ingress `all` for a service that only the load balancer or internal callers need; the default network used.
-- **Detect:** firewall rules, network interfaces, Cloud SQL `ip_configuration`, Cloud Run `ingress`.
+- **Detect:** firewall rules, network interfaces, Cloud SQL `ip_configuration`, Cloud Run `ingress` (in Terraform's Cloud Run v2 resource the values are enums whose names the provider's schema gives, read from `registry.terraform.io` when the value matters).
 - **Exempt:** the external load balancer's own forwarding.
 - **Correct:** IAP TCP forwarding for admin access, Cloud NAT for egress, private IP for Cloud SQL, ingress `internal-and-cloud-load-balancing` or `internal`, a custom-mode network. Doc: `docs/networking.md`. Vendor detector: `OPEN_FIREWALL`, `OPEN_SSH_PORT`, `OPEN_RDP_PORT`, `PUBLIC_IP_ADDRESS`, `SQL_PUBLIC_IP`, `DEFAULT_NETWORK`.
 
@@ -64,3 +64,10 @@ Opened by step 2 of `SKILL.md` when the `gcp-infrastructure` route fired: a chan
 - **Detect:** `output` blocks and pipeline logging in the change.
 - **Exempt:** an output that holds only the names a downstream step consumes, marked sensitive where it carries a credential.
 - **Correct:** output the named fields needed; never a key or a policy. Rule: `rules/exposure.md`; the vendor-neutral side is `ahrena-engineering-terraform` (issue 295).
+
+### GCI-10 A service account shared across workloads
+
+- **State:** two workloads (two Cloud Run services, a service and its CI, a job and a function) configured to run as the same service account, or a CI pipeline that authenticates as the runtime account of what it deploys.
+- **Detect:** the service account field of every compute resource in the change, and the identity CI uses.
+- **Exempt:** replicas of one workload.
+- **Correct:** a dedicated service account per workload, and for CI its own account reached by Workload Identity Federation, with Service Account User on the runtime account only. Rule: `rules/identity-and-access.md` condition 3.

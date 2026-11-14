@@ -25,7 +25,7 @@ The output is a design document the builders and the owner read before anything 
 
 ## 1. Read what the installation already decided
 
-Run `ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md` for the capability. Then read the installation's own records: its projects and environments, the organization policies it enforces, its owner label key, its budgets, the identity its CI uses. Those are the client's decisions and the design inherits them (`ahrena-engineering-fundamentals:rules/client-logic.md`). What the installation does not say becomes a question in step 7, not an assumption.
+When Hyperion runs this skill, its step 1 has done this: take its output and do not read again. Otherwise, run `ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md` for the concern the capability belongs to, and read the installation's records: its component map, `AGENTS.md` and `CLAUDE.md`, and its infrastructure code, for its projects and environments, the organization policies it enforces, its owner label key, its budgets, the identity its CI uses. Those are the client's decisions and the design inherits them (`ahrena-engineering-fundamentals:rules/client-logic.md`). What the installation does not say becomes a question in step 7, not an assumption.
 
 Output: the constraints the design must live within, each with where it was read.
 
@@ -37,13 +37,15 @@ Write down, from the issue, the facts a service choice turns on: request-driven 
 
 For each problem the capability has, take the starting recommendation in `docs/services.md` and check its "when not" column against the requirements of step 2. Record the service, the reason, and, where you depart from the recommendation, which "when not" case applies. Prefer the managed service and the smallest one that meets the requirement, the two premises that page argues.
 
+A problem the page has no row for (sending email, accepting a large upload) is chosen on the same two premises, with its facts read from the vendor's page or recorded as a question; never from memory.
+
 ## 4. Give each workload an identity
 
-For each workload, name its own service account and the predefined roles it needs, each on the narrowest resource (`rules/identity-and-access.md`, `docs/identity-and-access.md`). Name how anything outside Google Cloud authenticates, CI first: Workload Identity Federation, never a key unless the design records why none serves. Name what is public, if anything, and why.
+For each workload, name its own service account and the predefined roles it needs, each on the narrowest resource (`rules/identity-and-access.md`, `docs/identity-and-access.md`). Name how anything outside Google Cloud authenticates, CI first: Workload Identity Federation, never a key unless the design records why none serves. Name what is public, if anything, and why. A public web application behind the load balancer still needs its invoker grant or an invoker check turned off (`docs/networking.md`), and `iam.allowedPolicyMemberDomains` refuses a grant to `allUsers`: record which the design uses, and the organization-policy check as `unchecked`.
 
 ## 5. Draw the path a request takes
 
-From the caller to the data: the public door (load balancer and Cloud Armor, or none), the Cloud Run ingress setting, the private path to databases and Google APIs, egress, and the administrative path (`docs/networking.md`). Mark which hops the platform encrypts and which the design must (`docs/data-protection.md`), and where each secret lives.
+From the caller to the data: the public door (load balancer and Cloud Armor, or none), the Cloud Run ingress setting of each service, including one called only by Cloud Tasks, Eventarc or Cloud Scheduler, whose ingress and authentication are read from the vendor's page or recorded as a question, the private path to databases and Google APIs, egress, and the administrative path (`docs/networking.md`). Mark which hops the platform encrypts and which the design must (`docs/data-protection.md`), and where each secret lives.
 
 ## 6. Decide what leaves, and who pays
 
@@ -53,7 +55,7 @@ For each entry point, name the error contract the caller sees and where the deta
 
 Read the design against the pillars of `docs/architecture-framework.md` that it touches: security, reliability and cost at least; performance and sustainability when the design picks regions or sizes capacity. Record each gap as a change to the design or as a question.
 
-Hand back the design with three lists: the decisions (service, identity, path, error contract, owner and budget), each with its reason and the doc it traces to; the questions for the owner; and what the design deliberately leaves out.
+Hand back the design with three lists: the decisions (service, identity, path, error contract, owner and budget), each with its reason and the doc or page it traces to; the questions for the owner, each naming who answers it; and what the design deliberately leaves out, under `exclusions:` at the end of the result.
 
 ## When this skill does not apply
 

@@ -17,11 +17,11 @@ The output is a diagnosis: the failing step, the evidence, the confirmed cause, 
 
 ## 1. Find the step that failed
 
-A deployment is a chain: build, push, provision, deploy, start, serve. Find the first link that failed, from the pipeline's own output or the console, before reading any log. Record the resource, the project, the region, the revision or build ID, and the time.
+A deployment is a chain: build, push, provision, deploy, start, serve. Find the first link that failed, from the pipeline's own output (or the console, where a person is running this), before reading any log. Record the resource, the project, the region, the revision or build ID, and the time.
 
 ## 2. Collect the evidence for that step
 
-Read the logs for that resource around that time, filtered by resource type and `severity>=ERROR`; for a change of state, read the Admin Activity audit log for who changed what. Record the exact error message and code.
+Read the logs for that resource around that time, filtered by resource type and `severity>=ERROR`. A failure to start is the exception: read the revision's or pod's log unfiltered, because what decides it is often ordinary output (the address and port the server says it listens on), which is not logged as an error; for a change of state, read the Admin Activity audit log for who changed what. Record the exact error message and code.
 
 The evidence holds project IDs, service accounts and resource names. It stays in the diagnosis for the people who operate the project; it does not go into a ticket, a pull-request comment or a message outside them (`rules/exposure.md`).
 
@@ -31,17 +31,19 @@ Open `references/failure-signatures.md` and find the entry whose signature match
 
 ## 4. Confirm before changing anything
 
-Run the confirmation the entry names: Policy Troubleshooter for a permission, the violation analyzer for a perimeter, `gcloud org-policies describe` for a constraint, the container contract for a start failure, quota usage for an exhausted quota. For a permission that was granted moments ago, wait out the propagation the entry states before concluding it is missing. A cause that the confirmation does not support is ruled out and recorded as such.
+Run the confirmation the entry names, which is read-only: Policy Troubleshooter for a permission, the violation analyzer for a perimeter, `gcloud org-policies describe` for a constraint, `gcloud run revisions describe` and the unfiltered log for a start failure, quota usage for an exhausted quota. Where the command cannot run here, name it and mark the cause unconfirmed; never invent its output. For a permission that was granted moments ago, wait out the propagation the entry states before concluding it is missing. A cause that the confirmation does not support is ruled out and recorded as such.
 
 ## 5. Propose the smallest fix within the rules
 
 The fix is the narrowest change that removes the confirmed cause: the one permission on the one resource, the service account the deployer may act as, the port the container listens on. Never a basic role, a project-wide grant, a service account key, a public binding or an organization-policy override to get past an error: each is a violation of `rules/identity-and-access.md`, and an override is the organization owner's decision. Where the narrow fix needs a policy change, preview it with Policy Simulator or an organization policy in dry run first.
 
-Hand back the failing step, the evidence (with identifiers kept to the operators' channel), the confirmed cause, what was ruled out, and the fix with the rule it keeps.
+A violation of this plugin's rules that the checkout shows but that did not cause this failure is not part of the diagnosis: list it, file and line with its condition, as noted in passing for a review to take up.
+
+Hand back the failing step, the evidence (with identifiers kept to the operators' channel), the cause and whether it is confirmed, what was ruled out, the fix with the rule it keeps, and what was noted in passing.
 
 ## When this skill does not apply
 
-**A defect in the application's logic** that would fail the same way anywhere: that is the language plugin's diagnosis.
+**A defect in the application's logic** that would fail the same way anywhere: that is the language plugin's diagnosis. A defect that fails only under a Google Cloud runtime's contract (the address or port a container listens on, its start-up window, its in-memory filesystem) is this skill's, because the signature table carries it.
 
 **A design question** (is Cloud Run the right runtime for this): `designing-on-gcp`.
 
