@@ -89,6 +89,48 @@ jobs:
       - name: Test the typing hook
         run: python3 engineering/python/hooks/test-check-typing.py
 
+      - name: Test the Python source hook
+        run: python3 engineering/python/hooks/test-check-python.py
+
+      - name: Test the Python test-placement hook
+        run: python3 engineering/python/hooks/test-check-test-placement.py
+
+      - name: Test the Python hooks' shared source reader
+        run: python3 engineering/python/hooks/sources_test.py
+
+      - name: Test the Go context hook
+        run: python3 engineering/go/hooks/test-check-context.py
+
+      - name: Test the Go surface hook
+        run: python3 engineering/go/hooks/test-check-surface.py
+
+      - name: Test the Go packages hook
+        run: python3 engineering/go/hooks/test-check-packages.py
+
+      - name: Test the Go test-placement hook
+        run: python3 engineering/go/hooks/test-check-test-placement.py
+
+      - name: Test the Go exposure hook
+        run: python3 engineering/go/hooks/test-check-exposure.py
+
+      - name: Test the Rust hook
+        run: python3 engineering/rust/hooks/test-check-rust.py
+
+      - name: Test the TypeScript typing hook
+        run: python3 engineering/typescript/hooks/test-check-typing.py
+
+      - name: Test the TypeScript promises hook
+        run: python3 engineering/typescript/hooks/test-check-promises.py
+
+      - name: Test the TypeScript boundaries hook
+        run: python3 engineering/typescript/hooks/test-check-boundaries.py
+
+      - name: Test the TypeScript untyped-input hook
+        run: python3 engineering/typescript/hooks/test-check-untyped-input.py
+
+      - name: Test the TypeScript colocated-tests hook
+        run: python3 engineering/typescript/hooks/test-check-tests.py
+
       - name: Test the Google Cloud grants hook
         run: python3 engineering/gcp/hooks/test-check-gcp-grants.py
 
