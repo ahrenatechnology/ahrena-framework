@@ -7,6 +7,10 @@ comment that mentions a public principal, a grant allowed with a reason, and the
 marker without one. Each case builds a throwaway tree and runs the hook as a
 subprocess.
 
+Two cases run the hook with `--changed` in a throwaway git repository: a
+grant that was already in a modified file is not the change's, and a grant
+the change adds is (#307/AC-1).
+
 The last case runs the repository's artifact gate, which also decides that the
 plugin dependency graph stays acyclic: #298/AC-6.
 
@@ -69,8 +73,55 @@ def check_clean() -> list[str]:
     return errors
 
 
+def git(root: str, *args: str) -> None:
+    subprocess.run(["git", "-C", root, *args], check=True, capture_output=True)
+
+
+def check_changed() -> list[str]:
+    """#307/AC-1: with --changed, only the lines the range adds are read."""
+    with tempfile.TemporaryDirectory() as root:
+        git(root, "init", "-q")
+        git(root, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", "base")
+        tf = Path(root) / "main.tf"
+        tf.write_text('role = "roles/editor"\n', encoding="utf-8")
+        git(root, "add", "-A")
+        git(root, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "old")
+        tf.write_text('role = "roles/editor"\nname = "unrelated"\n', encoding="utf-8")
+        git(root, "add", "-A")
+        git(root, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "clean")
+        quiet = subprocess.run([sys.executable, str(HOOK), "--changed", "HEAD~1...HEAD"], cwd=root, capture_output=True, text=True)
+        tf.write_text('role = "roles/editor"\nname = "unrelated"\nmember = "allUsers"\n', encoding="utf-8")
+        loud = subprocess.run([sys.executable, str(HOOK), "--changed", "HEAD"], cwd=root, capture_output=True, text=True)
+        git(root, "config", "diff.noprefix", "true")
+        noprefix = subprocess.run([sys.executable, str(HOOK), "--changed", "HEAD"], cwd=root, capture_output=True, text=True)
+        option = subprocess.run([sys.executable, str(HOOK), "--changed", "--name-only"], cwd=root, capture_output=True, text=True)
+    errors: list[str] = []
+    if noprefix.returncode != 1 or "main.tf:3" not in noprefix.stdout:
+        errors.append(f"--changed lost the added line under diff.noprefix: {noprefix.stdout!r}{noprefix.stderr!r}")
+    if option.returncode != 2:
+        errors.append(f"--changed accepted an option as the range: {option.returncode} {option.stdout!r}")
+    if quiet.returncode != 0:
+        errors.append(f"--changed reported a line the range did not add: {quiet.stdout!r}{quiet.stderr!r}")
+    if loud.returncode != 1 or "main.tf:3" not in loud.stdout or "main.tf:1" in loud.stdout:
+        errors.append(f"--changed did not report only the added line 3: {loud.stdout!r}{loud.stderr!r}")
+    return errors
+
+
+def check_help() -> list[str]:
+    result = subprocess.run([sys.executable, str(HOOK), "--help"], capture_output=True, text=True)
+    errors: list[str] = []
+    if result.returncode != 0 or "Usage:" not in result.stdout:
+        errors.append(f"--help did not print the usage: {result.stdout!r}")
+    with tempfile.TemporaryDirectory() as root:
+        git(root, "init", "-q")
+        as_range = subprocess.run([sys.executable, str(HOOK), "--changed", "-h"], cwd=root, capture_output=True, text=True)
+    if as_range.returncode != 2:
+        errors.append(f"--changed -h was not refused as a range: {as_range.returncode} {as_range.stdout!r}")
+    return errors
+
+
 def check_gate() -> list[str]:
-    """#298/AC-6: the artifact gate passes with this plugin listed, graph acyclic."""
+    """#298/AC-6, #307/AC-4: the artifact gate passes with this plugin listed, graph acyclic."""
     gate = REPO / "foundation" / "hooks" / "validate-artifacts.py"
     result = subprocess.run([sys.executable, str(gate), str(REPO)], capture_output=True, text=True)
     if result.returncode != 0:
@@ -79,10 +130,10 @@ def check_gate() -> list[str]:
 
 
 def main() -> int:
-    errors = check_failing() + check_clean() + check_gate()
+    errors = check_failing() + check_clean() + check_changed() + check_help() + check_gate()
     for error in errors:
         print(error)
-    total = len(CASES) + len(CLEAN) + 1
+    total = len(CASES) + len(CLEAN) + 3
     print(f"{total - len(errors)} of {total} cases passed.")
     return 1 if errors else 0
 

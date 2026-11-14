@@ -1,6 +1,6 @@
 # Google Cloud in application code
 
-Opened by step 2 of `SKILL.md` when the `gcp-application` route fired: a changed source file that calls a Google Cloud client library or handles its errors. Each condition gives the state, how it is detected, what exempts it, and the correction. The rule behind them is `rules/exposure.md`; `docs/exposure.md` says what a Google Cloud error and identifier carry. The security plugin's `hooks/check-exposure.py` decides the line-level shapes of the vendor-agnostic rule (a caught error or an upstream response reaching an exit whole); what it reported is settled, and these conditions read the Google Cloud classes it does not name.
+Opened by step 2 of `SKILL.md` when the `gcp-application` route fired: a changed source file that calls a Google Cloud client library or handles its errors. Each condition gives the state, how it is detected, what exempts it, and the correction. The rule behind them is `rules/exposure.md`; `docs/exposure.md` says what a Google Cloud error and identifier carry. Step 1 of `SKILL.md` ran the security plugin's `hooks/check-exposure.py`, which decides the line-level shapes of the vendor-agnostic rule (a caught error or an upstream response reaching an exit whole); what it reported is already a finding, and these conditions read the Google Cloud classes it does not name.
 
 ### GCA-1 A Google Cloud error returned to the caller
 
@@ -43,3 +43,10 @@ Opened by step 2 of `SKILL.md` when the `gcp-application` route fired: a changed
 - **Detect:** credential construction in the change.
 - **Exempt:** Application Default Credentials, which resolve to the attached service account; a key the change names with the reason no alternative serves.
 - **Correct:** use Application Default Credentials and the attached service account; read secrets from Secret Manager. Rules: `rules/identity-and-access.md` condition 4, `rules/data-protection.md` condition 4.
+
+### GCA-7 A secret read as `latest` in production
+
+- **State:** a Secret Manager reference to `versions/latest` in code that runs in production.
+- **Detect:** the version segment of every Secret Manager name the change reads, and where that name comes from.
+- **Exempt:** a version alias the installation records as its rotation mechanism.
+- **Correct:** pin the version, read from configuration. Rule: `rules/data-protection.md` condition 4. A project ID or resource name that reaches an exit is GCA-3, not this condition.
