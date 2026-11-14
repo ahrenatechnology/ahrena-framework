@@ -34,7 +34,7 @@ One session in the second window shows the cost at its worst: 39 prompts from th
 | Opened with the mechanism | 1, business impact first |
 | Used terms the reader does not use | 2, the reader's words |
 | Skipped how the thing is done today | 3, today before the change |
-| Opened by defending what the system does not do | 6, what the thing does |
+| Opened by defending what the system does not do | 6, the proposal before the defence |
 | Cited internal records the reader could not open | 9, no internal identifiers |
 
 The owner ended up rebuilding the explanation by asking basic questions one at a time: what the thing is for, what it configures, what happens next. Those questions are the outline the agent should have answered before writing, and condition 5 asks for it.
@@ -61,9 +61,30 @@ The framework's own artifacts stay in English. A model reads them. Their example
 
 The patterns were learned from real sessions. The examples were then written on an invented case, a shop and its invoices. A rule is loaded into other projects' sessions, and a real example would carry one project's systems, numbers and people into all of them. The pattern travels; the case does not.
 
+## Running the rule
+
+A rule a model follows is observed in what the model writes, so this rule ships with a prompt test a reviewer can run:
+
+```sh
+python3 foundation/prompt-tests/run.py foundation/prompt-tests/person-facing-text/cases.json
+```
+
+It gives a model the rule and one of five situations (a plan for approval, an escalation, a block, a result, and a person who writes in English), each built around a block an agent returned to its caller. It takes the text the model writes for the person and decides it twice.
+
+| Decided by | What |
+|---|---|
+| The script | the text's language; a protocol field pasted into it; a decision-record number, a file and line, a path or an agent's name; a reference the person need not open; a closing with more than one question or an offer of further help; an adjective in a number's place |
+| A second model call, the judge | conditions 1 to 10, one verdict each, with the words that decided it |
+
+Each case runs three times and passes when two samples pass. The command exits 0 when every case passes, 1 when one fails, and 2 when the model could not be reached, which a reviewer records as not run. `--baseline` writes without the rule, to see what the rule changes; `--out` saves the report, which prints every output.
+
+The script's own checks are tested in `foundation/prompt-tests/test-run.py`, which CI runs. The model calls are not in CI: they need a credential, and a rule's review is the moment they are for.
+
+The judge is a model and can be wrong in both directions. The report shows each output beside its verdicts so that a reviewer reads the text and does not take the verdict alone. Condition 11 is not judged: it binds a step before the draft, which a single output does not show.
+
 ## Why judgment and not a hook
 
-Whether a first sentence states a business impact, whether a word is the reader's, whether an example teaches: each needs a reader. The decidable fragments are too small to carry the rule. A script could detect a text in the wrong language, or a protocol field pasted into prose, and a hook for those can be added when a case shows the reviewer missing them.
+Whether a first sentence states a business impact, whether a word is the reader's, whether an example teaches: each needs a reader. The decidable fragments are too small to carry the rule. The fragments a script can decide (the language, a pasted protocol field, an internal identifier) are decided by the prompt test above, over a model's output. A hook over the text of a live session would need to see that session, which no hook does.
 
 ## Where this stops
 

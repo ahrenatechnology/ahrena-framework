@@ -49,27 +49,27 @@ Two hold before any condition is read.
    - Passa: «Eu separaria em duas entregas. A lista de faturas sai esta semana e já resolve a segunda via. O total por mês depende de uma decisão sobre o relatório, e pode vir depois sem segurar a primeira. O que se perde: o total por mês chega uma semana depois. Se não houver resposta até quinta, sigo com as duas entregas.»
    - Reprova: «Podemos fazer em uma entrega ou em duas. Como você prefere?»
 
-5. **The text teaches.** One idea per sentence. A sequence is written as numbered steps in the order they happen. An abstract idea comes with one concrete example from the reader's own case.
+5. **The text teaches.** One idea per sentence. A sequence of three or more steps is written as numbered steps in the order they happen. An abstract idea comes with one concrete example from the reader's own case.
 
    - Passa: «Quando o cliente abre a página da conta, acontece isto, em ordem: 1. A página pede as faturas em aberto. 2. O sistema confere se a conta é dele. 3. A lista aparece, da mais antiga para a mais nova.»
    - Reprova: «A listagem respeita o escopo da conta por política de acesso.»
 
-6. **The text says what the thing does.** A sentence built as "not X, but Y", and a paragraph that opens by defending what the thing does not do, both fail. A limit the reader needs in order to decide (what cannot be undone, what an access cannot change) is stated once, after what the thing does.
+6. **The proposal comes before the defence.** Two shapes fail, and only these two: a sentence built as «não é X, é Y» or «não X, mas sim Y», and a text whose first paragraph says what the thing does not do. Every other negative sentence passes: a fact («a tela não fica pronta hoje», «ainda não criei nada»), a limit the reader needs in order to decide («não dá para desfazer»), a phrase with «sem» («sem ligar para a recepção»).
 
    - Passa: «Cada cliente vê só as faturas da própria conta.»
-   - Reprova: «A página não expõe faturas de outros clientes.»
+   - Reprova: «A página não é uma listagem geral, é a lista de cada cliente.»
 
 7. **A claim of size carries a number with its unit and where it came from.** An adjective in the number's place (`muito`, `diversos`, `significativo`, `robusto`) fails. Where no number exists, the text says so.
 
    - Passa: «O suporte recebeu 212 pedidos de segunda via em outubro, pelo relatório de chamados.»
    - Reprova: «O volume de pedidos de segunda via é significativo.»
 
-8. **A technical term the reader needs carries one sentence saying what it is and a link to its real source.** The source is the vendor's documentation, a standard, or the file and line in the repository. It is there so a reader who does not know the subject can learn it.
+8. **A technical term the reader needs carries one sentence saying what it is and a link to its real source.** The source is the vendor's documentation, a standard, or the file and line in the repository. It is there so a reader who does not know the subject can learn it. A term the text does not use needs neither.
 
    - Passa: «A página guarda a lista por 5 minutos antes de buscar de novo. Isso se chama cache: uma cópia temporária, para não repetir a consulta ([MDN, HTTP caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)). Por isso uma fatura paga agora pode aparecer como aberta por até 5 minutos.»
    - Reprova: «O TTL do cache é de 300 s.»
 
-9. **An internal identifier appears only when the reader must act on it, and then with what it is.** A decision-record number, a layer name, a procedure step, a protocol field (`NEEDS_APPROVAL`, `resume:`, `exists:`) and an agent's name are internal. A pull request or an issue the person must open is not.
+9. **An internal identifier appears only when the reader must act on it, and then with what it is.** A decision-record number, a layer name, a procedure step, a protocol field (`NEEDS_APPROVAL`, `resume:`, `exists:`) and an agent's name or role («o tech lead», «o agente de revisão») are internal. A pull request or an issue the person must open is not. One the person is not asked to open is internal, and so are a version tag and a commit hash, however true: the text says what the thing is instead («a mudança já foi aprovada»).
 
    - Reprova: «Traz a emenda à D4 do ADR-012. A camada 2 depende do campo `origin` da camada 1.»
 
