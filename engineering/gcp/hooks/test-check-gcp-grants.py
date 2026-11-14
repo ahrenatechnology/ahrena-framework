@@ -109,9 +109,15 @@ def check_changed() -> list[str]:
 
 def check_help() -> list[str]:
     result = subprocess.run([sys.executable, str(HOOK), "--help"], capture_output=True, text=True)
+    errors: list[str] = []
     if result.returncode != 0 or "Usage:" not in result.stdout:
-        return [f"--help did not print the usage: {result.stdout!r}"]
-    return []
+        errors.append(f"--help did not print the usage: {result.stdout!r}")
+    with tempfile.TemporaryDirectory() as root:
+        git(root, "init", "-q")
+        as_range = subprocess.run([sys.executable, str(HOOK), "--changed", "-h"], cwd=root, capture_output=True, text=True)
+    if as_range.returncode != 2:
+        errors.append(f"--changed -h was not refused as a range: {as_range.returncode} {as_range.stdout!r}")
+    return errors
 
 
 def check_gate() -> list[str]:

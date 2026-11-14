@@ -49,7 +49,7 @@ SKIP_NAMES = frozenset({"node_modules", "vendor", "build", "dist"})
 
 SPEC_OPTIONS = ("--cached", "--staged")
 PINNED = ("--no-color", "--no-ext-diff", "--no-textconv", "--src-prefix=a/", "--dst-prefix=b/", "--unified=0")
-UNMERGED = ("diff --cc ", "diff --combined ", "* Unmerged path ")
+UNMERGED = re.compile(r"^(?:diff --cc |diff --combined |\* Unmerged path )")
 HUNK = re.compile(r"^@@ -\d+(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 ALLOW = re.compile(r"gcp-grant-allowed:\s*\S")
@@ -173,7 +173,7 @@ def changed_lines(spec: str) -> dict[Path, set[int]] | None:
     diff = git(["-c", "color.ui=false", "diff", spec, *PINNED], root)
     if diff is None:
         return None
-    if any(row.startswith(UNMERGED) for row in diff.split("\n")):
+    if any(UNMERGED.match(row) for row in diff.split("\n")):
         print("the diff holds an unresolved merge, so no line can be scoped", file=sys.stderr)
         return None
     return parse_diff(diff, root)
@@ -200,7 +200,9 @@ def targets(argv: list[str]) -> tuple[list[Path], dict[Path, set[int]] | None] |
 
 
 def main(argv: list[str]) -> int:
-    if any(arg in ("-h", "--help") for arg in argv[1:]):
+    args = argv[1:]
+    value = args.index("--changed") + 1 if "--changed" in args else -1
+    if any(arg in ("-h", "--help") for i, arg in enumerate(args) if i != value):
         print(__doc__)
         return 0
     chosen = targets(argv)
