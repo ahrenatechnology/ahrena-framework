@@ -30,6 +30,13 @@ HOOK = Path(__file__).resolve().parent / "route-review.py"
 PLUGIN = HOOK.parent.parent
 ROOT = PLUGIN.parent.parent
 SHIPPED = PLUGIN / "skills" / "reviewing-diffs" / "references" / "routes.json"
+INCIDENT = ROOT / "engineering" / "security" / "hooks" / "fixtures" / "upstream-error-passthrough.py.txt"
+
+
+def incident_line() -> int:
+    """The line of the #294 fixture that returns the caught provider error."""
+    lines = INCIDENT.read_text(encoding="utf-8").splitlines()
+    return next(number for number, line in enumerate(lines, 1) if '"statusCode": 500' in line)
 
 TABLE = {
     "ignore": ["(^|/)dist/", "\\.lock$", "\\.min\\.js$"],
@@ -231,13 +238,47 @@ CASES = [
         [],
     ),
     (
+        "#294/AC-5 the shipped table sends the incident's error pass-through to access and to sensitive data, on that line",
+        {},
+        {"handlers/credentials.py": INCIDENT.read_text(encoding="utf-8")},
+        None,
+        0,
+        [
+            "route  error-exposure  ->  ahrena-engineering-security:skills/reviewing-access/SKILL.md\n"
+            "  opens  ahrena-engineering-security:skills/reviewing-access/references/conditions.md\n"
+            "  opens  ahrena-engineering-security:rules/layer-exposure.md\n"
+            f"  on     handlers/credentials.py:{incident_line()}\n",
+            "route  layer-exposure  ->  ahrena-engineering-security:skills/reviewing-sensitive-data/SKILL.md",
+            f"  on     handlers/credentials.py:{incident_line()}\n",
+        ],
+        [],
+    ),
+    (
+        "#294/AC-5 the pass-through reaches the security disciplines when no line names a secret or a tenant",
+        {},
+        {"svc/settings.py": "def get(ssm, name):\n    try:\n        return ssm.get(name)\n    except Exception as exc:\n        return {\"statusCode\": 502, \"body\": str(exc)}\n"},
+        None,
+        0,
+        ["route  error-exposure", "route  layer-exposure", "on     svc/settings.py:5"],
+        ["route  access ", "route  sensitive-data "],
+    ),
+    (
+        "#294/AC-5 a Terraform output reaches the exposure discipline",
+        {},
+        {"infra/outputs.tf": 'output "policy" {\n  value = aws_iam_policy.service.policy\n}\n'},
+        None,
+        0,
+        ["route  layer-exposure", "on     infra/outputs.tf:1"],
+        [],
+    ),
+    (
         "#128/AC-1 the shipped table keeps a plain source change away from the prompt and model routes",
         {},
         {"lib/money.py": "def add(a, b):\n    return a + b\n"},
         None,
         0,
         ["route  source", "route  python", "route  secrets"],
-        ["route  language-models", "reviewing-prompts", "route  untrusted-input", "route  access"],
+        ["route  language-models", "reviewing-prompts", "route  untrusted-input", "route  access", "exposure"],
     ),
 ]
 

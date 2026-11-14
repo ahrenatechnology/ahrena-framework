@@ -2,12 +2,12 @@
 
 The conditions `reviewing-sensitive-data` applies. Each gives the state, how it is detected, what exempts it, and the correction.
 
-### DAT-1 Sensitive data in a log, a trace or an error
+### DAT-1 Sensitive data at an exit
 
-- **State:** personal data, payment data, a credential, a session token or a whole request or response body written to a log, a trace attribute, a metric label or an error report.
-- **Detect:** each logging and tracing call the route pointed at, and what object it is handed.
-- **Exempt:** an internal identifier that is not itself personal data.
-- **Correct:** log identifiers and counts; redact by an allow-list of fields and not a deny-list.
+- **State:** personal data, payment data, a credential, a session token, authorization or infrastructure configuration — an access policy, a role, an identifier that locates a cloud account or an infrastructure resource (an account, project or subscription identifier, an ARN or resource name, a bucket, queue or table name, a secret or parameter path), network topology, deployment state, an internal hostname or path — or a whole request, response, record, configuration or error, written to a log, a trace attribute, a metric label, an error report, standard output, a pipeline log or an infrastructure output. The sensitive classes and the exits are the closed lists of [`rules/layer-exposure.md`](../../../rules/layer-exposure.md).
+- **Detect:** each logging, tracing, printing and output line the route pointed at, and what object it is handed; run `python3 "${CLAUDE_PLUGIN_ROOT}/hooks/check-exposure.py" --changed <base>...<head>` (or `--changed <base>` when the head is the working tree) over the changed files, which reports the whole error, the whole upstream response and the policy or whole configuration it can see.
+- **Exempt:** an application record's identifier that is not itself personal data; one named field handed to a layer that needs it, such as a role identifier passed to the application as a configuration input.
+- **Correct:** emit identifiers, counts and the named fields the reader needs; redact by an allow-list of fields and not a deny-list.
 
 ### DAT-2 A response that returns the record
 
