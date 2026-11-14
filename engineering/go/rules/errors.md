@@ -35,7 +35,7 @@ Two of the five are decided by linters the consuming project runs, and three nee
 
 ## Where this stops
 
-**Condition 1's detector does not see every discard.** `errcheck` reports calls; it does not see an error assigned to a variable that is then overwritten before anyone reads it, which is `ineffassign`'s job and is also in the default set, nor an error stored in a struct field and never looked at. The second is rare and a reviewer reads it.
+**Condition 1's detector does not see every discard.** `errcheck` reports calls; it does not see an error assigned to a variable that is then overwritten before anyone reads it, which is `ineffassign`'s job and is also in the default set, nor an error stored in a struct field and never looked at. No linter in the default set follows a field, so a reviewer reads it.
 
 **Condition 2 does not ask for errors to be wrapped.** It asks that inspection survive wrapping. A package that never wraps still passes, and condition 3 decides whether it should have.
 

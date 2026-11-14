@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
-"""Detector for the context conditions in the Go engineering rule.
+"""Detector for the Go conditions the source alone decides.
 
-Decides the three conditions stated in engineering/go/rules/context.md:
+Decides the three conditions of engineering/go/rules/context.md:
 
     1. no struct field holds a context.Context
     2. a parameter of type context.Context is the first parameter
     3. a function with a context.Context parameter does not call
        context.Background or context.TODO inside its body
+
+and condition 2 of engineering/go/rules/api-surface.md:
+
+    2. no identifier exported from a package outside an internal/ tree
+       carries, in its signature, fields or embedded types, a type declared
+       in an internal/ package
+
+The surface condition comes from the go command's own rule that code under
+internal/ is importable only from beneath its parent: a type from there on a
+public signature is a type the importer cannot name.
 
 All three are taken from the documentation of the context package, which says
 not to store a Context inside a struct type and to pass it as the first
@@ -18,11 +28,13 @@ to be able to run exactly what CI runs. It does not need Go installed: it reads
 Go source through a lexer that knows Go's comments, interpreted strings, raw
 strings and runes, so a context named inside any of them is not code. It does
 not type-check. A parameter is a context when it is spelled through the name
-the file imports "context" under; that is what makes the three conditions
-decidable from one file, and the rule's boundary section says what it costs.
+the file imports "context" under, and a type is internal when it is spelled
+through the name the file imports an internal/ path under; that is what makes
+the conditions decidable from one file, and each rule's boundary section says
+what it costs.
 
 Usage:
-    python3 engineering/go/hooks/check-context.py [path ...]
+    python3 engineering/go/hooks/check-source.py [path ...]
 """
 
 from __future__ import annotations
@@ -31,8 +43,6 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-
-RULE = "context"
 
 SKIP_NAMES = frozenset({"vendor", "testdata", "node_modules"})
 
@@ -58,6 +68,8 @@ LEXEME = re.compile(
     re.VERBOSE | re.DOTALL,
 )
 
+VERSION_SUFFIX = re.compile(r"^v\d+$")
+
 TYPE_KEYWORDS = frozenset({"func", "map", "chan", "struct", "interface"})
 
 TESTING_HANDLES = (("*", "testing", ".", "T"), ("*", "testing", ".", "B"), ("*", "testing", ".", "F"), ("testing", ".", "TB"))
@@ -77,11 +89,12 @@ class Token:
 @dataclass
 class Finding:
     where: str
+    rule: str
     condition: int
     message: str
 
     def __str__(self) -> str:
-        return f"{self.where}\n    [{RULE}] condition {self.condition}: {self.message}"
+        return f"{self.where}\n    [{self.rule}] condition {self.condition}: {self.message}"
 
 
 @dataclass
@@ -90,6 +103,8 @@ class Source:
     tokens: list[Token]
     alias: str
     detach_available: bool
+    internal: dict[str, str]
+    depths: list[int]
 
 
 @dataclass
@@ -98,6 +113,9 @@ class Signature:
     line: int
     params: list[list[Token]]
     body: tuple[int, int] | None
+    start: int
+    header_end: int
+    receiver: str | None
 
 
 def lex(text: str) -> list[Token]:
@@ -114,26 +132,73 @@ def lex(text: str) -> list[Token]:
     return tokens
 
 
-def context_alias(tokens: list[Token]) -> str:
-    """The name this file imports "context" under, or nothing."""
-    for index, token in enumerate(tokens):
-        if token.kind != "string" or token.text != '"context"':
+def default_name(import_path: str) -> str:
+    """The package name an import path binds when no alias is written."""
+    parts = import_path.split("/")
+    if len(parts) > 1 and VERSION_SUFFIX.match(parts[-1]):
+        return parts[-2]
+    return parts[-1]
+
+
+def import_specs(tokens: list[Token]) -> list[list[Token]]:
+    """Each import spec, as its tokens, from every `import` declaration."""
+    specs: list[list[Token]] = []
+    for index, token in enumerate(tokens[:-1]):
+        if token.text != "import":
             continue
-        before = tokens[index - 1] if index else None
-        if before is not None and before.kind == "ident" and before.text != "import":
-            return before.text if before.text not in ("_", ".") else ""
-        return "context"
-    return ""
+        if tokens[index + 1].text == "(":
+            specs.extend(split_top(tokens[index + 2 : closing(tokens, index + 1)], frozenset({"\n", ";"})))
+        else:
+            specs.append(tokens[index + 1 : index + 3])
+    return specs
 
 
-def module_version(path: Path) -> tuple[int, int] | None:
-    """The `go` directive of the nearest go.mod above a file."""
+def imports(tokens: list[Token]) -> dict[str, str]:
+    """Import path to the name this file uses for it; blank and dot imports left out."""
+    bound: dict[str, str] = {}
+    for spec in import_specs(tokens):
+        spec = strip_newlines(spec)
+        strings = [token for token in spec if token.kind in ("string", "raw")]
+        if not strings:
+            continue
+        path = strings[0].text.strip('"`')
+        named = spec[0] is not strings[0]
+        name = spec[0].text if named else default_name(path)
+        if name not in ("_", "."):
+            bound[path] = name
+    return bound
+
+
+def is_internal(import_path: str) -> bool:
+    return "internal" in import_path.split("/")
+
+
+def module_root(path: Path) -> Path | None:
     for directory in path.parents:
-        go_mod = directory / "go.mod"
-        if go_mod.is_file():
-            found = GO_DIRECTIVE.search(go_mod.read_text(encoding="utf-8", errors="replace"))
-            return (int(found.group(1)), int(found.group(2))) if found else None
+        if (directory / "go.mod").is_file():
+            return directory
     return None
+
+
+def module_version(root: Path | None) -> tuple[int, int] | None:
+    """The `go` directive of a module's go.mod."""
+    if root is None:
+        return None
+    found = GO_DIRECTIVE.search((root / "go.mod").read_text(encoding="utf-8", errors="replace"))
+    return (int(found.group(1)), int(found.group(2))) if found else None
+
+
+def brace_depths(tokens: list[Token]) -> list[int]:
+    """The `{}` nesting depth each token sits at."""
+    depths: list[int] = []
+    depth = 0
+    for token in tokens:
+        if token.text == "}":
+            depth -= 1
+        depths.append(depth)
+        if token.text == "{":
+            depth += 1
+    return depths
 
 
 def closing(tokens: list[Token], start: int) -> int:
@@ -206,9 +271,9 @@ def check_fields(source: Source, findings: list[Finding]) -> None:
             names = field_names(field[:-3])
             where = f"{source.rel}:{field[0].line}"
             if names == "":
-                findings.append(Finding(where, 1, f"{owner} embeds context.Context; pass it to each method as its first parameter instead"))
+                findings.append(Finding(where, "context", 1, f"{owner} embeds context.Context; pass it to each method as its first parameter instead"))
             elif names is not None:
-                findings.append(Finding(where, 1, f"{owner} stores a context.Context in field {names}; pass it to each method as its first parameter instead"))
+                findings.append(Finding(where, "context", 1, f"{owner} stores a context.Context in field {names}; pass it to each method as its first parameter instead"))
 
 
 def is_named_entry(entry: list[Token]) -> bool:
@@ -258,13 +323,19 @@ def after_type_parameters(tokens: list[Token], index: int) -> int:
     return index
 
 
+def receiver_type(group: list[Token]) -> str:
+    """The type name in a method receiver, past any pointer and type parameters."""
+    names = [token.text for token in group[: next((i for i, t in enumerate(group) if t.text == "["), len(group))] if token.kind == "ident"]
+    return names[-1] if names else ""
+
+
 def signature_at(tokens: list[Token], index: int) -> Signature | None:
     """The signature that the `func` keyword at `index` opens."""
-    name, cursor = "func literal", index + 1
+    name, cursor, receiver = "func literal", index + 1, None
     if cursor < len(tokens) and tokens[cursor].text == "(":
         after = closing(tokens, cursor) + 1
         if after + 1 < len(tokens) and tokens[after].kind == "ident" and tokens[after + 1].text in ("(", "["):
-            cursor = after
+            receiver, cursor = receiver_type(tokens[cursor + 1 : after - 1]), after
     if cursor < len(tokens) and tokens[cursor].kind == "ident":
         name, cursor = tokens[cursor].text, after_type_parameters(tokens, cursor + 1)
     if cursor >= len(tokens) or tokens[cursor].text != "(":
@@ -272,7 +343,8 @@ def signature_at(tokens: list[Token], index: int) -> Signature | None:
     end = closing(tokens, cursor)
     as_type = index > 0 and tokens[index - 1].text == "]"
     body = None if as_type else find_body(tokens, end + 1)
-    return Signature(name, tokens[index].line, parameter_types(tokens[cursor + 1 : end]), body)
+    header_end = body[0] if body else min(end + 1, len(tokens))
+    return Signature(name, tokens[index].line, parameter_types(tokens[cursor + 1 : end]), body, index, header_end, receiver)
 
 
 def signatures(tokens: list[Token]) -> list[Signature]:
@@ -294,6 +366,7 @@ def check_position(source: Source, signature: Signature, findings: list[Finding]
     findings.append(
         Finding(
             f"{source.rel}:{signature.line}",
+            "context",
             2,
             f"{signature.name} takes its context.Context as parameter {positions[0] + 1}; it goes first",
         )
@@ -324,6 +397,7 @@ def check_fresh(source: Source, signature: Signature, reported: set[int], findin
         findings.append(
             Finding(
                 f"{source.rel}:{source.tokens[index].line}",
+                "context",
                 3,
                 f"{signature.name} has a context.Context in scope and calls context.{call}; "
                 "pass the context down, or detach with context.WithoutCancel",
@@ -331,10 +405,87 @@ def check_fresh(source: Source, signature: Signature, reported: set[int], findin
         )
 
 
+def is_exported(name: str) -> bool:
+    return bool(name) and name[0].isupper()
+
+
+def internal_types(tokens: list[Token], internal: dict[str, str]) -> list[tuple[str, str]]:
+    """Each `name.Type` in a run of tokens whose package is internal, with its path."""
+    by_name = {name: path for path, name in internal.items()}
+    return [
+        (f"{tokens[i].text}.{tokens[i + 2].text}", by_name[tokens[i].text])
+        for i in range(len(tokens) - 2)
+        if tokens[i].text in by_name and tokens[i + 1].text == "." and tokens[i + 2].kind == "ident"
+    ]
+
+
+def leak(source: Source, line: int, subject: str, found: tuple[str, str]) -> Finding:
+    kind, path = found
+    return Finding(
+        f"{source.rel}:{line}",
+        "api-surface",
+        2,
+        f"{subject} {kind}, from internal package {path}, which an importer outside it cannot name",
+    )
+
+
+def check_signature_surface(source: Source, signature: Signature, findings: list[Finding]) -> None:
+    if source.depths[signature.start] != 0 or not is_exported(signature.name):
+        return
+    if signature.receiver is not None and not is_exported(signature.receiver):
+        return
+    header = source.tokens[signature.start : signature.header_end]
+    for found in internal_types(header, source.internal):
+        findings.append(leak(source, signature.line, f"{signature.name} exposes", found))
+
+
+def member_surface(member: list[Token]) -> tuple[str, list[Token]] | None:
+    """A field or method's exported name and the tokens of its type, or None."""
+    if len(member) > 1 and member[0].kind == "ident" and member[1].text not in (".", "\n"):
+        names = [token.text for token in member if token.kind == "ident"][:1] + [
+            member[i + 1].text for i, token in enumerate(member[:-1]) if token.text == ","
+        ]
+        exported = [name for name in names if is_exported(name)]
+        return (exported[0], member[1:]) if exported else None
+    return ("", member)
+
+
+def check_type_surface(source: Source, index: int, findings: list[Finding]) -> None:
+    tokens = source.tokens
+    owner = tokens[index - 1].text if index and tokens[index - 1].kind == "ident" else ""
+    if source.depths[index] != 0 or not is_exported(owner):
+        return
+    word = "field" if tokens[index].text == "struct" else "method"
+    for member in struct_fields(tokens, index + 1):
+        member = strip_newlines(member)
+        surface = member_surface(member) if member else None
+        if surface is None:
+            continue
+        name, kind_tokens = surface
+        subject = f"{owner} embeds" if not name else f"{owner} exposes"
+        for kind, path in internal_types(kind_tokens, source.internal):
+            where = f"{kind}" if not name else f"{kind} in {word} {name}"
+            findings.append(leak(source, member[0].line, subject, (where, path)))
+
+
+def check_surface(source: Source, all_signatures: list[Signature], findings: list[Finding]) -> None:
+    if not source.internal:
+        return
+    for signature in all_signatures:
+        check_signature_surface(source, signature, findings)
+    for index, token in enumerate(source.tokens[:-1]):
+        if token.text in ("struct", "interface") and source.tokens[index + 1].text == "{":
+            check_type_surface(source, index, findings)
+
+
 def check_source(source: Source, findings: list[Finding]) -> None:
+    found = signatures(source.tokens)
+    check_surface(source, found, findings)
+    if not source.alias:
+        return
     check_fields(source, findings)
     reported: set[int] = set()
-    for signature in signatures(source.tokens):
+    for signature in found:
         check_position(source, signature, findings)
         if source.detach_available:
             check_fresh(source, signature, reported, findings)
@@ -353,9 +504,21 @@ def load(path: Path, base: Path) -> Source | None:
     if GENERATED.search(text):
         return None
     tokens = lex(text)
-    version = module_version(path)
+    root = module_root(path)
+    version = module_version(root)
     detach = version is None or version >= WITHOUT_CANCEL
-    return Source(display(path, base), tokens, context_alias(tokens), detach)
+    bound = imports(tokens)
+    surface = {} if not on_surface(path, root, tokens) else {p: n for p, n in bound.items() if is_internal(p)}
+    return Source(display(path, base), tokens, bound.get("context", ""), detach, surface, brace_depths(tokens))
+
+
+def on_surface(path: Path, root: Path | None, tokens: list[Token]) -> bool:
+    """Whether the file's exported identifiers reach importers outside internal/."""
+    if path.name.endswith("_test.go"):
+        return False
+    package = next((tokens[i + 1].text for i, t in enumerate(tokens[:-1]) if t.text == "package"), "")
+    inside = path.parent.relative_to(root).parts if root is not None else path.parent.parts
+    return package != "main" and "internal" not in inside
 
 
 def skipped(relative: Path) -> bool:
@@ -392,8 +555,7 @@ def main(argv: list[str]) -> int:
         source = load(path, base)
         if source is None:
             continue
-        if source.alias:
-            check_source(source, findings)
+        check_source(source, findings)
         checked += 1
     return report(findings, checked)
 

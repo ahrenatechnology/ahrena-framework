@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for check-context.py.
+"""Tests for check-source.py.
 
 A detector that never accepts is as broken as one that never rejects, so every
 condition below is pinned by a failing fixture and by the carve-out it must not
@@ -12,10 +12,15 @@ not read an interface. Condition 2 must accept a grouped first parameter, an
 unnamed list, and the testing handle that conventionally goes first in a test
 helper. Condition 3 must stay quiet on a function with no context in scope, on
 the detached task written with `context.WithoutCancel`, and on a module whose
-`go` directive predates `WithoutCancel`.
+`go` directive predates `WithoutCancel`. The surface condition must read only
+what an importer outside the module can reach: an exported function, a method
+on an exported type, an exported field, an exported interface's methods. It
+must let through a body that merely uses an internal type, a package that is
+itself internal, a `main` package, a test file, and the exported alias the
+remedy declares.
 
 Usage:
-    python3 engineering/go/hooks/test-check-context.py
+    python3 engineering/go/hooks/test-check-source.py
 """
 
 from __future__ import annotations
@@ -25,7 +30,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-HOOK = Path(__file__).resolve().parent / "check-context.py"
+HOOK = Path(__file__).resolve().parent / "check-source.py"
 
 GO_MOD = "module example.com/m\n\ngo 1.23\n"
 
@@ -303,6 +308,104 @@ type Bad struct {
 '''
 
 
+# --- api-surface condition 2: no internal type on the exported surface -----
+
+STORE = '''package store
+
+type Record struct{ ID string }
+'''
+
+LEAK_RESULT = '''package api
+
+import "example.com/m/internal/store"
+
+func Load(id string) (store.Record, error) {
+	return store.Record{ID: id}, nil
+}
+'''
+
+LEAK_METHOD_PARAMETER = '''package api
+
+import st "example.com/m/internal/store"
+
+type Client struct{}
+
+func (c *Client) Put(r st.Record) error { return nil }
+'''
+
+LEAK_FIELDS = '''package api
+
+import "example.com/m/internal/store"
+
+type Order struct {
+	Rec store.Record
+	rec store.Record
+}
+
+type Wrapped struct {
+	store.Record
+}
+'''
+
+LEAK_INTERFACE = '''package api
+
+import "example.com/m/internal/store"
+
+type Repo interface {
+	Get(id string) (store.Record, error)
+}
+'''
+
+NOT_ON_THE_SURFACE = '''package api
+
+import "example.com/m/internal/store"
+
+type Record = store.Record
+
+type client struct{}
+
+func (c *client) Put(r store.Record) error { return nil }
+
+func load() store.Record { return store.Record{} }
+
+func Load() (Record, error) {
+	var r store.Record
+	return r, nil
+}
+
+type hidden struct {
+	Rec store.Record
+}
+'''
+
+MAIN_PACKAGE = '''package main
+
+import "example.com/m/internal/store"
+
+func Run() store.Record { return store.Record{} }
+
+func main() {}
+'''
+
+STRING_THAT_LOOKS_LIKE_AN_IMPORT = '''package api
+
+var names = []string{
+	"context",
+	"example.com/m/internal/store",
+}
+
+type Holder struct {
+	ctx context.Context
+}
+
+func Load() store.Record { return store.Record{} }
+'''
+
+
+def surface(path: str, source: str) -> dict[str, str]:
+    return {"go.mod": GO_MOD, "internal/store/store.go": STORE, path: source}
+
+
 def module(source: str, path: str = "a.go", go_mod: str = GO_MOD) -> dict[str, str]:
     return {"go.mod": go_mod, path: source}
 
@@ -422,6 +525,48 @@ CASES = [
         "an old module is still held to conditions 1 and 2",
         module(FIELD, go_mod=OLD_MODULE),
         ["[context] condition 1"],
+    ),
+    case(
+        "an exported function returning an internal type fails",
+        surface("api/api.go", LEAK_RESULT),
+        ["[api-surface] condition 2", "Load exposes store.Record", "example.com/m/internal/store", "api/api.go:5"],
+    ),
+    case(
+        "a method on an exported type taking an internal type fails, through an alias",
+        surface("api/api.go", LEAK_METHOD_PARAMETER),
+        ["[api-surface] condition 2", "Put exposes st.Record", "api/api.go:7"],
+    ),
+    case(
+        "an exported field and an embedded internal type fail; an unexported field does not",
+        surface("api/api.go", LEAK_FIELDS),
+        ["2 failure(s)", "Order exposes store.Record in field Rec", "api/api.go:6", "Wrapped embeds store.Record", "api/api.go:11"],
+    ),
+    case(
+        "an exported interface's method fails",
+        surface("api/api.go", LEAK_INTERFACE),
+        ["[api-surface] condition 2", "Repo exposes store.Record in method Get"],
+    ),
+    case(
+        "an alias, an unexported receiver, a body and an unexported type are not the surface",
+        surface("api/api.go", NOT_ON_THE_SURFACE),
+        ["2 file(s), no failures"],
+        ok=True,
+    ),
+    case(
+        "an internal package, a main package and a test file are not held",
+        {
+            **surface("internal/svc/svc.go", LEAK_RESULT.replace("package api", "package svc")),
+            "cmd/run/main.go": MAIN_PACKAGE,
+            "api/api_test.go": LEAK_RESULT,
+        },
+        ["4 file(s), no failures"],
+        ok=True,
+    ),
+    case(
+        "a string literal at the start of a line is not an import",
+        surface("api/api.go", STRING_THAT_LOOKS_LIKE_AN_IMPORT),
+        ["2 file(s), no failures"],
+        ok=True,
     ),
     case(
         "a generated file is skipped",

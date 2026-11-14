@@ -1,7 +1,7 @@
 {
   "name": "ahrena-engineering-go",
   "version": "0.1.0",
-  "description": "What is specific to Go: errors that are ignored or wrapped wrong, goroutines and contexts that leak, and the interface and nil traps the compiler does not catch.",
+  "description": "Go, complete: rules with named detectors for errors, goroutines, contexts, resources, nil traps and the exported surface; docs on toolchain, libraries, layout and testing; skills to write, review and debug Go; and Ariadne, the Go specialist.",
   "author": {
     "name": "Ahrena Technology",
     "url": "https://github.com/ahrenatechnology"

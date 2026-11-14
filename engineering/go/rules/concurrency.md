@@ -44,7 +44,7 @@ Four are decided by `go vet` and `staticcheck`, which the consuming project runs
 
 **Nothing here chooses between a channel and a mutex.** Effective Go's "share memory by communicating" is a design preference, not a defect when it is not followed. A mutex around a map is correct; [`docs/concurrency.md`](../docs/concurrency.md) argues when each fits.
 
-**A lock held across a blocking call is not a condition.** It serialises everything behind one slow call and is often a defect, but whether a call blocks for long depends on what is on the other side of it. The review skill reads it as a finding with a scenario, not as a rule.
+**A lock held across a blocking call is not a condition.** It serialises everything behind one slow call, but whether a call blocks for long depends on what is on the other side of it. The review skill reads it as a finding with a scenario, not as a rule.
 
 **Condition 8 is moot on a modern module and stays because old modules exist.** A module that raises its `go` directive to 1.22 retires it, and `go vet` stops reporting it there.
 

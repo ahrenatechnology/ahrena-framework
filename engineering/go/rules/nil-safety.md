@@ -15,7 +15,7 @@ references:
 
 `nil` in Go is not one value. It is the zero value of six kinds of type, and three of them behave in ways a reader who knows another language does not expect: a nil map can be read and cannot be written, an interface holding a nil pointer is not a nil interface, and a type assertion that fails panics unless it is asked not to. Each compiles. Each is a run-time panic or a branch taken the wrong way. The conditions below are those three and the dereference that follows an unchecked result.
 
-[`docs/error-handling.md`](../docs/error-handling.md) works the typed-nil error, which is the form of the second trap that reaches production most often.
+[`docs/error-handling.md`](../docs/error-handling.md) works the typed-nil error, the form of the second trap that `if err != nil` turns into a wrong branch.
 
 ## Conditions
 
@@ -38,4 +38,4 @@ references:
 
 **Condition 4's analyzer is not in the gate.** `nilness` ships in `golang.org/x/tools` and runs in `gopls`; it is not part of `go vet`'s default set, so a project that wants it in CI adds it through `golangci-lint`'s `govet` settings, as [`docs/toolchain.md`](../docs/toolchain.md) describes. Until it does, condition 4 is a reviewer's.
 
-**A nil function value, a nil channel and a nil pointer receiver are not here.** Calling a nil function panics and `go vet`'s `nilfunc` catches the comparison form; a nil channel blocks forever, which is a goroutine leak and belongs to [`concurrency.md`](concurrency.md); a method on a nil pointer receiver is legal and sometimes deliberate. None of the three recurs often enough to earn a condition.
+**A nil function value, a nil channel and a nil pointer receiver are not here.** Calling a nil function panics and `go vet`'s `nilfunc` catches the comparison form; a nil channel blocks forever, which is a goroutine leak and belongs to [`concurrency.md`](concurrency.md); a method on a nil pointer receiver is legal and sometimes deliberate. None of the three is a trap in the sense above — code that compiles and does something other than it reads — so none earns a condition here.
