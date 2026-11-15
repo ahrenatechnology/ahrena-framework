@@ -1,0 +1,36 @@
+{
+  "routes": [
+    {
+      "id": "llm-systems-code",
+      "skill": "ahrena-engineering-llm-systems:skills/reviewing-llm-systems/SKILL.md",
+      "why": "an added line calls a model API or an agent SDK, defines a tool, or bounds an agent loop, so the change is read for its shape, its framework, its tools, its loop, its evaluation and its tracing",
+      "opens": [
+        "ahrena-engineering-llm-systems:rules/simplest-shape.md",
+        "ahrena-engineering-llm-systems:rules/framework-adoption.md",
+        "ahrena-engineering-llm-systems:rules/tool-definitions.md",
+        "ahrena-engineering-llm-systems:rules/loop-bounds.md",
+        "ahrena-engineering-llm-systems:rules/evaluation.md",
+        "ahrena-engineering-llm-systems:rules/tracing.md",
+        "ahrena-engineering-llm-systems:skills/reviewing-llm-systems/references/conditions.md"
+      ],
+      "paths": ["\\.(py|pyi|ts|tsx|js|jsx|mjs|cjs|go|rs|java|kt|cs|rb)$"],
+      "lines": [
+        "\\b(anthropic|openai|claude_agent_sdk|langchain[a-z_]*|langgraph|strands)\\b",
+        "@anthropic-ai/|['\"]openai['\"]|@openai/agents|@langchain/|@strands-agents/",
+        "\\.(messages|responses)\\.(create|stream)\\(|\\btool_runner\\(|\\bRunner\\.run",
+        "\\b(input_schema|ClaudeAgentOptions|create_agent|StateGraph|recursion_limit|max_turns)\\b"
+      ]
+    },
+    {
+      "id": "llm-systems-manifests",
+      "skill": "ahrena-engineering-llm-systems:skills/reviewing-llm-systems/SKILL.md",
+      "why": "a dependency manifest adds or changes an agent framework, so its need, cost and pin are read",
+      "opens": [
+        "ahrena-engineering-llm-systems:rules/framework-adoption.md",
+        "ahrena-engineering-llm-systems:skills/reviewing-llm-systems/references/conditions.md"
+      ],
+      "paths": ["(^|/)(pyproject\\.toml|requirements[^/]*\\.txt|package\\.json|go\\.mod|Cargo\\.toml)$"],
+      "lines": ["claude-agent-sdk|openai-agents|@openai/agents|langchain|langgraph|strands-agents"]
+    }
+  ]
+}
