@@ -13,7 +13,7 @@ references:
 
 Four conditions, OTL-1 to OTL-4 of the PR quality rubric (#323). `docs/opentelemetry.md` cites the specification text behind each and says which thresholds are the specification's and which are declared maintainer policy (#34).
 
-None of these conditions adds an abstraction, so the abstraction trigger of `rules/yagni.md` in the fundamentals plugin does not gate them. Each is decided by a test with an in-memory exporter, which the consuming project owns because it needs its own entry points; the detectors are tracked in the detectors sub-issue of #323.
+None of these conditions adds an abstraction, so the abstraction trigger of `rules/yagni.md` in the fundamentals plugin does not gate them. OTL-2 and OTL-3 are decided by a test with an in-memory exporter, OTL-4 by a test that reads the outbound header, and OTL-1 by a static search for imports. The consuming project owns each of these because it needs its own entry points; the detectors are tracked in the detectors sub-issue of #323.
 
 ## Conditions
 

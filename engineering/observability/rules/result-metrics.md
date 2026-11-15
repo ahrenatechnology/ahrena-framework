@@ -13,7 +13,7 @@ references:
 
 Two conditions, MET-1 and MET-2 of the PR quality rubric (#323). A story is done when the result it was written for is measurable, not when the code runs. `docs/opentelemetry.md` cites the OpenTelemetry metrics text behind the fields.
 
-None of these conditions adds an abstraction, so the abstraction trigger of `rules/yagni.md` in the fundamentals plugin does not gate them. Both are decided by the consuming project: MET-1 by the issue template's field, MET-2 by a test with an in-memory exporter.
+None of these conditions adds an abstraction, so the abstraction trigger of `rules/yagni.md` in the fundamentals plugin does not gate them. MET-1 is read by a reviewer from the issue's field until the check named in its condition exists; MET-2 is decided by a test with an in-memory exporter that the consuming project owns.
 
 ## Conditions
 
