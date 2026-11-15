@@ -93,6 +93,6 @@ What backs them instead is two things. The first is the conjunctions: each condi
 
 **It does not cover the other cross-cutting concerns.** Authentication, authorisation, input validation, caching, logging, tracing and rate limiting are all boundary concerns by the same argument, and none of them is in the rule. The four here are the four the rule can either detect or test; the rest are covered by the argument in this document's opening and by nothing mechanical.
 
-**It does not settle what a boundary is.** The rule requires that a concern be declared at one, and which layer that is in a given system depends on a layer map the plugin does not ship. `docs/simplicity.md` records the same gap for condition 6 of `rules/solid.md`, and both close when a bounded-context layout artifact exists.
+**It does not settle what a boundary is.** The rule requires that a concern be declared at one, and which layer that is in a given system depends on the layer map the project writes as `rules/layer-map.md` requires; `docs/simplicity.md` says the same for condition 6 of `rules/solid.md`.
 
 **It says nothing about ordering.** Four decorators at one boundary compose in an order that matters — a timer outside a retry measures the whole sequence, inside it measures one attempt, and an idempotency check on the wrong side of a retry defeats both. That is a real design question with real wrong answers, and it belongs with the pattern material rather than here.

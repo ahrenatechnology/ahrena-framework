@@ -4,7 +4,7 @@ type: rule
 clade: engineering
 subclade: architecture
 title: The domain owns its vocabulary
-statement: A domain module imports no mechanism and names no vendor, an aggregate root declares identity and an audit stamp, and no client datum is a literal.
+statement: A domain imports no mechanism, names no vendor, holds no client literal, and its functions are pure; an aggregate root declares identity and an audit stamp.
 enforcement: judgment
 references:
   - docs/bounded-contexts.md
@@ -13,11 +13,11 @@ references:
 
 # The domain owns its vocabulary
 
-Five conditions. The first two are decided by `hooks/check-structure.py`; the last three need a marker the project supplies, a scanner it runs, or a reviewer, and the final section says why that makes this a judgment rule. `docs/bounded-contexts.md` explains what each condition protects, where the layout came from, and what the guardrails cost when they are wrong.
+Six conditions. The first two are decided by `hooks/check-structure.py`; the last four need a marker the project supplies, a scanner it runs, or a reviewer, and the final section says why that makes this a judgment rule. `docs/bounded-contexts.md` explains what each condition protects, where the layout came from, and what the guardrails cost when they are wrong.
 
 The subject is a single claim: a domain model is the one part of a system whose vocabulary is not negotiable with anything outside it. A model that mentions the database it is stored in, the format it is serialised to, the library it happens to use, or the customer it was first built for has stopped being a model of the business and become a model of this deployment of it. Everything below follows from that.
 
-**This rule supplies the layer map.** Condition 6 of `rules/solid.md` needs a partition of modules into policy and mechanism and states that the plugin ships none; `docs/simplicity.md` records the same gap twice. Condition 1 here closes it by declaring the layout rather than asking for a map: a bounded context is a directory, `domain/` inside it is policy, and `adapters/`, `infrastructure/` and `persistence/` are mechanism. That is a convention, and the reason to state one is that a convention is checkable where a description is not.
+**The layer map is declared in a file.** [`layer-map.md`](layer-map.md) requires the project to write `.ahrena/layer-map.json`, and condition 1 here reads `domain/` through that map. A bounded context is still a directory with `domain/` inside it as policy and `adapters/`, `infrastructure/` and `persistence/` as mechanism; that is the convention a project writes into the map, and the layout the shipped Python detector assumes until it reads the file.
 
 No condition here adds an abstraction, so the abstraction trigger in condition 1 of `rules/yagni.md` does not gate any of them. The port that condition 1 usually implies is gated, and that gating already lives in condition 6 of `rules/solid.md` and in the port entry of `docs/patterns.md`, so it is not repeated here.
 
@@ -33,9 +33,11 @@ No condition here adds an abstraction, so the abstraction trigger in condition 1
 
 5. **No client name, organisation identifier or personal datum appears as a literal in the tree.** The state is a customer's name, an account or tenant identifier, an email address, a national identity number or any other personal datum written into source, a test fixture, a migration, a seed file or a comment. A tenant is a runtime value; a client's name is configuration or test data generated for the purpose. Decided by the project's secret and personal-data scanner in the pipeline, and by a reviewer for the shapes no pattern catches.
 
+6. **DOM-5. A function under `domain/` is pure.** The state is a function that reads the clock, a random source, the environment or any I/O, or that mutates an argument. Time, randomness and identifiers arrive as parameters or through a port the caller injects, so the same input always returns the same output. Threshold: 0 occurrences. Detector: a script that searches `domain/` (or the folders [`layer-map.md`](layer-map.md) maps to `domain`) for clock, random, environment, file, network and console calls and for assignment to a parameter or a member of one; the TypeScript detector is owned by the structure detectors issue #330, and until it ships a reviewer decides.
+
 ## Where this stops
 
-**Condition 1 does not reach a tree with no `domain/` directory.** The detector finds the layer by the directory name, so a project that lays its contexts out differently gets nothing from it. That is the cost of a convention over a configuration, and it is the right cost here: a configurable layer map is a file that drifts from the layout, and the drift is invisible until the check has been passing on the wrong partition for a year. A project with another layout supplies the map to a reviewer, which is where condition 6 of `rules/solid.md` already left it.
+**Condition 1 does not reach a tree with no `domain/` directory and no map.** The shipped Python detector finds the layer by the directory name, so a project that lays its contexts out differently gets nothing from it until the detectors read the map [`layer-map.md`](layer-map.md) requires; a reviewer reads that map in the meantime.
 
 **Condition 1 does not reach an import the domain needs and the list happens to name.** A domain about web traffic imports `http` legitimately, and one about statistical models may genuinely be built on `numpy`. Those are the cases the next paragraph covers, and the answer is the same: exclude by path, once, in writing.
 
@@ -53,7 +55,9 @@ No condition here adds an abstraction, so the abstraction trigger in condition 1
 
 **Condition 5 does not reach a public identifier the system must hard-code.** A regulator's registration number, a well-known public endpoint and a statutory code are facts about the world rather than about a client, and treating them as secrets makes the code worse. The test is whether the value identifies a particular customer of this system.
 
-**This rule declares judgment rather than a hook, although two of its five conditions have a script.** Conditions 3, 4 and 5 need a marker the project names, a search someone reads, or a scanner the project runs, and `enforcement` decides how a rule reaches an agent: a hook rule is replaced by its script and contributes no text, a judgment rule contributes its statement. Declaring a hook here would deliver the two shapes a parser can see and silently drop the entity contract, the naming decision and the personal-data guardrail — of which the last is the one with the largest consequence when it is missed. The script still exists and conditions 1 and 2 name it, so a reviewer and a pipeline can both run it; what it does not do is stand in for the rule. `rules/solid.md` takes the same route for the same reason and its final section sets out the trade.
+**Condition 6 does not reach a use case or an edge.** Those layers read the clock and the database by design; purity is the property that makes the domain testable without a double, and asking it of the layers around it only moves the clock into a global. A method that changes its own aggregate's state is a command, not a finding: the condition is about arguments and ambient sources. A function that builds a new value from its arguments is pure even when it allocates.
+
+**This rule declares judgment rather than a hook, although two of its six conditions have a script.** Conditions 3, 4, 5 and 6 need a marker the project names, a search someone reads, or a scanner the project runs, and `enforcement` decides how a rule reaches an agent: a hook rule is replaced by its script and contributes no text, a judgment rule contributes its statement. Declaring a hook here would deliver the two shapes a parser can see and silently drop the entity contract, the naming decision and the personal-data guardrail — of which the last is the one with the largest consequence when it is missed. The script still exists and conditions 1 and 2 name it, so a reviewer and a pipeline can both run it; what it does not do is stand in for the rule. `rules/solid.md` takes the same route for the same reason and its final section sets out the trade.
 
 **The two shipped detectors are unproven against real code.** The framework's own Python has no `domain/` directory, so running them over it returns zero findings and that number means nothing. What backs them is the fixture suite in `hooks/test-check-structure.py`, which pins both directions of each condition, and the carve-outs above. `rules/cross-cutting-concerns.md` carries the same caveat for the same reason, and `docs/bounded-contexts.md` says what would change it.
 

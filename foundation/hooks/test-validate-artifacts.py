@@ -1758,8 +1758,31 @@ def run(files: dict[str, str]) -> tuple[int, str]:
         return result.returncode, result.stdout + result.stderr
 
 
+# #326/AC-1 — each structure condition is a numbered condition of a rule that carries a Where this stops section.
+STRUCTURE_CONDITIONS = {
+    "layer-map": ("STR-4",),
+    "strategy-registry": ("CON-1", "CON-2", "CON-3"),
+    "comment-ratio": ("CLN-9",),
+    "file-shape": ("CLN-15", "CLN-16"),
+    "domain-model": ("DOM-5",),
+}
+
+
+def structure_condition_failures() -> list[str]:
+    failures = []
+    for rule, ids in STRUCTURE_CONDITIONS.items():
+        text = (REPO_ROOT / "engineering" / "fundamentals" / "rules" / f"{rule}.md").read_text(encoding="utf-8")
+        if "\n## Where this stops\n" not in text:
+            failures.append(f"{rule} has no Where this stops section")
+        failures.extend(f"{rule} names no {cid}" for cid in ids if f"**{cid}." not in text)
+    return failures
+
+
 def main() -> int:
     failed = 0
+    for problem in structure_condition_failures():
+        failed += 1
+        print(f"FAIL  structure conditions: {problem}")
     for name, files, expect, ok in CASES:
         code, output = run(files)
         problems = []
