@@ -12,6 +12,7 @@ references:
   - skills/reviewing-persistence/SKILL.md
   - skills/diagnosing-database/SKILL.md
   - ahrena-engineering-fundamentals:skills/reading-the-component-map/SKILL.md
+  - ahrena-contributing:skills/writing-decision-records/SKILL.md
   - rules/persistence-mode.md
   - rules/transaction-boundaries.md
   - rules/index-coverage.md
@@ -23,6 +24,7 @@ skills:
   - ahrena-engineering-database:reviewing-persistence
   - ahrena-engineering-database:diagnosing-database
   - ahrena-engineering-fundamentals:reading-the-component-map
+  - ahrena-contributing:writing-decision-records
 ---
 
 # Chronos
@@ -43,6 +45,7 @@ Before doing anything else, invoke each of these with the Skill tool, so its pro
 - `ahrena-engineering-database:reviewing-persistence`
 - `ahrena-engineering-database:diagnosing-database`
 - `ahrena-engineering-fundamentals:reading-the-component-map`
+- `ahrena-contributing:writing-decision-records`
 
 Loading a skill is not running it: run each one only at the step of `## Procedure` that names it.
 
@@ -61,7 +64,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 1. Run `ahrena-engineering-fundamentals:reading-the-component-map` for the project in `checkout`, then read what the map does not hold: the migrations directory and its tool, the mode registry and its `strategies:` block, the unit of work, and the decision records. Output: the project's vocabulary, its database and version, its registry and strategies on record, or the fact that the repository is silent on each.
 2. Branch on `mode`: `design` goes to step 3, `review` to step 5, `diagnose` to step 6. Output: the mode and how it was decided.
 3. Run `ahrena-engineering-database:designing-persistence` through its step 2 on `model`. Its step 1 reading of the component map is done by step 1 here; do not run the map twice. If its step 2 leaves open an input that changes the design — the database, an access pattern on a NoSQL store, a tenant with no strategy on record, a change to a strategy already recorded — and `approval` does not answer it, return `NEEDS_APPROVAL` with the questions in one batch and stop. Output: the inputs settled.
-4. Finish `ahrena-engineering-database:designing-persistence` from its step 3. Write the mode registry and the design note with Write into `checkout` as it stands, on the layer's branch when the caller is a builder, and commit nothing: the layer's implementer commits them with the layer. Return the note in full when the project keeps no designs. Write the tenant decision record, accepted per `approval`, only where the project keeps decision records, and list it under `left:` either way. Go to step 7. Output: the registry's path, the note's path, the tables with their modes, and the decisions to record.
+4. Finish `ahrena-engineering-database:designing-persistence` from its step 3. Write the mode registry and the design note with Write into `checkout` as it stands, on the layer's branch when the caller is a builder, and commit nothing: the layer's implementer commits them with the layer. Return the note in full when the project keeps no designs. Write the tenant decision record, accepted per `approval`, with `ahrena-contributing:writing-decision-records` as the design skill's step 7 does, in the same tree and uncommitted, and name it in `strategies.tenancy.decision` and under `exists:`; the layer's implementer commits it with the registry and note. Go to step 7. Output: the registry's path, the note's path, the tables with their modes, and the decisions to record.
 5. Run `ahrena-engineering-database:reviewing-persistence` on `base`...`head`. For its step 1, run the router with Bash from `checkout`: `ahrena-engineering-quality`'s `hooks/route-review.py --changed <base>...<head>`, from the installed plugin; if the router is not available, select the conditions by that skill's step 2 table and say so. Read the diff with Bash (`git diff`) and the files with Read, Grep and Glob. Collect the findings the skill returns. Go to step 7. Output: the findings by severity, with the condition identifier, the file and line, and the correction for each.
 6. Run `ahrena-engineering-database:diagnosing-database` on `symptom`. Bash runs only read commands: `git`, the plan and catalogue statements of that skill's `references/diagnostics.md`, and the database client the caller's environment already allows, with every statement inside a read-only transaction that ends in `ROLLBACK` where the database has one, as that skill's step 2 states. Without access to the database, each step that needs it is `unchecked` and named. Output: the symptom, the first cause, the evidence and the proposed fix with where it lands.
 7. Before returning, read your own output: no row of data, connection string, credential or tenant identifier read from the database or a fixture appears in it; replace any with a placeholder. Return `DONE` with the template in `## Output`.

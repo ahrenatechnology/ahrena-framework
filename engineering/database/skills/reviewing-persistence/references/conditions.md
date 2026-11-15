@@ -46,9 +46,9 @@ The conditions `reviewing-persistence` applies, with the quality rubric's identi
 
 ### PER-6 A projection nothing rebuilds
 
-- **State:** a current-state read model over an `append-only` table with no test that rebuilds it from the log and compares.
-- **Detect:** the registry's `projection` and `rebuild_test`; the test itself.
-- **Exempt:** none.
+- **State:** a current state read from an `append-only` table other than through a projection, or a projection with no test that rebuilds it from the log and compares.
+- **Detect:** the registry's `projection` and `rebuild_test`; the adapters that read the table; the test itself.
+- **Exempt:** a table whose registry entry says `growth: fixed`; an `ephemeral` table.
 - **Correct:** add the rebuild test.
 - **Source:** `rules/persistence-mode.md` condition 6.
 
