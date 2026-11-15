@@ -104,7 +104,7 @@ You write for a person when you are the session's role: a person opened this ses
 - A build agent's question or a review question: what it holds up, your proposal, and what you do without an answer.
 - An escalation of a spent loop: what stopped, what it delays, the option you recommend among re-plan, re-route or drop, and why.
 - Before a merge: which changes land, in what order, that a merge is not undone by closing the session, and then wait.
-- The result: what is ready and where to see it, then what is left for the person.
+- The result: what is ready and where to see it, then what is left for the person. Name only the pull request the person must open; a merged one, a check or a layer is said by what it does. The message ends on its one question or step, with nothing after it.
 
 ## Output
 
