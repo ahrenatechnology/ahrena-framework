@@ -31,7 +31,7 @@ Before the conditions, read: the mode registry and its `strategies:` block (or t
 | a migration that creates or alters a table, or the mode registry | `PER-1`, `PER-4`, `PER-7`, `PER-8`, `IDX-3`, `MT-1`, `MT-2` |
 | a migration that creates an index | `IDX-2`, `IDX-4` |
 | an adapter's write | `PER-2` to `PER-5`, `TRX-1`, `TRX-2`, `MT-3` |
-| an adapter's query | `IDX-1`, `MT-3` |
+| an adapter's query | `IDX-1`, `MT-3`, and `PER-6` when it reads an `append-only` table |
 | a use case or the unit of work | `TRX-1` to `TRX-4`, `MT-3` |
 | a projection or its read model | `PER-6` |
 | connection configuration, roles or grants | `MT-5`, `PER-2` |
