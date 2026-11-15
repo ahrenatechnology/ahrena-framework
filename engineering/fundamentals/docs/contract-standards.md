@@ -40,7 +40,7 @@ Source: OpenAPI Specification (<https://spec.openapis.org/oas/latest.html>).
 
 | Part | Threshold | Source |
 |---|---|---|
-| a document before the code, every route | 100% | maintainer policy; direction from `rules/contract-first.md` |
+| a document for every route | 100% | maintainer policy; the direction is `rules/contract-first.md` condition 1 |
 | served = declared | 0 divergences | maintainer policy |
 | lint errors; responses validated | 0; 100% | maintainer policy; the ruleset is the project's |
 | breaks without a version | 0 | the standard breaking set already named in `rules/contract-first.md` condition 5 |
@@ -56,7 +56,7 @@ Sources: the Protobuf Style Guide (<https://protobuf.dev/programming-guides/styl
 
 | Part | Threshold | Source |
 |---|---|---|
-| `.proto` first, code generated | 100% | maintainer policy |
+| `.proto` exists, code generated | 100% | maintainer policy; the direction is `rules/contract-first.md` condition 1 |
 | lint errors | 0 | buf STANDARD category and the style guide |
 | breaks without a version; reserved numbers | 0; never reused | the language guide for the reserved rule; buf breaking for the diff |
 | status code and details, no stack | 100% | gRPC error model; the no-stack ban is maintainer policy |

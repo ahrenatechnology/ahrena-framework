@@ -3,7 +3,7 @@ id: log-records
 type: rule
 clade: observability
 title: A log record follows the OpenTelemetry data model
-statement: A log record carries no secret or personal datum, the resource and trace attributes, an OpenTelemetry severity, structured attributes and a stable event name.
+statement: A log record has no secret or personal datum, carries resource and trace ids, an OTel severity, exception attributes on errors, a stable name; no hot loop.
 enforcement: judgment
 references:
   - docs/opentelemetry.md
@@ -13,7 +13,7 @@ references:
 
 Seven conditions, LOG-1 to LOG-7 of the PR quality rubric (#323). The record is built by the observer at the edge, per `rules/log-through-observer.md` in the fundamentals plugin, and the fields below are those of the OpenTelemetry log data model. `docs/opentelemetry.md` cites it.
 
-None of these conditions adds an abstraction, so the abstraction trigger of `rules/yagni.md` does not gate them. The detectors are tests with an in-memory exporter and static checks, tracked in the detectors sub-issue of #323.
+None of these conditions adds an abstraction, so the abstraction trigger of `rules/yagni.md` does not gate them. `rules/yagni.md` is in the fundamentals plugin. The detectors are tests with an in-memory exporter and static checks, tracked in the detectors sub-issue of #323.
 
 ## Conditions
 
@@ -23,7 +23,7 @@ None of these conditions adds an abstraction, so the abstraction trigger of `rul
 
 3. **LOG-3. Every record emitted inside a span carries its `trace_id` and `span_id`.** The threshold is 100%. The specification makes them optional and says they can be set for records that are part of request processing; here they are required inside a span as policy. Decided by a test that logs inside a span.
 
-4. **LOG-4. Severity is an OpenTelemetry `SeverityNumber`, and the record is structured: attributes named by the semantic conventions, and a body that is only a display message, never an interpolated string carrying data.** The threshold is 100% of records. A datum goes into an attribute, not into the string. Decided by a static search for string interpolation or concatenation in the body argument of a record, and by a test reading the severity.
+4. **LOG-4. Severity is an OpenTelemetry `SeverityNumber`, and the record is structured: attributes named by the semantic conventions where the registry has one and a project-namespaced name otherwise, and a body that is only a display message, never an interpolated string carrying data.** The threshold is 100% of records. A datum goes into an attribute, not into the string. Decided by a static search for string interpolation or concatenation in the body argument of a record, and by a test reading the severity.
 
 5. **LOG-5. An error record carries `exception.type`, `exception.message` and `exception.stacktrace`.** The threshold is 100% of error records. The stack is the one allowed here, in the record the observer exports, never in a response; `exception.message` goes through LOG-1. Decided by a test that forces an error.
 

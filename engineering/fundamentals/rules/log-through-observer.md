@@ -22,7 +22,7 @@ Condition 1 removes a call rather than adding structure, so the abstraction trig
 
 1. **OBS-1. A module of the domain or use-case layer contains no `console.*`, `print`, `logging` or logger call.** The threshold is 0 occurrences, on new and changed lines. The layers are those the project's layer map names. Decided by a static search for the logging APIs of the project's language in those paths, and by a reviewer for what a search cannot place.
 
-2. **A fact the domain wants recorded leaves as a domain event or as a `Result` failure, and the observer at the edge turns it into a log record.** The observer lives in an adapter module, receives the event, and is the only code that builds the record described by `rules/log-records.md` in the observability plugin. Decided by a reviewer reading where a record is constructed.
+2. **A fact the domain wants recorded leaves as a domain event or as a `Result` failure, and the observer at the edge turns it into a log record.** The observer lives in an adapter module and receives the event; the edge code (adapter, route handler, job entry point, composition root) may call it or build the record it describes in `rules/log-records.md` in the observability plugin, and domain and use-case code never does. Decided by a reviewer reading where a record is constructed.
 
 3. **A new kind of fact is a new event with a stable name, never a new log call in a body.** Decided by a reviewer.
 

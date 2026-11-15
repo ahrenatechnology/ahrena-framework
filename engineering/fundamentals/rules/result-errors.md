@@ -4,7 +4,7 @@ type: rule
 clade: engineering
 subclade: architecture
 title: Expected failure is a value
-statement: Domain and use cases return a Result for an expected failure; an unexpected one reaches the caller with no stack, which stays on the span.
+statement: Domain and use cases return a Result for an expected failure; an unexpected one reaches the caller with no stack, which stays in telemetry.
 enforcement: judgment
 references:
   - docs/result-errors.md
@@ -12,7 +12,7 @@ references:
 
 # Expected failure is a value
 
-Three conditions. They carry the catalog ids ERR-1 to ERR-3 of the PR quality rubric (#323), where ERR-2 is the exposure condition that `skills/reviewing-sensitive-data` in the security plugin already decides. `docs/result-errors.md` explains the split between expected and unexpected failure, where each threshold came from and why the stack is said to belong on the span and nowhere else in one place.
+Four conditions. The first three carry the catalog ids ERR-1 to ERR-3 of the PR quality rubric (#323); ERR-2 is the exposure condition that condition 1 of `rules/layer-exposure.md` in the security plugin already states and `hooks/check-exposure.py` there decides. `docs/result-errors.md` explains the split between expected and unexpected failure, where each threshold came from and why the stack is said to belong in telemetry and never in a response, in one place.
 
 An expected failure is one the caller can act on and the domain names: a rejected command, a missing record, a rule that was not met. An unexpected failure is everything else: a bug, an outage, a broken invariant. The two are handled by different mechanisms, and the conditions below say which.
 
@@ -20,13 +20,13 @@ None of these conditions adds an abstraction. A `Result` is a return type, not a
 
 ## Conditions
 
-1. **ERR-1. A function in the domain or use-case layer returns a `Result` for an expected failure and does not `throw` it.** The threshold is 0 `throw` statements in a new or changed line of those layers, outside the one invariant helper the project declares. The permitted `throw` is a broken invariant, raised through that helper, because there is no caller that can act on it. The shape of the `Result` (a discriminated union, a library type) is the project's choice and is written in its component map, once; what the condition requires is that the failure is in the return type, where the compiler or the type checker sees it. Decided by a static search for `throw` in those layers, and by a reviewer for the layers a search cannot place.
+1. **ERR-1. A function in the domain or use-case layer returns a `Result` for an expected failure and does not `throw` or `raise` it.** The threshold is 0 `throw` or `raise` statements in a new or changed line of those layers, outside the one invariant helper the project declares. The permitted `throw` is a broken invariant, raised through that helper, because there is no caller that can act on it. The shape of the `Result` (a discriminated union, a library type) is the project's choice and is written in its component map, once; what the condition requires is that the failure is in the return type, where the compiler or the type checker sees it. Decided by a static search for `throw` (`raise` in Python) in those layers, and by a reviewer for the layers a search cannot place.
 
-2. **ERR-2. No error response carries a stack trace, or the raw message of an unexpected error.** The threshold is 0 occurrences. The body of an unexpected-failure response is the project's error shape with a stable code and a generic message; the detail is in the trace, per condition 4 of `rules/telemetry-sdk.md` in the observability plugin, which records the exception with its stack on the span. The condition is decided by the review of sensitive data in the security plugin and is restated here so that the two halves, the stack on the span and the shape on the wire, are read together. Decided by a reviewer reading each handler's error path.
+2. **ERR-2. No error response carries a stack trace, or the raw message of an unexpected error.** The threshold is 0 occurrences. The body of an unexpected-failure response is the project's error shape with a stable code and a generic message; the detail is in the trace, per condition 3 of `rules/telemetry-sdk.md` in the observability plugin, which records the exception with its stack on the span. The condition is decided by `hooks/check-exposure.py` in the security plugin, under condition 1 of its `rules/layer-exposure.md`, and is restated here so that the two halves, the stack on the span and the shape on the wire, are read together. A reviewer reads the handler paths the hook cannot place.
 
 3. **ERR-3. Every route has a test that forces an unexpected failure and asserts the body is the project's error shape without a stack.** The threshold is one such test per route. The test injects a failure below the route (a throwing adapter double), calls the route, and asserts that the status is the error status, the body matches the error schema, and no field contains `stack`, a file path or the injected message. The detector is the set difference between the routes the project declares and the routes those tests name, a script the project owns because it needs to know how its routes are addressed. Decided by that script, and by a reviewer where none is wired.
 
-4. **A `Result` is not turned back into an exception inside the domain.** The state is a `throw` whose argument is the failure case of a `Result` the same layer produced. The failure is mapped to the project's error shape at the boundary, once, in the code that owns the response. Decided by a reviewer.
+4. **A `Result` is not turned back into an exception inside the domain.** The state is a `throw` or `raise` whose argument is the failure case of a `Result` the same layer produced. The failure is mapped to the project's error shape at the boundary, once, in the code that owns the response. Decided by a reviewer.
 
 ## Where this stops
 

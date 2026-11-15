@@ -23,7 +23,7 @@ None of these conditions adds an abstraction, so the abstraction trigger of `rul
 
 3. **OTL-3. An unexpected failure records the exception on the span and sets the span status to error; the stack lives there and never in a response.** The record carries `exception.type`, `exception.message` and `exception.stacktrace`. The threshold is 100% of unexpected-failure paths, decided by a test with an in-memory exporter that forces a failure and reads the span. The response side is condition 2 of `rules/result-errors.md` in the fundamentals plugin.
 
-4. **OTL-4. The trace context propagates between processes in the `traceparent` header, and every log record inside a span carries its `trace_id` and `span_id`.** The threshold is 100% of outbound calls that carry the header and 100% of in-span records that carry the ids. Decided by a test that makes an outbound call and reads the header, and by condition 3 of `rules/log-records.md`.
+4. **OTL-4. The trace context propagates between processes in the `traceparent` header, and every log record inside a span carries its `trace_id` and `span_id`.** The threshold is 100% of outbound calls to services the project owns carry the header; the in-span record ids are LOG-3 and are stated there once. Decided by a test that makes an outbound call and reads the header, and by condition 3 of `rules/log-records.md`.
 
 ## Where this stops
 

@@ -33,11 +33,11 @@ The port is the project's vocabulary; the vendor's is behind it. Condition 3 (AD
 
 | Condition | Threshold | Source |
 |---|---|---|
-| ADP-1 | 0 external calls outside an adapter | declared maintainer policy (#34); the import-only check in `rules/domain-model.md` covers part of it |
+| ADP-1 | 0 external calls outside an adapter | declared maintainer policy (#34); condition 1 of `rules/domain-model.md` covers only the import of a mechanism |
 | ADP-2 | 0 concrete imports from a use case | dependency direction of condition 6 of `rules/solid.md` |
-| ADP-3 | 0 vendor types or errors across the port | declared maintainer policy, the translation condition of `rules/domain-model.md` |
+| ADP-3 | 0 vendor types or errors across the port | declared maintainer policy; condition 2 of `rules/domain-model.md` covers only vendor tokens in names |
 | ADP-4 | 0 orphan ports | the abstraction trigger of `rules/yagni.md` |
 
 ## Where this stops
 
-This document does not say which pattern an adapter takes, since [`pattern-selection`](patterns.md) decides that after the trigger is met, and it does not list a project's adapter paths, which are in its layer map.
+This document does not say which pattern an adapter takes, since the rule `rules/pattern-selection.md`, whose index is [`patterns`](patterns.md), decides that after the trigger is met, and it does not list a project's adapter paths, which are in its layer map.

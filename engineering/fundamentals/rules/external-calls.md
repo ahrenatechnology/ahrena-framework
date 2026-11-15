@@ -40,7 +40,7 @@ An external call is a call that leaves the process or the project's own memory: 
 
 **ADP-3 does not forbid the vendor's detail from being recorded.** The adapter attaches it to the span and the log record so the diagnosis keeps it. It forbids the detail crossing the port, where a caller would start to match on it.
 
-**ADP-4 does not delete a port that has two adapters for production and test.** An in-memory adapter that is also the test double satisfies it once, and a second real adapter satisfies it on the first branch of the trigger. An anticipated second adapter does not.
+**ADP-4 does not delete a port that has a real adapter and a double.** An in-memory adapter used as the test double counts as the double, so a port with it and one real adapter stays; a second real adapter satisfies the first branch of the trigger. An anticipated second adapter does not.
 
 **Condition 5 does not forbid a seam an internal call genuinely needs.** A second real consumer in the tree, or a test that requires the seam, still justifies one; condition 5 says an internal call earns no port by being "clean". Nor does it reach a boundary between deployment units, which is an external call from the caller's side.
 
