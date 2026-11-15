@@ -967,7 +967,7 @@ def check_reachability(a: Artifact, findings: list[Finding]) -> None:
             continue
         for path in sorted(p for p in directory.rglob("*") if p.is_file()):
             rel = path.relative_to(root).as_posix()
-            # A bytecode cache is written by running a script, not authored.
+            # A bytecode cache is written by running a script, not authored (#358).
             if "__pycache__" in path.parts:
                 continue
             # Lenient on purpose: a mention anywhere in the body satisfies it.

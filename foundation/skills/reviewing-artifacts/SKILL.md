@@ -1,6 +1,6 @@
 ---
 name: reviewing-artifacts
-description: Review a rule, doc, skill, agent or command for the defects a gate cannot detect. Use when reviewing a pull request that adds or changes artifacts, when an artifact passes CI but reads wrong, or when auditing an existing corpus before building on it. Covers type choice, conditions versus maxims, missing thresholds, drift between an artifact's opening and its body, enforcement route, always-loaded footprint, and whether an agent or skill body tells its executor what to do, when it is done and what it must refuse.
+description: Review a rule, doc, skill, agent or command for the defects a gate cannot detect. Use when reviewing a pull request that adds or changes artifacts, when an artifact passes CI but reads wrong, or when auditing an existing corpus before building on it. Covers type choice, conditions versus maxims, missing thresholds, drift between an artifact's opening and its body, enforcement route, always-loaded footprint, and whether an agent or skill body tells its executor what to do, when it is done and what it must refuse. Also reviews a skill written in Anthropic's Agent Skills shape.
 type: skill
 clade: foundation
 references:
@@ -10,6 +10,7 @@ references:
   - rules/progressive-disclosure.md
   - docs/artifact-model.md
   - docs/context-budget.md
+  - docs/anthropic-skill-format.md
 ---
 
 # Reviewing artifacts
@@ -148,7 +149,24 @@ For SP-10 to SP-12, run the cases in `references/adversarial-cases.md` of `writi
 
 Every SP finding is blocking.
 
-## 14. Report
+## 14. On a skill in Anthropic's shape, run its checker and read what it cannot decide
+
+A skill folder that is not under a marketplace plugin's `skills/`, or that the caller asked for in Anthropic's shape, is not run through `validate-artifacts.py`. Run the checker in step 1's place and treat a failure as the gate being red:
+
+```sh
+python3 <plugin>/hooks/validate-anthropic-skill.py [--profile claude-code] <skill-folder>
+```
+
+In this repository that is `python3 foundation/hooks/validate-anthropic-skill.py`. Of steps 2 to 13, steps 4, 6, 10 and 13 apply to such a skill; the others read framework rules or fields and are skipped, so the 10-line code cap and the `Where this stops` demand do not reach it.
+
+It decides the undeclared fields, the `name`, the `description`'s length, tags and person, the compatibility cap, the body's 500 lines and the links. Then apply these conditions to what it cannot decide, citing the identifier. Every AS finding is blocking.
+
+- **AS-1 A description that names no occasion.** It says what the skill does and not when to use it, or names no phrase, file type or situation a request would contain, so it will not fire (`docs/anthropic-skill-format.md`, "Frontmatter").
+- **AS-2 A framework artifact's habit in an Anthropic skill.** A reference to `rules/`, `docs/` or `clade`, a gerund-only naming argument, or a section the framework's completeness rule asks for and the format does not. The shapes do not mix.
+- **AS-3 Material in the wrong tier.** A body that carries what Claude already knows, or detail read in one step only that should sit in `references/`, or a script described but not named as run or read (`docs/anthropic-skill-format.md`, "Progressive disclosure").
+- **AS-4 A profile wider than the skill needs.** A `claude-code` field on a skill the caller meant to upload to claude.ai or the API, where it is a hard validation error.
+
+## 15. Report
 
 Group findings by severity, and say plainly which are blocking.
 
