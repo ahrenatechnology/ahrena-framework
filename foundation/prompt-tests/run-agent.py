@@ -15,6 +15,10 @@ and decides the case:
     5. on an exposure case, no added line outside a test matches a forbidden
        pattern, and the result's `left:` names the criterion it overrode
 
+   11. every path the case lists under `committed` is in the tree of the
+       branch the result names, as pushed (a file the agent was handed
+       uncommitted and had to commit with its layer)
+
 A case whose `expect.kind` is `outcome` tests an agent that reviews, debugs or
 plans rather than builds a layer, and is decided by what it returned instead:
 
@@ -77,6 +81,7 @@ class Sample:
     result: str | None
     added_lines: list[tuple[str, str]] = field(default_factory=list)
     pushed: list[str] = field(default_factory=list)
+    committed: dict[str, list[str]] = field(default_factory=dict)
 
 
 def _events(lines: list[str]) -> list[dict]:
@@ -196,6 +201,8 @@ def decide(sample: Sample, case: dict, rule: str) -> tuple[list[str], dict]:
     if branch is None or branch.group(1) not in sample.pushed:
         failed.append("1: the branch the result names is not on the remote")
     failed += _order_failures(marks, expect)
+    on_branch = sample.committed.get(branch.group(1), []) if branch else []
+    failed += [f"11: {path} is not committed on the pushed branch" for path in expect.get("committed", []) if path not in on_branch]
     if expect.get("exposure"):
         failed += _exposure_failures(sample, expect["exposure"])
     return failed, marks
@@ -278,7 +285,9 @@ def run_sample(case: dict, plugins: Path, names: list[str], model: str | None) -
             return None
         pushed = [ref.split("refs/heads/")[-1] for ref in git("ls-remote", "--heads", "origin", cwd=project).split()
                   if ref.startswith("refs/heads/")]
-        return Sample(calls, result, added_lines(project), pushed)
+        git("fetch", "-q", "origin", cwd=project)
+        committed = {b: git("ls-tree", "-r", "--name-only", f"origin/{b}", cwd=project).split() for b in pushed}
+        return Sample(calls, result, added_lines(project), pushed, committed)
 
 
 def _arguments() -> argparse.Namespace:

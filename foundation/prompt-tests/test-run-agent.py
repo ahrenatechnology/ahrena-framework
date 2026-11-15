@@ -179,6 +179,14 @@ def test_plugin_dir() -> None:
     check(run_agent.plugin_dir("contributing") == "contributing", "a root plugin such as contributing is found at the root")
 
 
+def test_committed() -> None:
+    case = {**CASE, "expect": {**CASE["expect"], "committed": ["docs/adr/ADR-001.md"]}}
+    base = sample(SKILL_W, READ_RULE, WRITE_TEST, SKILL_R)
+    kept = run_agent.Sample(base.calls, base.result, [], base.pushed, {"feat/12-charge-api": ["docs/adr/ADR-001.md"]})
+    lost = run_agent.Sample(base.calls, base.result, [], base.pushed, {"feat/12-charge-api": []})
+    check(not any(f.startswith("11:") for f in run_agent.decide(kept, case, RULE)[0]), "11: a listed file on the pushed branch passes")
+    check(any(f.startswith("11:") for f in run_agent.decide(lost, case, RULE)[0]), "11: a listed file left out of the pushed branch fails")
+
 def test_database_cases_match_the_tree() -> None:
     spec_ = json.loads((HERE / "database" / "cases.json").read_text())
     for name in spec_["plugins"]:
@@ -205,6 +213,7 @@ if __name__ == "__main__":
     test_outcome()
     test_devops_cases_match_the_tree()
     test_plugin_dir()
+    test_committed()
     test_database_cases_match_the_tree()
     for label, ok in results:
         print(f"{'ok  ' if ok else 'FAIL'}  {label}")
