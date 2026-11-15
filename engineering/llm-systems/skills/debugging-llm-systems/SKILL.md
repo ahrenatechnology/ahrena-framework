@@ -26,7 +26,7 @@ Collect what was observed: the input, the output or behaviour, the expected resu
 
 ## 2. Reproduce it
 
-Run the component on the captured input against the same model identifier and prompt version, several times, since one run of a model proves little. Record how many of the runs fail. A failure that does not reproduce on any run is reported with what was tried; do not guess a fix for it.
+Run the component on the captured input against the same model identifier and prompt version at least 10 times (state the count, and why, if the cost argues for fewer), since one run of a model proves little. Record how many of the runs fail. A failure that does not reproduce on any run is reported with what was tried; do not guess a fix for it.
 
 ## 3. Find the step in the trace
 
@@ -46,7 +46,7 @@ Make the smallest change at the cause: the prompt, a tool's description or valid
 
 ## 7. Hand back
 
-The cause, with the trace step and the reproduction rate before and after; the regression case and its path; the red and green runs; the full evaluation result after the fix, with its date and model identifier. Do not deploy, merge or change a production setting; the caller owns those.
+The cause, with the trace step and the reproduction rate before and after; the regression case and its path; the red and green runs; the full evaluation result after the fix beside the one before it, each with its date and model identifier. Do not deploy, merge or change a production setting; the caller owns those.
 
 ## When this skill does not apply
 
