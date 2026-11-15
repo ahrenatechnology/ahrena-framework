@@ -757,6 +757,17 @@ CASES = [
         ["'scripts/orphan.py' is never named in SKILL.md"],
     ),
     case(
+        "a compiled-Python cache under scripts passes",
+        {
+            "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
+                "references:\n  - rules/bounded.md\n", ""
+            ),
+            "p/skills/doing-things/scripts/__pycache__/helper.cpython-311.pyc": "cache\n",
+        },
+        [],
+        True,
+    ),
+    case(
         "a references file the body names passes",
         {
             "p/skills/doing-things/SKILL.md": GOOD_SKILL.replace(
