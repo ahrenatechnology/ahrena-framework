@@ -9,8 +9,8 @@
   "plugins": [
     {
       "name": "ahrena-foundation",
-      "description": "The self-hosting core: what an artifact is, where it lives, how it is named, and the skills that create the others. Every other plugin depends on this one.",
-      "version": "0.2.2",
+      "description": "The self-hosting core: what an artifact is, where it lives, how it is named, and the skills that create the others; and Claudionor, who writes those artifacts and designs, builds, reviews and debugs AI agents and LLM systems with ahrena-engineering-llm-systems. Every other plugin depends on this one.",
+      "version": "0.3.0",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -124,7 +124,7 @@
     {
       "name": "ahrena-engineering-development",
       "description": "Development orchestrated issue→stacked-PRs: Athena, the tech-lead, plans a change, routes each concern deterministic-first — a route table, then the Clef decision gate, then a human — delegates to the build clades, runs the develop→Argos loop before each layer opens, and escalates when it is exhausted. Also installs the agency in a repository, enabling the plugins the build path needs.",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",

@@ -4,13 +4,15 @@
 Each property is one a script can decide:
 
     1. the artifact gate passes over the whole marketplace, including the
-       acyclic plugin graph (#351/AC-5, #352/AC-4, #353/AC-3, #354/AC-4)
+       acyclic plugin graph (#351/AC-5, #352/AC-4, #353/AC-3, #354/AC-4, #355/AC-4)
     2. the plugin is catalogued and its three manifests agree with the
        catalogue on name and version (#351/AC-1)
     3. the plugin declares references only to itself and to
        ahrena-engineering-fundamentals, so the edge Claudionor adds from
        ahrena-foundation cannot close a cycle (ADR-021)
-    4. the plugin's review-routes.json sends a change that calls a model and
+    4. Claudionor, in ahrena-foundation, preloads the plugin's four skills and
+       the installer enables the plugin with foundation (#355/AC-4, ADR-021)
+    5. the plugin's review-routes.json sends a change that calls a model and
        a manifest that adds an agent framework to reviewing-llm-systems, and
        leaves code with no model in it alone
 
@@ -45,7 +47,7 @@ QUALIFIED = re.compile(r"^\s*-\s*(ahrena-[a-z0-9-]+):", re.MULTILINE)
 
 
 def test_gate_passes() -> list[str]:
-    """#351/AC-5, #352/AC-4, #353/AC-3, #354/AC-4"""
+    """#351/AC-5, #352/AC-4, #353/AC-3, #354/AC-4, #355/AC-4"""
     run = subprocess.run(
         [sys.executable, "-B", str(ROOT / "foundation/hooks/validate-artifacts.py"), str(ROOT)],
         capture_output=True,
@@ -89,6 +91,22 @@ def test_references_stay_downstream_of_nothing() -> list[str]:
         for owner in QUALIFIED.findall(frontmatter):
             if owner not in ALLOWED:
                 errors.append(f"{path.relative_to(ROOT)} references {owner}, which ADR-021 does not allow")
+    return errors
+
+
+SKILLS = ("designing-llm-systems", "writing-llm-systems", "reviewing-llm-systems", "debugging-llm-systems")
+
+
+def test_claudionor_loads_the_skills() -> list[str]:
+    """#355/AC-4"""
+    agent = (ROOT / "foundation/agents/claudionor.md").read_text(encoding="utf-8")
+    frontmatter = agent.split("---", 2)[1]
+    errors = [f"claudionor's skills do not list {NAME}:{skill}" for skill in SKILLS if f"- {NAME}:{skill}\n" not in frontmatter]
+    agency = json.loads(
+        (ROOT / "engineering/development/skills/installing-the-agency/references/agency.json").read_text(encoding="utf-8")
+    )
+    if NAME not in agency["plugins"]:
+        errors.append(f"the installer's core plugins do not include {NAME}")
     return errors
 
 
@@ -140,7 +158,7 @@ def test_routes() -> list[str]:
 
 if __name__ == "__main__":
     failures = []
-    for test in (test_gate_passes, test_catalogued, test_references_stay_downstream_of_nothing, test_routes):
+    for test in (test_gate_passes, test_catalogued, test_references_stay_downstream_of_nothing, test_claudionor_loads_the_skills, test_routes):
         errors = test()
         print(f"{'ok  ' if not errors else 'FAIL'}  {test.__name__}")
         failures += errors

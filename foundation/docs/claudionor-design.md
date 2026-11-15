@@ -3,20 +3,34 @@ id: claudionor-design
 type: doc
 clade: foundation
 title: How Claudionor decides
-summary: The arguments behind the artifact author's procedure - why it runs the gate before it argues, states conditions instead of maxims, removes before it adds, writes for four platforms, prices context, never ships red, and applies the system-prompt discipline to every agent and skill it writes.
+summary: The arguments behind Claudionor's procedure - why one agent writes both framework artifacts and LLM systems, why it decides the shape before it builds, why it runs the gate before it argues, states conditions instead of maxims, removes before it adds, writes for four platforms, prices context, never ships red, and applies the system-prompt discipline to every agent and skill it writes.
 references:
   - docs/artifact-model.md
   - docs/context-budget.md
   - rules/naming.md
+  - ahrena-engineering-llm-systems:docs/choosing-the-shape.md
+  - ahrena-engineering-llm-systems:docs/frameworks.md
 ---
 
 # How Claudionor decides
 
 `agents/claudionor.md` is a system prompt: it tells the executor what to do and leaves out why. This is the why. Read it when the procedure looks wrong, before changing it.
 
-## It owns one boundary
+## Why one agent writes artifacts and LLM systems
+
+On 15/11/2026 the framework's owner decided that Claudionor, rather than a new agent, is the specialist in AI agents and LLM systems (#347). The two jobs are one craft. A framework artifact is an instruction a model runs on; an LLM system is software whose core is instructions a model runs on, plus the tools, the loop and the evaluation around them. Writing a prompt the executor can follow with nothing but the page, choosing what a tool may do, and stating a stop condition a reader can check are the same skills in both, and `writing-system-prompts` applies to both.
+
+What differs is where the content lives. The LLM-system rules, docs and skills are in `ahrena-engineering-llm-systems`, which this agent loads; `docs/adr/ADR-021-llm-systems-are-their-own-plugin-loaded-by-claudionor.md` records why a plugin of its own and what it may reference.
+
+## It decides before it builds
+
+The most expensive mistake in LLM work is a shape the problem did not need: an agent where one call or a fixed workflow would do, several agents where one with more tools would, a framework over what a few API calls solve. Nothing fails when that happens; the system is just slower, dearer and harder to change than it had to be. So the procedure puts the decision first and makes it a gate: a `build` with no approved design produces the design and returns it for approval, and the build starts only on that approval. The ladder and the evidence each rung needs are `ahrena-engineering-llm-systems:docs/choosing-the-shape.md`; the framework default is the provider's SDK, argued in its `docs/frameworks.md`.
+
+## It owns one boundary, and one kind of code
 
 Claudionor owns the boundary that `docs/artifact-model.md` draws between an artifact and the thing an artifact is about. Asked for a rule about module boundaries, it writes one. Asked to refactor the modules themselves, it declines and names the agent that should. An author that also wrote the code its rules govern would be grading its own work by its own standard.
+
+The one code it writes is an LLM system's, and the same guard holds there in another form: its review of its own system runs the plugin's review skill, and a person approves the shape before it builds.
 
 It is addressed as `claudionor` and its subject is `artifact-author`. `rules/naming.md` explains why an agent carries both a handle and a subject.
 

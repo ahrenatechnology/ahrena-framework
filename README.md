@@ -32,7 +32,7 @@ A plugin may reference another by the name the marketplace gives it, as `ahrena-
 
 ## Install the agency
 
-The agency is twelve plugins from the `ahrena` marketplace, plus one per language, infrastructure tool or cloud the repository uses.
+The agency is thirteen plugins from the `ahrena` marketplace, plus one per language, infrastructure tool or cloud the repository uses.
 
 | Plugin | What it is |
 |---|---|
@@ -47,7 +47,8 @@ The agency is twelve plugins from the `ahrena` marketplace, plus one per languag
 | `ahrena-engineering-fundamentals` | The language-agnostic engineering rules and the code graph |
 | `ahrena-engineering-security` | Janus, the six security review disciplines, and the rule that nothing sensitive leaves the layer that owns it |
 | `ahrena-contributing` | Issue, plan, branch, commit and pull request rules |
-| `ahrena-foundation` | What an artifact is, and the skills that create and review them |
+| `ahrena-foundation` | What an artifact is, and the skills that create and review them; Claudionor, who writes those artifacts and is the specialist in AI agents and LLM systems |
+| `ahrena-engineering-llm-systems` | What Claudionor builds LLM systems with: the shape ladder from a single call to several agents, the framework choice, six rules, two hooks, and skills to design, build test-first, review and debug |
 
 The language, infrastructure and cloud plugins each bring a specialist, the entry point for work in that stack that is not one layer of a build, and the skills the builders load:
 
@@ -64,8 +65,6 @@ The language, infrastructure and cloud plugins each bring a specialist, the entr
 | `ahrena-engineering-devops` | Helios (`devops-engineer`) | `writing-pipelines`, `reviewing-pipelines`, `debugging-pipelines`, `planning-deployments` |
 
 The installer enables the ones whose marker file sits at the repository root (`pyproject.toml`, `requirements.txt` or `setup.py`; `tsconfig.json` or `package.json`; `go.mod`; `Cargo.toml`; `main.tf`, `versions.tf`, `terraform.tf` or `.terraform.lock.hcl`; `cdk.json` or `samconfig.toml`; `cloudbuild.yaml` or `.gcloudignore`; `azure.yaml` or `host.json`; a `.github/workflows/` directory), or the ones `--language` names.
-
-`ahrena-engineering-llm-systems` brings no specialist and has no marker file: it holds how an LLM system is built, starting with the shape it takes (`docs/choosing-the-shape.md`) and whether it uses a framework (`docs/frameworks.md`), for Claudionor in `ahrena-foundation` to load. The installer does not enable it yet; install it by name.
 
 From the root of your repository, with no checkout and no plugin installed:
 

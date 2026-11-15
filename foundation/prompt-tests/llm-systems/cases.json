@@ -1,0 +1,64 @@
+{
+ "plugins": [
+  "foundation",
+  "llm-systems",
+  "fundamentals"
+ ],
+ "rule": "engineering/llm-systems/rules/simplest-shape.md",
+ "cases": [
+  {
+   "id": "claudionor-design-single-call",
+   "agent": "ahrena-foundation:claudionor",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-llm-systems:designing-llm-systems"
+    ],
+    "result_matches": [
+     "(?i)rung 1|single call",
+     "(?i)provider SDK|no framework"
+    ],
+    "result_excludes": [
+     "(?i)langgraph",
+     "(?i)agents sdk"
+    ]
+   },
+   "files": {
+    "README.md": "# support\nSupport service. Calls the Claude API through the anthropic Python SDK (src/support/llm.py). Designs live in docs/designs/.\n",
+    "src/support/llm.py": "\"\"\"The one place the service talks to the model.\"\"\"\nimport os\n\nimport anthropic\n\nMODEL = os.environ[\"SUPPORT_MODEL\"]\n\n\ndef client():\n    return anthropic.Anthropic()\n",
+    "data/labelled-tickets.csv": "ticket,queue\nMy card was charged twice,billing\nI cannot log in after the update,access\nThe app crashes when I open reports,bugs\nHow do I export my data?,how-to\nPlease delete my account,account\nI want a refund for last month,billing\n"
+   },
+   "brief": "request: design: classify each incoming support ticket into one of six queues (billing, access, bugs, how-to, account, other) for the support service in the current directory. data/labelled-tickets.csv has examples a person labelled. Latency under two seconds; tickets may hold personal data and may only go to the model provider already in use. Write the design to docs/designs/ticket-routing.md."
+  },
+  {
+   "id": "claudionor-review-fixed-path-agent",
+   "agent": "ahrena-foundation:claudionor",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-llm-systems:reviewing-llm-systems"
+    ],
+    "result_matches": [
+     "SHP-2\\b",
+     "FWK-(1|2)\\b",
+     "LOOP-3\\b"
+    ]
+   },
+   "files": {
+    "README.md": "# support\nSupport service. Calls the Claude API through the anthropic Python SDK (src/support/llm.py). Designs live in docs/designs/.\n",
+    "src/support/llm.py": "\"\"\"The one place the service talks to the model.\"\"\"\nimport os\n\nimport anthropic\n\nMODEL = os.environ[\"SUPPORT_MODEL\"]\n\n\ndef client():\n    return anthropic.Anthropic()\n",
+    "src/support/answer.py": "\"\"\"Answer a ticket.\"\"\"\n",
+    "pyproject.toml": "[project]\nname = \"support\"\ndependencies = [\"anthropic==0.70.0\"]\n"
+   },
+   "head_files": {
+    "src/support/answer.py": "\"\"\"Answer a ticket with an agent.\"\"\"\nfrom langgraph.prebuilt import create_react_agent\n\nfrom support.tools import lookup_order\n\n\ndef answer(model, ticket: str) -> str:\n    agent = create_react_agent(model, tools=[lookup_order])\n    result = agent.invoke({\"messages\": [(\"user\", ticket)]})\n    return result[\"messages\"][-1].content\n",
+    "src/support/tools.py": "def lookup_order(order_id: str) -> dict:\n    \"\"\"Look up an order.\"\"\"\n    return {\"order_id\": order_id}\n",
+    "pyproject.toml": "[project]\nname = \"support\"\ndependencies = [\"anthropic==0.70.0\", \"langgraph\", \"langchain-anthropic\"]\n",
+    "evals/answer-cases.json": "{\"cases\": [\n {\"ticket\": \"Where is order 1042?\", \"tool_calls\": [\"lookup_order\"]},\n {\"ticket\": \"Has order 77 shipped?\", \"tool_calls\": [\"lookup_order\"]},\n {\"ticket\": \"Status of order 9001\", \"tool_calls\": [\"lookup_order\"]}\n]}\n"
+   },
+   "brief": "request: system-review of the change in the working tree against main, in the current directory. It turns ticket answering into an agent. Report the findings; do not fix them."
+  }
+ ]
+}
