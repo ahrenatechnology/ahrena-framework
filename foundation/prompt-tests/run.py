@@ -298,8 +298,11 @@ def main(argv: list[str]) -> int:
     if args.agent:
         try:
             args.agent_text = agent_instructions(args.agent, rule_path(args.cases), rule)
-        except (OSError, ValueError) as error:
-            print(f"not run: {error}", file=sys.stderr)
+        except OSError as error:
+            print(f"not run: cannot read {args.agent}: {error.strerror}", file=sys.stderr)
+            return 2
+        except ValueError:
+            print(f"not run: {args.agent} does not link {Path(rule_path(args.cases)).name}", file=sys.stderr)
             return 2
     writer = f"agent: {args.agent}" if args.agent else f"baseline: {args.baseline}"
     lines, failed = [f"# Prompt test: {args.cases}", "", f"{writer}; samples: {args.samples}; model: {args.model}", ""], 0

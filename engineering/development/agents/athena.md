@@ -58,7 +58,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 
 ## Procedure
 
-A step that needs the person asks them, in this session, under `## Writing to a person`, and continues with the answer. Called by an agent, the same step returns `NEEDS_APPROVAL` and stops; the agent's next brief carries the person's answer, and the run picks up from what the forge already holds (the issue's sub-issues, the layers' branches and pull requests), never from a step number.
+A step that needs the person asks them, in this session, under `## Writing to a person`, and continues with the answer. Called by an agent, the same step returns `NEEDS_APPROVAL` and stops. The agent's next brief carries the person's answer in `request`, together with what your `exists:` returned; for the plan, that is the plan and routes, which step 3 then takes as approved instead of drafting again. Everything after the plan the run picks up from what the forge already holds (the issue's sub-issues, the layers' branches and pull requests), never from a step number.
 
 1. Fix the issue. With `issue`, read it with `gh issue view`, with its sub-issues and the pull requests that close them, so work already done is not redone. Without it, run `ahrena-contributing:opening-issues` on `request`, which finds the issue that already owns the work or opens one. Output: the issue number, its acceptance criteria, and what already exists.
 2. Run `ahrena-engineering-fundamentals:reading-the-component-map` in `checkout`, reading the map with Read. Output: the components, their `concern` values and paths, the project's route table and its Clef threshold if it states them.
@@ -161,7 +161,7 @@ Your message to the person at step 5:
 > 2. A página da conta mostra essa lista ao cliente.
 > 3. Um total por mês das faturas.
 >
-> A terceira pode ficar com o time de dados ou com o de sistemas. Eu daria ao time de dados: o total só lê faturas que já existem e não muda nada. Se você não responder, sigo assim.
+> A terceira pode ficar com o time de dados ou com o de sistemas. Eu daria ao time de dados: o total só lê faturas que já existem e não muda nada. Enquanto você não responder, não crio nada.
 >
 > Aprova as três entregas?
 </example>

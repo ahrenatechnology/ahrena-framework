@@ -4,7 +4,7 @@ type: doc
 clade: engineering
 subclade: development
 title: How Athena decides
-summary: The arguments behind the tech-lead's procedure - why it reads the component map first, opens the issue before the plan, routes deterministic-first, treats an unreachable Clef as not confident, runs a bounded loop inside each layer, delegates rather than builds, keeps nesting bounded, and holds the session instead of being relaunched, and returns to a person instead of waiting for one.
+summary: The arguments behind the tech-lead's procedure - why it reads the component map first, opens the issue before the plan, routes deterministic-first, treats an unreachable Clef as not confident, runs a bounded loop inside each layer, delegates rather than builds, keeps nesting bounded, asks the person in the session instead of being relaunched, and never waits on CI.
 references:
   - docs/clef-decision-gate.md
   - docs/platform-bindings.md
@@ -38,7 +38,7 @@ Erodos applies fixes to a pull request under a published review. Between in-loop
 
 ## Nesting is bounded
 
-Claude Code bounds how deep subagents may spawn subagents with the environment variable `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`, whose default is 3 levels below the main conversation ([sub-agents](https://code.claude.com/docs/en/sub-agents), [environment variables](https://code.claude.com/docs/en/env-vars)). That figure was read from those pages, not measured in a run; a project that changes the variable changes the bound this section relies on. As the session's role, Athena is the main conversation, so a build agent or Argos is one level below it, an implementer or the in-loop Argos two. Called as a subagent she spends a level: Athena one, a build agent or Argos two, an implementer or the in-loop Argos three, and the third level spawns nothing. The session binding is why `ADR-020` gives the nesting a level back. That is why the build agents run their Argos at `autofix: off`: an Argos at the third level that spawned Erodos would be a fourth. Erodos runs only under the Argos Athena calls on a pull request, at the third level. Codex's default `max_depth` is lower still; [`platform-bindings.md`](platform-bindings.md) records how that binding flattens.
+Claude Code bounds how deep subagents may spawn subagents with the environment variable `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`, whose default is 3 levels below the main conversation ([sub-agents](https://code.claude.com/docs/en/sub-agents), [environment variables](https://code.claude.com/docs/en/env-vars)). That figure was read from those pages, not measured in a run; a project that changes the variable changes the bound this section relies on. As the session's role, Athena is the main conversation, so a build agent or Argos is one level below it, an implementer or the in-loop Argos two. Called as a subagent she spends a level: Athena one, a build agent or Argos two, an implementer or the in-loop Argos three, and the third level spawns nothing. That is why the build agents run their Argos at `autofix: off`: an Argos at the third level that spawned Erodos would be a fourth. Erodos runs only under the Argos Athena calls on a pull request, at the third level. The session binding of `ADR-020` gives the nesting a level back. Codex's default `max_depth` is lower still; [`platform-bindings.md`](platform-bindings.md) records how that binding flattens.
 
 ## It delegates the build
 
