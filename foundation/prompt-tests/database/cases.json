@@ -4,7 +4,8 @@
   "quality",
   "fundamentals",
   "security",
-  "python"
+  "python",
+  "contributing"
  ],
  "rule": "engineering/database/rules/persistence-mode.md",
  "cases": [
@@ -63,6 +64,53 @@
     "db/migrations/.keep": ""
    },
    "brief": "mode: design\ncheckout: the current directory\ndatabase: PostgreSQL 17\nmodel: the OLTP layer of the notes service. The domain layer in src/notes/model.py has two aggregates, Notebook (a person renames it) and Note (a person edits its body). Every row carries the workspace_id of the customer that owns it. Queries: list a workspace's notebooks by title; list a notebook's notes, newest first. Design the persistence."
+  },
+  {
+   "id": "database-design-tenant-approved",
+   "agent": "ahrena-engineering-database:chronos",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-database:designing-persistence"
+    ],
+    "result_matches": [
+     "persistence-modes\\.yaml",
+     "(?i)row-level security|\\bRLS\\b",
+     "(?i)forc",
+     "(?i)accepted"
+    ]
+   },
+   "files": {
+    "README.md": "# notes\nA notes service on PostgreSQL 17. Migrations in db/migrations. No decision records yet.\n",
+    "src/notes/model.py": "\"\"\"Domain layer, already built.\"\"\"\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass Notebook:\n    id: str\n    workspace_id: str\n    title: str\n\n\n@dataclass\nclass Note:\n    id: str\n    workspace_id: str\n    notebook_id: str\n    body: str\n",
+    "db/migrations/.keep": ""
+   },
+   "brief": "mode: design\ncheckout: the current directory\ndatabase: PostgreSQL 17\nmodel: the OLTP layer of the notes service. The domain layer in src/notes/model.py has two aggregates, Notebook (a person renames it) and Note (a person edits its body). Every row carries the workspace_id of the customer that owns it. Queries: list a workspace's notebooks by title; list a notebook's notes, newest first. Design the persistence.\napproval: adopt Row-Level Security for workspace_id, by decision record. I am the maintainer and this answer accepts it."
+  },
+  {
+   "id": "database-diagnose-migration",
+   "agent": "ahrena-engineering-database:chronos",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-database:diagnosing-database"
+    ],
+    "result_matches": [
+     "(?i)implicit(ly)? commit",
+     "0003"
+    ],
+    "added_excludes": [
+     ".+"
+    ]
+   },
+   "files": {
+    "README.md": "# billing\nBilling service on MySQL 8.4. Migrations in db/migrations, applied in order by the migration tool, each file in one transaction.\n",
+    "db/migrations/0001_invoices.sql": "CREATE TABLE invoices (\n  id BIGINT PRIMARY KEY,\n  total_cents INT NOT NULL\n);\n",
+    "db/migrations/0003_invoice_currency.sql": "ALTER TABLE invoices ADD COLUMN currency CHAR(3) NULL;\nUPDATE invoices SET currency = 'BRL';\nALTER TABLE invoices MODIFY currency CHAR(3) NOT NULL, ADD CONSTRAINT invoices_currency_fk FOREIGN KEY (currency) REFERENCES currencies (code);\n"
+   },
+   "brief": "mode: diagnose\ncheckout: the current directory\nsymptom: in staging, on MySQL 8.4, migration 0003_invoice_currency failed yesterday at its third statement (error 1824, failed to open the referenced table 'currencies'). The tool marked it failed and rolled back. Re-running it now fails at the first statement with error 1060, duplicate column name 'currency'. You have no access to the database; diagnose from the repository and this report."
   }
  ]
 }

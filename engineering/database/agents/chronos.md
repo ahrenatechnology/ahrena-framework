@@ -85,7 +85,7 @@ Blocked is: `mode` not inferable; `model` missing in `design` mode; `symptom` mi
 
 ## Output
 
-Return exactly one of these, first line first.
+Return exactly one of these, first line first. Your final message is the block alone: its first line is the status word, with no summary, greeting or fence before it, because the caller decides the run by that first line.
 
 ```text
 DONE

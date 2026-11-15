@@ -253,6 +253,11 @@ def added_lines(project: Path) -> list[tuple[str, str]]:
     return lines
 
 
+def plugin_dir(name: str) -> str:
+    """Where a case's plugin sits: `engineering/<name>`, or `<name>` at the root (`contributing`)."""
+    return f"engineering/{name}" if (REPO / "engineering" / name).is_dir() else name
+
+
 def run_sample(case: dict, plugins: Path, names: list[str], model: str | None) -> Sample | None:
     with tempfile.TemporaryDirectory(prefix="ahrena-agent-test-") as tmp:
         project = build_project(Path(tmp), case)
@@ -260,7 +265,7 @@ def run_sample(case: dict, plugins: Path, names: list[str], model: str | None) -
                    "--permission-mode", "acceptEdits", "--allowedTools", TOOLS, "--max-turns", "150",
                    "--output-format", "stream-json", "--verbose", "--add-dir", str(plugins)]
         for name in names:
-            command += ["--plugin-dir", str(plugins / "engineering" / name)]
+            command += ["--plugin-dir", str(plugins / plugin_dir(name))]
         if model:
             command += ["--model", model]
         try:
@@ -291,7 +296,7 @@ def _run_all(spec: dict, cases: list[dict], args: argparse.Namespace) -> list[tu
     with tempfile.TemporaryDirectory(prefix="ahrena-plugins-") as tmp:
         plugins = Path(tmp)
         for name in spec["plugins"]:
-            shutil.copytree(REPO / "engineering" / name, plugins / "engineering" / name)
+            shutil.copytree(REPO / plugin_dir(name), plugins / plugin_dir(name))
         jobs = [c for c in cases for _ in range(args.samples)]
         with ThreadPoolExecutor(max_workers=args.jobs) as pool:
             samples = list(pool.map(lambda c: run_sample(c, plugins, spec["plugins"], args.model), jobs))
