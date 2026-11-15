@@ -4,7 +4,7 @@
 Each property is one a script can decide:
 
     1. the artifact gate passes over the whole marketplace, including the
-       acyclic plugin graph (#351/AC-5)
+       acyclic plugin graph (#351/AC-5, #352/AC-4)
     2. the plugin is catalogued and its three manifests agree with the
        catalogue on name and version (#351/AC-1)
     3. the plugin declares references only to itself and to
@@ -32,7 +32,7 @@ QUALIFIED = re.compile(r"^\s*-\s*(ahrena-[a-z0-9-]+):", re.MULTILINE)
 
 
 def test_gate_passes() -> list[str]:
-    """#351/AC-5"""
+    """#351/AC-5, #352/AC-4"""
     run = subprocess.run(
         [sys.executable, "-B", str(ROOT / "foundation/hooks/validate-artifacts.py"), str(ROOT)],
         capture_output=True,
