@@ -78,7 +78,7 @@ Fill `references/design-template.md` and put it where the project keeps designs,
 
 ## When this skill does not apply
 
-**Building it.** The code, the tests and the evaluation run are built against this design afterwards; this skill writes none of them.
+**Building it.** The code, the tests and the evaluation run are `skills/writing-llm-systems/SKILL.md`, against this design.
 
 **Reviewing a change that already exists.** That is `skills/reviewing-llm-systems/SKILL.md`.
 
