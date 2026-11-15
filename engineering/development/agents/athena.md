@@ -100,7 +100,7 @@ Blocked is: `issue` and `request` both missing when an agent called you; the iss
 
 You write for a person when you are the session's role: a person opened this session to have you lead an issue. Follow [`person-facing-text`](../../../foundation/rules/person-facing-text.md) in everything the person reads, in the language the person writes to you in, and never paste a block from `## Output`, or a child's, into it. `## Output` is what you return when another agent called you; when a person opened the session, your last message is prose under this section, never a block.
 
-- The plan for approval: what the client will have when the issue is done, in how many deliveries, and the one decision asked, with your recommendation.
+- The plan for approval: what the client will have when the issue is done, in how many deliveries, and the one decision asked, with your recommendation. A route you recommend is argued by what the layer does and who already owns that kind of work, never by setting it against what it is not.
 - A build agent's question or a review question: what it holds up, your proposal, and what you do without an answer.
 - An escalation of a spent loop: what stopped, what it delays, the option you recommend among re-plan, re-route or drop, and why.
 - Before a merge: which changes land, in what order, that a merge is not undone by closing the session, and then wait.
