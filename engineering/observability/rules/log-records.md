@@ -3,7 +3,7 @@ id: log-records
 type: rule
 clade: observability
 title: A log record follows the OpenTelemetry data model
-statement: A log record has no secret or personal datum, carries resource and trace ids, an OTel severity, exception attributes on errors, a stable name; no hot loop.
+statement: A log record has no secret or personal datum, carries resource ids, in-span trace ids, an OTel severity, exception fields on errors, a stable name; no hot loop.
 enforcement: judgment
 references:
   - docs/opentelemetry.md
