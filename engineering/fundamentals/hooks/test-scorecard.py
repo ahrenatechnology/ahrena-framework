@@ -200,6 +200,22 @@ def check_a_detector_that_cannot_answer_is_an_error() -> list[str]:
     return wrong
 
 
+def check_planted_fixtures_in_the_repository_do_not_fail_it() -> list[str]:
+    """A planted defect inside a registered fixture tree is the proof, not a failure of the change."""
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        repo = new_repo(tmp)
+        base = commit(repo, {"a.txt": "fine\n"}, "base")
+        head = commit(repo, {"fx/clean/a.txt": "fine\n", "fx/planted/a.txt": "MARK\n"}, "adds fixtures")
+        path = registry(tmp, MARKER_DETECTOR)
+        spec = json.loads(path.read_text())
+        fixtures = spec["detectors"][0]["conditions"][0]["fixtures"]
+        fixtures["clean"], fixtures["planted"] = str(repo / "fx" / "clean"), str(repo / "fx" / "planted")
+        path.write_text(json.dumps(spec))
+        code, card, _ = card_for(repo, base, head, ["--registry", str(path)])
+    return [] if code == 0 and card["conditions"]["DEM-1"]["status"] == "passed" else [f"expected a pass, got exit {code}"]
+
+
 def check_ac4_typescript_detectors_registered() -> list[str]:
     """#325/AC-4: the five TypeScript detectors are on the scorecard."""
     with tempfile.TemporaryDirectory() as raw:
@@ -228,6 +244,7 @@ CASES = [
     check_ac3_added_lines_only,
     check_ac3_total_ratchet,
     check_a_detector_that_cannot_answer_is_an_error,
+    check_planted_fixtures_in_the_repository_do_not_fail_it,
     check_ac4_typescript_detectors_registered,
 ]
 

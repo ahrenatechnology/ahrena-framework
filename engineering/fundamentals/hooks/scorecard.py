@@ -215,6 +215,7 @@ class Change:
         self._trees: dict[str, Path] = {}
         self._runs: dict[tuple[Path, str], list[Failure]] = {}
         self.added = self._added()
+        self.skip: tuple[str, ...] = ()
 
     def _added(self) -> dict[str, set[int]]:
         diff = git(["-c", "color.ui=false", "diff", f"{self.merge_base}..{self.head}", *PINNED], self.top)
@@ -240,13 +241,22 @@ class Change:
 
 def judge(entry: Entry, change: Change) -> tuple[list[Failure], dict[str, int]]:
     """The failures that count for this entry on this change, and the numbers behind them."""
-    mine = [f for f in change.failures(entry.detector, "head") if (f.rule, f.number) == (entry.rule, entry.number)]
+    mine = [f for f in change.failures(entry.detector, "head") if (f.rule, f.number) == (entry.rule, entry.number) and not under(f.file, change.skip)]
     if entry.scope == "added":
         counted = [f for f in mine if counts_as_added(f, change.added)]
         return (counted if len(counted) > entry.threshold else []), {"count": len(counted)}
-    base = [f for f in change.failures(entry.detector, "base") if (f.rule, f.number) == (entry.rule, entry.number)]
+    base = [f for f in change.failures(entry.detector, "base") if (f.rule, f.number) == (entry.rule, entry.number) and not under(f.file, change.skip)]
     worse = len(mine) > max(len(base), entry.threshold)
     return (fresh_since(mine, base) if worse else []), {"count": len(mine), "base_count": len(base)}
+
+
+def under(file: str, prefixes: tuple[str, ...]) -> bool:
+    return any(file.startswith(prefix) for prefix in prefixes)
+
+
+def fixture_prefixes(entries: list[Entry], top: Path) -> tuple[str, ...]:
+    """The registered fixture trees, as paths in the repository: their planted defects are the proof, not the change."""
+    return tuple(f"{path.relative_to(top)}/" for e in entries for path in (e.clean, e.planted) if path.is_relative_to(top))
 
 
 def unregistered(entries: list[Entry], change: Change) -> None:
@@ -260,6 +270,7 @@ def unregistered(entries: list[Entry], change: Change) -> None:
 
 def scorecard(entries: list[Entry], change: Change, base: str) -> dict:
     unregistered(entries, change)
+    change.skip = fixture_prefixes(entries, change.top)
     conditions: dict[str, dict] = {}
     for entry in entries:
         failures, numbers = judge(entry, change)
