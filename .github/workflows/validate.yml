@@ -137,6 +137,9 @@ jobs:
       - name: Test the Google Cloud grants hook
         run: python3 engineering/gcp/hooks/test-check-gcp-grants.py
 
+      - name: Test the PR quality rules
+        run: python3 engineering/fundamentals/hooks/test-quality-rules.py
+
       - name: Test the Terraform hook
         run: python3 engineering/terraform/hooks/test-check-terraform.py
 
