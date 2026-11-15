@@ -76,7 +76,7 @@ It also stops when the interface is a published boundary. Splitting an interface
 
 **What it prevents.** The domain that cannot be tested, deployed or reasoned about without a database, because it imports one.
 
-**The detector.** A module on the policy side of the layer map importing a module on the mechanism side. The map is the input the condition needs and this plugin does not ship one, so a reviewer supplies it; the rule says so rather than pretending the condition is self-contained.
+**The detector.** A module on the policy side of the layer map importing a module on the mechanism side. The map is the input the condition needs; the project writes it as [`rules/layer-map.md`](../rules/layer-map.md) requires, and this plugin ships none of its content.
 
 **The part that is usually skipped.** Inverting a dependency has two implementations, and only one of them adds code. The first is to extract a port: define the interface in the policy layer, implement it in the adapter layer, wire them at the composition root. The second is to move the code, so that the thing the policy needed is no longer in the adapter at all. The second is almost always smaller and it is almost never the one that gets proposed.
 

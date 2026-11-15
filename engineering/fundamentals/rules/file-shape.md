@@ -14,9 +14,9 @@ Two conditions. A file that holds one concept is found by its name, changes for 
 
 ## Conditions
 
-1. **CLN-15. A source file exports one public concept, and the file is named after it.** A concept is a class, a type together with the functions that operate on it, or a function. The state that is a finding is a file with two or more exported concepts that are not one type and its own functions, or a file whose name differs from its single concept's name once case and separators are normalised (`order-total.ts` holds `orderTotal`). Threshold: 1 concept per file. Detector: a script over the exports of each file added or changed; the TypeScript detector is owned by the clean-code detectors issue of #323. A re-exporting index file exports no concept of its own and is not counted.
+1. **CLN-15. A source file exports one public concept, and the file is named after it.** A concept is a class, a type together with the functions that operate on it, or a function. The state that is a finding is a file with two or more exported concepts that are not one type and its own functions, or a file whose name differs from its single concept's name once case and separators are normalised (`order-total.ts` holds `orderTotal`). Threshold: 1 concept per file. Detector: a script over the exports of each file added or changed; the TypeScript detector is owned by the clean-code detectors issue #330. A re-exporting index file exports no concept of its own and is not counted.
 
-2. **CLN-16. A source file is at most 300 lines.** Threshold: 300 lines, declared maintainer policy recorded under #34. This is an indicator: the detector reports a file above it for review and does not fail the change, because a file can be long for one good reason. A file that stays above 300 lines carries a one-line note in the review saying why it is one problem.
+2. **CLN-16. A source file is at most 300 lines.** Threshold: 300 lines, declared maintainer policy recorded under #34. The finding is a file this change adds or grows above 300 lines whose pull request description does not say in one line why it is one problem; the author owes that line. A file above the limit with the line is reported as an indicator and passes, because a file can be long for one good reason.
 
 ## Where this stops
 
