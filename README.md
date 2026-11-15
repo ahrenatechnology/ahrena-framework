@@ -65,6 +65,8 @@ The language, infrastructure and cloud plugins each bring a specialist, the entr
 
 The installer enables the ones whose marker file sits at the repository root (`pyproject.toml`, `requirements.txt` or `setup.py`; `tsconfig.json` or `package.json`; `go.mod`; `Cargo.toml`; `main.tf`, `versions.tf`, `terraform.tf` or `.terraform.lock.hcl`; `cdk.json` or `samconfig.toml`; `cloudbuild.yaml` or `.gcloudignore`; `azure.yaml` or `host.json`; a `.github/workflows/` directory), or the ones `--language` names.
 
+`ahrena-engineering-llm-systems` brings no specialist and has no marker file: it holds how an LLM system is built, starting with the shape it takes (`docs/choosing-the-shape.md`) and whether it uses a framework (`docs/frameworks.md`), for Claudionor in `ahrena-foundation` to load. The installer does not enable it yet; install it by name.
+
 From the root of your repository, with no checkout and no plugin installed:
 
 ```sh
