@@ -26,8 +26,8 @@ The dark theme is an accessibility requirement, not a developer preference: for 
 
 **This rule does not ask for a third theme.** High-contrast or branded variants are the project's choice, and a project that adds one adds it to the matrix in condition 3.
 
-**Photosensitivity has a second limit that a theme cannot fix.** Content that flashes more than three times a second is WCAG 2.2 SC 2.3.1 (Three Flashes or Below Threshold, A) and is read under [`accessibility`](accessibility.md), not here.
+**Photosensitivity has a second limit that a theme cannot fix.** Content that flashes more than three times a second is WCAG 2.2 SC 2.3.1 (Three Flashes or Below Threshold, A) and is not decided by any condition of this plugin's frontend rules, and a reviewer reads flashing content against it.
 
 **Images and user content are not themed by this rule.** A photograph stays as it is; a logo variant per theme comes from the brand files ([`design-system`](design-system.md) condition 3).
 
-**The detectors are not in this rule.** They belong to the frontend detectors sub-issue of #323, so the enforcement is `judgment` until they land.
+**The detectors are not in this rule.** They belong to the frontend detectors of #323 (#333 for copy, density, themes and tokens; accessibility and screen-fidelity detectors have no issue yet), so the enforcement is `judgment` until they land.

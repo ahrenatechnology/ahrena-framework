@@ -4,7 +4,7 @@ type: rule
 clade: engineering
 subclade: frontend
 title: Every state is accessible
-statement: Every state of every screen has no serious axe violation (WCAG 2.2 AA), a Lighthouse score of 95 or more, and works by keyboard with visible focus.
+statement: Every state of every screen has no serious or critical axe violation (WCAG 2.2 AA), scores 95+ on Lighthouse, and meets keyboard, contrast and target limits.
 enforcement: judgment
 references:
   - docs/frontend-quality.md
@@ -28,12 +28,14 @@ Accessibility is measured on the rendered state, not on the source, and against 
 
 ## Where this stops
 
+**Flashing content is not decided here.** WCAG 2.2 SC 2.3.1 (Three Flashes or Below Threshold, A) has no condition above; a reviewer reads flashing content against it.
+
 **An automated checker finds only part of what WCAG asks.** axe and Lighthouse cannot judge whether alt text is meaningful or a reading order makes sense. A pass is the floor, not conformance, and a reviewer still reads what a person using a screen reader would hear.
 
 **Large text has a lower contrast bar in WCAG, and this rule does not use it.** SC 1.4.3 allows 3:1 for large text. The limit stays at 4.5:1 for all text so the detector needs no judgment about what counts as large.
 
 **The score in condition 2 is a number, not a standard.** A page can score 95 with a keyboard trap that axe cannot see; condition 3 exists for that reason, and neither replaces the other.
 
-**It reaches states the pull request adds or changes.** The legacy is held by the ratchet: a total that gets worse blocks, an old violation does not.
+**It reaches states the pull request adds or changes.** The legacy is held by the ratchet of the catalogue in #323 (limits bind new lines, and a total getting worse blocks): a total that gets worse blocks, an old violation does not.
 
-**The detectors are not in this rule.** They belong to the frontend detectors sub-issue of #323, so the enforcement is `judgment` until they land.
+**The detectors are not in this rule.** They belong to the frontend detectors of #323 (#333 for copy, density, themes and tokens; accessibility and screen-fidelity detectors have no issue yet), so the enforcement is `judgment` until they land.

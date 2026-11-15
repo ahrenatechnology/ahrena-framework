@@ -20,7 +20,7 @@ The framework ships the shape of the voice check and no voice. VOZ-1 reads a ton
 
 1. **VOZ-1: screen text passes the consumer's tone-of-voice lint.** Threshold: 0 errors. The lint file carries a list of forbidden terms and a list of preferred terms, and the project names where it lives. Decided by Vale, or the equivalent the project chose, run on the screen strings. A project with no lint file fails this condition: absence is not a pass.
 2. **VOZ-2: text stays within the limit for its role.** Threshold: a button or label has at most 3 words, a title at most 6, supporting text at most 20, and no screen carries an explanatory paragraph. These limits are maintainer policy (#34). Decided by a word count over the screen strings, by role.
-3. **VOZ-3: no AI filler.** Threshold: 0 occurrences of an enthusiasm phrase, a decorative emoji, an exclamation mark, a word on the filler list ("mergulhe", "incrível", "perfeito" and the project's additions), a triad of adjectives, or text that repeats what the screen already shows. Decided by the pattern list in the same lint as condition 1. The detector sees the first four; the last (repetition) is flagged by a duplicate-string check against the labels on the same screen.
+3. **VOZ-3: no AI filler.** Threshold: 0 occurrences of an enthusiasm phrase, a decorative emoji, an exclamation mark, a word on the filler list ("mergulhe", "incrível", "perfeito" and the project's additions), a triad of adjectives, or text that repeats what the screen already shows. Decided by the pattern list in the same lint as condition 1. The lint's pattern list sees the first five; the last (repetition) is flagged by a duplicate-string check against the labels on the same screen.
 
 ## Where this stops
 
@@ -32,4 +32,4 @@ The framework ships the shape of the voice check and no voice. VOZ-1 reads a ton
 
 **Names behind the scenes are out of scope.** Identifiers, routes and keys are not screen text and are not counted.
 
-**The detectors are not in this rule.** They belong to the frontend detectors sub-issue of #323, so the enforcement is `judgment` until they land.
+**The detectors are not in this rule.** They belong to the frontend detectors of #323 (#333 for copy, density, themes and tokens; accessibility and screen-fidelity detectors have no issue yet), so the enforcement is `judgment` until they land.

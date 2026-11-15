@@ -4,7 +4,7 @@ type: doc
 clade: engineering
 subclade: frontend
 title: Where the frontend limits come from
-summary: The source of each frontend threshold, whether a standard, an inherited tool default or maintainer policy, and how the six rules fit the epic's catalogue.
+summary: The source of each frontend threshold, whether a standard, a standard read through a tool, a consumer file or maintainer policy, and how the six rules fit the epic's catalogue.
 references:
   - rules/accessibility.md
   - rules/screen-fidelity.md
@@ -16,7 +16,7 @@ references:
 
 # Where the frontend limits come from
 
-A limit that nobody can trace is a number someone will argue with. Each one in the six rules is one of three kinds: from a standard, inherited from a tool, or declared maintainer policy (#34). This is the ledger. The catalogue is the first comment of epic #323; a condition keeps its id there.
+A limit that nobody can trace is a number someone will argue with. Each one in the six rules is one of four kinds: from a standard, from a standard read through a tool, read from a file the consumer provides, or declared maintainer policy (#34). This is the ledger. The catalogue is the first comment of epic #323; a condition keeps its id there.
 
 ## The ledger
 
@@ -34,7 +34,7 @@ A limit that nobody can trace is a number someone will argue with. Each one in t
 | VOZ-2 | 3, 6 and 20 words | Maintainer policy | Usability: fewer words |
 | VOZ-3 | 0 filler occurrences | Maintainer policy | Usability: no AI filler on screen |
 | DEN-1, DEN-2 | 32 px rows, 1280 by 800 | Maintainer policy | Density for daily-use screens |
-| THM-1 to THM-3 | both themes, 100% | Maintainer policy, with a standard behind it | Photosensitivity; contrast per theme under WCAG 2.2 SC 1.4.3 |
+| THM-1 to THM-3 | both themes, 100% | Maintainer policy | Photosensitivity; contrast per theme under WCAG 2.2 SC 1.4.3 |
 
 Maintainer policy is a decision, not a measurement. It can change by a decision record that replaces it, and until then it binds.
 
@@ -48,8 +48,8 @@ The framework can say that screen text is checked against a voice and how long i
 
 ## Where this stops
 
-**It records sources, not the detectors.** Detectors for each condition are the frontend detectors sub-issue of #323.
+**It records sources, not the detectors.** Detectors for each condition are the frontend detectors of #323 (#333 and, for accessibility and screen fidelity, an issue not yet opened).
 
 **It does not restate the rules.** When this ledger and a rule disagree, the rule wins and this doc is the one to fix.
 
-**A tool default is not a standard.** Lighthouse's 95 is a policy chosen on top of a tool, and the ledger says so, so nobody mistakes it for a WCAG threshold.
+**A policy on a tool is not a standard.** Lighthouse's 95 is maintainer policy chosen on top of a tool, and the ledger says so, so nobody mistakes it for a WCAG threshold.

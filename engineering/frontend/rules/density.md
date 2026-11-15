@@ -27,6 +27,6 @@ A working screen is read many times a day; every empty block costs a scroll. The
 
 **DEN-2 reads one element per screen.** It does not say the rest of the screen fits; a long table below the fold is fine. Which element is the main one is the project's declaration, and a reviewer checks it is the right one.
 
-**It reaches new and changed screens.** The legacy is held by the ratchet.
+**It reaches new and changed screens.** The legacy is held by the ratchet of the catalogue in #323 (limits bind new lines, and a total getting worse blocks).
 
-**The detectors are not in this rule.** They belong to the frontend detectors sub-issue of #323, so the enforcement is `judgment` until they land.
+**The detectors are not in this rule.** They belong to the frontend detectors of #323 (#333 for copy, density, themes and tokens; accessibility and screen-fidelity detectors have no issue yet), so the enforcement is `judgment` until they land.

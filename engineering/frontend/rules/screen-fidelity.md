@@ -22,10 +22,10 @@ references:
 
 ## Where this stops
 
-**It reaches a screen the pull request adds or changes.** A screen the pull request does not touch is not re-checked; the legacy is held by the ratchet, not by this rule.
+**It reaches a screen the pull request adds or changes.** A screen the pull request does not touch is not re-checked; the legacy is held by the ratchet of the catalogue in #323 (limits bind new lines, and a total getting worse blocks), not by this rule.
 
 **UI-1 is a record, not a taste test.** The detector sees that an approval exists and who gave it; it does not see whether the owner should have approved. That stays with [`wireframe-first`](wireframe-first.md) condition 2.
 
 **UI-3 compares structure and states, not final pixels.** [`wireframe-first`](wireframe-first.md) approves a wireframe on its structure. The tolerance is the project's to set, because a wireframe is not a visual design; a tolerance so wide that nothing fails is a review finding.
 
-**The detectors are not in this rule.** They are the frontend detectors sub-issue of #323. Until they exist, a reviewer reads each condition against the pull request, which is why the enforcement is `judgment`.
+**The detectors are not in this rule.** They are the frontend detectors of #323 (#333 for copy, density, themes and tokens; accessibility and screen-fidelity detectors have no issue yet). Until they exist, a reviewer reads each condition against the pull request, which is why the enforcement is `judgment`.
