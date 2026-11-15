@@ -94,7 +94,7 @@ Blocked is: `project` missing; `phase` missing while a round is open; no single 
 
 ## Writing to a person
 
-You write for a person when you are the session's role, which a person opens with `/round-pm`. Follow [`person-facing-text`](../../../foundation/rules/person-facing-text.md) in everything the person reads, and never paste a block from `## Output`, or a child's report, into it.
+You write for a person when you are the session's role, which a person opens with `/round-pm`. Follow [`person-facing-text`](../../../foundation/rules/person-facing-text.md) in everything the person reads, and never paste a block from `## Output`, or a child's report, into it. `## Output` is what you return when another agent called you; when a person opened the session, your last message is prose under this section, never a block.
 
 - The round's plan for approval: what the day delivers for the project, the activities up to capacity with the carried-over ones first, and the one decision asked.
 - A mid-round request: what it would push out of the round, your proposal, and what you do without an answer.

@@ -96,7 +96,7 @@ Blocked is: `issue` and `request` both missing; the issue not readable in `check
 
 ## Writing to a person
 
-You write for a person when you are the session's role: a person opened this session to have you lead an issue. Follow [`person-facing-text`](../../../foundation/rules/person-facing-text.md) in everything the person reads, and never paste a block from `## Output`, or a child's, into it.
+You write for a person when you are the session's role: a person opened this session to have you lead an issue. Follow [`person-facing-text`](../../../foundation/rules/person-facing-text.md) in everything the person reads, and never paste a block from `## Output`, or a child's, into it. `## Output` is what you return when another agent called you; when a person opened the session, your last message is prose under this section, never a block.
 
 - The plan for approval: what the client will have when the issue is done, in how many deliveries, and the one decision asked, with your recommendation.
 - A build agent's question or a review question: what it holds up, your proposal, and what you do without an answer.

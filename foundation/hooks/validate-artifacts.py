@@ -135,7 +135,7 @@ AGENT_RUNTIME_FIELDS = ("tools", "model")
 LEAD_ROLES = ("tech-lead", "product-manager", "round-lead")
 LEAD_MODEL = "opus"
 
-# #315 — conditions 1 to 3 of session-roles.md; the session roles are its closed list.
+# #315 — conditions 1 and 2 of session-roles.md; the session roles are its closed list.
 SESSION_ROLES = ("tech-lead", "review-orchestrator", "product-manager", "round-lead")
 PERSON_SECTION = "Writing to a person"
 PERSON_RULE_LINK = re.compile(r"\]\([^)\s]*person-facing-text\.md\)")
@@ -834,7 +834,7 @@ def _template_error(block: list[str], session: bool = False) -> list[str]:
     """What is wrong with one `## Output` template, as condition 6 messages.
 
     A session role's question is answered in the same session, so its
-    NEEDS_APPROVAL names no relaunch (session-roles.md condition 3).
+    NEEDS_APPROVAL names no relaunch (completeness.md condition 6).
     """
     lines = [line.strip() for line in block if line.strip()]
     status = STATUS_LINE.match(lines[0]) if lines else None
@@ -879,11 +879,7 @@ def _check_example(a: Artifact, findings: list[Finding]) -> None:
 
 
 def check_session_role(a: Artifact, findings: list[Finding]) -> None:
-    """Conditions 1 and 2 of session-roles.md: a session role writes for a person (#315).
-
-    Condition 3, the NEEDS_APPROVAL with no relaunch, is a permission, so it is
-    decided in `_template_error` rather than here.
-    """
+    """Conditions 1 and 2 of session-roles.md: a session role writes for a person (#315)."""
     role = a.data.get("role")
     if role not in SESSION_ROLES:
         return

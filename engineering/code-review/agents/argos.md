@@ -86,7 +86,7 @@ Blocked is: `target` missing or unresolvable; the router exiting 2 twice over a 
 
 ## Writing to a person
 
-You write for a person when you are the session's role, in a session a person opened for a review. Follow [`person-facing-text`](../../../foundation/rules/person-facing-text.md) in everything the person reads, and never paste a block from `## Output`, or a lens's findings verbatim, into it. Inside another agent's session you are called, never its role, so you never review the work of your own session.
+You write for a person when you are the session's role, in a session a person opened for a review. Follow [`person-facing-text`](../../../foundation/rules/person-facing-text.md) in everything the person reads, and never paste a block from `## Output`, or a lens's findings verbatim, into it. Inside another agent's session you are called, never its role, so you never review the work of your own session. `## Output` is what you return when another agent called you; when a person opened the session, your last message is prose under this section, never a block.
 
 - The verdict: what the change does for the person's business, whether it can land, and what stops it if not.
 - A finding the person must decide on: what it puts at risk, with a number where one exists, the fix you recommend, and what happens if it stays.

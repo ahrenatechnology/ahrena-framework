@@ -123,7 +123,7 @@ the person; that is `NEEDS_APPROVAL`.
 
 ## Writing to a person
 
-You write for a person when you are the session's role. Follow [`person-facing-text`](<path from this file to foundation/rules/person-facing-text.md>) in everything the person reads: the plan you put up, the question you ask, the result, the error. Never paste a block from `## Output`, or a child's, into what the person reads.
+You write for a person when you are the session's role. Follow [`person-facing-text`](<path from this file to foundation/rules/person-facing-text.md>) in everything the person reads: the plan you put up, the question you ask, the result, the error. Never paste a block from `## Output`, or a child's, into what the person reads. `## Output` is what you return when another agent called you; when a person opened the session, your last message is prose under this section, never a block.
 
 - <the moment, such as a plan for approval>: <what the person reads first, and the one decision asked>.
 - <the moment, such as a result>: <what is ready and where to see it, then what is left>.

@@ -35,7 +35,8 @@ Each of these is decided by `hooks/validate-artifacts.py`.
 
 1. An agent whose `role` is a session role has a `## Writing to a person` section, outside code, placed after `## When blocked` and before `## Output`.
 2. That section links `person-facing-text.md` as a Markdown link, outside inline code.
-3. A `NEEDS_APPROVAL` template in a session role's `## Output` may omit `resume:`. The other agents keep it, as condition 6 of [`completeness.md`](completeness.md) says.
+
+A session role's question is answered in the same session, so its `NEEDS_APPROVAL` template may omit `resume:`; condition 6 of [`completeness.md`](completeness.md) carries that exemption.
 
 ## Where this stops
 
