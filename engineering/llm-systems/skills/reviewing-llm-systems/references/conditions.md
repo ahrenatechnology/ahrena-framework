@@ -88,7 +88,7 @@ The conditions `reviewing-llm-systems` applies, grouped by the rule each comes f
 
 ## Tools (`rules/tool-definitions.md`)
 
-Exempt from TOOL-1 to TOOL-4 and TOOL-6: a server tool the provider runs (web search, code execution on the provider's side), which is configured, not written; TOOL-5 still reads the decision to enable it (the rule's `Where this stops`).
+Exempt from TOOL-1 to TOOL-4: a server tool the provider runs (web search, code execution on the provider's side), which is configured, not written; TOOL-5 still reads the decision to enable it, and TOOL-6 still applies (the rule's `Where this stops`).
 
 ### TOOL-1 Description or schema too thin
 
@@ -134,7 +134,7 @@ Exempt from TOOL-1 to TOOL-4 and TOOL-6: a server tool the provider runs (web se
 
 - **State:** a tool that returns everything its source holds.
 - **Detect:** reading the handler's return path.
-- **Exempt:** a provider-run server tool.
+- **Exempt:** none.
 - **Correct:** pagination, filtering or truncation that says so.
 - **Source:** rule condition 6.
 
@@ -154,7 +154,7 @@ Exempt from LOOP-1 to LOOP-5: a single call and a fixed workflow, whose step cou
 
 - **State:** `ClaudeAgentOptions` (or `maxTurns` / `maxBudgetUsd` in TypeScript) with neither bound set, or set to `None`.
 - **Detect:** `hooks/check-loop-bounds.py` in Python; reading in TypeScript.
-- **Exempt:** none.
+- **Exempt:** a single call or a fixed workflow.
 - **Correct:** set `max_turns` or `max_budget_usd`.
 - **Source:** rule condition 2.
 
@@ -162,7 +162,7 @@ Exempt from LOOP-1 to LOOP-5: a single call and a fixed workflow, whose step cou
 
 - **State:** the tool runner with no `max_iterations`, the OpenAI runner with no `max_turns`, a Strands agent with no `limits`, a LangGraph or LangChain run with no `recursion_limit`, or any of them set to `None`.
 - **Detect:** `hooks/check-loop-bounds.py` for the first two in Python; reading for the rest.
-- **Exempt:** none.
+- **Exempt:** a single call or a fixed workflow.
 - **Correct:** set the bound in code, naming the value.
 - **Source:** rule condition 3.
 
@@ -170,7 +170,7 @@ Exempt from LOOP-1 to LOOP-5: a single call and a fixed workflow, whose step cou
 
 - **State:** reaching the bound returns the last message as if it were the answer, or raises an exception the caller does not handle.
 - **Detect:** reading the code after the loop; a test with a stub that always calls a tool, if one exists.
-- **Exempt:** none.
+- **Exempt:** a single call or a fixed workflow.
 - **Correct:** a typed failure, a partial result marked partial, or a hand-off to a person.
 - **Source:** rule condition 4.
 
@@ -178,7 +178,7 @@ Exempt from LOOP-1 to LOOP-5: a single call and a fixed workflow, whose step cou
 
 - **State:** the loop returns on anything that is not a tool call, so `max_tokens`, `refusal` or a full context window comes back as an answer.
 - **Detect:** reading the loop's exit condition.
-- **Exempt:** none.
+- **Exempt:** a single call or a fixed workflow.
 - **Correct:** success on the finishing stop reason only; each other reason its own outcome.
 - **Source:** rule condition 5; `docs/agent-loop.md`.
 

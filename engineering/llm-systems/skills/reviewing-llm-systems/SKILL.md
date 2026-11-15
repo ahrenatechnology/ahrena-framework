@@ -43,7 +43,7 @@ python3 <plugin-dir>/hooks/check-loop-bounds.py <changed .py files>
 python3 <plugin-dir>/hooks/check-tool-definitions.py <changed .py files>
 ```
 
-Exit 0 means no finding; exit 1 means each `[loop-bounds]` line it printed is a `LOOP-1` to `LOOP-3` finding and each `[tool-definitions]` line a `TOOL-1` or `TOOL-2` finding, as stated; exit 2 means a path was not found, so the hook read nothing: list it as not run, with the message. Then read `LOOP-1` to `LOOP-5` by hand for what the hook cannot see: code in another language, Strands' `limits`, LangGraph's `recursion_limit`, the outcome when the bound is reached, and the stop reasons handled as success.
+Exit 0 means no finding; exit 1 means each `[loop-bounds]` line it printed is a `LOOP-1` to `LOOP-3` finding and each `[tool-definitions]` line a `TOOL-1` or `TOOL-2` finding, as stated; exit 2 means a path was not found, so the hook read nothing: list it as not run, with the message. Whatever the exit, a `<path>: not read:` line on stderr means that file was not read: list it as not run for `LOOP-1` to `LOOP-3` and `TOOL-1` and `TOOL-2`, with the message. Then read `LOOP-1` to `LOOP-5` by hand for what the hook cannot see: code in another language, Strands' `limits`, LangGraph's `recursion_limit`, the outcome when the bound is reached, and the stop reasons handled as success.
 
 ## 5. Read the tools, the evaluation and the tracing
 
