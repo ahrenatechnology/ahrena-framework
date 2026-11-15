@@ -567,6 +567,24 @@ def test_check_names_the_plugin_missing_on_the_old_set() -> None:
         assert "STALE" in r.stdout, r.stdout
 
 
+def test_directive_agents_are_defined_by_declared_plugins() -> None:
+    # Covers #348/AC-1: every agent the directive names has its plugin in agency.json `plugins`.
+    import importlib.util
+    import re
+
+    spec = importlib.util.spec_from_file_location("agency_install", SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    owner = {}
+    for agent_file in HERE.parents[4].glob("engineering/*/agents/*.md"):
+        plugin = json.loads((agent_file.parents[1] / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))["name"]
+        owner[agent_file.stem] = plugin
+    cited = {name for name in re.findall(r"`(\w+)`", module.DIRECTIVE) if name in owner}
+    assert {"athena", "iris", "apollo", "clio"} <= cited, f"directive cites: {sorted(cited)}"
+    missing = sorted(f"{name} ({owner[name]})" for name in cited if owner[name] not in AGENCY["plugins"])
+    assert not missing, f"agency.json: plugin missing for {missing}"
+
+
 def main() -> int:
     failures = 0
     for name, fn in sorted(globals().items()):

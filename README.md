@@ -32,7 +32,7 @@ A plugin may reference another by the name the marketplace gives it, as `ahrena-
 
 ## Install the agency
 
-The agency is ten plugins from the `ahrena` marketplace, plus one per language, infrastructure tool or cloud the repository uses.
+The agency is twelve plugins from the `ahrena` marketplace, plus one per language, infrastructure tool or cloud the repository uses.
 
 | Plugin | What it is |
 |---|---|
@@ -40,6 +40,7 @@ The agency is ten plugins from the `ahrena` marketplace, plus one per language, 
 | `ahrena-engineering-delivery` | Themis and Hermes, the PM and the Tech Lead of a round, who run a work window of Athena sessions |
 | `ahrena-engineering-frontend` | Iris, who builds a feature outside-in, wireframe first; Daedalus, who draws the wireframe for approval; Aglaia, who writes each code layer |
 | `ahrena-engineering-backend` | Apollo, who builds a capability inside-out, domain first; Hephaestus, who writes each layer test-first |
+| `ahrena-engineering-data` | Clio, who builds a data capability source→product, data contract first; Mnemosyne, who writes each layer test-first |
 | `ahrena-engineering-database` | Chronos (`database-specialist`), who designs, reviews and diagnoses transactional persistence: each table append-only or upsert with history, its indexes, its transaction boundaries and its tenant isolation; Apollo calls it before the OLTP layer, Clio before a transactional schema, Argos routes migrations and adapters to `reviewing-persistence` |
 | `ahrena-engineering-code-review` | Argos, who conducts the review: routes the lenses, publishes one verdict, loops through Erodos, lands |
 | `ahrena-engineering-quality` | Erodos and the review skills: route, review, publish the verdict, apply fixes, land |
