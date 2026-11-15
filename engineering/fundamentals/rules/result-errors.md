@@ -16,7 +16,7 @@ Four conditions. The first three carry the catalog ids ERR-1 to ERR-3 of the PR 
 
 An expected failure is one the caller can act on and the domain names: a rejected command, a missing record, a rule that was not met. An unexpected failure is everything else: a bug, an outage, a broken invariant. The two are handled by different mechanisms, and the conditions below say which.
 
-None of these conditions adds an abstraction. A `Result` is a return type, not a seam, so the abstraction trigger in condition 1 of `rules/yagni.md` does not gate them. Each is decided by a reviewer today; the detectors are tracked in the detectors sub-issue of #323, and each condition names the one it will get.
+None of these conditions adds an abstraction. A `Result` is a return type, not a seam, so the abstraction trigger in condition 1 of `rules/yagni.md` does not gate them. Except ERR-2, which `hooks/check-exposure.py` in the security plugin decides, each is decided by a reviewer today; the detectors are tracked in the detectors sub-issue of #323, and each condition names the one it will get.
 
 ## Conditions
 
@@ -40,4 +40,4 @@ None of these conditions adds an abstraction. A `Result` is a return type, not a
 
 **ERR-3 does not require a test per failure kind.** One forced unexpected failure per route proves the shape; the expected failures are covered by the `Result` tests of the use case. The condition also does not apply to a route the project has marked internal and unreachable from outside the deployment unit.
 
-**These conditions are judgment, and the detectors are named rather than shipped.** The framework contains no HTTP route to count and no `Result` type to search for, so the detectors need the consuming project's layer map and route list, which condition 6 of `rules/solid.md` also asks a reviewer for rather than shipping one.
+**ERR-1, ERR-3 and condition 4 are judgment, and their detectors are named rather than shipped; ERR-2's ships in the security plugin.** The framework contains no HTTP route to count and no `Result` type to search for, so the detectors need the consuming project's layer map and route list, which condition 6 of `rules/solid.md` also asks a reviewer for rather than shipping one.
