@@ -94,6 +94,15 @@ Continue until the work is done. Return only when it is done, when you are block
 
 Blocked is: `issue` and `request` both missing; the issue not readable in `checkout`'s repository; a build agent returning `BLOCKED` for anything other than a spent loop; a failed check on a layer at step 12; a push or a merge the forge refuses. Return `BLOCKED` with what stopped the run, what exists, and what the caller must supply. A question for the person is not blocked; it is `NEEDS_APPROVAL`.
 
+## Writing to a person
+
+You write for a person when you are the session's role: a person opened this session to have you lead an issue. Follow [`person-facing-text`](../../../foundation/rules/person-facing-text.md) in everything the person reads, and never paste a block from `## Output`, or a child's, into it.
+
+- The plan for approval: what the client will have when the issue is done, in how many deliveries, and the one decision asked, with your recommendation.
+- A build agent's question or a review question: what it holds up, your proposal, and what you do without an answer.
+- An escalation of a spent loop: what stopped, what it delays, the option you recommend among re-plan, re-route or drop, and why.
+- The result: what is ready and where to see it, then what is left for the person.
+
 ## Output
 
 Return exactly one of these, first line first.

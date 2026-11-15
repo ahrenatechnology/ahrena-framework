@@ -27,14 +27,14 @@ The scan skips fenced blocks and inline code. `<plugin>` on a command line is wh
 | **rule** | `Conditions`, `Where this stops` |
 | **doc** | `Where this stops` |
 | **skill** | at least one numbered step, `When this skill does not apply` |
-| **agent** | `What this agent is for`, `Inputs`, `Procedure`, `Delegation`, `Done when`, `When blocked`, `Output`, `What it does not do`, `Example`, in that order, with `Before you start` second when the agent orchestrates a skill |
+| **agent** | `What this agent is for`, `Inputs`, `Procedure`, `Delegation`, `Done when`, `When blocked`, `Output`, `What it does not do`, `Example`, in that order, with `Before you start` second when the agent orchestrates a skill, and `Writing to a person` before `Output` when its role is a session role |
 | **command** | `What runs` |
 
 Headings are matched outside code, so an example of a heading is not a heading.
 
-**The agent row binds every agent.** There is no older shape to fall back to: an agent without `## Procedure` fails like any other missing section. `Before you start` is in the order but not in the row's required set, because condition 10 of [`frontmatter.md`](frontmatter.md) already requires it exactly when the agent orchestrates a skill.
+**The agent row binds every agent.** There is no older shape to fall back to: an agent without `## Procedure` fails like any other missing section. `Before you start` is in the order but not in the row's required set, because condition 10 of [`frontmatter.md`](frontmatter.md) already requires it exactly when the agent orchestrates a skill. `Writing to a person` is in the order on the same terms: [`session-roles.md`](session-roles.md) requires it exactly when the agent's role is a session role.
 
-**An agent's `Output` is a literal template.** Each fenced block under `## Output` opens with `DONE`, `BLOCKED` or `NEEDS_APPROVAL` on its first line, and a `NEEDS_APPROVAL` block carries an `approve:`, a `recommendation:` and a `resume:` field, because a run that needs a person's approval returns and stops instead of waiting. Its `Example` holds at least one worked example between `<example>` and `</example>` tags outside code.
+**An agent's `Output` is a literal template.** Each fenced block under `## Output` opens with `DONE`, `BLOCKED` or `NEEDS_APPROVAL` on its first line, and a `NEEDS_APPROVAL` block carries an `approve:`, a `recommendation:` and a `resume:` field, because a run that needs a person's approval returns and stops instead of waiting. A session role may drop `resume:`: its question is answered in the same session, and nothing is relaunched. Its `Example` holds at least one worked example between `<example>` and `</example>` tags outside code.
 
 These are the sections that carry the artifact's boundary. `Where this stops` is what separates a rule from dogma; `When this skill does not apply` is what stops a skill being reached for in the wrong situation; `What it does not do` is what keeps an agent from absorbing its neighbours. `docs/artifact-model.md` argues the case.
 
@@ -47,7 +47,7 @@ Each of these is decided by `hooks/validate-artifacts.py`.
 3. Every section required for the artifact's type is present as an `##` heading outside code.
 4. A skill has at least one numbered `##` step.
 5. In an agent, the skeleton sections it carries appear in the order of the agent row.
-6. In an agent, `## Output` holds at least one fenced block; every fenced block there opens with `DONE`, `BLOCKED` or `NEEDS_APPROVAL`, and one that opens with `NEEDS_APPROVAL` has lines starting `approve:`, `recommendation:` and `resume:`.
+6. In an agent, `## Output` holds at least one fenced block; every fenced block there opens with `DONE`, `BLOCKED` or `NEEDS_APPROVAL`, and one that opens with `NEEDS_APPROVAL` has lines starting `approve:`, `recommendation:` and, unless the agent's role is a session role, `resume:`.
 7. In an agent, `## Example` holds an `<example>` tag followed by an `</example>` tag, outside code.
 
 ## Where this stops
