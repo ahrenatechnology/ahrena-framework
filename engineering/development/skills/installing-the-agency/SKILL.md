@@ -81,10 +81,13 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/installing-the-agency/scripts/install.py"
 python3 <skill-dir>/scripts/install.py --platform codex .
 ```
 
-The directive states that build work enters through the `athena` agent, who plans
-the issue, routes the concern, and delegates each layer to iris, apollo or clio
-while running the develop→Argos loop before each stacked pull request — and that
-build work is not implemented directly. A malformed settings file is an error,
+The directive states that build work enters through a session that takes the
+role of the `athena` agent (`/issue-tl` on Claude Code), who plans the issue,
+routes the concern, and delegates each layer to iris, apollo or clio while running
+the develop→Argos loop before each stacked pull request — that build work is not
+implemented directly, and that where a session cannot take her role she is called
+as a subagent and her return is written for the person, never pasted. This
+repository's `ADR-020` records the binding. A malformed settings file is an error,
 exit 2, and the file is left as it was. Running the script twice changes nothing
 the second time and says so, which is what makes it safe to re-run on every setup.
 

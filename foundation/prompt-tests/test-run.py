@@ -119,6 +119,35 @@ CASES += [
 ]
 
 
+REPO = HERE.parents[1]
+RULE_PATH = "foundation/rules/person-facing-text.md"
+ATHENA = REPO / "engineering" / "development" / "agents" / "athena.md"
+
+
+def instructions_of(text: str) -> str:
+    with tempfile.TemporaryDirectory() as folder:
+        agent = Path(folder) / "agent.md"
+        agent.write_text(text, encoding="utf-8")
+        return run.agent_instructions(agent, RULE_PATH, "THE RULE")
+
+
+# #316/AC-4: an agent definition is the writer's instructions in place of the bare rule.
+CASES += [
+    ("an agent definition gives the writer its body and the rule it links",
+     lambda: (lambda t: "THE RULE" in t and "## Writing to a person" in t and "type: agent" not in t)(
+         run.agent_instructions(ATHENA, RULE_PATH, "THE RULE"))),
+    ("an agent that does not link the rule is refused",
+     lambda: raises(lambda: instructions_of("---\nname: x\n---\n\n# X\n\nWrite well.\n"))),
+    ("a rule named only in inline code is not a link",
+     lambda: raises(lambda: instructions_of("# X\n\nFollow `person-facing-text.md`.\n"))),
+    ("an agent that cannot be run is reported as not run, before any model call",
+     lambda: "does not link" in subprocess.run(
+         [sys.executable, str(HERE / "run.py"), str(HERE / "person-facing-text" / "cases.json"),
+          "--agent", str(HERE / "test-run.py"), "--runner", "false"],
+         capture_output=True, text=True).stderr),
+]
+
+
 def not_run(runner: str, out: Path) -> tuple[int, str]:
     cases = str(HERE / "person-facing-text" / "cases.json")
     done = subprocess.run(
