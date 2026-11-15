@@ -1,4 +1,4 @@
-# ADR-020: Argos accelerates, the forge holds, and the pipeline is declared
+# ADR-021: Argos accelerates, the forge holds, and the pipeline is declared
 
 - **Status:** accepted
 - **Date:** 2026-11-04

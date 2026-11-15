@@ -4,7 +4,7 @@
 - **Date:** 2026-10-09
 - **Issue:** #130
 - **Supersedes:** ADR-009
-- **Superseded by:** ADR-020
+- **Superseded by:** ADR-021
 
 ## Context
 
