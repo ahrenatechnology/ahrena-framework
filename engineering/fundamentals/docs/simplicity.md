@@ -114,4 +114,4 @@ A value above 1 means the class literally partitions: there are two sets of meth
 
 **It does not reach language-specific structure.** Python module boundaries, import cycles, assembly layout in .NET and barrel files in TypeScript are all real versions of dependency inversion and all decided by facts about one toolchain. They belong in the language plugins, and `ahrena-engineering-python` is the first of them.
 
-**Neither does it settle what a layer is.** Condition 6 of `rules/solid.md` needs a map of which modules are policy and which are mechanism, and this plugin does not supply one. Until a bounded-context layout artifact exists, a reviewer supplies the map and the condition is only as good as that map.
+**Neither does it settle what a layer is.** Condition 6 of `rules/solid.md` needs a map of which modules are policy and which are mechanism, and the project supplies it as `.ahrena/layer-map.json`, which `rules/layer-map.md` requires; the condition is only as good as that map.

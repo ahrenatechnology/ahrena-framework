@@ -4,13 +4,13 @@ type: rule
 clade: engineering
 subclade: quality
 title: One problem per file
-statement: A source file exports one public concept and is named after it; a file over 300 lines is reported as an indicator, not a failure.
+statement: A source file exports one public concept and is named after it; a file taken past 300 lines needs a one-line reason in the PR description.
 enforcement: judgment
 ---
 
 # One problem per file
 
-Two conditions. A file that holds one concept is found by its name, changes for one reason and is reviewed in one reading. The first condition decides that; the second is a size indicator that points at files probably breaking the first.
+Two conditions. A file that holds one concept is found by its name, changes for one reason and is reviewed in one reading. The first condition decides that; the second is a size limit that points at files probably breaking the first, and is met by a one-line reason.
 
 ## Conditions
 

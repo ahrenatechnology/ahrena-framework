@@ -4,7 +4,7 @@ type: doc
 clade: engineering
 subclade: architecture
 title: The context, the layout and the vocabulary
-summary: Why a bounded context is a directory, how that layout supplies the layer map the SOLID rule was missing, why a list of vendor tokens is admissible where a list of generic nouns is not, and what the four audit fields buy.
+summary: Why a bounded context is a directory, how that layout is the default a project's layer map is written from, why a list of vendor tokens is admissible where a list of generic nouns is not, and what the four audit fields buy.
 references:
   - rules/domain-model.md
   - docs/solid.md
@@ -31,15 +31,13 @@ That is a modelling claim, and modelling claims are not enforceable. What is enf
 
 The directory is not the context. It is the place the context is written down, and it is what lets a script say anything at all.
 
-**The pragmatic argument for choosing a layout, and why it now also asks for a map.** A configurable layer map is a file, and a file drifts from the tree it describes. [`rules/layer-map.md`](../rules/layer-map.md) (#326) now requires that file anyway, because detectors in other languages need a partition they can read; the answer to the drift is its condition STR-4, which fails a folder the map does not cover, and the folder-name convention stays as the default the map is written from. When it drifts the check keeps passing, on the wrong partition, and nobody notices because a green check is indistinguishable from a correct one. A convention cannot drift from itself: the directory a module is in is the claim about which layer it belongs to, and moving the file is the only way to change the claim.
+**Why the layout is a default and the map is still a file.** A layer map is a file, and a file drifts from the tree it describes; when it drifts the check keeps passing on the wrong partition and a green check looks like a correct one. [`rules/layer-map.md`](../rules/layer-map.md) (#326) requires the file anyway, because detectors in other languages need a partition they can read, and answers the drift with STR-4, which fails a folder the map does not cover. The directory convention stays as the default the map is written from: the directory a module is in is still the first claim about its layer.
 
-The cost is real and it is stated in the rule's boundary: a project laid out differently gets nothing from the detector. That is the trade — a check that works with no configuration for projects that adopt the convention, and no check at all for those that do not, rather than a configurable check that silently describes the wrong tree.
+The cost is stated in the rule's boundary: the shipped Python detector reads the folder names and not the map, so a project laid out differently gets nothing from it until the detectors read the map.
 
 ## What this closes
 
-`docs/solid.md` says of dependency inversion that the layer map "is the input the condition needs and this plugin does not ship one, so a reviewer supplies it". `docs/simplicity.md` says it twice, once in its own boundary section: "Until a bounded-context layout artifact exists, a reviewer supplies the map and the condition is only as good as that map."
-
-Condition 1 of `rules/domain-model.md` is that artifact, and the map it supplies is three directory names. Within a project that adopts the layout, condition 6 of `rules/solid.md` is no longer a reviewer's judgment about which modules are policy — it is a path check, and the script runs it.
+`docs/solid.md` says of dependency inversion that the layer map is the input the condition needs. [`rules/layer-map.md`](../rules/layer-map.md) now requires the project to write it as `.ahrena/layer-map.json`, and the layout in condition 1 of `rules/domain-model.md` is the default it is written from. Within a project that has the map, condition 6 of `rules/solid.md` is a path check rather than a reviewer's judgment about which modules are policy.
 
 What remains a reviewer's job is the harder half. The layout says which modules are policy; it does not say whether the right things are in them. A `domain/` directory full of anaemic record types with the logic in `application/` satisfies every path check and has no domain model in it. The map makes the mechanical half mechanical, which is all a map can do.
 

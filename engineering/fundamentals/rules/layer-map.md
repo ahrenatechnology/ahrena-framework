@@ -10,7 +10,7 @@ enforcement: judgment
 
 # The declared layer map
 
-One condition. Every rule that asks which side of a boundary a module sits on, such as a domain that imports no mechanism, needs a partition of the source tree into layers. [`domain-model.md`](domain-model.md) supplies a default by folder name; this rule is the file a project writes when its layout is not that default, and the file the detectors that will ship read. The rule names the shape and the location of the file; the content is the project's.
+One condition. Every rule that asks which side of a boundary a module sits on, such as a domain that imports no mechanism, needs a partition of the source tree into layers. [`domain-model.md`](domain-model.md) names the default folder layout; this rule is the file every project writes, from that default or from its own layout, and the file the detectors that will ship read. The rule names the shape and the location of the file; the content is the project's.
 
 ## Conditions
 

@@ -40,7 +40,7 @@ No condition here adds an abstraction, so the trigger in condition 1 of `rules/y
 
 **Condition 2 does not reach a memo or a lazily built table.** A service that caches an expensive derivation holds state that no caller can observe as behaviour, and forbidding it buys nothing. The state the condition is about is state that changes what the next call answers.
 
-**Condition 3 does not reach a tree with no `domain/` directory.** The layer is found by the directory name, so a project laid out differently gets nothing from this condition and supplies its own map to a reviewer. That is the same cost `rules/domain-model.md` pays for choosing a convention over a configuration, and the same answer: a configurable layer map drifts from the layout and is wrong invisibly.
+**Condition 3 does not reach a tree with no `domain/` directory.** The layer is found by the directory name, so a project laid out differently gets nothing from this condition until the detectors read the project's `.ahrena/layer-map.json` ([`layer-map.md`](layer-map.md)); a reviewer reads that map in the meantime.
 
 **Condition 4's line is thin, and the rule says so rather than pretending.** Between "only sequences" and "decides something" is where most arguments about services happen, and a use case almost always contains one small decision — which of two adapters, whether to skip on an empty result. The condition fires on the type whose every operation is a sequence, not on the one that sequences and also decides. Where a reviewer genuinely cannot tell, `rules/yagni.md`'s position applies: the smaller code wins, and the smaller code here is one fewer type in the domain.
 
