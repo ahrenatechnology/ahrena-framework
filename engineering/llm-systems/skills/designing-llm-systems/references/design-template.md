@@ -29,13 +29,14 @@ Issue: <#n> · Date: <yyyy-mm-dd> · Author: <agent or person>
 - Need that holds today: <row of docs/frameworks.md and evidence, or "none">
 - Costs accepted: <abstraction / upgrade churn / defaults / lock-in, each with a line, or "not applicable">
 - Defaults set explicitly: <loop bound, trace destination, ...>
+- Decision record: <link, or "not needed: <why>">
 
 ## Tools
 
 | Tool | Description (as the model reads it) | Input schema | Validation in code | Acts as | Effect gated by | Output bound |
 |---|---|---|---|---|---|---|
 
-reviewing-model-use: <findings, or "not run: plugin not installed">
+reviewing-model-use: <findings, or "not run, plugin not installed">
 
 ## Loop
 

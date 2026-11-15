@@ -1,6 +1,6 @@
 ---
 name: reviewing-llm-systems
-description: Use when a change under review builds or changes an LLM system - code that calls a model API or an agent SDK, a tool definition, a prompt in code, an agent loop, an agent framework added to a manifest, an evaluation set - and the question is whether it has the simplest shape that works and the bounds, validation, evaluation and tracing it needs. Reports an agent, a second agent or a framework that a simpler shape would replace, naming that shape, and every other finding by the condition it breaks.
+description: Use when a change under review builds or changes an LLM system - code that calls a model API or an agent SDK, a tool definition, a prompt in code, an agent loop, an agent framework added to a manifest, an evaluation set - and the question is whether it has the simplest shape that works and the bounds, validation, evaluation and tracing it needs. Reports an agent, a second agent or a framework that a simpler shape would replace, naming that shape, and every other finding by the condition it breaks. Prompt wording goes to reviewing-prompts, and injection and tool authority to reviewing-model-use.
 type: skill
 clade: engineering
 subclade: llm-systems
@@ -18,7 +18,7 @@ references:
 
 # Reviewing LLM systems
 
-The output is a list of findings, each naming a condition from `references/conditions.md` (`SHP-n`, `FWK-n`, `TOOL-n`, `LOOP-n`, `EVAL-n`, `TRC-n`), the file and line, the scenario that goes wrong, and a correction that is an instruction. A finding that a simpler shape would do the job names that shape. This skill reports; it does not edit the change and does not publish a verdict.
+The output is a list of findings, each naming a condition from `references/conditions.md` (`SHP-n` for the shape, `FWK-n`, `TOOL-n`, `LOOP-n`, `EVAL-n`, `TRC-n`), the file and line, the scenario that goes wrong, and a correction that is an instruction. A finding that a simpler shape would do the job names that shape. This skill reports; it does not edit the change and does not publish a verdict.
 
 ## 1. Find what the change builds
 
@@ -28,22 +28,22 @@ List the LLM components the change adds or alters: each place that calls a model
 
 ## 2. Find the design and the rung it claims
 
-Look for the design the change implements: a document the pull request or the issue links, or the place the project keeps designs. Note the rung it names and the evidence it gives. With no design, infer the rung from the code: one call per request is rung 1; calls in an order the code fixes are rung 2; a loop in which the model picks the next tool is rung 3; more than one such loop handing work between them is rung 4.
+Look for the design the change implements: a document the pull request or the issue links, or the place the project keeps designs. Note the rung it names and the evidence it gives. If neither the design nor the pull request names the rung of a component the change adds a model call to, report `SHP-6`, then infer the rung from the code so the next steps can run: one call per request is rung 1; calls in an order the code fixes are rung 2; a loop in which the model picks the next tool is rung 3; more than one such loop handing work between them is rung 4.
 
 ## 3. Ask whether a simpler shape does the job
 
-For each component at rung 2 or above, and each framework, apply `SHP-1` to `SHP-5` and `FWK-1` to `FWK-4` (`rules/simplest-shape.md`, `rules/framework-adoption.md`, `docs/choosing-the-shape.md`, `docs/frameworks.md`). Read the evaluation's traces or test fixtures where the change has them: a loop whose tool sequence is the same in every case, an agent with one tool, a second agent with no recorded single-agent run, a framework that wraps one call. Each finding names the simpler shape that replaces it, as the condition's `Correct` line says, and the evidence that would justify keeping the current one.
+Apply `SHP-1` to `SHP-4` to each component at rung 2 or above, `SHP-5` to every model call, and `FWK-1` to `FWK-4` to each framework (`rules/simplest-shape.md`, `rules/framework-adoption.md`, `docs/choosing-the-shape.md`, `docs/frameworks.md`). Read the evaluation's traces or test fixtures where the change has them: a loop whose tool sequence is the same in every case, an agent with one tool, a second agent with no recorded single-agent run, a framework that wraps one call. Each finding names the simpler shape that replaces it, as the condition's `Correct` line says, and the evidence that would justify keeping the current one.
 
 ## 4. Run the plugin's hooks
 
-On the changed Python files, run the plugin's two hooks, from the plugin's directory as installed:
+From the root of the repository under review, run the plugin's two hooks on the changed Python files, with the path to this plugin's directory as installed in front of `hooks/`:
 
 ```sh
-python3 hooks/check-loop-bounds.py <changed .py files>
-python3 hooks/check-tool-definitions.py <changed .py files>
+python3 <plugin-dir>/hooks/check-loop-bounds.py <changed .py files>
+python3 <plugin-dir>/hooks/check-tool-definitions.py <changed .py files>
 ```
 
-Each line the first prints is a `LOOP-1` to `LOOP-3` finding, and each line the second prints a `TOOL-1` or `TOOL-2` finding, as stated. Then read `LOOP-1` to `LOOP-5` by hand for what the hook cannot see: code in another language, Strands' `limits`, LangGraph's `recursion_limit`, the outcome when the bound is reached, and the stop reasons handled as success.
+Exit 0 means no finding; exit 1 means each `[loop-bounds]` line it printed is a `LOOP-1` to `LOOP-3` finding and each `[tool-definitions]` line a `TOOL-1` or `TOOL-2` finding, as stated; exit 2 means a path was not found, so the hook read nothing: list it as not run, with the message. Then read `LOOP-1` to `LOOP-5` by hand for what the hook cannot see: code in another language, Strands' `limits`, LangGraph's `recursion_limit`, the outcome when the bound is reached, and the stop reasons handled as success.
 
 ## 5. Read the tools, the evaluation and the tracing
 
