@@ -1,6 +1,6 @@
 {
   "name": "ahrena-engineering-quality",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "The code-review toolkit: the per-discipline review skills, the path router, the findings and verdict docs, and Erodos, the fixer. Argos, the reviewer that runs them, ships in ahrena-engineering-code-review.",
   "author": {
     "name": "Ahrena Technology",

@@ -1,0 +1,22 @@
+{
+  "name": "ahrena-engineering-devops",
+  "displayName": "Ahrena Engineering DevOps",
+  "version": "0.1.0",
+  "description": "GitHub as a delivery platform across AWS, Google Cloud and Azure: least-privilege tokens, pinned actions, OIDC instead of stored cloud keys, no contributor text in a script, no privileged trigger running a fork, nothing sensitive in a pipeline log, deploys approved, serialised and reversible, a timeout on every job; skills to write, review and debug pipelines and plan deployments; and Helios, the DevOps specialist.",
+  "author": {
+    "name": "Ahrena Technology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/devops",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "devops",
+    "github-actions",
+    "ci-cd",
+    "oidc",
+    "deployment",
+    "pipelines"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

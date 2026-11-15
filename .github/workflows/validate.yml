@@ -140,6 +140,9 @@ jobs:
       - name: Test the Terraform hook
         run: python3 engineering/terraform/hooks/test-check-terraform.py
 
+      - name: Test the GitHub Actions workflow hook
+        run: python3 engineering/devops/hooks/test-check-workflows.py
+
       - name: Test the branch-name hook
         run: python3 contributing/hooks/test-check-branch-name.py
 

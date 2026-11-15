@@ -211,6 +211,18 @@
       ]
     },
     {
+      "id": "pipelines",
+      "skill": "ahrena-engineering-devops:skills/reviewing-pipelines/SKILL.md",
+      "why": "a GitHub Actions workflow or composite action, read for token scope, pinning, cloud credentials, injection, triggers, log exposure, deploy safety and timeouts",
+      "opens": [
+        "ahrena-engineering-devops:skills/reviewing-pipelines/references/conditions.md"
+      ],
+      "paths": [
+        "(^|/)\\.github/workflows/[^/]+\\.ya?ml$",
+        "(^|/)\\.github/actions/(.+/)?action\\.ya?ml$"
+      ]
+    },
+    {
       "id": "untrusted-input",
       "skill": "ahrena-engineering-security:skills/reviewing-untrusted-input/SKILL.md",
       "why": "an added line reaches a query, a command, a path, a URL, a template or a deserialiser",

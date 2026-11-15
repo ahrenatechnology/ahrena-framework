@@ -96,6 +96,49 @@ def test_conditions() -> None:
     check(any("left:" in f for f in failed(silent)), "5: left: that does not name the criterion fails")
 
 
+OUTCOME = {
+    "id": "o",
+    "expect": {
+        "kind": "outcome",
+        "status": "DONE",
+        "skills": ["ahrena-engineering-devops:reviewing-pipelines"],
+        "result_matches": [r"PIPE-10"],
+        "result_excludes": [r"AKIAFAKE"],
+    },
+}
+REVIEW = ("Skill", {"skill": "ahrena-engineering-devops:reviewing-pipelines"})
+
+
+def test_outcome() -> None:
+    def outcome(*calls: tuple[str, dict], result: str) -> list[str]:
+        return run_agent.decide(sample(*calls, result=result), OUTCOME, RULE)[0]
+
+    check(outcome(REVIEW, result="DONE\nresult: blocking PIPE-10 deploy.yml:9") == [],
+          "outcome: the status, the skill and the finding pass")
+    check(any(f.startswith("6:") for f in outcome(REVIEW, result="BLOCKED\nPIPE-10")), "6: another status fails")
+    check(any(f.startswith("7:") for f in outcome(result="DONE\nPIPE-10")), "7: a listed skill never invoked fails")
+    check(any(f.startswith("8:") for f in outcome(REVIEW, result="DONE\nresult: none")), "8: a missing finding fails")
+    check(any(f.startswith("9:") for f in outcome(REVIEW, result="DONE\nPIPE-10 key AKIAFAKE")), "9: a quoted fixture value fails")
+
+
+def test_devops_cases_match_the_tree() -> None:
+    spec_ = json.loads((HERE / "devops" / "cases.json").read_text())
+    clouds = set()
+    for case in spec_["cases"]:
+        plugin, agent = case["agent"].split(":")
+        check((REPO / "engineering" / plugin.removeprefix("ahrena-engineering-") / "agents" / f"{agent}.md").is_file(),
+              f"{case['id']}: agent {case['agent']} exists")
+        check(case["expect"]["kind"] == "outcome", f"{case['id']}: is an outcome case")
+        for skill in case["expect"]["skills"]:
+            owner, name = skill.split(":")
+            path = REPO / "engineering" / owner.removeprefix("ahrena-engineering-") / "skills" / name / "SKILL.md"
+            check(path.is_file(), f"{case['id']}: {skill} exists")
+        clouds.add(case["cloud"])
+    check(clouds == {"aws", "gcp", "azure"}, "the devops cases cover one sample per cloud")
+    invoked = {s for c in spec_["cases"] for s in c["expect"]["skills"] if s.startswith("ahrena-engineering-devops:")}
+    check(len(invoked) == 4, "the devops cases run each of the plugin's four skills")
+
+
 def test_cases_patterns() -> None:
     spec_ = json.loads((HERE / "layer-builders" / "cases.json").read_text())
     rows = next(c for c in spec_["cases"] if c["id"] == "mnem-python")["expect"]["exposure"]["forbidden"]
@@ -136,6 +179,8 @@ if __name__ == "__main__":
     test_test_detection()
     test_cases_patterns()
     test_cases_match_the_tree()
+    test_outcome()
+    test_devops_cases_match_the_tree()
     for label, ok in results:
         print(f"{'ok  ' if ok else 'FAIL'}  {label}")
     failures = [label for label, ok in results if not ok]

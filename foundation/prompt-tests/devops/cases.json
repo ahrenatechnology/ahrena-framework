@@ -1,0 +1,143 @@
+{
+ "plugins": [
+  "devops",
+  "aws",
+  "gcp",
+  "azure",
+  "terraform",
+  "security",
+  "quality",
+  "fundamentals"
+ ],
+ "rule": "engineering/security/rules/layer-exposure.md",
+ "cases": [
+  {
+   "id": "devops-gcp-review",
+   "cloud": "gcp",
+   "agent": "ahrena-engineering-devops:helios",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-devops:reviewing-pipelines"
+    ],
+    "result_matches": [
+     "PIPE-1\\b",
+     "PIPE-5\\b",
+     "PIPE-8\\b",
+     "PIPE-10\\b",
+     "PIPE-12\\b",
+     "PIPE-16\\b",
+     "print-access-token|access token",
+     "show -json|JSON plan",
+     "(?i)password"
+    ],
+    "result_excludes": [
+     "acme-shop-prod-4711"
+    ]
+   },
+   "files": {
+    "app/main.py": "\"\"\"Orders service: a tiny HTTP app.\"\"\"\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\n\n\nclass Health(BaseHTTPRequestHandler):\n    def do_GET(self):\n        self.send_response(200)\n        self.end_headers()\n        self.wfile.write(b'ok')\n\n\nif __name__ == '__main__':\n    HTTPServer(('', 8080), Health).serve_forever()\n",
+    "Dockerfile": "FROM python:3.12-slim\nWORKDIR /app\nCOPY app/ .\nUSER 10001\nCMD [\"python\", \"main.py\"]\n",
+    "Makefile": "test:\n\tpython -m py_compile app/main.py\n",
+    ".github/workflows/ci.yml": "name: ci\non:\n  pull_request:\npermissions:\n  contents: read\njobs:\n  test:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    steps:\n      - uses: actions/checkout@v5\n      - run: make test\n"
+   },
+   "head_files": {
+    ".github/workflows/deploy.yml": "name: deploy\non:\n  push:\n    branches: [main]\nenv:\n  GCP_PROJECT: acme-shop-prod-4711\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    environment: production\n    steps:\n      - uses: actions/checkout@v5\n      - uses: google-github-actions/auth@v2\n        with:\n          credentials_json: ${{ secrets.GCP_SA_KEY }}\n      - uses: hashicorp/setup-terraform@v3\n      - name: plan\n        env:\n          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}\n        run: |\n          set -x\n          echo \"token: $(gcloud auth print-access-token)\"\n          terraform -chdir=infra init\n          terraform -chdir=infra plan -out=tfplan\n          terraform -chdir=infra show -json tfplan\n          echo \"db password is $TF_VAR_db_password\"\n      - name: deploy\n        run: gcloud run deploy orders --image=europe-docker.pkg.dev/$GCP_PROJECT/shop/orders:latest --region=europe-west1\n"
+   },
+   "brief": "mode: review\ncheckout: the current directory\nbase: main\nhead: the working tree\nThe working tree adds .github/workflows/deploy.yml, which deploys the orders service to Cloud Run on Google Cloud. Review it."
+  },
+  {
+   "id": "devops-azure-write",
+   "cloud": "azure",
+   "agent": "ahrena-engineering-devops:helios",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-devops:writing-pipelines"
+    ],
+    "result_matches": [
+     "(?i)environment",
+     "(?i)federat|OIDC",
+     "(?i)hook"
+    ],
+    "added_excludes": [
+     "\\bcreds\\s*:",
+     "client-secret",
+     "AZURE_CLIENT_SECRET",
+     "cancel-in-progress:\\s*true",
+     "azure/login@v\\d"
+    ]
+   },
+   "files": {
+    "app/main.py": "\"\"\"Orders service: a tiny HTTP app.\"\"\"\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\n\n\nclass Health(BaseHTTPRequestHandler):\n    def do_GET(self):\n        self.send_response(200)\n        self.end_headers()\n        self.wfile.write(b'ok')\n\n\nif __name__ == '__main__':\n    HTTPServer(('', 8080), Health).serve_forever()\n",
+    "Dockerfile": "FROM python:3.12-slim\nWORKDIR /app\nCOPY app/ .\nUSER 10001\nCMD [\"python\", \"main.py\"]\n",
+    "Makefile": "test:\n\tpython -m py_compile app/main.py\n",
+    ".github/workflows/ci.yml": "name: ci\non:\n  pull_request:\npermissions:\n  contents: read\njobs:\n  test:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    steps:\n      - uses: actions/checkout@v5\n      - run: make test\n"
+   },
+   "brief": "mode: write\ncloud: azure\ncheckout: the current directory\ntask: Write the GitHub Actions workflow that builds the orders service's container image once on every push to main, pushes it to the Azure Container Registry named in the repository variable ACR_NAME, and deploys that same image to the Azure Container App named in the variable APP_NAME, first in the staging environment and then in production. The Azure identity, its federated credentials and the GitHub environments will be created by the platform team; list what they must create. Do not commit."
+  },
+  {
+   "id": "devops-aws-plan",
+   "cloud": "aws",
+   "agent": "ahrena-engineering-devops:helios",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-devops:planning-deployments",
+     "ahrena-engineering-aws:designing-on-aws",
+     "ahrena-engineering-terraform:writing-terraform"
+    ],
+    "result_matches": [
+     "(?i)rollback",
+     "(?i)environment",
+     "(?i)staging",
+     "(?i)production",
+     "(?i)terraform"
+    ],
+    "added_excludes": [
+     "\\b\\d{12}\\b"
+    ]
+   },
+   "files": {
+    "app/main.py": "\"\"\"Orders service: a tiny HTTP app.\"\"\"\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\n\n\nclass Health(BaseHTTPRequestHandler):\n    def do_GET(self):\n        self.send_response(200)\n        self.end_headers()\n        self.wfile.write(b'ok')\n\n\nif __name__ == '__main__':\n    HTTPServer(('', 8080), Health).serve_forever()\n",
+    "Dockerfile": "FROM python:3.12-slim\nWORKDIR /app\nCOPY app/ .\nUSER 10001\nCMD [\"python\", \"main.py\"]\n",
+    "Makefile": "test:\n\tpython -m py_compile app/main.py\n",
+    ".github/workflows/ci.yml": "name: ci\non:\n  pull_request:\npermissions:\n  contents: read\njobs:\n  test:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    steps:\n      - uses: actions/checkout@v5\n      - run: make test\n"
+   },
+   "brief": "mode: plan\ncloud: aws\ncheckout: the current directory\ntask: Plan how the orders service (app/, Dockerfile) reaches a staging and then a production environment on AWS through GitHub Actions. It is a stateless HTTP service on port 8080 with a health check at /, expecting about 20 requests per second, in eu-west-1, no data store. The repository has no infrastructure yet; infrastructure is written in Terraform. Write the plan to docs/deployment-plan.md. Do not apply or create anything in AWS."
+  },
+  {
+   "id": "devops-aws-debug",
+   "cloud": "aws",
+   "agent": "ahrena-engineering-devops:helios",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-devops:debugging-pipelines"
+    ],
+    "result_matches": [
+     "(?i)environment:production|environment segment|:environment:",
+     "(?i)\\bsub\\b|subject",
+     "infra/iam\\.tf"
+    ],
+    "result_excludes": [
+     "210987654321"
+    ]
+   },
+   "files": {
+    "app/main.py": "\"\"\"Orders service: a tiny HTTP app.\"\"\"\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\n\n\nclass Health(BaseHTTPRequestHandler):\n    def do_GET(self):\n        self.send_response(200)\n        self.end_headers()\n        self.wfile.write(b'ok')\n\n\nif __name__ == '__main__':\n    HTTPServer(('', 8080), Health).serve_forever()\n",
+    "Dockerfile": "FROM python:3.12-slim\nWORKDIR /app\nCOPY app/ .\nUSER 10001\nCMD [\"python\", \"main.py\"]\n",
+    "Makefile": "test:\n\tpython -m py_compile app/main.py\n",
+    ".github/workflows/ci.yml": "name: ci\non:\n  pull_request:\npermissions:\n  contents: read\njobs:\n  test:\n    runs-on: ubuntu-latest\n    timeout-minutes: 10\n    steps:\n      - uses: actions/checkout@v5\n      - run: make test\n",
+    "infra/iam.tf": "data \"aws_iam_policy_document\" \"deploy_trust\" {\n  statement {\n    actions = [\"sts:AssumeRoleWithWebIdentity\"]\n    principals {\n      type        = \"Federated\"\n      identifiers = [aws_iam_openid_connect_provider.github.arn]\n    }\n    condition {\n      test     = \"StringEquals\"\n      variable = \"token.actions.githubusercontent.com:aud\"\n      values   = [\"sts.amazonaws.com\"]\n    }\n    condition {\n      test     = \"StringEquals\"\n      variable = \"token.actions.githubusercontent.com:sub\"\n      values   = [\"repo:acme/shop:ref:refs/heads/main\"]\n    }\n  }\n}\n\nresource \"aws_iam_role\" \"deploy\" {\n  name               = \"shop-deploy\"\n  assume_role_policy = data.aws_iam_policy_document.deploy_trust.json\n}\n",
+    ".github/workflows/deploy.yml": "name: deploy\non:\n  push:\n    branches: [main]\npermissions:\n  contents: read\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    timeout-minutes: 15\n    environment: production\n    concurrency:\n      group: deploy-production\n      cancel-in-progress: false\n    permissions:\n      contents: read\n      id-token: write\n    steps:\n      - uses: actions/checkout@v5\n      - uses: aws-actions/configure-aws-credentials@11bd71901bbe5b1630ceea73d27597364c9af683  # v6.3.0\n        with:\n          role-to-assume: ${{ vars.DEPLOY_ROLE_ARN }}\n          aws-region: eu-west-1\n      - run: ./deploy.sh\n",
+    "deploy.sh": "#!/bin/sh\nset -eu\naws ecs update-service --cluster shop --service orders --force-new-deployment > /dev/null\n"
+   },
+   "brief": "mode: debug\ncloud: aws\ncheckout: the current directory\ntask: The deploy workflow (.github/workflows/deploy.yml) failed on the last push to main. There is no gh access from here; this is the failing step's log, pasted:\nRun aws-actions/configure-aws-credentials@11bd719\n  with:\n    role-to-assume: arn:aws:iam::210987654321:role/shop-deploy\n    aws-region: eu-west-1\nAssuming role with OIDC\nError: Could not assume role with OIDC: Not authorized to perform sts:AssumeRoleWithWebIdentity\n"
+  }
+ ]
+}

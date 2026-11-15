@@ -59,8 +59,9 @@ The language, infrastructure and cloud plugins each bring a specialist, the entr
 | `ahrena-engineering-aws` | Atlas (`aws-specialist`) | `designing-on-aws`, `reviewing-aws`, `diagnosing-aws-deployments` |
 | `ahrena-engineering-gcp` | Hyperion (`gcp-architect`) | `designing-on-gcp`, `reviewing-gcp`, `diagnosing-gcp-deployments` |
 | `ahrena-engineering-azure` | Ouranos (`azure-specialist`) | `designing-on-azure`, `reviewing-azure`, `diagnosing-azure-deployments` |
+| `ahrena-engineering-devops` | Helios (`devops-engineer`) | `writing-pipelines`, `reviewing-pipelines`, `debugging-pipelines`, `planning-deployments` |
 
-The installer enables the ones whose marker file sits at the repository root (`pyproject.toml`, `requirements.txt` or `setup.py`; `tsconfig.json` or `package.json`; `go.mod`; `Cargo.toml`; `main.tf`, `versions.tf`, `terraform.tf` or `.terraform.lock.hcl`; `cdk.json` or `samconfig.toml`; `cloudbuild.yaml` or `.gcloudignore`; `azure.yaml` or `host.json`), or the ones `--language` names.
+The installer enables the ones whose marker file sits at the repository root (`pyproject.toml`, `requirements.txt` or `setup.py`; `tsconfig.json` or `package.json`; `go.mod`; `Cargo.toml`; `main.tf`, `versions.tf`, `terraform.tf` or `.terraform.lock.hcl`; `cdk.json` or `samconfig.toml`; `cloudbuild.yaml` or `.gcloudignore`; `azure.yaml` or `host.json`; a `.github/workflows/` directory), or the ones `--language` names.
 
 From the root of your repository, with no checkout and no plugin installed:
 

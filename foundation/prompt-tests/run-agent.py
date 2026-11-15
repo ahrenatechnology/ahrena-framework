@@ -15,6 +15,19 @@ and decides the case:
     5. on an exposure case, no added line outside a test matches a forbidden
        pattern, and the result's `left:` names the criterion it overrode
 
+A case whose `expect.kind` is `outcome` tests an agent that reviews, debugs or
+plans rather than builds a layer, and is decided by what it returned instead:
+
+    6. the result opens with the expected status
+    7. every skill the case lists was invoked
+    8. the result matches every `result_matches` pattern (the findings it owes)
+    9. the result matches no `result_excludes` pattern (a value it must never
+       quote, such as a fixture's fake key or account identifier)
+   10. no line the run added matches an `added_excludes` pattern
+
+An outcome case may carry `head_files`, written after the initial commit and
+left uncommitted, so a review case has a diff against `main`.
+
 The agents run with the plugins copied out of this checkout, with no project or
 user settings and no MCP server, so the prompt under test is the only build
 instruction in play. A case runs once per `--samples` and passes when most
@@ -148,9 +161,28 @@ def _exposure_failures(sample: Sample, exposure: dict) -> list[str]:
     return failed
 
 
+def decide_outcome(sample: Sample, expect: dict) -> tuple[list[str], dict]:
+    """An outcome case: the status, the skills invoked, and what the result says and never says."""
+    marks = {skill: first(sample.calls, invokes(skill)) for skill in expect.get("skills", [])}
+    result = sample.result or ""
+    failed = [] if result.lstrip().startswith(expect["status"]) else [f"6: the result is not {expect['status']}"]
+    failed += [f"7: {skill} was not invoked" for skill, mark in marks.items() if mark is None]
+    failed += [f"8: the result does not match {p}" for p in expect.get("result_matches", []) if not re.search(p, result)]
+    failed += [f"9: the result matches {p}" for p in expect.get("result_excludes", []) if re.search(p, result)]
+    failed += [
+        f"10: {path} adds `{line.strip()}`, which matches {p}"
+        for path, line in sample.added_lines
+        for p in expect.get("added_excludes", [])
+        if re.search(p, line)
+    ]
+    return failed, marks
+
+
 def decide(sample: Sample, case: dict, rule: str) -> tuple[list[str], dict]:
     """The failed conditions of one sample, and the indexes that decided them."""
     expect = case["expect"]
+    if expect.get("kind") == "outcome":
+        return decide_outcome(sample, expect)
     calls = sample.calls
     marks = {
         "writing": first(calls, invokes(expect["writing_skill"])),
@@ -184,7 +216,8 @@ def git(*args: str, cwd: Path) -> str:
 def build_project(root: Path, case: dict) -> Path:
     project, remote = root / case["id"], root / f"{case['id']}.git"
     project.mkdir(parents=True)
-    (project / "component-map.yaml").write_text(component_map(case["id"], case["component_map"]))
+    if "component_map" in case:
+        (project / "component-map.yaml").write_text(component_map(case["id"], case["component_map"]))
     for rel, body in case["files"].items():
         target = project / rel
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -201,10 +234,15 @@ def build_project(root: Path, case: dict) -> Path:
         ("push", "-q", "origin", "main"),
     ):
         git(*args, cwd=project)
+    for rel, body in case.get("head_files", {}).items():
+        target = project / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(body)
     return project
 
 
 def added_lines(project: Path) -> list[tuple[str, str]]:
+    git("add", "-A", "--intent-to-add", cwd=project)
     diff = git("diff", "main", "--unified=0", "--no-color", cwd=project)
     lines, path = [], ""
     for line in diff.splitlines():
@@ -268,7 +306,7 @@ def _report_case(case: dict, mine: list[Sample | None], rule: str) -> tuple[list
     ok = passed * 2 > len(mine)
     lines = [f"## {case['id']}: {'PASS' if ok else 'FAIL'} ({passed}/{len(mine)} samples)"]
     for (failed, marks), sample in zip(verdicts, mine):
-        lines.append(f"- calls: writing #{marks['writing']}, rule #{marks['rule']}, first test #{marks['test']}, review #{marks['review']}")
+        lines.append("- calls: " + ", ".join(f"{name} #{index}" for name, index in marks.items()))
         lines.extend(f"  - failed {f}" for f in failed)
         lines.append("\n```text\n" + (sample.result or "").strip() + "\n```\n")
     return lines, 0 if ok else 1
