@@ -31,6 +31,13 @@ Usage:
     python3 foundation/prompt-tests/run.py foundation/prompt-tests/person-facing-text/cases.json
     python3 foundation/prompt-tests/run.py <cases.json> --samples 3 --model sonnet --out report.md
     python3 foundation/prompt-tests/run.py <cases.json> --baseline
+    python3 foundation/prompt-tests/run.py <cases.json> --agent engineering/development/agents/athena.md
+
+With `--agent`, the writer is given an agent's definition in place of the bare
+rule: the body of a session role, then the rule its person section links, as the
+file a session holding that role reads before it writes. The judge still decides
+the rule's conditions. An agent whose body does not link the cases' rule is not
+run, because nothing would bring the rule into its session.
 """
 
 from __future__ import annotations
@@ -200,8 +207,32 @@ def ask(system: str, prompt: str, model: str, runner: str | None) -> str:
     return done.stdout.strip()
 
 
+def agent_instructions(path: Path, rule_path: str, rule: str) -> str:
+    """The writer's instructions from an agent definition: its body, then the rule it links.
+
+    The frontmatter is dropped, because a session reads the body as its
+    instructions. The body must link the cases' rule by file name, or the role
+    would never read it, and the run is refused.
+    """
+    text = path.read_text(encoding="utf-8")
+    body = text.split("\n---\n", 1)[1] if text.startswith("---\n") and "\n---\n" in text else text
+    name = Path(rule_path).name
+    if not re.search(r"\]\([^)\s]*" + re.escape(name) + r"\)", body):
+        raise ValueError(f"{path} does not link {name}, so its session would never read the rule")
+    return (
+        "You hold the session's role defined below. Its body is your instructions.\n\n"
+        f"<agent>\n{body.strip()}\n</agent>\n\n"
+        f"You read the rule its person section links, {name}:\n\n<rule>\n{rule}\n</rule>"
+    )
+
+
 def write_text(rule: str, case: Case, args: argparse.Namespace) -> str:
-    system = WRITER if args.baseline else f"{WRITER}\n\nFollow this rule in everything you write for a person.\n\n{rule}"
+    if args.baseline:
+        system = WRITER
+    elif args.agent_text:
+        system = f"{WRITER}\n\n{args.agent_text}"
+    else:
+        system = f"{WRITER}\n\nFollow this rule in everything you write for a person.\n\n{rule}"
     prompt = f"{case.situation}\n\nWrite the message you would now send to the person."
     return ask(system, prompt, args.model, args.runner)
 
@@ -217,6 +248,11 @@ def run_case(rule: str, case: Case, args: argparse.Namespace) -> list[Sample]:
         text = write_text(rule, case, args)
         samples.append(Sample(text, scripted_failures(text, case), judge_text(rule, case, text, args)))
     return samples
+
+
+def rule_path(path: Path) -> str:
+    """The repository path of the rule a cases file tests."""
+    return json.loads(path.read_text(encoding="utf-8"))["rule"]
 
 
 def load(path: Path) -> tuple[str, list[Case]]:
@@ -243,6 +279,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--judge-model", default="sonnet")
     parser.add_argument("--runner", help="a command that reads the prompt on stdin, instead of the Claude Code CLI")
     parser.add_argument("--baseline", action="store_true", help="write without the rule, to see what the rule changes")
+    parser.add_argument("--agent", type=Path, help="an agent definition the writer holds as its role, in place of the bare rule")
     parser.add_argument("--out", type=Path)
     return parser.parse_args(argv)
 
@@ -257,7 +294,15 @@ def finish(lines: list[str], args: argparse.Namespace) -> None:
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
     rule, cases = load(args.cases)
-    lines, failed = [f"# Prompt test: {args.cases}", "", f"baseline: {args.baseline}; samples: {args.samples}; model: {args.model}", ""], 0
+    args.agent_text = None
+    if args.agent:
+        try:
+            args.agent_text = agent_instructions(args.agent, rule_path(args.cases), rule)
+        except (OSError, ValueError) as error:
+            print(f"not run: {error}", file=sys.stderr)
+            return 2
+    writer = f"agent: {args.agent}" if args.agent else f"baseline: {args.baseline}"
+    lines, failed = [f"# Prompt test: {args.cases}", "", f"{writer}; samples: {args.samples}; model: {args.model}", ""], 0
     for case in cases:
         try:
             samples = run_case(rule, case, args)

@@ -4,7 +4,7 @@ type: doc
 clade: engineering
 subclade: development
 title: How Athena decides
-summary: The arguments behind the tech-lead's procedure - why it reads the component map first, opens the issue before the plan, routes deterministic-first, treats an unreachable Clef as not confident, runs a bounded loop inside each layer, delegates rather than builds, keeps nesting at three levels, and returns to a person instead of waiting for one.
+summary: The arguments behind the tech-lead's procedure - why it reads the component map first, opens the issue before the plan, routes deterministic-first, treats an unreachable Clef as not confident, runs a bounded loop inside each layer, delegates rather than builds, keeps nesting bounded, and holds the session instead of being relaunched, and returns to a person instead of waiting for one.
 references:
   - docs/clef-decision-gate.md
   - docs/platform-bindings.md
@@ -28,7 +28,7 @@ A deterministic rule is reproducible and auditable, a probability is neither, so
 
 ## The plan is approved before anything is created
 
-The planning skill confirms the whole decomposition before creating a unit, because a plan confirmed one unit at a time drifts. A subagent cannot ask and wait, so the confirmation is a `NEEDS_APPROVAL` return and a relaunch that resumes at the creation step. Folding the undecided routes into the same question costs the person one decision instead of two.
+The planning skill confirms the whole decomposition before creating a unit, because a plan confirmed one unit at a time drifts. Athena is the session's role, so she asks the person in the session and carries on with the answer; nothing is relaunched, and her definition carries no relaunch input or resume step. Called as a subagent, where a platform cannot give her a session, the same step returns `NEEDS_APPROVAL`, and the next brief picks up from what the forge already holds: the plan is either still a draft or already sub-issues, so a step number is never needed. Folding the undecided routes into the same question costs the person one decision instead of two.
 
 ## The loop is bounded, and inside the layer
 
@@ -36,17 +36,17 @@ The build agent develops, Argos reviews the working diff, the build agent develo
 
 Erodos applies fixes to a pull request under a published review. Between in-loop rounds there is no pull request yet, only a working diff, so the build agent applies the fixes itself.
 
-## Nesting stops at three levels
+## Nesting is bounded
 
-Claude Code bounds how deep subagents may spawn subagents with the environment variable `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`, whose default is 3 levels below the main conversation ([sub-agents](https://code.claude.com/docs/en/sub-agents), [environment variables](https://code.claude.com/docs/en/env-vars)). That figure was read from those pages, not measured in a run; a project that changes the variable changes the bound this section relies on. Athena is one, a build agent or Argos two, an implementer or the in-loop Argos three, and the third level spawns nothing. That is why the build agents run their Argos at `autofix: off`: an Argos at the third level that spawned Erodos would be a fourth. Erodos runs only under the Argos Athena calls on a pull request, at the third level. Codex's default `max_depth` is lower still; [`platform-bindings.md`](platform-bindings.md) records how that binding flattens.
+Claude Code bounds how deep subagents may spawn subagents with the environment variable `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`, whose default is 3 levels below the main conversation ([sub-agents](https://code.claude.com/docs/en/sub-agents), [environment variables](https://code.claude.com/docs/en/env-vars)). That figure was read from those pages, not measured in a run; a project that changes the variable changes the bound this section relies on. As the session's role, Athena is the main conversation, so a build agent or Argos is one level below it, an implementer or the in-loop Argos two. Called as a subagent she spends a level: Athena one, a build agent or Argos two, an implementer or the in-loop Argos three, and the third level spawns nothing. The session binding is why `ADR-020` gives the nesting a level back. That is why the build agents run their Argos at `autofix: off`: an Argos at the third level that spawned Erodos would be a fourth. Erodos runs only under the Argos Athena calls on a pull request, at the third level. Codex's default `max_depth` is lower still; [`platform-bindings.md`](platform-bindings.md) records how that binding flattens.
 
 ## It delegates the build
 
 Each routed layer goes to the build agent that owns it, and that agent owns the order of its own layers and their discipline. The agent deciding what to build is kept apart from the one writing it, so a reviewer of the plan is not also defending the code.
 
-## It returns rather than waits
+## It asks in the session, and never waits on CI
 
-An exhausted loop and an undecided route end at a person, and the person's decision is final. A pending check is a return state, because a subagent that polls CI spends its context waiting on something it cannot speed up. Landing a stack is a person's call or, in a round, the Tech Lead's under `round-roles.md` of `ahrena-engineering-delivery` condition 3, so Athena lands only with `land` on and the person's approval of each merge.
+An exhausted loop and an undecided route end at a person, and the person's decision is final. A pending check is a state to tell, not a wait: a session or subagent that polls CI spends its context waiting on something it cannot speed up, so she names it and ends the turn. Landing a stack is a person's call or, in a round, the Tech Lead's under `round-roles.md` of `ahrena-engineering-delivery` condition 3, so Athena lands only with `land` on and the person's approval of each merge.
 
 ## Where this stops
 
