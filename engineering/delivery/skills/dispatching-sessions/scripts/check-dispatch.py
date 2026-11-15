@@ -3,8 +3,8 @@
 
 The conditions are condition 4 and 5 of engineering/delivery/rules/round-roles.md
 and the brief's shape in skills/dispatching-sessions/SKILL.md. A dispatch is
-refused when it has no issue, when its child would not run Athena, when it asks
-for a model other than Sonnet without saying why, when its title and brief are
+refused when it has no issue, when its child would not take Athena's role, when it
+asks for a model other than Opus without saying why, when its title and brief are
 not in the person's language or the brief does not name its issue, or when it
 hands a second, unrelated demand to a session that already holds one. A pull
 request another tool owns is skipped, not dispatched.
@@ -30,7 +30,7 @@ import json
 import sys
 from pathlib import Path
 
-DEFAULT_MODEL = "sonnet"
+DEFAULT_MODEL = "opus"
 CHILD_AGENT = "athena"
 
 
