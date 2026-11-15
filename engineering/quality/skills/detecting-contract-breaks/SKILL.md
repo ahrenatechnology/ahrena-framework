@@ -6,6 +6,7 @@ clade: quality
 references:
   - ahrena-engineering-fundamentals:rules/contract-first.md
   - ahrena-engineering-fundamentals:rules/aggregates.md
+  - ahrena-engineering-fundamentals:rules/contract-standards.md
   - ahrena-engineering-fundamentals:docs/contract-first.md
   - docs/review-findings.md
 ---
@@ -45,7 +46,7 @@ Fetching a document and reading it executes nothing, so this step runs whether o
 
 ## 3. Classify each difference against the breaking set
 
-Compare base to head, one surface at a time. The set is condition 5 of `rules/contract-first.md`, taken from the schema-diff tools rather than invented, plus what the other two kinds of surface add.
+Compare base to head, one surface at a time. The set is condition 5 of `rules/contract-first.md`, taken from the schema-diff tools rather than invented, plus what the other two kinds of surface add. For an OpenAPI document a breaking-change diff such as `oasdiff breaking` applies it, and for a `.proto` file `buf breaking` does (conditions API-4 and RPC-3 of `rules/contract-standards.md`); a diff the tool cannot run is `unchecked`, not a pass.
 
 **On a contract:** an operation deleted; a field removed from a response; a field added as required to a request; an enum value removed; a type narrowed. Narrowing includes a tightened range, a shortened maximum length, a widened required set and an optional field made mandatory.
 
