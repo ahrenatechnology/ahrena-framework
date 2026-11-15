@@ -38,9 +38,13 @@ A limit that nobody can trace is a number someone will argue with. Each one in t
 
 Maintainer policy is a decision, not a measurement. It can change by a decision record that replaces it, and until then it binds.
 
+## Examples of filler
+
+Samples a consumer's filler list might hold in pt-BR: "mergulhe", "incrível", "perfeito". The framework ships none of them; they show the kind of word the list is for.
+
 ## The ratchet
 
-The limits bind new and changed lines and new layers. Legacy code does not block a pull request; what blocks is an overall indicator getting worse. This is principle 4 of the catalogue in the first comment of #323, and the rules refer here for it.
+The limits bind new and changed lines and new layers. Legacy code does not block a pull request; what blocks is an overall indicator getting worse. This is principle 4 of the catalogue in the first comment of #323, and the rules point here for it.
 
 ## Why both themes are not an extra
 

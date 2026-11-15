@@ -20,13 +20,15 @@ The framework ships the shape of the voice check and no voice. VOZ-1 reads a ton
 
 1. **VOZ-1: screen text passes the consumer's tone-of-voice lint.** Threshold: 0 errors. The lint file carries a list of forbidden terms and a list of preferred terms, and the project names where it lives. Decided by Vale, or the equivalent the project chose, run on the screen strings. A project with no lint file fails this condition: absence is not a pass.
 2. **VOZ-2: text stays within the limit for its role.** Threshold: a button or label has at most 3 words, a title at most 6, supporting text at most 20, and no screen carries an explanatory paragraph. These limits are maintainer policy (#34). Decided by a word count over the screen strings, by role, where the role is the one the string key declares (button, label, title, support). Legal text is marked in the strings file with a `legal` role.
-3. **VOZ-3: no AI filler.** Threshold: 0 occurrences. The framework owns only the language-neutral baseline: a decorative emoji, an exclamation mark, and a string that repeats a label on the same screen. The consumer's lint file owns the rest: its list of enthusiasm phrases and filler words, in the product's language (the doc gives examples). Decided by the same lint as condition 1 for the lists, and by a duplicate-string check against the labels on the same screen for repetition. A lint file with no filler list fails this condition, as a missing file fails condition 1.
+3. **VOZ-3: no AI filler.** Threshold: 0 occurrences. The framework owns only the language-neutral baseline: a decorative emoji, an exclamation mark, and a string that repeats a label on the same screen. The consumer's lint file owns the rest: its list of enthusiasm phrases and filler words, in the product's language ([`frontend-quality`](../docs/frontend-quality.md#examples-of-filler) gives examples). Decided by the same lint as condition 1 for the lists, and by a duplicate-string check against the labels on the same screen for repetition. A lint file with no filler list fails this condition, as a missing file fails condition 1.
 
 ## Where this stops
 
 **A triad of adjectives is read by a reviewer.** No pattern decides it without false alarms, so it is a review finding, not a detector failure.
 
 **The lint fires on the word, not the use.** A forbidden term in a quotation, or inside a user's own data shown back to them, is not screen copy. The lint file lists its exemptions; a detector that fires too often teaches people to switch it off, which is a defect of the detector, not a licence to skip it.
+
+**It reaches new and changed screen strings.** The legacy is held by the [ratchet](../docs/frontend-quality.md#the-ratchet).
 
 **A word count is a proxy for effort.** Three words can still be unclear. The limit catches length, and clarity stays with the reviewer.
 

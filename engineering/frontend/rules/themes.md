@@ -24,6 +24,8 @@ The dark theme is an accessibility requirement, not a developer preference: for 
 
 **Contrast is judged per theme, not once.** The 4.5:1 and 3:1 limits of WCAG 2.2 SC 1.4.3 and SC 1.4.11 hold in each theme separately; a token pair that passes in light and fails in dark fails.
 
+**It reaches new and changed screens and tokens.** The legacy is held by the [ratchet](../docs/frontend-quality.md#the-ratchet).
+
 **This rule does not ask for a third theme.** High-contrast or branded variants are the project's choice, and a project that adds one adds it to the matrix in condition 3.
 
 **Photosensitivity has a second limit that a theme cannot fix.** Content that flashes more than three times a second is WCAG 2.2 SC 2.3.1 (Three Flashes or Below Threshold, A) and is not decided by any condition of this plugin's frontend rules, and a reviewer reads flashing content against it.

@@ -28,6 +28,6 @@ A screen that invents its own colour, spacing or button is a second design syste
 
 **A third-party widget that renders its own markup is read case by case.** The detector flags it; the project records the exception next to the component with the reason.
 
-**It reaches new and changed lines.** Existing hand-written values are held by the ratchet of the catalogue in #323 (limits bind new lines, and a total getting worse blocks).
+**It reaches new and changed lines.** Existing hand-written values are held by the [ratchet](../docs/frontend-quality.md#the-ratchet).
 
 **The detectors are not in this rule.** They belong to the frontend detectors of #323 (#333 for copy, density, themes and tokens; accessibility and screen-fidelity detectors have no issue yet), so the enforcement is `judgment` until they land.

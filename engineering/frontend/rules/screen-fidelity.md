@@ -22,7 +22,7 @@ references:
 
 ## Where this stops
 
-**It reaches a screen the pull request adds or changes.** A screen the pull request does not touch is not re-checked; the legacy is held by the ratchet of the catalogue in #323 (limits bind new lines, and a total getting worse blocks), not by this rule.
+**It reaches a screen the pull request adds or changes.** A screen the pull request does not touch is not re-checked; the legacy is held by the [ratchet](../docs/frontend-quality.md#the-ratchet), not by this rule.
 
 **UI-1 is a record, not a taste test.** The detector sees that an approval exists and who gave it; it does not see whether the owner should have approved. That stays with [`wireframe-first`](wireframe-first.md) condition 2.
 
