@@ -16,8 +16,8 @@ A working screen is read many times a day; every empty block costs a scroll. The
 
 ## Conditions
 
-1. **DEN-1: spacing is from the compact scale, rows are short and nothing is decorative.** Threshold: spacing values only from the compact scale of the tokens; list and table rows at most 32 px high; 0 decorative empty areas (a hero, an illustration, a welcome card). Decided by stylelint over the tokens, by a measurement in the end-to-end suite for row height, and by a search for the decorative patterns.
-2. **DEN-2: the main information of each screen is in view without scrolling at 1280 by 800.** Threshold: 100% of screens. The project names, per screen, the element that is the main information. Decided by an end-to-end test at 1280 by 800 that asserts that element is inside the viewport.
+1. **DEN-1: spacing is from the compact scale, rows are short and nothing is decorative.** Threshold: spacing values only from the compact scale of the tokens; list and table rows at most 32 px high; 0 decorative empty areas (a hero, an illustration, a welcome card). Decided by stylelint over the styles against the tokens (a tokens file with no compact scale fails), by a measurement in the end-to-end suite for row height, and by a search for the decorative patterns.
+2. **DEN-2: the main information of each screen is in view without scrolling at 1280 by 800.** Threshold: 100% of screens. The project names, per screen, the element that is the main information; a screen that names none fails. Decided by an end-to-end test at 1280 by 800 that asserts that element is inside the viewport.
 
 ## Where this stops
 

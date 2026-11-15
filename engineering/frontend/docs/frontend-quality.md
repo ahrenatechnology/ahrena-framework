@@ -38,6 +38,10 @@ A limit that nobody can trace is a number someone will argue with. Each one in t
 
 Maintainer policy is a decision, not a measurement. It can change by a decision record that replaces it, and until then it binds.
 
+## The ratchet
+
+The limits bind new and changed lines and new layers. Legacy code does not block a pull request; what blocks is an overall indicator getting worse. This is principle 4 of the catalogue in the first comment of #323, and the rules refer here for it.
+
 ## Why both themes are not an extra
 
 A person with photosensitivity can find a light screen painful across a working day. For that person the dark theme is how the product is usable at all, which puts it with accessibility, not with taste. That is why the theme conditions apply to every accessibility and visual-regression run, not only to a manual toggle: a theme that is never tested is a theme that drifts into failing the contrast limits.

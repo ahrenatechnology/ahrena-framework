@@ -18,19 +18,21 @@ Accessibility is measured on the rendered state, not on the source, and against 
 
 1. **A11Y-1: no serious or critical violation in any state.** Threshold: 0 violations of impact `serious` or `critical`, measured against the WCAG 2.2 A and AA rules the checker carries. Decided by axe-core run on each state of each screen, in both themes ([`themes`](themes.md) condition 3).
 2. **A11Y-2: the accessibility score of each page is 95 or more.** Threshold: at least 95. This is maintainer policy (#34), a proxy for WCAG 2.2 conformance built on the same axe rules as condition 1. Decided by Lighthouse on each page, in both themes.
-3. **A11Y-3: everything operates by keyboard alone, with visible focus, enough contrast and a target large enough to hit.** Four limits, all at 100% of interactive elements:
+3. **A11Y-3: everything operates by keyboard alone, with visible focus, enough contrast and a target large enough to hit.** Four limits, all at 100% of the elements they apply to:
    - every function works from the keyboard, with no trap (WCAG 2.2 SC 2.1.1 Keyboard, A; SC 2.1.2 No Keyboard Trap, A);
    - focus is visible and not hidden behind other content (SC 2.4.7 Focus Visible, AA; SC 2.4.11 Focus Not Obscured (Minimum), AA);
    - text contrast is at least 4.5:1 (SC 1.4.3 Contrast (Minimum), AA), and the boundary of a control and the focus indicator at least 3:1 (SC 1.4.11 Non-text Contrast, AA);
    - the pointer target is at least 24 by 24 CSS pixels (SC 2.5.8 Target Size (Minimum), AA).
 
-   Decided by an end-to-end keyboard test that tabs through each screen and asserts the focus indicator, and by axe for contrast and target size.
+   Decided, in both themes ([`themes`](themes.md) condition 3), by an end-to-end keyboard test that activates each interactive element with Enter or Space and asserts its effect, asserts Tab leaves every element, and asserts the focused element is not fully covered; and by axe configured at 4.5:1 for all text, for contrast and target size.
 
 ## Where this stops
 
 **Flashing content is not decided here.** WCAG 2.2 SC 2.3.1 (Three Flashes or Below Threshold, A) has no condition above; a reviewer reads flashing content against it.
 
 **An automated checker finds only part of what WCAG asks.** axe and Lighthouse cannot judge whether alt text is meaningful or a reading order makes sense. A pass is the floor, not conformance, and a reviewer still reads what a person using a screen reader would hear.
+
+**Target size keeps no exceptions.** SC 2.5.8 excuses inline links, spaced targets and a few others; this rule does not, so a link in a sentence is read by a reviewer rather than failed.
 
 **Large text has a lower contrast bar in WCAG, and this rule does not use it.** SC 1.4.3 allows 3:1 for large text. The limit stays at 4.5:1 for all text so the detector needs no judgment about what counts as large.
 

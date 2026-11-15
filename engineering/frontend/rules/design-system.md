@@ -4,7 +4,7 @@ type: rule
 clade: engineering
 subclade: frontend
 title: Only design-system tokens, components and brand files
-statement: Every value in new UI code comes from a design token, every element from the design-system library, and every logo, palette and font from the brand files.
+statement: New UI code takes colour, spacing, radius, shadow and type from tokens, elements from the design-system library, and logo, palette and fonts from brand files.
 enforcement: judgment
 references:
   - docs/frontend-quality.md

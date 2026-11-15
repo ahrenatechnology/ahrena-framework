@@ -18,7 +18,7 @@ references:
 
 1. **UI-1: every screen, state and flow in the pull request has a wireframe approved in the team's UX/UI design tool, and the pull request links it.** Threshold: 100% of screens. An Artifact is the preferred form. Decided by the detector reading the link in the pull-request body and the approval record in the tool; a screen with no link, or a link with no approval, is a failure.
 2. **UI-2: every state the wireframe draws (empty, loading, error, full, no permission) exists in code and has an end-to-end test.** Threshold: 100% of the drawn states, one test each. Decided by the end-to-end suite, which names each state it covers; a drawn state with no test fails.
-3. **UI-3: the rendered screen matches the approved wireframe.** Threshold: visual difference within the tolerance the project declares, in both themes ([`themes`](themes.md) condition 3). Decided by visual regression comparing a capture of each state with the wireframe.
+3. **UI-3: the rendered screen matches the approved wireframe.** Threshold: visual difference within the tolerance the project declares in its component map (a project that declares none fails), in both themes ([`themes`](themes.md) condition 3). Decided by visual regression comparing a capture of each state with the wireframe.
 
 ## Where this stops
 
@@ -26,6 +26,6 @@ references:
 
 **UI-1 is a record, not a taste test.** The detector sees that an approval exists and who gave it; it does not see whether the owner should have approved. That stays with [`wireframe-first`](wireframe-first.md) condition 2.
 
-**UI-3 compares structure and states, not final pixels.** [`wireframe-first`](wireframe-first.md) approves a wireframe on its structure. The tolerance is the project's to set, because a wireframe is not a visual design; a tolerance so wide that nothing fails is a review finding.
+**UI-3 compares the approved structure and states.** [`wireframe-first`](wireframe-first.md) approves a wireframe on its structure. The tolerance is the project's to set, because a wireframe is not a visual design; a tolerance so wide that nothing fails is a review finding.
 
 **The detectors are not in this rule.** They are the frontend detectors of #323 (#333 for copy, density, themes and tokens; accessibility and screen-fidelity detectors have no issue yet). Until they exist, a reviewer reads each condition against the pull request, which is why the enforcement is `judgment`.
