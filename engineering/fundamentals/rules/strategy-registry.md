@@ -14,7 +14,7 @@ Three conditions. A codebase that solves the same problem two ways, with two `Re
 
 ## Conditions
 
-1. **CON-1. The project keeps a strategy registry.** The file is `.ahrena/strategies.json` at the repository root: an array of entries, each with `problem`, `strategy`, `decision` (the path of the ADR that chose it), `canonical` (the path of the implementation every caller uses), `status` (`active`, `migrating` or `superseded`) and, when superseded, `supersededBy` (the `problem` and `strategy` of the successor). The problems a project registers are at least: result format, error format, HTTP client, event envelope, persistence mode, validation library, test library and date library. Threshold: the file exists, every entry has every field, and each `decision` and `canonical` path resolves. Detector: a script validating the file against that shape.
+1. **CON-1. The project keeps a strategy registry.** The file is `.ahrena/strategies.json` at the repository root: an array of entries, each with `problem`, `strategy`, `decision` (the path of the ADR that chose it), `canonical` (the path of the implementation every caller uses), `status` (`active`, `migrating` or `superseded`) and, when superseded, `supersededBy` (an object holding the `problem` and `strategy` of the successor). The problems a project registers are those it has, such as: result format, error format, HTTP client, event envelope, persistence mode, validation library, test library and date library. Threshold: the file exists, every entry has every field, and each `decision` and `canonical` path resolves. Detector: a script validating the file against that shape.
 
 2. **CON-2. A change adds no second way to a registered problem.** The state is a pull request that introduces an import, a type or a dependency which solves a registered problem differently from the entry with `status: active`. Threshold: 0 competing introductions in the diff. Detector: a search of the added lines for imports and type declarations that name a competing strategy, run against the registry; the TypeScript detector is owned by the structure detectors issue of #323.
 
@@ -27,6 +27,8 @@ Three conditions. A codebase that solves the same problem two ways, with two `Re
 **It does not reach a problem nobody registered.** An unregistered problem has no second way to compete with. A reviewer who sees the same problem solved twice asks for an entry; the first entry is what turns the second solution into a finding.
 
 **It does not reach code that existed before the entry.** CON-2 reads the lines a change adds. The old callers of a `migrating` entry are the migration plan's work, not findings.
+
+**CON-3 does not reach a correction that keeps the strategy.** Editing `canonical` because the file moved, or `decision` because the ADR was renumbered, changes no strategy and needs no superseding ADR; the detector compares `problem` and `strategy`, not the paths.
 
 **CON-2 sees names, not intent.** A wrapper that hides a second HTTP client behind a new function passes a search of imports at the call sites and fails it in the wrapper, which is where the finding should land; a client written by hand on raw sockets passes both, and that is left to review.
 

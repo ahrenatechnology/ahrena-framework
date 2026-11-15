@@ -57,7 +57,7 @@ Decided by [`hooks/check-comments.py`](../hooks/check-comments.py).
 
 **Ambiguous is not a finding.** Where a comment could be read two ways, the delegations and the exemptions win: a comment that parses as code, carries a marker, contains a pointer, or is an exemption is never this condition's finding, so the rule never flags a comment another rule already owns or a comment that is not prose at all.
 
-**It does not reach how many comments a change carries.** Whether each comment is allowed is this rule; the share of comment lines in the diff is [`comment-ratio.md`](comment-ratio.md) CLN-9, and a comment must pass both. The pointer set and the ratio never judge the same line twice: this rule reads comments one by one, that one counts them.
+**It does not reach how many comments a change carries.** Whether each comment is allowed is this rule; the share of comment lines in the diff is [`comment-ratio.md`](comment-ratio.md) CLN-9, and a comment must pass both. The pointer set and the ratio never return the same finding twice: this rule reads comments one by one, that one counts them.
 
 **It does not reach the stale comment or the restating comment.** A comment that describes behaviour the code no longer has, and a comment that repeats the line below it, are both defects and neither is caught here unless it also lacks a pointer. Staleness in particular is the expensive one, and nothing mechanical detects it; `docs/clean-code.md` carries what a reviewer asks about comment hygiene, and this rule adds one mechanical case to that judgment rather than replacing it.
 

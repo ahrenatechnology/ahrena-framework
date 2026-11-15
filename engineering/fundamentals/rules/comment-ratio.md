@@ -4,7 +4,7 @@ type: rule
 clade: engineering
 subclade: quality
 title: Comments stay a small share of the code
-statement: Comment lines a change adds stay below 10% of the code lines it adds; the code explains itself and a comment keeps only what a name cannot.
+statement: From 20 added code lines, the comment lines a change adds stay below 10% of the code lines it adds; the code explains itself and a comment keeps only what a name cannot.
 enforcement: judgment
 ---
 
@@ -14,11 +14,11 @@ One condition, a ratio over the diff. [`comment-pointers.md`](comment-pointers.m
 
 ## Conditions
 
-1. **CLN-9. Comment lines divided by code lines, in the lines the diff adds, is below 0.10.** A comment line is a line that holds only a comment, or the comment part of a line that also holds code, counted once per line; a line that is blank, or that holds only a brace or an import, is neither comment nor code. A documentation block above an export counts as comment. Threshold: below 0.10, declared maintainer policy recorded under #34. Detector: a script that counts the two kinds of added line in the diff of the change; the TypeScript detector is owned by the clean-code detectors issue of #323. The ratio is computed over the whole diff, not per file, so a long file of data does not hide in an average and a short one does not fail alone.
+1. **CLN-9. Comment lines divided by code lines, in the lines the diff adds, is below 0.10.** A comment line is a line that holds only a comment, or the comment part of a line that also holds code, counted once per line; a line that is blank, or that holds only a brace or an import, is neither comment nor code. A documentation block above an export counts as comment; a Python docstring is a string, not a comment, and does not, as in `comment-pointers`. Threshold: below 0.10 once the diff adds 20 code lines (below that the ratio is reported and does not fail), declared maintainer policy recorded under #34. Detector: a script that counts the two kinds of added line in the diff of the change; the TypeScript detector is owned by the clean-code detectors issue of #323. A line holding code and a trailing comment counts as both. The ratio is computed over the whole diff, not per file.
 
 ## How this composes with comment-pointers
 
-The two conditions judge different things and never the same line twice. `comment-pointers` condition 1 asks of each added comment: does it point at an ADR or an issue, or is it an exemption? CLN-9 asks of the whole diff: how many comment lines are there? A comment must pass both. A comment that points but pushes the diff past 0.10 is a CLN-9 finding for the diff, and the fix is to delete the comments that restate the code, not to remove their pointers. Exempt comments (shebang, license, directive, separator) are not counted by CLN-9, since they are not prose, so adding a license header never fails the ratio. A change with no code lines added has no ratio and passes.
+The two conditions judge different things and never the same line twice. `comment-pointers` condition 1 asks of each added comment: does it point at an ADR or an issue, or is it an exemption? CLN-9 asks of the whole diff: how many comment lines are there? A comment must pass both. A comment that points but pushes the diff past 0.10 is a CLN-9 finding for the diff, and the fix is to delete the comments that restate the code, not to remove their pointers. Exempt comments (shebang, coding declaration, license, directive, separator) are not counted by CLN-9, since they are not prose, so adding a license header never fails the ratio. A change with no code lines added has no ratio and passes.
 
 ## Where this stops
 
