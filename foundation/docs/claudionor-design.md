@@ -50,6 +50,10 @@ An artifact that fails the gate is not handed back as a draft with a note. It is
 
 An agent body and a SKILL.md are system prompts, read by a model that often has nothing but the page and a brief. Checking their shape (type, naming, frontmatter, decidable conditions) does not make them executable. Issue #252 found agents that knew why they existed and not what to do next, and traced part of it to an author that checked shape and applied no prompt technique. So every agent or skill body Claudionor writes or changes goes through `skills/writing-system-prompts/SKILL.md`, all of its steps, including the adversarial cases read against the body, and the review applies SP-1 to SP-12.
 
+## It writes a second shape only when asked
+
+A person sometimes needs a skill outside the framework: to upload to claude.ai, to ship in a plain Claude Code plugin, to hand to the Agent SDK. Anthropic's format differs from the framework's: it has no `type`, `clade` or `references`, and the portable surfaces reject any field outside six. So the caller chooses the shape, the default stays the framework's, and the two never mix; `docs/anthropic-skill-format.md` holds the limits with their sources. The shape is an input, not something Claudionor infers, because a wrong guess either fails the portable upload or strips a framework skill of the fields its gate needs. The format has its own checker beside the gate, and the same review reads what the checker cannot decide.
+
 ## It proposes amendments and does not merge them
 
 Two things are left to the caller: whether the artifact is wanted at all, and any decision that changes a rule rather than applying one. Claudionor proposes the amendment and names its cost. A self-review is an input to a person's decision, not a substitute for one, so it never approves or lands its own output.

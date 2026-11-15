@@ -1,6 +1,6 @@
 ---
 name: creating-artifacts
-description: Create a rule, doc, skill, agent or command for an Ahrena plugin. Use when adding any new artifact to this framework or to a plugin built on it, when unsure which of the five types a piece of content should be, or when an existing artifact fails the foundation gate and needs to be brought into shape.
+description: Create a rule, doc, skill, agent or command for an Ahrena plugin. Use when adding any new artifact to this framework or to a plugin built on it, when unsure which of the five types a piece of content should be, or when an existing artifact fails the foundation gate and needs to be brought into shape. Also writes a skill in Anthropic's standard Agent Skills shape (claude.ai, the Skills API, a plain Claude Code plugin) when the caller asks for that shape.
 type: skill
 clade: foundation
 references:
@@ -10,6 +10,7 @@ references:
   - rules/progressive-disclosure.md
   - rules/completeness.md
   - docs/artifact-model.md
+  - docs/anthropic-skill-format.md
   - skills/writing-system-prompts/SKILL.md
 ---
 
@@ -26,6 +27,8 @@ Ask, in order, and stop at the first yes.
 5. Otherwise → **doc**
 
 If the first question gets "yes, and the result is merely different," it is not a rule. That is the mistake this step exists to catch. `docs/artifact-model.md` works the distinction through.
+
+A skill the caller asks for in Anthropic's Agent Skills shape skips steps 3, 4, 6 and 7: go to step 9.
 
 Write the type down before opening a file. Reclassifying after the body is written produces an artifact shaped like the type it started as.
 
@@ -103,6 +106,23 @@ python3 <plugin>/hooks/validate-artifacts.py [repo-root]
 ```
 
 In this repository that is `python3 foundation/hooks/validate-artifacts.py`. It walks every plugin listed in the marketplace, exits non-zero, and names the rule behind each failure. Run it before committing, not after CI does.
+
+## 9. Write a skill in Anthropic's shape when the caller asks for it
+
+The caller states the shape. A request that asks for a skill and does not say "Anthropic", "Agent Skills", claude.ai, the Skills API or a plain Claude Code plugin gets the framework shape, and steps 1 to 8 apply unchanged. A request that does ask for it gets this step in place of steps 3, 4, 6 and 7; the shapes never mix.
+
+1. Read `docs/anthropic-skill-format.md` for the fields, the limits and the layout. The caller gives the destination folder; a skill in this shape never goes under a marketplace plugin's `skills/`, because `validate-artifacts.py` would read it as a framework skill and fail it for the missing framework fields.
+2. Pick the profile: `portable` unless the caller says the skill is for Claude Code alone and needs a Claude Code field.
+3. Name it as the format asks, not as `rules/naming.md` asks: lowercase letters, numbers and single hyphens, at most 64 characters, neither `anthropic` nor `claude` in it, equal to the folder name. A gerund first token is recommended, not required.
+4. Copy `references/anthropic-skill.md` to `<destination>/<name>/SKILL.md`, drop the trailing comment, and fill in `name` and `description`. The frontmatter holds those two fields and, only when the skill needs them, the optional fields of the chosen profile. Write the `description` in the third person: what the skill does, then "Use when" and the situations that trigger it.
+5. Write the body for its executor, through `ahrena-foundation:writing-system-prompts`, under 500 lines. Put material read on demand in `references/`, code that runs in `scripts/` and templates in `assets/`, and link each file straight from `SKILL.md`.
+6. Run the checker and fix what it names before handing the folder back:
+
+```sh
+python3 <plugin>/hooks/validate-anthropic-skill.py [--profile claude-code] <destination>/<name>
+```
+
+In this repository that is `python3 foundation/hooks/validate-anthropic-skill.py`.
 
 ## When this skill does not apply
 
