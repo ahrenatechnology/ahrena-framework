@@ -62,6 +62,7 @@ Load the skills the output names and no others. A skill that no route selected i
 | `python`, `typescript`, `go`, `rust`, `terraform`, `terraform-pipeline` | `ahrena-engineering-<lang>:skills/reviewing-<lang>/SKILL.md` | the changed files in that language, read for what is specific to it; for `terraform-pipeline`, the script or pipeline lines that run Terraform |
 | `secrets`, `supply-chain`, `untrusted-input`, `access`, `error-exposure`, `sensitive-data`, `layer-exposure`, `language-models`, `agent-authority` | the security discipline the route names (`reviewing-secrets`, `reviewing-supply-chain`, `reviewing-untrusted-input`, `reviewing-access`, `reviewing-sensitive-data`, `reviewing-model-use`; `error-exposure` selects `reviewing-access` and `layer-exposure` selects `reviewing-sensitive-data`) | that discipline's conditions, and the lines that fired them |
 | `reliability`, `observability` | the discipline the route names (`ahrena-engineering-reliability:reviewing-reliability`, `ahrena-engineering-observability:reviewing-observability`) | that discipline's conditions, and the lines that fired them |
+| `persistence-schema`, `persistence-adapters` | `ahrena-engineering-database:skills/reviewing-persistence/SKILL.md` | the migrations, the mode registry and the adapter lines that fired, read for the PER, TRX, IDX and MT conditions |
 | `instruction-files`, `agent-definitions`, `prompts-in-code` | `skills/reviewing-prompts/SKILL.md` | the same |
 | `framework-artifacts` | `ahrena-foundation:skills/reviewing-artifacts/SKILL.md` | the changed artifacts |
 

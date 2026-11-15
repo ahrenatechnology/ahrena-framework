@@ -12,6 +12,7 @@ references:
   - ahrena-engineering-fundamentals:skills/querying-the-code-graph/SKILL.md
   - ahrena-engineering-fundamentals:rules/contract-first.md
   - ahrena-contributing:skills/stacking-pull-requests/SKILL.md
+  - ahrena-engineering-database:skills/designing-persistence/SKILL.md
 ---
 
 # Building data contract-first

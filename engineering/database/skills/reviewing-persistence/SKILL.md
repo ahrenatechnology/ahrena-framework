@@ -22,16 +22,16 @@ The language-agnostic pass and the language skill for the changed files read wha
 
 The router fires two routes on this skill: `persistence-schema` on a migration, a schema file, a `.sql` file or the mode registry, and `persistence-adapters` on a source line the change adds that writes SQL, opens or ends a transaction, or calls a database driver or ORM. When no router ran, take those files from the diff by hand and say so.
 
-Before the conditions, read: the mode registry and the strategy register (or their absence); the database and its version; the unit of work and where the use cases open it; the integration tests and whether they read plans or catalogues; and, for each changed table, every adapter that writes it, including those the diff does not touch. Output: the database, the registry, the unit of work, the tenant strategy on record, and the tables the change touches with their declared modes.
+Before the conditions, read: the mode registry and its `strategies:` block (or their absence); the database and its version; the unit of work and where the use cases open it; the integration tests and whether they read plans or catalogues; and, for each changed table, every adapter that writes it, including those the diff does not touch. Output: the database, the registry, the unit of work, the tenant strategy on record, and the tables the change touches with their declared modes.
 
 ## 2. Open the conditions the change calls for
 
 | What the change touches | Conditions |
 |---|---|
-| a migration that creates or alters a table, or the mode registry | `PER-1`, `PER-7`, `PER-8`, `IDX-3`, `MT-1`, `MT-2` |
+| a migration that creates or alters a table, or the mode registry | `PER-1`, `PER-4`, `PER-7`, `PER-8`, `IDX-3`, `MT-1`, `MT-2` |
 | a migration that creates an index | `IDX-2`, `IDX-4` |
-| an adapter's write | `PER-2` to `PER-5`, `TRX-1`, `TRX-2` |
-| an adapter's query | `IDX-1` |
+| an adapter's write | `PER-2` to `PER-5`, `TRX-1`, `TRX-2`, `MT-3` |
+| an adapter's query | `IDX-1`, `MT-3` |
 | a use case or the unit of work | `TRX-1` to `TRX-4`, `MT-3` |
 | a projection or its read model | `PER-6` |
 | connection configuration, roles or grants | `MT-5`, `PER-2` |

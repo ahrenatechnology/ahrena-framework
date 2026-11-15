@@ -1,14 +1,14 @@
 # Read-only diagnostics, by database
 
-The statements `diagnosing-database` runs at steps 2 and 3. Every one reads; none changes data, schema or a session. Each names the page of the database's documentation it rests on, read on 2026-11-14. Paste a plan or a lock row into the diagnosis with any row data removed.
+The statements `diagnosing-database` runs at steps 2 and 3. Every one reads; none changes data, schema or a session. Each runs inside a read-only transaction ended by `ROLLBACK`, as that skill's step 2 states, and `ANALYZE` is never used on a statement with `FOR UPDATE` or `FOR SHARE`. Each names the page of the database's documentation it rests on, read on 2026-11-14. Paste a plan or a lock row into the diagnosis with any row data removed.
 
 ## Slow query
 
 | Database | Read | What to look for |
 |---|---|---|
-| PostgreSQL | `EXPLAIN (ANALYZE, BUFFERS) <select>`; `EXPLAIN <write>` | `Seq Scan` on a large table, rows estimated far from actual ([Using EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html)); the statement's totals in `pg_stat_statements`, which needs the module in `shared_preload_libraries` ([pg_stat_statements](https://www.postgresql.org/docs/current/pgstatstatements.html)) |
+| PostgreSQL | `BEGIN TRANSACTION READ ONLY; EXPLAIN (ANALYZE, BUFFERS) <select>; ROLLBACK;`; `EXPLAIN <write>` | `Seq Scan` on a large table, rows estimated far from actual ([Using EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html)); the statement's totals in `pg_stat_statements`, which needs the module in `shared_preload_libraries` ([pg_stat_statements](https://www.postgresql.org/docs/current/pgstatstatements.html)) |
 | SQLite | `EXPLAIN QUERY PLAN <statement>` | `SCAN <table>` where `SEARCH ... USING INDEX` was expected ([EXPLAIN QUERY PLAN](https://sqlite.org/eqp.html#table_and_index_scans)) |
-| MySQL | `EXPLAIN <statement>`; `EXPLAIN ANALYZE <select>` | join type `ALL`, the `key` column empty ([EXPLAIN Output Format](https://dev.mysql.com/doc/refman/8.4/en/explain-output.html)) |
+| MySQL | `EXPLAIN <statement>`; `START TRANSACTION READ ONLY; EXPLAIN ANALYZE <select>; ROLLBACK;` | join type `ALL`, the `key` column empty ([EXPLAIN Output Format](https://dev.mysql.com/doc/refman/8.4/en/explain-output.html)) |
 | MongoDB | `db.<collection>.find(<filter>).explain("executionStats")` | `COLLSCAN`, or `totalDocsExamined` far above `nReturned` ([Explain Results](https://www.mongodb.com/docs/manual/reference/explain-results/)) |
 | DynamoDB | the access pattern's call in the code, and the table's key schema and indexes (`aws dynamodb describe-table`) | a `Scan`, or a `Query` with a filter expression discarding most of what it read ([Querying and scanning](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-query-scan.html)) |
 

@@ -17,7 +17,7 @@ This is the rationale behind [`rules/tenant-isolation.md`](../rules/tenant-isola
 
 ## A tenant with no strategy stops the change
 
-The first time a tenant appears in a model, the strategy for isolating it is a decision, and it is the maintainer's to take, not the builder's. So the change stops and proposes it in a decision record (`ahrena-contributing:skills/writing-decision-records/SKILL.md`), with Row-Level Security as the proposal where the database has it, and nothing is isolated by hand in the meantime: a hand-written filter added "for now" becomes the strategy by default. Once the record is accepted it enters the project's strategy register and holds for every tenant table after it; a later change follows it, and replacing it takes a record that supersedes the first and a migration plan.
+The first time a tenant appears in a model, the strategy for isolating it is a decision, and it is the maintainer's to take, not the builder's. So the change stops and proposes it in a decision record (`ahrena-contributing:skills/writing-decision-records/SKILL.md`), with Row-Level Security as the proposal where the database has it, and nothing is isolated by hand in the meantime: a hand-written filter added "for now" becomes the strategy by default. Once the record is accepted it enters the `strategies:` block of the mode registry and holds for every tenant table after it; a later change follows it, and replacing it takes a record that supersedes the first and a migration plan.
 
 ## Why Row-Level Security
 

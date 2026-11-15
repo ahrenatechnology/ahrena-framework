@@ -19,9 +19,9 @@ The conditions carry the quality rubric's identifiers (`MT-n`, ahrenatechnology/
 
 ## Conditions
 
-1. **A change that adds a tenant column or owner concept to a project with no tenant strategy on record stops and proposes Row-Level Security in a decision record, and isolates nothing by hand.** (`MT-1`) Decided by review: a tenant column in the migrations and no strategy in the register.
+1. **A change that adds a tenant column or owner concept to a project with no tenant strategy on record in the registry's `strategies:` block stops and proposes Row-Level Security in a decision record, and isolates nothing by hand.** (`MT-1`) Decided by review: a tenant column in the migrations and no accepted strategy in `strategies.tenancy`.
 2. **Once RLS is adopted, every table with a tenant column has row-level security enabled and forced, and a policy whose `USING` and `WITH CHECK` filter by the session's tenant.** (`MT-2`) Decided by review of the migrations and by a catalogue query in the integration test.
-3. **The tenant is set for the transaction at the use-case edge (`SET LOCAL` or `set_config(..., true)`), and no adapter writes a tenant filter by hand in its queries.** (`MT-3`) Decided by review of the unit of work and the adapters.
+3. **The tenant is set for the transaction at the use-case edge (`SET LOCAL` or `set_config(..., true)`), and no adapter's hand-written tenant filter stands in place of the policy.** (`MT-3`) Decided by review of the unit of work and the adapters.
 4. **Every tenant table has an integration test in which one tenant fails to read, change or delete another's rows.** (`MT-4`) Decided by the test. This condition holds on every database, with or without RLS.
 5. **The application connects with a role that is not a superuser, has no `BYPASSRLS` and does not own the tables; migrations run under a different role.** (`MT-5`) Decided by review of the connection configuration and by a check in the integration test.
 

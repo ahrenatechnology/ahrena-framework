@@ -1,5 +1,6 @@
-# The mode registry: one entry per table, collection or item type the
-# migrations create. It lives beside the migrations, is versioned with them,
+# The mode registry, named persistence-modes.yaml: one entry per table,
+# collection or item type the migrations create. It lives in or beside the
+# migrations directory, is versioned with them,
 # and is read by reviewing-persistence and by the quality rubric's detectors
 # (PER-1, PER-7, PER-8, IDX-3, MT-1). Copy this file, keep its keys, replace
 # the example entries. Keys are in English; descriptions may be in the
@@ -9,12 +10,17 @@
 # history:  where an upsert table's history lives
 #           json-child-table | json-column | version-collection |
 #           sibling-items | history-table | none (append-only, ephemeral)
+# growth:   fixed for a lookup table whose rows only migrations write (IDX-1
+#           does not apply); omitted for a table that grows
 # decision: the decision record behind a mode that was ever changed, or the
 #           tenant strategy; omitted when the mode is the first one chosen
 
 database: postgresql 17          # engine and major version
 migrations: db/migrations        # the directory this file sits beside
 
+# strategies: the project's persistence strategies on record. A tenant
+# strategy is on record when tenancy.strategy is not none and names an
+# accepted decision.
 strategies:
   unit_of_work: src/shared/persistence/unit_of_work.py   # the one place a transaction opens
   tenancy:
@@ -31,7 +37,7 @@ tables:
     tenant: tenant_id
     projection: orders_current      # the read model rebuilt from this log
     rebuild_test: tests/integration/test_orders_projection.py
-    refusal: grant                  # grant | trigger | access-layer: how the database refuses UPDATE and DELETE
+    refusal: grant                  # grant | trigger | role | access-layer: how UPDATE and DELETE are refused
 
   customer_profiles:
     mode: upsert-with-history
@@ -40,6 +46,11 @@ tables:
     version_column: version
     tenant: tenant_id
     erasure: ADR-009                # the audited path that makes personal data unreadable
+
+  countries:
+    mode: append-only
+    history: none
+    growth: fixed                   # rows written by migrations only
 
   idempotency_keys:
     mode: ephemeral

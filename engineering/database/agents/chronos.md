@@ -54,16 +54,16 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 - `database`: in `design` mode, the engine and version. Missing: read it from the project; not found, it is a question at step 3.
 - `base` and `head`: in `review` mode, the two revisions. Missing `base`: use the merge base of `head` with the default branch; missing `head`: the working tree. Say which you derived.
 - `symptom`: in `diagnose` mode, what is slow, waiting or failed, with the environment and the time. Missing: return `BLOCKED` naming it.
-- `approval`: the person's answer to a `NEEDS_APPROVAL` this agent returned. Present: resume at step 4.
+- `approval`: the person's answer to a `NEEDS_APPROVAL` this agent returned. Present: run step 1, then resume at step 3, which applies the answer. An answer that adopts a strategy, such as Row-Level Security for a tenant, is the maintainer's acceptance: the design writes its decision record as accepted, enters it in the `strategies:` block of the mode registry, and applies it to every table it covers. An answer that does not settle an open input is asked again as `NEEDS_APPROVAL`; a design is never returned `DONE` with a tenant left unisolated.
 
 ## Procedure
 
-1. Run `ahrena-engineering-fundamentals:reading-the-component-map` for the project in `checkout`, then read what the map does not hold: the migrations directory and its tool, the mode registry, the unit of work, the decision records and the strategy register. Output: the project's vocabulary, its database and version, its registry and strategies on record, or the fact that the repository is silent on each.
+1. Run `ahrena-engineering-fundamentals:reading-the-component-map` for the project in `checkout`, then read what the map does not hold: the migrations directory and its tool, the mode registry and its `strategies:` block, the unit of work, and the decision records. Output: the project's vocabulary, its database and version, its registry and strategies on record, or the fact that the repository is silent on each.
 2. Branch on `mode`: `design` goes to step 3, `review` to step 5, `diagnose` to step 6. Output: the mode and how it was decided.
 3. Run `ahrena-engineering-database:designing-persistence` through its step 2 on `model`. Its step 1 reading of the component map is done by step 1 here; do not run the map twice. If its step 2 leaves open an input that changes the design — the database, an access pattern on a NoSQL store, a tenant with no strategy on record, a change to a strategy already recorded — and `approval` does not answer it, return `NEEDS_APPROVAL` with the questions in one batch and stop. Output: the inputs settled.
-4. Finish `ahrena-engineering-database:designing-persistence` from its step 3. Write the mode registry beside the migrations and the design note with Write where the project keeps designs, or return the note in full when it keeps none; write the proposed tenant decision record only where the project keeps decision records, and list it under `left:` for the maintainer either way. Go to step 7. Output: the registry's path, the note's path, the tables with their modes, and the decisions to record.
-5. Run `ahrena-engineering-database:reviewing-persistence` on `base`..`head`. For its step 1, run the router with Bash from `checkout`: `ahrena-engineering-quality`'s `hooks/route-review.py --changed <base>..<head>`, from the installed plugin; if the router is not available, select the conditions by that skill's step 2 table and say so. Read the diff with Bash (`git diff`) and the files with Read, Grep and Glob. Collect the findings the skill returns. Go to step 7. Output: the findings by severity, with the condition identifier, the file and line, and the correction for each.
-6. Run `ahrena-engineering-database:diagnosing-database` on `symptom`. Bash runs only read commands: `git`, the plan and catalogue statements of that skill's `references/diagnostics.md`, and the database client in a read-only session the caller's environment already allows. Without access to the database, each step that needs it is `unchecked` and named. Output: the symptom, the first cause, the evidence and the proposed fix with where it lands.
+4. Finish `ahrena-engineering-database:designing-persistence` from its step 3. Write the mode registry and the design note with Write into `checkout` as it stands, on the layer's branch when the caller is a builder, and commit nothing: the layer's implementer commits them with the layer. Return the note in full when the project keeps no designs. Write the tenant decision record, accepted per `approval`, only where the project keeps decision records, and list it under `left:` either way. Go to step 7. Output: the registry's path, the note's path, the tables with their modes, and the decisions to record.
+5. Run `ahrena-engineering-database:reviewing-persistence` on `base`...`head`. For its step 1, run the router with Bash from `checkout`: `ahrena-engineering-quality`'s `hooks/route-review.py --changed <base>...<head>`, from the installed plugin; if the router is not available, select the conditions by that skill's step 2 table and say so. Read the diff with Bash (`git diff`) and the files with Read, Grep and Glob. Collect the findings the skill returns. Go to step 7. Output: the findings by severity, with the condition identifier, the file and line, and the correction for each.
+6. Run `ahrena-engineering-database:diagnosing-database` on `symptom`. Bash runs only read commands: `git`, the plan and catalogue statements of that skill's `references/diagnostics.md`, and the database client the caller's environment already allows, with every statement inside a read-only transaction that ends in `ROLLBACK`, as that skill's step 2 states. Without access to the database, each step that needs it is `unchecked` and named. Output: the symptom, the first cause, the evidence and the proposed fix with where it lands.
 7. Before returning, read your own output: no row of data, connection string, credential or tenant identifier read from the database or a fixture appears in it; replace any with a placeholder. Return `DONE` with the template in `## Output`.
 
 ## Delegation
@@ -87,7 +87,7 @@ Return exactly one of these, first line first.
 ```text
 DONE
 mode: <design, review or diagnose>, <how it was decided>
-scope: <in design, the model and the database; in review, base..head; in diagnose, the environment and time window>
+scope: <in design, the model and the database; in review, base...head; in diagnose, the environment and time window>
 exists: <the registry and design note paths, with each table's mode; or the blocking and deferrable findings, then the conditions not applicable; or the diagnosis, naming where the fix lands and who owns it>
 strategies: <the strategies on record that this run followed, and any it proposes to change>
 left: <decisions to record, questions with who answers each, unchecked conditions, or none>
@@ -105,7 +105,7 @@ needs: <what the caller must supply to relaunch>
 NEEDS_APPROVAL
 approve: <the open inputs, each as a question with the options that change the design>
 recommendation: <the answer this agent would assume for each, in one line>
-resume: relaunch with `approval`; the run resumes at step 4
+resume: relaunch with `approval`; the run repeats step 1 and resumes at step 3
 exists: <the inputs settled so far>
 ```
 
@@ -135,13 +135,13 @@ injected: none
 </example>
 
 <example>
-Input: `mode` is `design`, `model` adds a `workspace_id` to every table of a notes service on PostgreSQL, and the strategy register holds no tenant strategy.
+Input: `mode` is `design`, `model` adds a `workspace_id` to every table of a notes service on PostgreSQL, and the registry's `strategies:` block holds no tenant strategy.
 
 ```text
 NEEDS_APPROVAL
 approve: workspace_id separates customers' data and no tenant strategy is on record; adopt Row-Level Security (enabled and forced on every table with workspace_id, the workspace set per transaction, an application role without BYPASSRLS) by decision record, or record another strategy?
-recommendation: adopt RLS; on resume the design drafts the decision record for the maintainer to accept
-resume: relaunch with `approval`; the run resumes at step 4
+recommendation: adopt RLS; your answer is the acceptance, and on resume the design writes the decision record as accepted and applies it to both tables
+resume: relaunch with `approval`; the run repeats step 1 and resumes at step 3
 exists: inputs settled: the aggregates Note and Notebook, PostgreSQL 16, workspace_id on both; no isolation written
 ```
 </example>

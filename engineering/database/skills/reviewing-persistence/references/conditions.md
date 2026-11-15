@@ -83,7 +83,7 @@ The conditions `reviewing-persistence` applies, with the quality rubric's identi
 - **State:** an adapter body that issues `BEGIN`, `COMMIT`, `ROLLBACK`, `session.begin()`, `startTransaction`, `TransactWriteItems` of its own accord, or a driver's equivalent, rather than receiving the open unit of work.
 - **Detect:** the adapters.
 - **Exempt:** the unit of work's own implementation; a migration.
-- **Correct:** remove the transaction from the adapter and pass it the unit of work's session.
+- **Correct:** remove the transaction from the adapter and pass it the unit of work's session; on MongoDB the adapter receives the callback API's `session`; on DynamoDB the adapter adds its write actions to the unit of work, and the unit of work alone calls `TransactWriteItems` at commit.
 - **Source:** `rules/transaction-boundaries.md` condition 2.
 
 ### TRX-3 Two aggregate roots in one transaction
@@ -108,7 +108,7 @@ The conditions `reviewing-persistence` applies, with the quality rubric's identi
 
 - **State:** an adapter query against a table that grows whose plan shows a full scan (`Seq Scan`, `SCAN`, type `ALL`, `COLLSCAN`), or a DynamoDB `Scan` serving an access pattern.
 - **Detect:** the plan asserted in the integration test; without one, the query's filter columns against the indexes at the head.
-- **Exempt:** a table the registry marks as fixed lookup data.
+- **Exempt:** a table whose registry entry says `growth: fixed` (rows written by migrations only).
 - **Correct:** add the index whose leading columns are the query's equality filters, or the key the pattern needs.
 - **Source:** `rules/index-coverage.md` condition 1.
 
@@ -140,8 +140,8 @@ The conditions `reviewing-persistence` applies, with the quality rubric's identi
 
 ### MT-1 A tenant with no strategy
 
-- **State:** a tenant column or owner concept added while the strategy register holds no tenant strategy; or a filter by tenant written by hand in its place.
-- **Detect:** the migrations and the register.
+- **State:** a tenant column or owner concept added while the registry's `strategies.tenancy` holds no accepted strategy; or a filter by tenant written by hand in its place.
+- **Detect:** the migrations and the registry's `strategies:` block.
 - **Exempt:** none.
 - **Correct:** stop and propose Row-Level Security, or the database's alternative, in a decision record; remove the hand-written isolation.
 - **Source:** `rules/tenant-isolation.md` condition 1.
@@ -156,7 +156,7 @@ The conditions `reviewing-persistence` applies, with the quality rubric's identi
 
 ### MT-3 The tenant filtered by hand
 
-- **State:** the tenant set on the connection rather than the transaction, set outside the use-case edge, or an adapter adding `WHERE tenant_id = ?` itself.
+- **State:** the tenant set on the connection rather than the transaction, set outside the use-case edge, or an adapter's own tenant filter standing in place of the policy (no policy on the table, the filter doing its work).
 - **Detect:** the unit of work and the adapters.
 - **Exempt:** the single access base of a decision record for a database without RLS.
 - **Correct:** set it with `SET LOCAL` or `set_config(..., true)` in the unit of work and drop the hand-written filter.

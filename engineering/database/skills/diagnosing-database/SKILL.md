@@ -26,7 +26,7 @@ A report that names no statement, no time and no environment cannot be diagnosed
 
 Run the statement, or the integration test that exercises it, against a database the caller allows reading — a local copy, staging, or a read replica — and see the symptom. A symptom that does not reproduce is written down as such, with what was tried, before any cause is named: a cause for a symptom never seen is a guess.
 
-Read-only only. `EXPLAIN` without `ANALYZE` on a statement that writes; `EXPLAIN ANALYZE` only on a `SELECT`, because it executes the statement ([PostgreSQL: Using EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html#USING-EXPLAIN-ANALYZE)).
+Read-only only. `EXPLAIN ANALYZE` executes the statement ([PostgreSQL: Using EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html#USING-EXPLAIN-ANALYZE)), and a `SELECT` can still write, through a data-modifying `WITH` or a volatile function. So every statement runs inside a read-only transaction that ends in `ROLLBACK`: `BEGIN TRANSACTION READ ONLY` on PostgreSQL, which refuses writes and `EXPLAIN ANALYZE` of a write ([SET TRANSACTION](https://www.postgresql.org/docs/current/sql-set-transaction.html)), and `START TRANSACTION READ ONLY` on MySQL ([START TRANSACTION](https://dev.mysql.com/doc/refman/8.4/en/commit.html)). A statement with `FOR UPDATE` or `FOR SHARE` takes row locks, so it gets plain `EXPLAIN` only. Where no read-only transaction is available, plain `EXPLAIN` only.
 
 ## 3. Read the database's evidence for the kind of symptom
 

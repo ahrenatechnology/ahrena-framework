@@ -4,7 +4,7 @@ type: rule
 clade: engineering
 subclade: database
 title: Every Query Has an Index and Every Index a Query
-statement: Every adapter query has an index, every index a query; NoSQL keys come from declared access patterns; an index on a live table never locks writes.
+statement: Every query on a growing table has an index, every index a query; NoSQL keys come from access patterns; an index on a table with rows never locks writes.
 enforcement: judgment
 references:
   - docs/indexing.md
@@ -26,7 +26,9 @@ The conditions carry the quality rubric's identifiers (`IDX-n`, ahrenatechnology
 
 ## Where this stops
 
-**Small, fixed tables.** A lookup table whose rows are written by migrations only, such as a list of countries, does not grow; condition 1 does not apply to it, and the registry says so.
+**Small, fixed tables.** A lookup table whose rows are written by migrations only, such as a list of countries, does not grow; condition 1 does not apply to it, and its registry entry says `growth: fixed`.
+
+**Uniqueness.** An index that enforces a primary key or a unique constraint is there for the constraint; condition 2 does not apply to it.
 
 **Tables created in the same migration.** Nothing writes to them yet, so condition 4 does not apply.
 
