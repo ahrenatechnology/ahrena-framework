@@ -1,0 +1,25 @@
+{
+  "name": "ahrena-engineering-llm-systems",
+  "displayName": "Ahrena Engineering LLM Systems",
+  "version": "0.1.0",
+  "description": "LLM systems built in the simplest shape that works: one model call before a fixed workflow, a workflow before an autonomous agent, one agent before several, and the provider's SDK before a framework; with the rules, docs and skills Claudionor uses to design, build test-first, review and debug them.",
+  "author": {
+    "name": "Ahrena Technology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/llm-systems",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "llm",
+    "ai-agents",
+    "agents",
+    "tool-use",
+    "evaluation",
+    "anthropic",
+    "claude-agent-sdk",
+    "openai-agents-sdk",
+    "langgraph",
+    "strands-agents"
+  ],
+  "skills": "./skills/"
+}
