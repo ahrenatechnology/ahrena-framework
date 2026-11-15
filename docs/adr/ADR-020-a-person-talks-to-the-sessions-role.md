@@ -33,9 +33,10 @@ than in delegation.
 **An agent a person talks to is the session's role, declared at entry.** A
 session takes one role when it starts and holds it until it ends. The role is
 named by a command (`/issue-tl`, `/review-pr`, `/round-pm`, `/round-tl`) or by
-the brief of a child session. The command makes the session take the role; it
+the brief of a child session; #316 adds the first and #317 the second and turns
+the other two from invoking an agent into taking its role. The command makes the session take the role; it
 does not invoke the agent. Which roles are session roles, and what such an agent
-owes, is `foundation/rules/session-roles.md`.
+owes, is `foundation/rules/session-roles.md`, which #315 adds.
 
 **One definition, two readers.** As the session's role, the agent writes for the
 person under `foundation/rules/person-facing-text.md`, asks its question, and
@@ -47,7 +48,7 @@ returns today.
 
 | Platform | How a session takes a role | What the binding enforces |
 |---|---|---|
-| Claude Code, from a command | The command's body tells the session to read the agent's definition with Read and hold it as its own instructions until the session ends, then to run the definition's first step with the command's arguments. The command's `model` field sets the model for that turn | The definition's text only. `tools` is not applied: the session keeps its own tools, and the definition's `What it does not do` is what holds the boundary |
+| Claude Code, from a command | The command's body tells the session to read the agent's definition with Read and hold it as its own instructions until the session ends, then to run the definition's first step with the command's arguments. The command's `model` field pins only the command's own turn; the turns after it run on the session's model | The definition's text only. `tools` is not applied: the session keeps its own tools, and the definition's `What it does not do` is what holds the boundary |
 | Claude Code, at launch | `claude --agent <plugin>:<agent>`, or the `agent` field of a settings file, starts the session with the definition as its system prompt | The definition, its `tools` and its `model` |
 | Claude Code, a child session | The brief names the role and says to read its definition first, as the command does; the model is the brief's | As for a command |
 | Codex | The session reads the definition at entry: the person names the role, or the entry directive in `AGENTS.md` names it for the kind of request. A Codex custom agent remains the subagent binding of `ADR-017` | The definition's text only |
@@ -66,7 +67,12 @@ session a person opens for a review takes the reviewer's role.
 **The tech lead's session runs on `opus`.** The owner decided this on 14/11/2026,
 as `foundation/rules/frontmatter.md` already asks of a lead: a wrong plan or route
 costs a round of rework, which outweighs the model's price. A round's child
-session that takes the tech lead's role runs on `opus` for the same reason.
+session that takes the tech lead's role runs on `opus` for the same reason. What
+holds the model for the whole session differs by route: `--agent` applies the
+definition's `model`, and a child session's brief sets it at start. On the
+command route the command's `model` field pins only its own turn, so the command
+tells the person to switch the session with `/model opus` when it runs on another
+model.
 
 ## Consequences
 

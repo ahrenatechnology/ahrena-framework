@@ -70,7 +70,7 @@ POSITIONS = {
     "g.yaml": "rotulos:\n  - label: x\n",
 }
 
-POINTER_LINE = "const razaoSocial = row.razao; // ADR-020 a field of the government API\n"
+POINTER_LINE = "const razaoSocial = row.razao; // ADR-021 a field of the government API\n"
 
 # ----------------------------------------------------------------------------
 

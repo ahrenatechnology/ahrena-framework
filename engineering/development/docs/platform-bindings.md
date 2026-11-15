@@ -89,7 +89,9 @@ of an issue, the reviewer a person opens, and the round's PM and Tech Lead are
 not called by the session: the session takes their role at entry and holds it
 until it ends, writing for the person under `person-facing-text` of
 `ahrena-foundation` and returning the protocol only when another agent called it.
-This repository's `ADR-020` records how each platform does it.
+This repository's `ADR-020` records how each platform does it. The commands
+below land with the units of #310: `/issue-tl` with #316, `/review-pr` and the
+change to `/round-pm` and `/round-tl` with #317.
 
 - **Claude Code.** A command (`/issue-tl`, `/review-pr`, `/round-pm`, `/round-tl`)
   tells the session to read the agent's definition and hold it as its own; a
