@@ -258,6 +258,24 @@ SKELETON_EXAMPLE = (
 SKELETON_AGENT = GOOD_AGENT
 assert SKELETON_OUTPUT in GOOD_AGENT and SKELETON_EXAMPLE in GOOD_AGENT
 
+# #315/AC-1 #315/AC-2 #315/AC-3 — a session role and the person section it owes.
+PERSON_SECTION = (
+    "## Writing to a person\n\n"
+    "Follow [`person-facing-text`](../rules/person-facing-text.md) in all you write.\n\n"
+)
+PERSON_RULE_STUB = GOOD_RULE.replace("id: bounded", "id: person-facing-text")
+SESSION_CORPUS = {**VALID_CORPUS, "p/rules/person-facing-text.md": PERSON_RULE_STUB}
+
+
+def with_person(agent: str) -> str:
+    """The agent with the person section a session role owes, before its Output."""
+    return agent.replace(SKELETON_OUTPUT, PERSON_SECTION + SKELETON_OUTPUT)
+
+SESSION_AGENT = GOOD_AGENT.replace("role: thing-doer", "role: review-orchestrator").replace(
+    SKELETON_OUTPUT, PERSON_SECTION + SKELETON_OUTPUT
+)
+RESUME_LINE = "resume: relaunch with approval; the run resumes at step 2\n"
+
 
 def wired_agent(preload: list[str], section: str) -> str:
     """The fixture agent with its `skills` list and its load section replaced."""
@@ -334,15 +352,15 @@ def references_of(text: str) -> list[str]:
     return refs
 
 
-def stub_tree(agent_path: str, text: str, home: str) -> dict[str, str]:
+def stub_tree(agent_path: str, text: str, home: str, home_dir: str = "plug0") -> dict[str, str]:
     """A marketplace holding `text` at `agent_path` in plugin `home`, and a stub for each reference.
 
     Every plugin a reference names gets its own directory; every referenced
     skill, agent and doc gets a stub that passes on its own, so only the agent
     under test can fail.
     """
-    plugins = {home: "plug0"}
-    tree = {f"plug0/{agent_path}": text}
+    plugins = {home: home_dir}
+    tree = {f"{home_dir}/{agent_path}": text}
     for ref in references_of(text):
         owner, sep, path = ref.partition(":")
         owner, path = (owner, path) if sep else (home, ref)
@@ -1291,7 +1309,7 @@ CASES = [
             "condition 10: '## Before you start' is missing",
             "condition 11: 'tools' is missing",
             "'## Procedure' is missing",
-            "16 failure(s)",
+            "17 failure(s)",
         ],
     ),
     # #252/AC-11 — every failure is on athena.md, so the stub tree itself is clean.
@@ -1326,7 +1344,7 @@ CASES = [
             ),
         },
         [
-            "9 failure(s) across 13 artifact(s)",
+            "10 failure(s) across 13 artifact(s)",
             "condition 11: 'tools' is missing",
             "condition 11: 'model' is missing",
             "'## Procedure' is missing",
@@ -1336,7 +1354,10 @@ CASES = [
     # #252/AC-11
     case(
         "the rewritten athena.md in the repository passes the gate",
-        stub_tree("agents/athena.md", ATHENA_NOW, ATHENA_PLUGIN),
+        {
+            **stub_tree("agents/athena.md", ATHENA_NOW, ATHENA_PLUGIN, "engineering/development"),
+            "foundation/rules/person-facing-text.md": PERSON_RULE_STUB,
+        },
         ["no failures"],
         ok=True,
     ),
@@ -1361,16 +1382,16 @@ CASES = [
     # #252/AC-4
     case(
         "a lead agent on a model other than opus fails",
-        {**VALID_CORPUS, "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: tech-lead")},
+        {**SESSION_CORPUS, "p/agents/specialist.md": with_person(GOOD_AGENT).replace("role: thing-doer", "role: tech-lead")},
         ["1 failure(s)", "condition 12: role 'tech-lead' is a lead, so model is 'opus', not 'sonnet'"],
     ),
     # #252/AC-4
     case(
         "each lead role is held to opus",
         {
-            **VALID_CORPUS,
-            "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: product-manager"),
-            "p/agents/helper.md": HELPER_AGENT.replace("role: thing-doer", "role: round-lead"),
+            **SESSION_CORPUS,
+            "p/agents/specialist.md": with_person(GOOD_AGENT).replace("role: thing-doer", "role: product-manager"),
+            "p/agents/helper.md": with_person(HELPER_AGENT).replace("role: thing-doer", "role: round-lead"),
         },
         ["2 failure(s)", "role 'product-manager' is a lead", "role 'round-lead' is a lead"],
     ),
@@ -1378,12 +1399,12 @@ CASES = [
     case(
         "a lead agent on opus passes",
         {
-            **VALID_CORPUS,
-            "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: tech-lead").replace(
+            **SESSION_CORPUS,
+            "p/agents/specialist.md": with_person(GOOD_AGENT).replace("role: thing-doer", "role: tech-lead").replace(
                 "model: sonnet", "model: opus"
             ),
         },
-        ["5 artifact(s), no failures"],
+        ["6 artifact(s), no failures"],
         ok=True,
     ),
     # #252/AC-4
@@ -1601,6 +1622,78 @@ CASES = [
             **VALID_CORPUS,
             "p/agents/specialist.md": SKELETON_AGENT.replace(
                 "resume: relaunch with approval; the run resumes at step 2\n", ""
+            ),
+        },
+        ["1 failure(s)", "condition 6: the NEEDS_APPROVAL template has no 'resume:' field"],
+    ),
+    # #315/AC-1 #315/AC-2
+    case(
+        "a session role with the person section linking the writing rule passes",
+        {**SESSION_CORPUS, "p/agents/specialist.md": SESSION_AGENT},
+        ["no failures"],
+        ok=True,
+    ),
+    # #315/AC-2
+    case(
+        "a session role without the person section fails",
+        {
+            **SESSION_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: review-orchestrator"),
+        },
+        [
+            "1 failure(s)",
+            "[session-roles] condition 1: role 'review-orchestrator' is a session role, "
+            "so '## Writing to a person' is required",
+        ],
+    ),
+    # #315/AC-2
+    case(
+        "a person section that does not link the writing rule fails",
+        {
+            **SESSION_CORPUS,
+            "p/agents/specialist.md": SESSION_AGENT.replace(
+                "[`person-facing-text`](../rules/person-facing-text.md)", "the writing rule"
+            ),
+        },
+        ["1 failure(s)", "condition 2: '## Writing to a person' does not link person-facing-text.md"],
+    ),
+    # #315/AC-2
+    case(
+        "a link to the writing rule inside inline code does not count",
+        {
+            **SESSION_CORPUS,
+            "p/agents/specialist.md": SESSION_AGENT.replace(
+                "[`person-facing-text`](../rules/person-facing-text.md)",
+                "`[rule](../rules/person-facing-text.md)`",
+            ),
+        },
+        ["1 failure(s)", "condition 2: '## Writing to a person' does not link person-facing-text.md"],
+    ),
+    # #315/AC-1
+    case(
+        "a person section after Output is out of order",
+        {
+            **SESSION_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace("role: thing-doer", "role: review-orchestrator").replace(
+                SKELETON_OUTPUT, SKELETON_OUTPUT + PERSON_SECTION
+            ),
+        },
+        ["1 failure(s)", "condition 5: the skeleton sections are out of order"],
+    ),
+    # #315/AC-3
+    case(
+        "a session role may ask without a resume line",
+        {**SESSION_CORPUS, "p/agents/specialist.md": SESSION_AGENT.replace(RESUME_LINE, "")},
+        ["no failures"],
+        ok=True,
+    ),
+    # #315/AC-3
+    case(
+        "an agent outside the session roles still owes the resume line",
+        {
+            **SESSION_CORPUS,
+            "p/agents/specialist.md": GOOD_AGENT.replace(RESUME_LINE, "").replace(
+                SKELETON_OUTPUT.replace(RESUME_LINE, ""), PERSON_SECTION + SKELETON_OUTPUT.replace(RESUME_LINE, "")
             ),
         },
         ["1 failure(s)", "condition 6: the NEEDS_APPROVAL template has no 'resume:' field"],

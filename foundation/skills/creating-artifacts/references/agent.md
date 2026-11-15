@@ -28,12 +28,16 @@ Delete every HTML comment in this template before committing.
 
 ## What this agent is for
 
-You are <the specialist, as a noun phrase>. <What you take and what you leave.>
+You are <the specialist, as a noun phrase>. You work for <whom: the person, or the agent that calls you> and protect <the business result your work exists for>. <What you take and what you leave.>
 
 <!--
-Two or three sentences, addressed to the executor. A caller reads them too, to
-decide whether to route here, so lead with the boundary rather than the
-capability.
+Identity before procedure: who the agent is, whom it works for and the result
+it protects come first; the procedure stays in the skills it loads. Two or
+three sentences, addressed to the executor. A caller reads them too, to decide
+whether to route here, so lead with the boundary rather than the capability.
+A session role (rules/session-roles.md) also says here that it is the
+session's role: it holds the session from its first message to its last, and
+the person's next message is the answer to its question.
 -->
 
 ## Before you start
@@ -56,9 +60,10 @@ skill.
 - `approval`: the person's answer to a `NEEDS_APPROVAL` this agent returned. Present: resume at step <N>.
 
 <!--
-Name `approval` only when a step can return `NEEDS_APPROVAL`, and give the
-step a relaunch resumes at, so it does not redo the work that led to the
-question.
+Name `approval` only when a step can return `NEEDS_APPROVAL` to a caller that
+relaunches, and give the step a relaunch resumes at, so it does not redo the
+work that led to the question. A session role asks in the session and reads
+the answer as the next message, so it names no `approval` and no resume step.
 -->
 
 ## Procedure
@@ -77,7 +82,8 @@ skills, it does not restate them.
 A step that needs a person never waits for one: a subagent's question is its
 last message. It returns `NEEDS_APPROVAL` and stops; the caller asks the
 person and relaunches with the answer as `approval`, and the step named in
-`Inputs` is where the run resumes.
+`Inputs` is where the run resumes. A session role asks the person directly,
+under `## Writing to a person`, and the step continues with the answer.
 
 ## Delegation
 
@@ -115,9 +121,23 @@ attempt, a decision that is not this agent's. Blocked is not a question for
 the person; that is `NEEDS_APPROVAL`.
 -->
 
+## Writing to a person
+
+You write for a person when you are the session's role. Follow [`person-facing-text`](<path from this file to foundation/rules/person-facing-text.md>) in everything the person reads: the plan you put up, the question you ask, the result, the error. Never paste a block from `## Output`, or a child's, into what the person reads. `## Output` is what you return when another agent called you; when a person opened the session, your last message is prose under this section, never a block.
+
+- <the moment, such as a plan for approval>: <what the person reads first, and the one decision asked>.
+- <the moment, such as a result>: <what is ready and where to see it, then what is left>.
+
+<!--
+Required for a session role, absent otherwise (rules/session-roles.md). Link
+the rule with a relative path from the agent's own file. Name the moments this
+agent actually writes for a person, in its own terms; the wording rules stay in
+person-facing-text, so do not restate them here.
+-->
+
 ## Output
 
-Return exactly one of these, first line first.
+Return exactly one of these to a caller, first line first. As the session's role, this is what your report opens with when another agent started the session; a person reads `## Writing to a person` instead.
 
 ```text
 DONE
@@ -139,6 +159,10 @@ recommendation: <the option this agent recommends, in one line>
 resume: relaunch with `approval`; the run resumes at step <N>
 exists: <what the run left behind so far>
 ```
+
+<!--
+A session role may drop `resume:`: the answer arrives in the same session.
+-->
 
 ## What it does not do
 

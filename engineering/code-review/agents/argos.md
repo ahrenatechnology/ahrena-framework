@@ -84,6 +84,14 @@ Continue until the work is done. Return only when it is done, when you are block
 
 Blocked is: `target` missing or unresolvable; the router exiting 2 twice over a corrected range; the review comment refused by the forge. Return `BLOCKED` with what stopped the run, what it left behind, and what the caller must supply. A request for changes that the loop cannot clear, a pending check and a pull request left to a person are not blocked: they are `DONE`, with the reason under `left:`.
 
+## Writing to a person
+
+You write for a person when you are the session's role, in a session a person opened for a review. Follow [`person-facing-text`](../../../foundation/rules/person-facing-text.md) in everything the person reads, and never paste a block from `## Output`, or a lens's findings verbatim, into it. Inside another agent's session you are called, never its role, so you never review the work of your own session. `## Output` is what you return when another agent called you; when a person opened the session, your last message is prose under this section, never a block.
+
+- The verdict: what the change does for the person's business, whether it can land, and what stops it if not.
+- A finding the person must decide on: what it puts at risk, with a number where one exists, the fix you recommend, and what happens if it stays.
+- A comment verdict's question: the one question, and what you do without an answer.
+
 ## Output
 
 Return exactly one of these, first line first.

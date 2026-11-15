@@ -111,13 +111,17 @@ AGENT_SKELETON = (
     "Delegation",
     "Done when",
     "When blocked",
+    "Writing to a person",
     "Output",
     "What it does not do",
     "Example",
 )
-REQUIRED_SECTIONS["agent"] = tuple(h for h in AGENT_SKELETON if h != "Before you start")
+REQUIRED_SECTIONS["agent"] = tuple(
+    h for h in AGENT_SKELETON if h not in ("Before you start", "Writing to a person")
+)
 STATUS_LINE = re.compile(r"^(DONE|BLOCKED|NEEDS_APPROVAL)\b")
 APPROVAL_FIELDS = ("approve:", "recommendation:", "resume:")
+RELAUNCH_FIELD = "resume:"
 EXAMPLE_OPEN, EXAMPLE_CLOSE = "<example>", "</example>"
 
 # #252 — conditions 8 to 10 of frontmatter.md, decided in check_skill_wiring.
@@ -130,6 +134,11 @@ LOAD_PHRASE = "Skill tool"
 AGENT_RUNTIME_FIELDS = ("tools", "model")
 LEAD_ROLES = ("tech-lead", "product-manager", "round-lead")
 LEAD_MODEL = "opus"
+
+# #315 — conditions 1 and 2 of session-roles.md; the session roles are its closed list.
+SESSION_ROLES = ("tech-lead", "review-orchestrator", "product-manager", "round-lead")
+PERSON_SECTION = "Writing to a person"
+PERSON_RULE_LINK = re.compile(r"\]\([^)\s]*person-facing-text\.md\)")
 
 # #252/AC-6 — conditions 9 and 10 of naming.md.
 DELEGATION_SECTION = "Delegation"
@@ -821,8 +830,12 @@ def _check_order(a: Artifact, headings: list[str], findings: list[Finding]) -> N
         )
 
 
-def _template_error(block: list[str]) -> list[str]:
-    """What is wrong with one `## Output` template, as condition 6 messages."""
+def _template_error(block: list[str], session: bool = False) -> list[str]:
+    """What is wrong with one `## Output` template, as condition 6 messages.
+
+    A session role's question is answered in the same session, so its
+    NEEDS_APPROVAL names no relaunch (completeness.md condition 6).
+    """
     lines = [line.strip() for line in block if line.strip()]
     status = STATUS_LINE.match(lines[0]) if lines else None
     if status is None:
@@ -832,7 +845,8 @@ def _template_error(block: list[str]) -> list[str]:
     return [
         f"the NEEDS_APPROVAL template has no '{name}' field"
         for name in APPROVAL_FIELDS
-        if not any(line.startswith(name) for line in lines[1:])
+        if not (session and name == RELAUNCH_FIELD)
+        and not any(line.startswith(name) for line in lines[1:])
     ]
 
 
@@ -840,7 +854,8 @@ def _check_output(a: Artifact, findings: list[Finding]) -> None:
     if _section_text(a.body, "Output") is None:
         return
     blocks = _section_blocks(a.body, "Output")
-    errors = [error for block in blocks for error in _template_error(block)]
+    session = a.data.get("role") in SESSION_ROLES
+    errors = [error for block in blocks for error in _template_error(block, session)]
     if not blocks:
         errors = ["'## Output' has no fenced template"]
     findings.extend(Finding(a.rel, "completeness", f"condition 6: {error}") for error in errors)
@@ -863,11 +878,36 @@ def _check_example(a: Artifact, findings: list[Finding]) -> None:
         )
 
 
+def check_session_role(a: Artifact, findings: list[Finding]) -> None:
+    """Conditions 1 and 2 of session-roles.md: a session role writes for a person (#315)."""
+    role = a.data.get("role")
+    if role not in SESSION_ROLES:
+        return
+    section = _section_text(a.body, PERSON_SECTION)
+    if section is None:
+        findings.append(
+            Finding(
+                a.rel,
+                "session-roles",
+                f"condition 1: role '{role}' is a session role, so '## {PERSON_SECTION}' is required",
+            )
+        )
+    elif not PERSON_RULE_LINK.search(INLINE_CODE.sub("", section)):
+        findings.append(
+            Finding(
+                a.rel,
+                "session-roles",
+                f"condition 2: '## {PERSON_SECTION}' does not link person-facing-text.md",
+            )
+        )
+
+
 def check_skeleton(a: Artifact, headings: list[str], findings: list[Finding]) -> None:
     """Conditions 5 to 7 of completeness.md: the agent body skeleton, on every agent (#252)."""
     _check_order(a, headings, findings)
     _check_output(a, findings)
     _check_example(a, findings)
+    check_session_role(a, findings)
 
 
 def check_sections(a: Artifact, findings: list[Finding]) -> None:

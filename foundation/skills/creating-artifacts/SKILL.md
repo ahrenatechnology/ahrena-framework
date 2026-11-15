@@ -60,7 +60,7 @@ Fill every field, and keep the sections the template gives you. `rules/completen
 
 What the gate cannot check is whether a section that exists says anything. A `Where this stops` reading "use judgment" passes condition 3 and still tells the reader nothing.
 
-**An agent is written to the body skeleton**, which `docs/artifact-model.md` defines and `references/agent.md` lays out in order: role, `Before you start`, `Inputs`, `Procedure`, `Delegation`, `Done when`, `When blocked`, `Output`, `What it does not do`, `Example`. The body is the executor's system prompt, so write each section as an instruction to the executor ("You are…", "Do not return before…"), not as an argument for the agent. Rationale, history and anything addressed to a maintainer go to the plugin's `docs/`.
+**An agent is written to the body skeleton**, which `docs/artifact-model.md` defines and `references/agent.md` lays out in order: role, `Before you start`, `Inputs`, `Procedure`, `Delegation`, `Done when`, `When blocked`, `Writing to a person` for a session role, `Output`, `What it does not do`, `Example`. An agent a person talks to is a session role ([`session-roles.md`](../../rules/session-roles.md)): its role takes the session, so it opens with who it is, whom it works for and the business result it protects, and it writes for the person as well as returning the protocol to a caller. The body is the executor's system prompt, so write each section as an instruction to the executor ("You are…", "Do not return before…"), not as an argument for the agent. Rationale, history and anything addressed to a maintainer go to the plugin's `docs/`.
 
 Three parts of it fail most often:
 
