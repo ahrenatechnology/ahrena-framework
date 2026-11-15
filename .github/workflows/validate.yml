@@ -202,6 +202,12 @@ jobs:
       - name: Test the LLM-systems plugin's wiring
         run: python3 -B engineering/llm-systems/tests/test-plugin.py
 
+      - name: Test the LLM-systems loop-bound hook
+        run: python3 -B engineering/llm-systems/hooks/test-check-loop-bounds.py
+
+      - name: Test the LLM-systems tool-definition hook
+        run: python3 -B engineering/llm-systems/hooks/test-check-tool-definitions.py
+
       - name: Test the costs plugin's record step
         run: python3 costs/runtime/test-record.py
 
