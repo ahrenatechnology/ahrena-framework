@@ -29,8 +29,9 @@ plans rather than builds a layer, and is decided by what it returned instead:
        quote, such as a fixture's fake key or account identifier)
    10. no line the run added matches an `added_excludes` pattern
 
-An outcome case may carry `head_files`, written after the initial commit and
-left uncommitted, so a review case has a diff against `main`.
+Any case may carry `head_files`, written after the initial commit and left
+uncommitted: a review case's diff against `main`, or the files a layer case
+hands its agent to commit (condition 11).
 
 The agents run with the plugins copied out of this checkout, with no project or
 user settings and no MCP server, so the prompt under test is the only build
