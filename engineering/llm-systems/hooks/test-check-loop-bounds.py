@@ -97,6 +97,15 @@ RUNNER_BOUNDED = '''
 runner = client.beta.messages.tool_runner(model="m", max_tokens=1024, tools=[lookup], messages=messages, max_iterations=6)
 '''
 
+OPTIONS_NONE = '''
+from claude_agent_sdk import ClaudeAgentOptions
+options = ClaudeAgentOptions(max_turns=None)
+'''
+
+RUNNER_NONE = '''
+runner = client.beta.messages.tool_runner(model="m", max_tokens=1024, tools=[lookup], messages=messages, max_iterations=None)
+'''
+
 OPENAI_NONE = '''
 from agents import Runner
 result = Runner.run_sync(agent, "hello", max_turns=None)
@@ -146,11 +155,13 @@ def main() -> int:
     accepts("condition 2: max_turns is a bound", OPTIONS_MAX_TURNS)
     accepts("condition 2: max_budget_usd is a bound", OPTIONS_BUDGET)
     accepts("condition 2: **kwargs is not read", OPTIONS_KWARGS)
+    rejects("condition 2: max_turns=None is no bound", OPTIONS_NONE, "condition 2")
 
     rejects("condition 3: tool_runner without max_iterations", RUNNER_UNBOUNDED, "condition 3")
     accepts("condition 3: tool_runner with max_iterations", RUNNER_BOUNDED)
+    rejects("condition 3: tool_runner with max_iterations=None", RUNNER_NONE, "condition 3")
     rejects("condition 3: Runner with max_turns=None", OPENAI_NONE, "condition 3")
-    accepts("condition 3: Runner's default of 10 is a bound", OPENAI_DEFAULT)
+    rejects("condition 3: Runner left on the SDK's default", OPENAI_DEFAULT, "condition 3")
     accepts("condition 3: Runner with max_turns set", OPENAI_SET)
 
     proc = run_hook(SYNTAX_ERROR)

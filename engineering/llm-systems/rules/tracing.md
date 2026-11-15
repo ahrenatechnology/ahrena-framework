@@ -4,7 +4,7 @@ type: rule
 clade: engineering
 subclade: llm-systems
 title: Every Model and Tool Call Is Traced Without Sensitive Content by Default
-statement: Every model and tool call emits a span with the model, token usage and outcome; prompt and output content is recorded only where the design allows it.
+statement: Every model and tool call emits a span; a model-call span records the model, tokens and stop reason; content only where the design allows it.
 enforcement: judgment
 references:
   - docs/observability.md

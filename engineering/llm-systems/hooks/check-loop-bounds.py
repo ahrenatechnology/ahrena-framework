@@ -8,7 +8,10 @@ Decides, in Python source, the three conditions a parser can see:
     2. `ClaudeAgentOptions(...)` sets `max_turns` or `max_budget_usd`, because
        the Claude Agent SDK applies no limit to either by default
     3. the Claude SDK's tool runner is given `max_iterations`, and the OpenAI
-       Agents SDK's runner is not given `max_turns=None`
+       Agents SDK's runner is given `max_turns`, in each case not `None`
+
+A keyword passed the constant `None` counts as absent, because `None` is the
+no-limit value in every SDK this reads.
 
 Each default it reads is the SDK's own documented one, linked from
 engineering/llm-systems/docs/frameworks.md ("The loop bound each framework
@@ -56,12 +59,13 @@ def attribute_path(node: ast.expr) -> list[str]:
 
 
 def keyword_names(call: ast.Call) -> set[str] | None:
-    """The keyword arguments a call names, or None when it unpacks `**kwargs`."""
+    """The keyword arguments a call sets to something other than None, or None when it unpacks `**kwargs`."""
     names: set[str] = set()
     for keyword in call.keywords:
         if keyword.arg is None:
             return None
-        names.add(keyword.arg)
+        if not (isinstance(keyword.value, ast.Constant) and keyword.value.value is None):
+            names.add(keyword.arg)
     return names
 
 
@@ -89,19 +93,13 @@ CONDITION_3_RUNNER = (
     "it runs until the model stops calling tools"
 )
 CONDITION_3_OPENAI = (
-    "condition 3: Runner is given max_turns=None, which removes the OpenAI Agents SDK's bound"
+    "condition 3: Runner is called without max_turns; set it in code rather than "
+    "relying on the OpenAI Agents SDK's default"
 )
 
 
 def unbounded_while(node: ast.While) -> bool:
     return is_constant_true(node.test) and any(is_model_call(inner) for inner in ast.walk(node))
-
-
-def removes_openai_bound(call: ast.Call) -> bool:
-    return any(
-        keyword.arg == "max_turns" and isinstance(keyword.value, ast.Constant) and keyword.value.value is None
-        for keyword in call.keywords
-    )
 
 
 def call_finding(call: ast.Call) -> str | None:
@@ -114,7 +112,7 @@ def call_finding(call: ast.Call) -> str | None:
         return CONDITION_2
     if path[-1] == "tool_runner" and "max_iterations" not in names:
         return CONDITION_3_RUNNER
-    if path[-2:] in (["Runner", "run"], ["Runner", "run_sync"], ["Runner", "run_streamed"]) and removes_openai_bound(call):
+    if path[-2:] in (["Runner", "run"], ["Runner", "run_sync"], ["Runner", "run_streamed"]) and "max_turns" not in names:
         return CONDITION_3_OPENAI
     return None
 
