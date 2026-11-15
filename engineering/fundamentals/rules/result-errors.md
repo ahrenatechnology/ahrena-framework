@@ -16,7 +16,7 @@ Four conditions. The first three carry the catalog ids ERR-1 to ERR-3 of the PR 
 
 An expected failure is one the caller can act on and the domain names: a rejected command, a missing record, a rule that was not met. An unexpected failure is everything else: a bug, an outage, a broken invariant. The two are handled by different mechanisms, and the conditions below say which.
 
-None of these conditions adds an abstraction. A `Result` is a return type, not a seam, so the abstraction trigger in condition 1 of `rules/yagni.md` does not gate them. Except ERR-2, which `hooks/check-exposure.py` in the security plugin decides, each is decided by a reviewer today; the detectors are tracked in the detectors sub-issue of #323, and each condition names the one it will get.
+None of these conditions adds an abstraction. A `Result` is a return type, not a seam, so the abstraction trigger in condition 1 of `rules/yagni.md` does not gate them. Except ERR-2, which `hooks/check-exposure.py` in the security plugin decides, each is decided by a reviewer today; the detectors are tracked in the detectors sub-issue of #323, and ERR-1 and ERR-3 name the one each will get, and condition 4 stays with a reviewer.
 
 ## Conditions
 
