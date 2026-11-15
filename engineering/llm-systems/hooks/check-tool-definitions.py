@@ -6,11 +6,12 @@ both providers' documentation shows, and decides:
 
     1. the definition has a `description`, and every object in its input
        schema is closed with `"additionalProperties": False`
-    2. strict mode is on: a Claude tool (`name` and `input_schema`) sets
-       `"strict": True`; an OpenAI function tool (`"type": "function"`, `name` and `parameters`) does
-       not set `"strict": False`, and in the Chat Completions shape
-       (`{"type": "function", "function": {...}}`) sets `"strict": True`, since
-       only the Responses API turns strict on when it is omitted
+    2. strict mode is on: every tool sets `"strict": True` - a Claude tool
+       (`name` and `input_schema`), an OpenAI Responses function tool
+       (`"type": "function"`, `name` and `parameters`), and the Chat
+       Completions shape (`{"type": "function", "function": {...}}`). The
+       Responses API only attempts strict when it is omitted and falls back to
+       non-strict when the schema does not qualify, so an omission is a finding
 
 A schema that is not a literal (a Pydantic model's `model_json_schema()`, a
 variable) is not read, and the hook reports nothing it cannot see. Conditions 3
@@ -38,7 +39,7 @@ SKIPPED_DIRS = frozenset({".git", ".venv", "venv", "node_modules", "__pycache__"
 NO_DESCRIPTION = "condition 1: the tool '{name}' has no description"
 OPEN_OBJECT = "condition 1: an object in the schema of '{name}' does not set additionalProperties to False"
 CLAUDE_NOT_STRICT = "condition 2: the Claude tool '{name}' does not set strict to True"
-OPENAI_STRICT_OFF = "condition 2: the function tool '{name}' sets strict to False"
+OPENAI_NOT_STRICT = "condition 2: the function tool '{name}' does not set strict to True"
 CHAT_NOT_STRICT = "condition 2: the Chat Completions function '{name}' does not set strict to True"
 
 
@@ -103,8 +104,8 @@ def tool_findings(node: ast.Dict) -> list[str]:
         return found
     if "parameters" in entries and constant(entries.get("type")) == "function":
         found = definition_findings(entries, name, "parameters")
-        if constant(entries.get("strict")) is False:
-            found.append(OPENAI_STRICT_OFF.format(name=name))
+        if constant(entries.get("strict")) is not True:
+            found.append(OPENAI_NOT_STRICT.format(name=name))
         return found
     return []
 

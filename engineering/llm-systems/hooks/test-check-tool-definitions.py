@@ -55,6 +55,11 @@ tools = [{"type": "function", "name": "get_weather", "description": "d",
           "parameters": {"type": "object", "properties": {}, "additionalProperties": False}}]
 '''
 
+RESPONSES_STRICT = '''
+tools = [{"type": "function", "name": "get_weather", "description": "d", "strict": True,
+          "parameters": {"type": "object", "properties": {}, "additionalProperties": False}}]
+'''
+
 RESPONSES_STRICT_OFF = '''
 tools = [{"type": "function", "name": "get_weather", "description": "d", "strict": False,
           "parameters": {"type": "object", "properties": {}, "additionalProperties": False}}]
@@ -100,7 +105,8 @@ def main() -> int:
     rejects("condition 1: a nested object left open", CLAUDE_OPEN, "additionalProperties")
     accepts("condition 1: a generated schema is not read", CLAUDE_GENERATED_SCHEMA)
     rejects("condition 2: a Claude tool without strict", CLAUDE_NOT_STRICT, "condition 2")
-    accepts("condition 2: Responses normalises an omitted strict to strict", RESPONSES_DEFAULT)
+    rejects("condition 2: Responses tool with strict omitted may fall back to non-strict", RESPONSES_DEFAULT, "condition 2")
+    accepts("condition 2: Responses tool with strict True", RESPONSES_STRICT)
     rejects("condition 2: Responses tool with strict False", RESPONSES_STRICT_OFF, "condition 2")
     rejects("condition 2: Chat Completions function without strict", CHAT_NOT_STRICT, "condition 2")
     accepts("condition 2: Chat Completions function with strict", CHAT_STRICT)
