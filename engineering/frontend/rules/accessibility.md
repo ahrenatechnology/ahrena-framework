@@ -24,7 +24,7 @@ Accessibility is measured on the rendered state, not on the source, and against 
    - text contrast is at least 4.5:1 (SC 1.4.3 Contrast (Minimum), AA), and the boundary of a control and the focus indicator at least 3:1 (SC 1.4.11 Non-text Contrast, AA);
    - the pointer target is at least 24 by 24 CSS pixels (SC 2.5.8 Target Size (Minimum), AA).
 
-   Decided, in both themes ([`themes`](themes.md) condition 3), by an end-to-end keyboard test that activates each interactive element with Enter or Space and asserts its effect, asserts Tab leaves every element, and asserts the focused element is not fully covered; and by axe configured at 4.5:1 for all text, for contrast and target size.
+   Decided, in both themes ([`themes`](themes.md) condition 3), by an end-to-end keyboard test that activates each interactive element with Enter or Space and asserts its effect, asserts Tab leaves every element, asserts the focused element is not fully covered, and asserts that each focused element's outline or box-shadow differs from its unfocused render with at least 3:1 contrast against the adjacent colour; and by axe configured at 4.5:1 for all text, for text contrast and target size. The 3:1 boundary of a control (SC 1.4.11) has no detector yet and is read by a reviewer until one exists.
 
 ## Where this stops
 
