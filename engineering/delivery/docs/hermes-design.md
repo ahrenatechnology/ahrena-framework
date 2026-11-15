@@ -4,7 +4,7 @@ type: doc
 clade: engineering
 subclade: delivery
 title: How Hermes decides
-summary: The arguments behind the round Tech Lead's procedure - why it dispatches only what the person approved, briefs children in the person's language on Sonnet, lands on three conditions on the head being landed, reads reports as state, leaves another tool's work alone, reports state changes only, and never polls.
+summary: The arguments behind the round Tech Lead's procedure - why it dispatches only what the person approved, briefs children in the person's language on Opus, lands on three conditions on the head being landed, reads reports as state, leaves another tool's work alone, reports state changes only, and never polls.
 references:
   - docs/round-method.md
   - ahrena-engineering-development:docs/platform-bindings.md
@@ -23,9 +23,9 @@ Athena plans one issue into layers, routes and delegates them and stacks the res
 
 The Round issue's Activities table is the list. An issue not on it goes to the PM, who decides whether it enters. A session that holds one issue never receives a second, unrelated one, because two demands in one context muddle both and the session title can name only one.
 
-## Children are briefed in the person's language, on Sonnet
+## Children are briefed in the person's language, on Opus
 
-The person reads the session list, so titles and briefs are in their language. Sonnet is the default because a child's job is bounded by its issue; another model needs a sentence saying why.
+The person reads the session list, so titles and briefs are in their language. Opus is the default because each child takes the tech lead's role, and the owner decided on 14/11/2026 that the tech lead runs on Opus: a wrong plan or route costs a round of rework, which outweighs the model's price (this repository's `ADR-020`). A cheaper model needs a sentence saying why.
 
 ## It lands on three conditions, on the head being landed
 

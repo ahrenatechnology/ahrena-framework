@@ -4,16 +4,16 @@
     "dispatch": {
       "issue": "#43",
       "title": "Rodada console · #43 Visão da frota em menos de 1s",
-      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Assuma o papel da Athena nela: planeje, construa e abra o PR. Só esta issue.",
       "language": "pt-BR",
       "person_language": "pt-BR",
-      "model": "sonnet",
+      "model": "opus",
       "model_reason": "",
       "agent": "athena",
       "tool": "claude-code"
     },
     "verdict": "dispatch",
-    "says": "dispatch: #43 to a new session, model sonnet"
+    "says": "dispatch: #43 to a new session, model opus"
   },
   {
     "name": "no issue, no child",
@@ -23,7 +23,7 @@
       "brief": "Construa a tela de exportação.",
       "language": "pt-BR",
       "person_language": "pt-BR",
-      "model": "sonnet",
+      "model": "opus",
       "model_reason": "",
       "agent": "athena",
       "tool": "claude-code"
@@ -36,10 +36,10 @@
     "dispatch": {
       "issue": "#43",
       "title": "Rodada console · #43 Visão da frota em menos de 1s",
-      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Assuma o papel da Athena nela: planeje, construa e abra o PR. Só esta issue.",
       "language": "pt-BR",
       "person_language": "pt-BR",
-      "model": "sonnet",
+      "model": "opus",
       "model_reason": "",
       "agent": "apollo",
       "tool": "claude-code"
@@ -48,62 +48,62 @@
     "says": "not athena"
   },
   {
-    "name": "Opus without a reason is refused",
+    "name": "Sonnet without a reason is refused",
     "dispatch": {
       "issue": "#43",
       "title": "Rodada console · #43 Visão da frota em menos de 1s",
-      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Assuma o papel da Athena nela: planeje, construa e abra o PR. Só esta issue.",
       "language": "pt-BR",
       "person_language": "pt-BR",
-      "model": "opus",
+      "model": "sonnet",
       "model_reason": "",
       "agent": "athena",
       "tool": "claude-code"
     },
     "verdict": "refuse",
-    "says": "model opus without a reason"
+    "says": "model sonnet without a reason"
   },
   {
-    "name": "Opus with a reason in the brief goes",
+    "name": "Sonnet with a reason in the brief goes",
     "dispatch": {
       "issue": "#43",
       "title": "Rodada console · #43 Visão da frota em menos de 1s",
-      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue. Opus porque o registro de decisão é o trabalho.",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Assuma o papel da Athena nela: planeje, construa e abra o PR. Só esta issue. Sonnet porque a issue só troca um texto da tela.",
       "language": "pt-BR",
       "person_language": "pt-BR",
-      "model": "opus",
-      "model_reason": "Opus porque o registro de decisão é o trabalho",
+      "model": "sonnet",
+      "model_reason": "Sonnet porque a issue só troca um texto da tela",
       "agent": "athena",
       "tool": "claude-code"
     },
     "verdict": "dispatch",
-    "says": "model opus"
+    "says": "model sonnet"
   },
   {
     "name": "a reason kept out of the brief does not count",
     "dispatch": {
       "issue": "#43",
       "title": "Rodada console · #43 Visão da frota em menos de 1s",
-      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Assuma o papel da Athena nela: planeje, construa e abra o PR. Só esta issue.",
       "language": "pt-BR",
       "person_language": "pt-BR",
-      "model": "opus",
-      "model_reason": "design-heavy",
+      "model": "sonnet",
+      "model_reason": "small change",
       "agent": "athena",
       "tool": "claude-code"
     },
     "verdict": "refuse",
-    "says": "model opus without a reason in the brief"
+    "says": "model sonnet without a reason in the brief"
   },
   {
     "name": "a brief not in the person's language is refused",
     "dispatch": {
       "issue": "#43",
       "title": "Rodada console · #43 Visão da frota em menos de 1s",
-      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Assuma o papel da Athena nela: planeje, construa e abra o PR. Só esta issue.",
       "language": "en",
       "person_language": "pt-BR",
-      "model": "sonnet",
+      "model": "opus",
       "model_reason": "",
       "agent": "athena",
       "tool": "claude-code"
@@ -119,7 +119,7 @@
       "brief": "Rode a Athena e abra o PR.",
       "language": "pt-BR",
       "person_language": "pt-BR",
-      "model": "sonnet",
+      "model": "opus",
       "model_reason": "",
       "agent": "athena",
       "tool": "claude-code"
@@ -132,10 +132,10 @@
     "dispatch": {
       "issue": "#43",
       "title": "Rodada console · #43 Visão da frota em menos de 1s",
-      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Assuma o papel da Athena nela: planeje, construa e abra o PR. Só esta issue.",
       "language": "pt-BR",
       "person_language": "pt-BR",
-      "model": "sonnet",
+      "model": "opus",
       "model_reason": "",
       "agent": "athena",
       "tool": "claude-code",
@@ -152,10 +152,10 @@
     "dispatch": {
       "issue": "#43",
       "title": "Rodada console · #43 Visão da frota em menos de 1s",
-      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Assuma o papel da Athena nela: planeje, construa e abra o PR. Só esta issue.",
       "language": "pt-BR",
       "person_language": "pt-BR",
-      "model": "sonnet",
+      "model": "opus",
       "model_reason": "",
       "agent": "athena",
       "tool": "claude-code",
@@ -172,10 +172,10 @@
     "dispatch": {
       "issue": "#43",
       "title": "Rodada console · #43 Visão da frota em menos de 1s",
-      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Rode a Athena nela: planeje, construa e abra o PR. Só esta issue.",
+      "brief": "Você é a sessão da issue #43 da rodada de 31/10. Assuma o papel da Athena nela: planeje, construa e abra o PR. Só esta issue.",
       "language": "pt-BR",
       "person_language": "pt-BR",
-      "model": "sonnet",
+      "model": "opus",
       "model_reason": "",
       "agent": "athena",
       "tool": "claude-code",

@@ -5,8 +5,8 @@ Each case in fixtures/dispatches.json is one dispatch with the verdict it must
 get and a line the report must carry. The script runs as a subprocess on each,
 and once on the whole list. The behaviour is pinned against #225's criterion:
 
-    #225/AC-6  one issue per child session, Sonnet unless the brief states why,
-               title and brief in the person's language, the child runs Athena;
+    #225/AC-6  one issue per child session, Opus unless the brief states why (#317),
+               title and brief in the person's language, the child takes Athena's role;
                a second, unrelated demand to a session holding one is refused,
                and a pull request another tool owns is skipped
 

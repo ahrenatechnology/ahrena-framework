@@ -12,7 +12,11 @@ references:
 
 # /round-pm
 
-Invoke `themis` with the arguments below. It opens the round through `opening-the-round`.
+This session takes the role of `themis`, the PM of the round below, which opens it through `opening-the-round`, and holds it until the session ends. It does not invoke the agent.
+
+1. Read `${CLAUDE_PLUGIN_ROOT}/agents/themis.md` with Read; where the variable is not expanded, find `agents/themis.md` of the `ahrena-engineering-delivery` plugin under `~/.claude/plugins` with Glob. Its body is your instructions from now on, as if it were your own system prompt, for every turn of this session.
+2. Run its `## Before you start`, then its `## Procedure` with the arguments below.
+3. Write everything the person reads under its `## Writing to a person`, and read each answer as the person's next message.
 
 ## Arguments
 
@@ -27,4 +31,4 @@ The session's title is set first, in the form `PM da rodada · Projeto · dd/mm/
 
 ## What runs
 
-`themis`, starting at step 1 of `skills/opening-the-round`. On a later day or after an account switch, the same command starts the fresh session, which reads the last closing or the newest work context from the Round issue.
+`themis` as the session's role, starting at step 1 of `skills/opening-the-round`. Where a session cannot take a role, this repository's `ADR-020` says the session calls the agent as a subagent and writes what it returns for the person under `person-facing-text`. On a later day or after an account switch, the same command starts the fresh session, which reads the last closing or the newest work context from the Round issue.
