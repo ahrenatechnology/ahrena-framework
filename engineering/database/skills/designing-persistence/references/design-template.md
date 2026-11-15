@@ -31,7 +31,7 @@ Issue: <the capability's issue>. Database: <engine and version>. Registry: <path
 
 ## Tenant strategy
 
-<The strategy on record and how each tenant table meets it; or the proposed decision record's path and its status (proposed, accepted); or "no tenant".>
+<The strategy on record in `strategies.tenancy`, its decision record with its `accepted` status, and how each tenant table meets it; or "no tenant".>
 
 ## Rule check
 

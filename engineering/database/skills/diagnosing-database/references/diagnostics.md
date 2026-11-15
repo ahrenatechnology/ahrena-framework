@@ -1,6 +1,6 @@
 # Read-only diagnostics, by database
 
-The statements `diagnosing-database` runs at steps 2 and 3. Every one reads; none changes data, schema or a session. Each runs inside a read-only transaction ended by `ROLLBACK`, as that skill's step 2 states, and `ANALYZE` is never used on a statement with `FOR UPDATE` or `FOR SHARE`. Each names the page of the database's documentation it rests on, read on 2026-11-14. Paste a plan or a lock row into the diagnosis with any row data removed.
+The statements `diagnosing-database` runs at steps 2 and 3. Every one reads; none changes data, schema or a session. On PostgreSQL and MySQL each statement runs inside a read-only transaction ended by `ROLLBACK`, as that skill's step 2 states, and `ANALYZE` is never used on a statement with `FOR UPDATE` or `FOR SHARE`. SQLite's `EXPLAIN QUERY PLAN` and `PRAGMA table_info`, MongoDB's `explain()` on a `find` and its catalogue reads, and DynamoDB's `describe-table` execute no write and run as given. Each names the page of the database's documentation it rests on, read on 2026-11-14. Paste a plan or a lock row into the diagnosis with any row data removed.
 
 ## Slow query
 

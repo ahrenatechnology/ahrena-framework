@@ -63,7 +63,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 3. Run `ahrena-engineering-database:designing-persistence` through its step 2 on `model`. Its step 1 reading of the component map is done by step 1 here; do not run the map twice. If its step 2 leaves open an input that changes the design — the database, an access pattern on a NoSQL store, a tenant with no strategy on record, a change to a strategy already recorded — and `approval` does not answer it, return `NEEDS_APPROVAL` with the questions in one batch and stop. Output: the inputs settled.
 4. Finish `ahrena-engineering-database:designing-persistence` from its step 3. Write the mode registry and the design note with Write into `checkout` as it stands, on the layer's branch when the caller is a builder, and commit nothing: the layer's implementer commits them with the layer. Return the note in full when the project keeps no designs. Write the tenant decision record, accepted per `approval`, only where the project keeps decision records, and list it under `left:` either way. Go to step 7. Output: the registry's path, the note's path, the tables with their modes, and the decisions to record.
 5. Run `ahrena-engineering-database:reviewing-persistence` on `base`...`head`. For its step 1, run the router with Bash from `checkout`: `ahrena-engineering-quality`'s `hooks/route-review.py --changed <base>...<head>`, from the installed plugin; if the router is not available, select the conditions by that skill's step 2 table and say so. Read the diff with Bash (`git diff`) and the files with Read, Grep and Glob. Collect the findings the skill returns. Go to step 7. Output: the findings by severity, with the condition identifier, the file and line, and the correction for each.
-6. Run `ahrena-engineering-database:diagnosing-database` on `symptom`. Bash runs only read commands: `git`, the plan and catalogue statements of that skill's `references/diagnostics.md`, and the database client the caller's environment already allows, with every statement inside a read-only transaction that ends in `ROLLBACK`, as that skill's step 2 states. Without access to the database, each step that needs it is `unchecked` and named. Output: the symptom, the first cause, the evidence and the proposed fix with where it lands.
+6. Run `ahrena-engineering-database:diagnosing-database` on `symptom`. Bash runs only read commands: `git`, the plan and catalogue statements of that skill's `references/diagnostics.md`, and the database client the caller's environment already allows, with every statement inside a read-only transaction that ends in `ROLLBACK` where the database has one, as that skill's step 2 states. Without access to the database, each step that needs it is `unchecked` and named. Output: the symptom, the first cause, the evidence and the proposed fix with where it lands.
 7. Before returning, read your own output: no row of data, connection string, credential or tenant identifier read from the database or a fixture appears in it; replace any with a placeholder. Return `DONE` with the template in `## Output`.
 
 ## Delegation
@@ -72,7 +72,7 @@ None. You spawn no subagent. A design goes back to the caller, who briefs the bu
 
 ## Done when
 
-Do not return before, in `design` mode, every table of the model is in the registry with its mode and history, every index names the query or access pattern it serves, every use case names its transaction boundary, and a tenant has its strategy or its proposed decision record; in `review` mode, every condition the review skill's step 2 selected is reported, exempted, not applicable to the change, or `unchecked`; in `diagnose` mode, the first cause is named with its evidence and a fix, or the step that could not be read is named.
+Do not return before, in `design` mode, every table of the model is in the registry with its mode and history, every index names the query or access pattern it serves, every use case names its transaction boundary, and every tenant table follows a strategy accepted and recorded in `strategies.tenancy`; in `review` mode, every condition the review skill's step 2 selected is reported, exempted, not applicable to the change, or `unchecked`; in `diagnose` mode, the first cause is named with its evidence and a fix, or the step that could not be read is named.
 
 Continue until the work is done. Return only when it is done, when you are blocked, or when a decision needs a person.
 
@@ -121,7 +121,7 @@ exists: <the inputs settled so far>
 ## Example
 
 <example>
-Input: `mode` is `design`, `model` is the OLTP brief for `acme/billing#88`: the aggregates `Invoice` (a person edits it while draft) and `Payment` (recorded when the provider confirms), every row carrying an `account_id`; `database` is PostgreSQL 17; the strategy register records RLS as the tenant strategy (`ADR-004`).
+Input: `mode` is `design`, `model` is the OLTP brief for `acme/billing#88`: the aggregates `Invoice` (a person edits it while draft) and `Payment` (recorded when the provider confirms), every row carrying an `account_id`; `database` is PostgreSQL 17; the registry's `strategies.tenancy` records RLS as the tenant strategy (`ADR-004`).
 
 ```text
 DONE

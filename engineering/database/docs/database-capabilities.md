@@ -25,7 +25,7 @@ Every page below was read in its current text on 2026-11-14: PostgreSQL's `curre
 | History held as indexable JSON beside the entity | `jsonb`, with GIN or expression indexes [^pg-json] | JSON functions built in since 3.38.0 and all deterministic, so an expression index can hold them [^sq-json] [^sq-expr] | `JSON` type, indexed through a generated column or a functional key part [^my-json] [^my-idx] | native: the document itself [^mg-ver] | native: an attribute, or sibling items under one partition key [^dy-sort] |
 | Isolation of rows by tenant inside the database | Row-Level Security policies [^pg-rls] | none: no `GRANT`, only file permissions [^sq-omit] | none: privileges stop at the column [^my-priv] | none: privileges stop at the collection [^mg-auth] | `dynamodb:LeadingKeys` in an IAM policy, per partition key [^dy-fgac] |
 | Index built without blocking writes | `CREATE INDEX CONCURRENTLY` [^pg-cic] | no: one writer at a time [^sq-wal] | online DDL: adding a secondary index leaves the table readable and writable [^my-online] | yes: exclusive lock only at the start and end of the build [^mg-build] | a global secondary index is backfilled while the table stays available [^dy-gsi-online] |
-| A schema statement a migration cannot wrap in its transaction | `CREATE INDEX CONCURRENTLY` cannot run inside a transaction block [^pg-cic] | none: every command runs inside a transaction, started for it when none is open [^sq-tx] | every DDL statement commits implicitly [^my-commit] | not applicable | not applicable |
+| A schema statement a migration cannot wrap in its transaction | `CREATE INDEX CONCURRENTLY` cannot run inside a transaction block [^pg-cic] | `VACUUM`, which fails while a transaction is open [^sq-vacuum]; and `PRAGMA foreign_keys`, a no-op inside a transaction [^sq-fk], which a table rebuild sets before its `BEGIN` [^sq-alter] | every DDL statement commits implicitly [^my-commit] | not applicable | not applicable |
 | What one write is atomic over | any rows, in a transaction | any rows, in a transaction [^sq-tx] | any rows, in a transaction | one document; several only in a multi-document transaction, at a cost [^mg-atom] [^mg-tx] | one item; up to 100 actions in `TransactWriteItems` [^dy-tx] |
 | Reading how a query runs | `EXPLAIN` [^pg-explain] | `EXPLAIN QUERY PLAN` [^sq-eqp] | `EXPLAIN` [^my-explain] | `explain()` [^mg-explain] | no planner: `Query` against a key or index, or `Scan` of the whole table [^dy-scan] |
 | Size ceiling a history must fit under | not a design constraint here | not a design constraint here | not a design constraint here | 16 MiB per document [^mg-limit] | 400 KB per item [^dy-item]; 10 GB per item collection with a local secondary index [^dy-lsi] |
@@ -38,7 +38,7 @@ Every page below was read in its current text on 2026-11-14: PostgreSQL's `curre
 
 **How a new index ships** follows the third row: [`indexing.md`](indexing.md).
 
-**How a migration is written** follows the fourth: on MySQL a migration that fails halfway keeps the DDL it already ran, so each migration holds one DDL change; on PostgreSQL a concurrent index build is its own migration, outside the transaction the migration tool would open ([`transactions.md`](transactions.md)).
+**How a migration is written** follows the fourth: on MySQL a migration that fails halfway keeps the DDL it already ran, so each migration holds one DDL change; on PostgreSQL a concurrent index build is its own migration, outside the transaction the migration tool would open; on SQLite a table rebuild turns `foreign_keys` off before its transaction and back on after it ([`transactions.md`](transactions.md)).
 
 ## Where this stops
 
@@ -53,6 +53,9 @@ This page lists the five databases the issue named. A sixth one is added here wi
 [^sq-omit]: SQLite, [SQL Features That SQLite Does Not Implement](https://sqlite.org/omitted.html).
 [^sq-wal]: SQLite, [Write-Ahead Logging](https://sqlite.org/wal.html).
 [^sq-tx]: SQLite, [Transaction](https://sqlite.org/lang_transaction.html).
+[^sq-vacuum]: SQLite, [VACUUM](https://sqlite.org/lang_vacuum.html).
+[^sq-fk]: SQLite, [PRAGMA foreign_keys](https://sqlite.org/pragma.html#pragma_foreign_keys).
+[^sq-alter]: SQLite, [ALTER TABLE — making other kinds of table schema changes](https://sqlite.org/lang_altertable.html#otheralter).
 [^sq-eqp]: SQLite, [EXPLAIN QUERY PLAN](https://sqlite.org/eqp.html).
 [^my-json]: MySQL 8.4, [The JSON Data Type](https://dev.mysql.com/doc/refman/8.4/en/json.html).
 [^my-idx]: MySQL 8.4, [CREATE INDEX Statement](https://dev.mysql.com/doc/refman/8.4/en/create-index.html).

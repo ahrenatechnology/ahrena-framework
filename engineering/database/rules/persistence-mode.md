@@ -36,6 +36,8 @@ The conditions carry the quality rubric's identifiers (`PER-n`, ahrenatechnology
 
 **Analytical stores.** A warehouse, a medallion layer or a mart is held to `ahrena-engineering-data`'s contract, not to this rule.
 
+**Lookup tables.** An append-only table whose entry says `growth: fixed` holds rows only migrations write, such as a list of countries; it is read directly, and condition 6 does not apply to it.
+
 **The migration tool's bookkeeping.** The table a migration tool keeps for itself (`alembic_version`, `schema_migrations`) is not in the registry; condition 1 does not apply to it.
 
 **A migration's own statements.** The schema change that creates, alters or backfills a table is not an adapter's write; condition 2 reads the adapters.

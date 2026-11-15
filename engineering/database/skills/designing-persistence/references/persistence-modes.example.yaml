@@ -10,6 +10,8 @@
 # history:  where an upsert table's history lives
 #           json-child-table | json-column | version-collection |
 #           sibling-items | history-table | none (append-only, ephemeral)
+# reason:   why an ephemeral table holds no record the system answers for;
+#           required when mode is ephemeral
 # growth:   fixed for a lookup table whose rows only migrations write (IDX-1
 #           does not apply); omitted for a table that grows
 # decision: the decision record behind a mode that was ever changed, or the
@@ -51,6 +53,7 @@ tables:
     mode: append-only
     history: none
     growth: fixed                   # rows written by migrations only
+    refusal: grant
 
   idempotency_keys:
     mode: ephemeral

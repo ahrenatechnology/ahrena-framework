@@ -6,7 +6,7 @@ The conditions `reviewing-persistence` applies, with the quality rubric's identi
 
 ### PER-1 A table with no declared mode
 
-- **State:** a table, collection or item type the migrations create that has no entry in the mode registry, or an entry whose `mode` is not `append-only`, `upsert-with-history` or `ephemeral`.
+- **State:** a table, collection or item type the migrations create that has no entry in the mode registry, or an entry whose `mode` is not `append-only`, `upsert-with-history` or `ephemeral`, or an `ephemeral` entry with no `reason`.
 - **Detect:** compare the tables created at the head with the registry's `tables`.
 - **Exempt:** the migration tool's own bookkeeping table.
 - **Correct:** add the entry, choosing the mode by whether the record is a fact or an edited entity.
