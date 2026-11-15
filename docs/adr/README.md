@@ -27,6 +27,7 @@ This file is the index `check-decision-records.py` allows by name. It moved here
 | [ADR-017](ADR-017-each-platform-binds-the-portable-agency.md) | The manager/worker orchestration is the portable spec; each platform binds it, and an entry directive in the always-loaded instruction file makes the agency always used |
 | [ADR-018](ADR-018-orchestration-is-declared-data.md) | A process's orchestration — nodes, edges, loop bounds, thresholds — is declared data the framework owns; a runtime only binds and executes it, nothing hard-coded per platform; extends ADR-017 |
 | [ADR-019](ADR-019-comment-pointers-reach-five-languages.md) | The comment-pointer condition reads Python, TypeScript, JavaScript, shell and SQL, each through its own conservative reader, reversing the Python-only scope it first landed with |
+| [ADR-020](ADR-020-a-person-talks-to-the-sessions-role.md) | An agent a person talks to is the session's role, declared at entry by a command or a child's brief; one definition writes prose for the person and returns the protocol to a caller; each platform binds the role its own way, and one that cannot keeps the relay under the writing rule; extends ADR-017 |
 
 ## Decided, as rows
 
