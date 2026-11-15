@@ -330,6 +330,28 @@ CASES = [
         ],
         [],
     ),
+    (
+        "#324/AC-5 a migration and an adapter's write reach reviewing-persistence; a plain module does not",
+        {"src/orders/repository.py": "def find(session, order_id):\n    return None\n"},
+        {
+            "db/migrations/0007_orders.sql": "CREATE TABLE orders (id uuid PRIMARY KEY, version int NOT NULL);\n",
+            "src/orders/repository.py": (
+                "def save(session, order):\n"
+                "    session.execute(\"UPDATE orders SET status = :s WHERE id = :id\", order)\n"
+                "    session.commit()\n"
+            ),
+            "src/orders/pricing.py": "def total(lines):\n    return sum(line.amount for line in lines)\n",
+        },
+        None,
+        0,
+        [
+            "route  persistence-schema  ->  ahrena-engineering-database:skills/reviewing-persistence/SKILL.md",
+            "on     db/migrations/0007_orders.sql",
+            "route  persistence-adapters  ->  ahrena-engineering-database:skills/reviewing-persistence/SKILL.md",
+            "on     src/orders/repository.py",
+        ],
+        ["src/orders/pricing.py:"],
+    ),
 ]
 
 

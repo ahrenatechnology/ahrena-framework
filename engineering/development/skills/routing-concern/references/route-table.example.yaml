@@ -30,6 +30,15 @@ routes:
     route: data
     why: a change under the project's data-product surface
 
+  - id: persistence-by-kind
+    when:
+      kind: ["migration", "index", "transaction", "tenant-isolation", "persistence"]
+    route: backend
+    why: >-
+      a transactional store is the backend's OLTP layer; Apollo has it designed
+      by the database specialist before the layer is briefed. An analytical
+      store (warehouse, medallion, mart) is the data clade's, by data-by-kind
+
   - id: frontend-by-kind
     when:
       kind: ["screen", "component", "wireframe", "interaction"]

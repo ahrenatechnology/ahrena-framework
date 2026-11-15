@@ -1,0 +1,24 @@
+{
+  "name": "ahrena-engineering-database",
+  "version": "0.1.0",
+  "description": "Transactional persistence as each database documents it: every table append-only or upsert with history kept near the entity, one unit of work per use case that always commits or rolls back, an index for every query and a query for every index, tenants isolated by Row-Level Security once decided; and Chronos, the specialist that designs, reviews and diagnoses persistence.",
+  "author": {
+    "name": "Ahrena Technology",
+    "url": "https://github.com/ahrenatechnology"
+  },
+  "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/database",
+  "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+  "license": "MIT",
+  "keywords": [
+    "database",
+    "persistence",
+    "postgresql",
+    "sqlite",
+    "mysql",
+    "mongodb",
+    "dynamodb",
+    "indexes",
+    "transactions",
+    "row-level-security"
+  ]
+}

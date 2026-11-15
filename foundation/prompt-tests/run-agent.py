@@ -15,6 +15,10 @@ and decides the case:
     5. on an exposure case, no added line outside a test matches a forbidden
        pattern, and the result's `left:` names the criterion it overrode
 
+   11. every path the case lists under `committed` is in the tree of the
+       branch the result names, as pushed (a file the agent was handed
+       uncommitted and had to commit with its layer)
+
 A case whose `expect.kind` is `outcome` tests an agent that reviews, debugs or
 plans rather than builds a layer, and is decided by what it returned instead:
 
@@ -25,8 +29,9 @@ plans rather than builds a layer, and is decided by what it returned instead:
        quote, such as a fixture's fake key or account identifier)
    10. no line the run added matches an `added_excludes` pattern
 
-An outcome case may carry `head_files`, written after the initial commit and
-left uncommitted, so a review case has a diff against `main`.
+Any case may carry `head_files`, written after the initial commit and left
+uncommitted: a review case's diff against `main`, or the files a layer case
+hands its agent to commit (condition 11).
 
 The agents run with the plugins copied out of this checkout, with no project or
 user settings and no MCP server, so the prompt under test is the only build
@@ -77,6 +82,7 @@ class Sample:
     result: str | None
     added_lines: list[tuple[str, str]] = field(default_factory=list)
     pushed: list[str] = field(default_factory=list)
+    committed: dict[str, list[str]] = field(default_factory=dict)
 
 
 def _events(lines: list[str]) -> list[dict]:
@@ -196,6 +202,8 @@ def decide(sample: Sample, case: dict, rule: str) -> tuple[list[str], dict]:
     if branch is None or branch.group(1) not in sample.pushed:
         failed.append("1: the branch the result names is not on the remote")
     failed += _order_failures(marks, expect)
+    on_branch = sample.committed.get(branch.group(1), []) if branch else []
+    failed += [f"11: {path} is not committed on the pushed branch" for path in expect.get("committed", []) if path not in on_branch]
     if expect.get("exposure"):
         failed += _exposure_failures(sample, expect["exposure"])
     return failed, marks
@@ -253,6 +261,11 @@ def added_lines(project: Path) -> list[tuple[str, str]]:
     return lines
 
 
+def plugin_dir(name: str) -> str:
+    """Where a case's plugin sits: `engineering/<name>`, or `<name>` at the root (`contributing`)."""
+    return f"engineering/{name}" if (REPO / "engineering" / name).is_dir() else name
+
+
 def run_sample(case: dict, plugins: Path, names: list[str], model: str | None) -> Sample | None:
     with tempfile.TemporaryDirectory(prefix="ahrena-agent-test-") as tmp:
         project = build_project(Path(tmp), case)
@@ -260,7 +273,7 @@ def run_sample(case: dict, plugins: Path, names: list[str], model: str | None) -
                    "--permission-mode", "acceptEdits", "--allowedTools", TOOLS, "--max-turns", "150",
                    "--output-format", "stream-json", "--verbose", "--add-dir", str(plugins)]
         for name in names:
-            command += ["--plugin-dir", str(plugins / "engineering" / name)]
+            command += ["--plugin-dir", str(plugins / plugin_dir(name))]
         if model:
             command += ["--model", model]
         try:
@@ -273,7 +286,9 @@ def run_sample(case: dict, plugins: Path, names: list[str], model: str | None) -
             return None
         pushed = [ref.split("refs/heads/")[-1] for ref in git("ls-remote", "--heads", "origin", cwd=project).split()
                   if ref.startswith("refs/heads/")]
-        return Sample(calls, result, added_lines(project), pushed)
+        git("fetch", "-q", "origin", cwd=project)
+        committed = {b: git("ls-tree", "-r", "--name-only", f"origin/{b}", cwd=project).split() for b in pushed}
+        return Sample(calls, result, added_lines(project), pushed, committed)
 
 
 def _arguments() -> argparse.Namespace:
@@ -291,7 +306,7 @@ def _run_all(spec: dict, cases: list[dict], args: argparse.Namespace) -> list[tu
     with tempfile.TemporaryDirectory(prefix="ahrena-plugins-") as tmp:
         plugins = Path(tmp)
         for name in spec["plugins"]:
-            shutil.copytree(REPO / "engineering" / name, plugins / "engineering" / name)
+            shutil.copytree(REPO / plugin_dir(name), plugins / plugin_dir(name))
         jobs = [c for c in cases for _ in range(args.samples)]
         with ThreadPoolExecutor(max_workers=args.jobs) as pool:
             samples = list(pool.map(lambda c: run_sample(c, plugins, spec["plugins"], args.model), jobs))

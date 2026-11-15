@@ -174,6 +174,37 @@ def test_cases_match_the_tree() -> None:
     check(len(traps) >= 1, "at least one case invites a dependency's error into an exit")
 
 
+def test_plugin_dir() -> None:
+    check(run_agent.plugin_dir("database") == "engineering/database", "an engineering plugin is found under engineering/")
+    check(run_agent.plugin_dir("contributing") == "contributing", "a root plugin such as contributing is found at the root")
+
+
+def test_committed() -> None:
+    case = {**CASE, "expect": {**CASE["expect"], "committed": ["docs/adr/ADR-001.md"]}}
+    base = sample(SKILL_W, READ_RULE, WRITE_TEST, SKILL_R)
+    kept = run_agent.Sample(base.calls, base.result, [], base.pushed, {"feat/12-charge-api": ["docs/adr/ADR-001.md"]})
+    lost = run_agent.Sample(base.calls, base.result, [], base.pushed, {"feat/12-charge-api": []})
+    check(not any(f.startswith("11:") for f in run_agent.decide(kept, case, RULE)[0]), "11: a listed file on the pushed branch passes")
+    check(any(f.startswith("11:") for f in run_agent.decide(lost, case, RULE)[0]), "11: a listed file left out of the pushed branch fails")
+
+def test_database_cases_match_the_tree() -> None:
+    spec_ = json.loads((HERE / "database" / "cases.json").read_text())
+    for name in spec_["plugins"]:
+        check((REPO / run_agent.plugin_dir(name) / ".claude-plugin" / "plugin.json").is_file(), f"database cases: plugin {name} exists")
+    modes = set()
+    for case in spec_["cases"]:
+        check(case["agent"] == "ahrena-engineering-database:chronos", f"{case['id']}: runs chronos")
+        check(case["expect"]["kind"] == "outcome", f"{case['id']}: is an outcome case")
+        for skill in case["expect"]["skills"]:
+            owner, name = skill.split(":")
+            path = REPO / "engineering" / owner.removeprefix("ahrena-engineering-") / "skills" / name / "SKILL.md"
+            check(path.is_file(), f"{case['id']}: {skill} exists")
+        modes.add(case["brief"].split("\n", 1)[0])
+    check(modes == {"mode: review", "mode: design", "mode: diagnose"}, "the database cases run each of chronos's three modes")
+    resumed = [c["id"] for c in spec_["cases"] if "\napproval:" in c["brief"]]
+    check(len(resumed) >= 1, "a database case resumes a design with an approval")
+
+
 if __name__ == "__main__":
     test_conditions()
     test_test_detection()
@@ -181,6 +212,9 @@ if __name__ == "__main__":
     test_cases_match_the_tree()
     test_outcome()
     test_devops_cases_match_the_tree()
+    test_plugin_dir()
+    test_committed()
+    test_database_cases_match_the_tree()
     for label, ok in results:
         print(f"{'ok  ' if ok else 'FAIL'}  {label}")
     failures = [label for label, ok in results if not ok]

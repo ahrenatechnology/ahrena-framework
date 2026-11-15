@@ -1,0 +1,116 @@
+{
+ "plugins": [
+  "database",
+  "quality",
+  "fundamentals",
+  "security",
+  "python",
+  "contributing"
+ ],
+ "rule": "engineering/database/rules/persistence-mode.md",
+ "cases": [
+  {
+   "id": "database-review",
+   "agent": "ahrena-engineering-database:chronos",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-database:reviewing-persistence"
+    ],
+    "result_matches": [
+     "PER-1\\b",
+     "PER-2\\b",
+     "PER-5\\b",
+     "TRX-2\\b",
+     "IDX-4\\b"
+    ]
+   },
+   "files": {
+    "README.md": "# orders\nOrders service on PostgreSQL. Migrations in db/migrations, run by the project's migration tool.\n",
+    "db/migrations/persistence-modes.yaml": "database: postgresql 17\nmigrations: db/migrations\nstrategies:\n  unit_of_work: src/orders/unit_of_work.py\n  tenancy:\n    strategy: none\ntables:\n  order_events:\n    mode: append-only\n    history: none\n    projection: orders_current\n    rebuild_test: tests/test_orders_projection.py\n    refusal: grant\n",
+    "db/migrations/0001_order_events.sql": "CREATE TABLE order_events (\n  id bigserial PRIMARY KEY,\n  order_id uuid NOT NULL,\n  kind text NOT NULL,\n  at timestamptz NOT NULL DEFAULT now()\n);\nCREATE INDEX order_events_order_id ON order_events (order_id, at);\n",
+    "src/orders/unit_of_work.py": "\"\"\"The one place a transaction opens.\"\"\"\nfrom contextlib import contextmanager\n\n\n@contextmanager\ndef unit_of_work(connection):\n    with connection.transaction():\n        yield connection\n",
+    "src/orders/events.py": "def append(conn, order_id, kind):\n    conn.execute(\"INSERT INTO order_events (order_id, kind) VALUES (%s, %s)\", (order_id, kind))\n",
+    "tests/test_orders_projection.py": "def test_rebuild():\n    assert True\n"
+   },
+   "head_files": {
+    "db/migrations/0002_refunds.sql": "CREATE TABLE refunds (\n  id uuid PRIMARY KEY,\n  order_id uuid NOT NULL,\n  amount_cents integer NOT NULL\n);\nCREATE INDEX order_events_kind ON order_events (kind);\n",
+    "src/orders/events.py": "def append(conn, order_id, kind):\n    conn.execute(\"INSERT INTO order_events (order_id, kind) VALUES (%s, %s)\", (order_id, kind))\n\n\ndef correct_kind(conn, event_id, kind):\n    conn.execute(\"BEGIN\")\n    conn.execute(\"UPDATE order_events SET kind = %s WHERE id = %s\", (kind, event_id))\n    conn.execute(\"COMMIT\")\n\n\ndef purge(conn, order_id):\n    conn.execute(\"DELETE FROM order_events WHERE order_id = %s\", (order_id,))\n"
+   },
+   "brief": "mode: review\ncheckout: the current directory\nbase: main\nhead: the working tree\nThe working tree adds a refunds migration and two functions to the order events adapter. Review the persistence."
+  },
+  {
+   "id": "database-design-tenant",
+   "agent": "ahrena-engineering-database:chronos",
+   "expect": {
+    "kind": "outcome",
+    "status": "NEEDS_APPROVAL",
+    "skills": [
+     "ahrena-engineering-database:designing-persistence"
+    ],
+    "result_matches": [
+     "(?i)row-level security|\\bRLS\\b",
+     "workspace_id"
+    ],
+    "added_excludes": [
+     "(?i)ENABLE ROW LEVEL SECURITY",
+     "(?i)CREATE POLICY"
+    ]
+   },
+   "files": {
+    "README.md": "# notes\nA notes service on PostgreSQL 17. Migrations in db/migrations. No decision records yet.\n",
+    "src/notes/model.py": "\"\"\"Domain layer, already built.\"\"\"\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass Notebook:\n    id: str\n    workspace_id: str\n    title: str\n\n\n@dataclass\nclass Note:\n    id: str\n    workspace_id: str\n    notebook_id: str\n    body: str\n",
+    "db/migrations/.keep": ""
+   },
+   "brief": "mode: design\ncheckout: the current directory\ndatabase: PostgreSQL 17\nmodel: the OLTP layer of the notes service. The domain layer in src/notes/model.py has two aggregates, Notebook (a person renames it) and Note (a person edits its body). Every row carries the workspace_id of the customer that owns it. Queries: list a workspace's notebooks by title; list a notebook's notes, newest first. Design the persistence."
+  },
+  {
+   "id": "database-design-tenant-approved",
+   "agent": "ahrena-engineering-database:chronos",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-database:designing-persistence"
+    ],
+    "result_matches": [
+     "persistence-modes\\.yaml",
+     "(?i)row-level security|\\bRLS\\b",
+     "(?i)forc",
+     "(?i)accepted"
+    ]
+   },
+   "files": {
+    "README.md": "# notes\nA notes service on PostgreSQL 17. Migrations in db/migrations. No decision records yet.\n",
+    "src/notes/model.py": "\"\"\"Domain layer, already built.\"\"\"\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass Notebook:\n    id: str\n    workspace_id: str\n    title: str\n\n\n@dataclass\nclass Note:\n    id: str\n    workspace_id: str\n    notebook_id: str\n    body: str\n",
+    "db/migrations/.keep": ""
+   },
+   "brief": "mode: design\ncheckout: the current directory\ndatabase: PostgreSQL 17\nmodel: the OLTP layer of the notes service. The domain layer in src/notes/model.py has two aggregates, Notebook (a person renames it) and Note (a person edits its body). Every row carries the workspace_id of the customer that owns it. Queries: list a workspace's notebooks by title; list a notebook's notes, newest first. Design the persistence.\napproval: adopt Row-Level Security for workspace_id, by decision record. I am the maintainer and this answer accepts it."
+  },
+  {
+   "id": "database-diagnose-migration",
+   "agent": "ahrena-engineering-database:chronos",
+   "expect": {
+    "kind": "outcome",
+    "status": "DONE",
+    "skills": [
+     "ahrena-engineering-database:diagnosing-database"
+    ],
+    "result_matches": [
+     "(?i)implicit(ly)? commit",
+     "0003"
+    ],
+    "added_excludes": [
+     ".+"
+    ]
+   },
+   "files": {
+    "README.md": "# billing\nBilling service on MySQL 8.4. Migrations in db/migrations, applied in order by the migration tool, each file in one transaction.\n",
+    "db/migrations/0001_invoices.sql": "CREATE TABLE invoices (\n  id BIGINT PRIMARY KEY,\n  total_cents INT NOT NULL\n);\n",
+    "db/migrations/0003_invoice_currency.sql": "ALTER TABLE invoices ADD COLUMN currency CHAR(3) NULL;\nUPDATE invoices SET currency = 'BRL';\nALTER TABLE invoices MODIFY currency CHAR(3) NOT NULL, ADD CONSTRAINT invoices_currency_fk FOREIGN KEY (currency) REFERENCES currencies (code);\n"
+   },
+   "brief": "mode: diagnose\ncheckout: the current directory\nsymptom: in staging, on MySQL 8.4, migration 0003_invoice_currency failed yesterday at its third statement (error 1824, failed to open the referenced table 'currencies'). The tool marked it failed and rolled back. Re-running it now fails at the first statement with error 1060, duplicate column name 'currency'. You have no access to the database; diagnose from the repository and this report."
+  }
+ ]
+}

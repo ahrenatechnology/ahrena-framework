@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-STACKS = ("python", "go", "rust", "typescript", "terraform", "aws", "gcp", "azure")
+STACKS = ("python", "go", "rust", "typescript", "terraform", "aws", "gcp", "azure", "database")
 NAMED = re.compile(r"ahrena-engineering-(" + "|".join(STACKS) + r"):(?:skills/)?([a-z0-9-]+)")
 BUILDERS = {
     "engineering/backend/agents/hephaestus.md": ("python", "typescript", "go", "rust"),

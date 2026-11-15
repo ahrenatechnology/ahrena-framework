@@ -75,7 +75,7 @@
     {
       "name": "ahrena-engineering-backend",
       "description": "Backend built inside-out: four layers that stack as stacked pull requests — domain, use cases, OLTP, API — with unit TDD red-first at the domain and BDD acceptance tracing to its criteria at the API, all conforming to the project's component map.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -100,7 +100,7 @@
     {
       "name": "ahrena-engineering-data",
       "description": "Data built source→product, contract-first: four layers that stack as stacked pull requests — schema, medallion, expectations, marts — the data contract authored first and the later layers evolving from it, every mart reconciled to its source, all conforming to the project's component map.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -124,7 +124,7 @@
     {
       "name": "ahrena-engineering-development",
       "description": "Development orchestrated issue→stacked-PRs: Athena, the tech-lead, plans a change, routes each concern deterministic-first — a route table, then the Clef decision gate, then a human — delegates to the build clades, runs the develop→Argos loop before each layer opens, and escalates when it is exhausted. Also installs the agency in a repository, enabling the plugins the build path needs.",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
@@ -280,9 +280,35 @@
       ]
     },
     {
+      "name": "ahrena-engineering-database",
+      "description": "Transactional persistence as each database documents it: every table append-only or upsert with history kept near the entity, one unit of work per use case that always commits or rolls back, an index for every query and a query for every index, tenants isolated by Row-Level Security once decided; and Chronos, the specialist that designs, reviews and diagnoses persistence.",
+      "version": "0.1.0",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ahrenatechnology/ahrena-framework.git",
+        "path": "engineering/database",
+        "ref": "main"
+      },
+      "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/engineering/database",
+      "repository": "https://github.com/ahrenatechnology/ahrena-framework",
+      "license": "MIT",
+      "keywords": [
+        "database",
+        "persistence",
+        "postgresql",
+        "sqlite",
+        "mysql",
+        "mongodb",
+        "dynamodb",
+        "indexes",
+        "transactions",
+        "row-level-security"
+      ]
+    },
+    {
       "name": "ahrena-engineering-quality",
       "description": "The code-review toolkit: the per-discipline review skills, the path router, the findings and verdict docs, and Erodos, the fixer. Argos, the reviewer that runs them, ships in ahrena-engineering-code-review.",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/ahrenatechnology/ahrena-framework.git",

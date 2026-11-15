@@ -223,6 +223,41 @@
       ]
     },
     {
+      "id": "persistence-schema",
+      "skill": "ahrena-engineering-database:skills/reviewing-persistence/SKILL.md",
+      "why": "a migration, a schema, a SQL file or the mode registry, read for each table's declared mode and history, its indexes and how they ship, and tenant isolation",
+      "opens": [
+        "ahrena-engineering-database:skills/reviewing-persistence/references/conditions.md"
+      ],
+      "paths": [
+        "(^|/)(migrations?|alembic|migrate|flyway|liquibase)/.+",
+        "\\.sql$",
+        "(^|/)schema\\.prisma$",
+        "(^|/)persistence-modes\\.ya?ml$"
+      ]
+    },
+    {
+      "id": "persistence-adapters",
+      "skill": "ahrena-engineering-database:skills/reviewing-persistence/SKILL.md",
+      "why": "an added source line writes SQL, opens or ends a transaction, or calls a database driver or ORM, read for the table's mode, the unit of work, the index the query needs and the tenant it runs as",
+      "opens": [
+        "ahrena-engineering-database:skills/reviewing-persistence/references/conditions.md"
+      ],
+      "paths": [
+        "\\.(py|ts|tsx|js|mjs|cjs|go|rs|java|kt|cs|rb|php)$"
+      ],
+      "lines": [
+        "(?i)\\b(insert\\s+into|update\\s+[\\w.\"`]+\\s+set|delete\\s+from|select\\s+.+\\s+from|on\\s+conflict|begin\\s+transaction|set\\s+local)\\b",
+        "\\b(psycopg2?|asyncpg|sqlalchemy|sqlmodel|sqlite3|aiosqlite|pymysql|MySQLdb|pymongo|motor)\\b",
+        "['\"](pg|postgres|mysql2|better-sqlite3|mongodb|mongoose|kysely|drizzle-orm|knex|typeorm|sequelize|@prisma/client|@aws-sdk/client-dynamodb|@aws-sdk/lib-dynamodb)['\"/]",
+        "\"(database/sql|github\\.com/jackc/pgx[^\"]*|gorm\\.io/[^\"]+|github\\.com/jmoiron/sqlx|go\\.mongodb\\.org/mongo-driver[^\"]*)\"",
+        "\\b(sqlx|diesel|sea_orm|rusqlite|tokio_postgres|mongodb)::",
+        "\\.(begin|commit|rollback|start_transaction|startTransaction|withTransaction|commitTransaction|abortTransaction)\\(",
+        "\\b(put_item|update_item|delete_item|transact_write_items|PutItemCommand|UpdateItemCommand|DeleteItemCommand|TransactWriteItemsCommand|PutCommand|UpdateCommand|DeleteCommand|TransactWriteCommand)\\b",
+        "\\.(insertOne|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|findOneAndUpdate|bulkWrite|createIndex)\\("
+      ]
+    },
+    {
       "id": "untrusted-input",
       "skill": "ahrena-engineering-security:skills/reviewing-untrusted-input/SKILL.md",
       "why": "an added line reaches a query, a command, a path, a URL, a template or a deserialiser",

@@ -12,6 +12,7 @@ references:
   - ahrena-engineering-fundamentals:skills/querying-the-code-graph/SKILL.md
   - ahrena-engineering-fundamentals:rules/contract-first.md
   - ahrena-contributing:skills/stacking-pull-requests/SKILL.md
+  - ahrena-engineering-database:skills/designing-persistence/SKILL.md
 ---
 
 # Building data contract-first
@@ -39,6 +40,8 @@ Three rounds is the cap, not the target. A layer that is clean in one round open
 ## 4. Layer one — the schema
 
 Delegate the data contract and the schema that realises it, with the data-contract test written red against the contract before the schema exists, per [`skills/testing-data/SKILL.md`](../testing-data/SKILL.md). The contract is authored, not generated, per `ahrena-engineering-fundamentals:rules/contract-first.md`, and it pins the source every later layer resolves against. Run the loop in step 3; the pinned contract is the first pull request in the stack.
+
+When the schema lands in a transactional store — a service's database rather than a warehouse or a lake — have its persistence designed first by the database specialist, `ahrena-engineering-database:chronos`, with `ahrena-engineering-database:skills/designing-persistence/SKILL.md`: each table's mode and history, its indexes, the transaction boundaries and the tenant strategy. The schema is written to that design; the contract still leads it.
 
 ## 5. Layer two — the medallion
 

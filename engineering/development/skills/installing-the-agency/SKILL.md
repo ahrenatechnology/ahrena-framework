@@ -60,7 +60,7 @@ Run the same script without `--check`. It does two things:
 
 - **Merges the agency into `.claude/settings.json`.** The set is declared in
   [`references/agency.json`](references/agency.json): the `ahrena` marketplace
-  and the ten core plugins, plus the language, Terraform or cloud plugin for
+  and the eleven core plugins, plus the language, Terraform or cloud plugin for
   each marker file at the repository root (`pyproject.toml`, `tsconfig.json`,
   `go.mod`, `Cargo.toml`, `main.tf`, `cdk.json`, `cloudbuild.yaml`,
   `azure.yaml`, a `.github/workflows/` directory, and the others the map

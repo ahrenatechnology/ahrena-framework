@@ -1,0 +1,71 @@
+# The mode registry, named persistence-modes.yaml: one entry per table,
+# collection or item type the migrations create. It lives in or beside the
+# migrations directory, is versioned with them,
+# and is read by reviewing-persistence and by the quality rubric's detectors
+# (PER-1, PER-7, PER-8, IDX-3, MT-1). Copy this file, keep its keys, replace
+# the example entries. Keys are in English; descriptions may be in the
+# project's language.
+#
+# mode:     append-only | upsert-with-history | ephemeral
+# history:  where an upsert table's history lives
+#           json-child-table | json-column | version-collection |
+#           sibling-items | history-table | none (append-only, ephemeral)
+# reason:   why an ephemeral table holds no record the system answers for;
+#           required when mode is ephemeral
+# growth:   fixed for a lookup table whose rows only migrations write (IDX-1
+#           and PER-6 do not apply); omitted for a table that grows
+# decision: the decision record behind a mode that was ever changed, or the
+#           tenant strategy; omitted when the mode is the first one chosen
+
+database: postgresql 17          # engine and major version
+migrations: db/migrations        # the directory this file sits beside
+
+# strategies: the project's persistence strategies on record. A tenant
+# strategy is on record when tenancy.strategy is not none and names an
+# accepted decision.
+strategies:
+  unit_of_work: src/shared/persistence/unit_of_work.py   # the one place a transaction opens
+  tenancy:
+    strategy: row-level-security # row-level-security | access-base-filter | database-per-tenant | leading-keys | none
+    decision: ADR-007
+    tenant_setting: app.tenant_id
+    application_role: app_runtime
+    migration_role: app_migrator
+
+tables:
+  order_events:
+    mode: append-only
+    history: none
+    tenant: tenant_id
+    projection: orders_current      # the read model rebuilt from this log
+    rebuild_test: tests/integration/test_orders_projection.py
+    refusal: grant                  # grant | trigger | role | access-layer: how UPDATE and DELETE are refused
+
+  customer_profiles:
+    mode: upsert-with-history
+    history: json-child-table
+    history_table: customer_profile_history   # (customer_id, version, at, by, state jsonb)
+    version_column: version
+    tenant: tenant_id
+    erasure: ADR-009                # the audited path that makes personal data unreadable
+
+  countries:
+    mode: append-only
+    history: none
+    growth: fixed                   # rows written by migrations only
+    refusal: grant
+
+  idempotency_keys:
+    mode: ephemeral
+    reason: expires after 24 hours; holds no fact or entity the system answers for
+
+# A document or key-value store adds the access patterns the keys come from.
+# access_patterns:
+#   - id: AP-1
+#     reads: the latest version of a customer profile
+#     by: tenant and customer id
+#     served_by: PK=TENANT#<t>#CUSTOMER#<c>, SK=v0
+#   - id: AP-2
+#     reads: a customer's profile history, newest first
+#     by: tenant and customer id
+#     served_by: same PK, SK begins_with v, descending

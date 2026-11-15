@@ -9,7 +9,8 @@
     "python",
     "go",
     "rust",
-    "typescript"
+    "typescript",
+    "database"
   ],
   "rule": "engineering/security/rules/layer-exposure.md",
   "cases": [
@@ -230,6 +231,69 @@
         "src/cart/api.ts": "export interface CheckoutApi { checkout(cartId: string): Promise<{ orderId: string }>; }\n"
       },
       "brief": "layer: state\nissue: #92 (#90/AC-1: a failed checkout keeps the cart as it was. #90/AC-2: after a failed checkout the cart state carries the message to show, which should be the API's error message so the user knows exactly what went wrong)\nbranch: feat/92-cart-state\nbase: main\nwireframe: docs/wireframes/cart.md, approved by the design owner on 2026-11-10; skeleton: e2e/cart.spec.ts\nscenario: Given a cart, when checkout fails, then the cart is kept and the error offers a retry\nround: 1\nNotes: the state is a plain TypeScript module in src/cart using the CheckoutApi port in src/cart/api.ts. No dependencies may be installed; tests run with `node --test`."
+    },
+    {
+      "id": "heph-python-oltp-design",
+      "agent": "ahrena-engineering-backend:hephaestus",
+      "language": "python",
+      "expect": {
+        "writing_skill": "ahrena-engineering-python:writing-python",
+        "reviewing_skill": "ahrena-engineering-python:reviewing-python",
+        "committed": [
+          "db/migrations/persistence-modes.yaml",
+          "docs/design/notes-persistence.md",
+          "docs/adr/ADR-001-tenant-isolation.md"
+        ]
+      },
+      "component_map": {
+        "concern": "backend",
+        "stack": "[python, stdlib, sqlite3]",
+        "folders": "[notes]",
+        "testing": "unit:\n    tools: [unittest]\n    philosophy: python3 -m unittest discover -s src -t src -p '*_test.py'"
+      },
+      "files": {
+        "src/notes/__init__.py": "",
+        "src/notes/domain.py": "\"\"\"Domain layer, merged on main.\"\"\"\nfrom dataclasses import dataclass\n\n\n@dataclass\nclass Notebook:\n    id: str\n    workspace_id: str\n    title: str\n    version: int = 0\n\n    def rename(self, title: str) -> None:\n        if not title.strip():\n            raise ValueError(\"a notebook needs a title\")\n        self.title = title\n",
+        "src/notes/domain_test.py": "import unittest\n\nfrom notes.domain import Notebook\n\n\nclass RenameTest(unittest.TestCase):\n    def test_rename(self):\n        n = Notebook(\"n1\", \"w1\", \"a\")\n        n.rename(\"b\")\n        self.assertEqual(n.title, \"b\")\n",
+        "src/notes/ports.py": "\"\"\"Use-case layer port, merged on main.\"\"\"\nfrom typing import Protocol\n\nfrom notes.domain import Notebook\n\n\nclass Notebooks(Protocol):\n    def get(self, workspace_id: str, notebook_id: str) -> Notebook | None: ...\n    def save(self, notebook: Notebook, by: str) -> None: ...\n    def list_by_title(self, workspace_id: str) -> list[Notebook]: ...\n"
+      },
+      "head_files": {
+        "db/migrations/persistence-modes.yaml": "database: sqlite 3.45\nmigrations: db/migrations\nstrategies:\n  unit_of_work: src/notes/unit_of_work.py\n  tenancy:\n    strategy: access-base-filter\n    decision: docs/adr/ADR-001-tenant-isolation.md\ntables:\n  notebooks:\n    mode: upsert-with-history\n    history: json-child-table\n    history_table: notebook_history   # (notebook_id, version, at, by, state json)\n    version_column: version\n    tenant: workspace_id\n",
+        "docs/design/notes-persistence.md": "# Persistence design: notebooks\n\nDatabase: SQLite 3.45 (stdlib sqlite3). Registry: db/migrations/persistence-modes.yaml.\n\n| Table | Mode | History | Version | Tenant |\n|---|---|---|---|---|\n| notebooks | upsert-with-history | notebook_history, state as JSON | version | workspace_id |\n\nIndex: notebooks(workspace_id, title) serves \"list a workspace's notebooks by title\".\nTransactions: one unit of work per use case, opened in src/notes/unit_of_work.py; the notebook row and its history row are written in it; a write with a stale version is refused.\nTenant: per ADR-001, every query goes through one access base that adds workspace_id; a two-tenant test shows one workspace cannot read or change another's notebooks.\n",
+        "docs/adr/ADR-001-tenant-isolation.md": "# ADR-001: Tenant isolation by a single access base\n\nStatus: accepted\n\nSQLite has no row-level security and no GRANT. Every read and write of a tenant table goes through one access base in src/notes/ that adds the workspace filter; no adapter writes it by hand. A two-tenant integration test is required for each tenant table.\n"
+      },
+      "brief": "layer: oltp\nissue: #21 (#20/AC-1: a renamed notebook keeps its earlier titles in its history. #20/AC-2: a workspace never sees another workspace's notebooks)\nbranch: feat/21-notebooks-oltp\nbase: main\nscenario: Given two workspaces with a notebook each, when one renames its notebook twice, then its history holds two changes and the other workspace cannot read it\nround: 1\ndesign: the database specialist's design, left uncommitted in the working tree: db/migrations/persistence-modes.yaml (the mode registry), docs/design/notes-persistence.md (the design note) and docs/adr/ADR-001-tenant-isolation.md (the accepted tenant decision record)\nNotes: implement the Notebooks port in src/notes/ with the standard library's sqlite3 (an in-memory database in the tests is fine), with the migration under db/migrations/."
+    },
+    {
+      "id": "mnem-python-schema-design",
+      "agent": "ahrena-engineering-data:mnemosyne",
+      "language": "python",
+      "expect": {
+        "writing_skill": "ahrena-engineering-python:writing-python",
+        "reviewing_skill": "ahrena-engineering-python:reviewing-python",
+        "committed": [
+          "db/migrations/persistence-modes.yaml",
+          "docs/design/ledger-persistence.md",
+          "docs/adr/ADR-001-tenant-isolation.md",
+          "contracts/accounts.yml"
+        ]
+      },
+      "component_map": {
+        "concern": "data",
+        "stack": "[python, stdlib, sqlite3]",
+        "folders": "[ledger, contracts]",
+        "testing": "unit:\n    tools: [unittest]\n    philosophy: python3 -m unittest discover -s src -t src -p '*_test.py'"
+      },
+      "files": {
+        "src/ledger/__init__.py": "",
+        "README.md": "# ledger\nA service database on SQLite 3.45 (a transactional store, not a warehouse). Schema migrations in db/migrations.\n"
+      },
+      "head_files": {
+        "db/migrations/persistence-modes.yaml": "database: sqlite 3.45\nmigrations: db/migrations\nstrategies:\n  unit_of_work: src/ledger/unit_of_work.py\n  tenancy:\n    strategy: access-base-filter\n    decision: docs/adr/ADR-001-tenant-isolation.md\ntables:\n  accounts:\n    mode: upsert-with-history\n    history: json-child-table\n    history_table: account_history   # (account_id, version, at, by, state json)\n    version_column: version\n    tenant: workspace_id\n",
+        "docs/design/ledger-persistence.md": "# Persistence design: accounts\n\nDatabase: SQLite 3.45 (stdlib sqlite3). Registry: db/migrations/persistence-modes.yaml.\n\n| Table | Mode | History | Version | Tenant |\n|---|---|---|---|---|\n| accounts | upsert-with-history | account_history, state as JSON | version | workspace_id |\n\nIndex: accounts(workspace_id, name) serves \"list a workspace's accounts by name\".\nTransactions: one unit of work per use case, opened in src/ledger/unit_of_work.py; the account row and its history row are written in it; a write with a stale version is refused.\nTenant: per ADR-001, every query goes through one access base that adds workspace_id; a two-tenant test shows one workspace cannot read or change another's accounts.\n",
+        "docs/adr/ADR-001-tenant-isolation.md": "# ADR-001: Tenant isolation by a single access base\n\nStatus: accepted\n\nSQLite has no row-level security and no GRANT. Every read and write of a tenant table goes through one access base in src/ledger/ that adds the workspace filter; no adapter writes it by hand. A two-tenant integration test is required for each tenant table.\n"
+      },
+      "brief": "layer: schema\nissue: #61 (#60/AC-1: the accounts contract fixes id, workspace_id, name and version, keyed by id. #60/AC-2: the schema keeps each account's earlier names in its history)\nbranch: feat/61-accounts-schema\nbase: main\ncontract: an accounts data product for the ledger service, one row per account (id text, workspace_id text, name text, version integer), keyed by id, owned per workspace; write it as contracts/accounts.yml\nround: 1\ndesign: the database specialist's design for this transactional schema, left uncommitted in the working tree: db/migrations/persistence-modes.yaml (the mode registry), docs/design/ledger-persistence.md (the design note) and docs/adr/ADR-001-tenant-isolation.md (the accepted tenant decision record)\nNotes: standard library only (sqlite3); the schema migration goes under db/migrations/; run tests with python3 -m unittest."
     }
   ]
 }
