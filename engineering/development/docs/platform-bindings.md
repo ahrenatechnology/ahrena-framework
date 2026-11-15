@@ -4,7 +4,7 @@ type: doc
 clade: engineering
 subclade: development
 title: Binding the agency to each platform
-summary: The portable manager/worker spec and how each platform binds it — Claude Code as the Athena agent plus an optional Workflow, Codex as custom subagents with the AGENTS.md trigger and the max_depth cap, and LangGraph named as the out-of-scope runtime binding — plus the entry directive that makes the agency always used and the lean-mode fallback for the round's coordinators where child sessions are missing.
+summary: The portable manager/worker spec and how each platform binds it — the session's role a person talks to, Claude Code as the Athena agent plus an optional Workflow, Codex as custom subagents with the AGENTS.md trigger and the max_depth cap, and LangGraph named as the out-of-scope runtime binding — plus the entry directive that makes the agency always used and the lean-mode fallback for the round's coordinators where child sessions are missing.
 references:
   - docs/clef-decision-gate.md
 ---
@@ -81,6 +81,32 @@ rather than sub-spawning. That runs inside `max_depth=1` on a stock install. A
 project that wants build agents to fan out into their own stage subagents raises
 `agents.max_depth` to 2 — one named setting, opted into, rather than a default the
 binding silently depends on.
+
+## The session's role: who the person talks to
+
+Delegation is one binding; the agent a person talks to is another. The tech lead
+of an issue, the reviewer a person opens, and the round's PM and Tech Lead are
+not called by the session: the session takes their role at entry and holds it
+until it ends, writing for the person under `person-facing-text` of
+`ahrena-foundation` and returning the protocol only when another agent called it.
+This repository's `ADR-020` records how each platform does it. The commands
+below land with the units of #310: `/issue-tl` with #316, `/review-pr` and the
+change to `/round-pm` and `/round-tl` with #317.
+
+- **Claude Code.** A command (`/issue-tl`, `/review-pr`, `/round-pm`, `/round-tl`)
+  tells the session to read the agent's definition and hold it as its own; a
+  child session's brief does the same. `claude --agent <plugin>:<agent>` is the
+  stricter binding where a session starts from the command line: it also applies
+  the agent's `tools` and `model`, which the command route does not.
+- **Codex, Cursor, DeepSeek.** The session reads the definition at entry, named by
+  the person or by the entry directive for the kind of request. Their custom-agent
+  mechanisms stay the subagent binding above.
+- **A platform that cannot.** The session calls the agent as a subagent, as
+  before, and applies `person-facing-text` itself when it turns the protocol into
+  prose. It never pastes the protocol block.
+
+A reviewer never reviews its own session's work: inside a tech lead's session the
+review is still delegated to a separate agent with its own context.
 
 ## The round's coordinators where child sessions are missing
 
