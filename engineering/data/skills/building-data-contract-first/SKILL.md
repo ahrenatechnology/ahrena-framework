@@ -40,6 +40,8 @@ Three rounds is the cap, not the target. A layer that is clean in one round open
 
 Delegate the data contract and the schema that realises it, with the data-contract test written red against the contract before the schema exists, per [`skills/testing-data/SKILL.md`](../testing-data/SKILL.md). The contract is authored, not generated, per `ahrena-engineering-fundamentals:rules/contract-first.md`, and it pins the source every later layer resolves against. Run the loop in step 3; the pinned contract is the first pull request in the stack.
 
+When the schema lands in a transactional store — a service's database rather than a warehouse or a lake — have its persistence designed first by the database specialist, `ahrena-engineering-database:chronos`, with `ahrena-engineering-database:skills/designing-persistence/SKILL.md`: each table's mode and history, its indexes, the transaction boundaries and the tenant strategy. The schema is written to that design; the contract still leads it.
+
 ## 5. Layer two — the medallion
 
 Delegate the transforms that carry the data from bronze landing through silver cleansing to gold aggregation. Their test arc, per `skills/testing-data/SKILL.md`, is unit tests on each transform — a join that must not fan out, a filter that must not drop a segment, a dedup that must collapse exactly the duplicates — so a transform defect surfaces against a small fixture rather than against a finished mart. Run the loop, then stack this layer on the schema layer.

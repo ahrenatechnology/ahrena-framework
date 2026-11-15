@@ -151,6 +151,7 @@ PAGES = {
             ("Linguagens", "reviewing-rust", "engineering/rust/skills/reviewing-rust/SKILL.md", "Rota rust."),
             ("Linguagens", "reviewing-terraform", "engineering/terraform/skills/reviewing-terraform/SKILL.md", "Rotas terraform e terraform-pipeline."),
             ("Entrega", "reviewing-pipelines", "engineering/devops/skills/reviewing-pipelines/SKILL.md", "Rota pipelines: workflow do GitHub Actions ou composite action."),
+            ("Persistência", "reviewing-persistence", "engineering/database/skills/reviewing-persistence/SKILL.md", "Rotas persistence-schema e persistence-adapters: migration, schema, SQL, registro de modos, adapter que escreve no banco."),
             ("Artefatos do framework", "reviewing-artifacts", "foundation/skills/reviewing-artifacts/SKILL.md", "Rota framework-artifacts: regra, doc, skill, agente ou comando do framework."),
             ("Documentos de apoio", "review-routes", f"{Q}/docs/review-routes.md", "O formato das rotas e por que a seleção é uma tabela."),
             ("Documentos de apoio", "review-findings", f"{Q}/docs/review-findings.md", "Os quatro campos de um achado e as quatro severidades."),

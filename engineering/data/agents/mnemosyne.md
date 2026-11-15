@@ -44,6 +44,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 - `contract`: the data product the consumer needs, and for every layer after `schema` the path of the pinned data contract. Missing: return `BLOCKED` naming it.
 - `round`: 1, 2 or 3. Missing: take 1.
 - `findings`: the findings Argos returned on the previous round, each with file, line and condition. Missing: none.
+- `design`: at a `schema` that lands in a transactional store, the persistence design the database specialist returned: the mode registry and the design note. The schema follows it: each table in its declared mode with its history, and only the indexes it names. Missing: none, for an analytical store.
 - `approval`: the person's answer to a `NEEDS_APPROVAL` this agent returned, naming the folder or term approved or refused. Present: run step 1, then resume at step 2.
 
 ## Procedure
