@@ -1,0 +1,288 @@
+{
+  "schema": 1,
+  "detectors": [
+    {
+      "id": "ts-boundaries",
+      "path": "engineering/typescript/hooks/check-boundaries.py",
+      "languages": [
+        "typescript"
+      ],
+      "conditions": [
+        {
+          "id": "ts-boundaries-1",
+          "condition": "STR-1",
+          "rule": "module-boundaries",
+          "number": 1,
+          "kind": "eliminatory",
+          "scope": "total",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/module-boundaries.md condition 1",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-boundaries-1/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-boundaries-1/planted"
+          }
+        },
+        {
+          "id": "ts-boundaries-5",
+          "condition": "STR-2",
+          "rule": "module-boundaries",
+          "number": 5,
+          "kind": "eliminatory",
+          "scope": "total",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/module-boundaries.md condition 5",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-boundaries-5/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-boundaries-5/planted"
+          }
+        },
+        {
+          "id": "ts-boundaries-3",
+          "condition": "STR-3",
+          "rule": "module-boundaries",
+          "number": 3,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/module-boundaries.md condition 3",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-boundaries-3/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-boundaries-3/planted"
+          }
+        },
+        {
+          "id": "ts-boundaries-4",
+          "condition": "STR-3",
+          "rule": "module-boundaries",
+          "number": 4,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/module-boundaries.md condition 4",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-boundaries-4/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-boundaries-4/planted"
+          }
+        },
+        {
+          "id": "ts-boundaries-6",
+          "condition": "STR-3",
+          "rule": "module-boundaries",
+          "number": 6,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/module-boundaries.md condition 6",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-boundaries-6/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-boundaries-6/planted"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ts-tests",
+      "path": "engineering/typescript/hooks/check-tests.py",
+      "languages": [
+        "typescript"
+      ],
+      "conditions": [
+        {
+          "id": "ts-tests-1",
+          "condition": "TST-1",
+          "rule": "colocated-tests",
+          "number": 1,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/colocated-tests.md condition 1",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-tests-1/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-tests-1/planted"
+          }
+        },
+        {
+          "id": "ts-tests-2",
+          "condition": "TST-1",
+          "rule": "colocated-tests",
+          "number": 2,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/colocated-tests.md condition 2",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-tests-2/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-tests-2/planted"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ts-typing",
+      "path": "engineering/typescript/hooks/check-typing.py",
+      "languages": [
+        "typescript"
+      ],
+      "conditions": [
+        {
+          "id": "ts-typing-2",
+          "condition": "TYP-2",
+          "rule": "typing",
+          "number": 2,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/typing.md condition 2",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-typing-2/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-typing-2/planted"
+          }
+        },
+        {
+          "id": "ts-typing-4",
+          "condition": "TYP-4",
+          "rule": "typing",
+          "number": 4,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/typing.md condition 4",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-typing-4/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-typing-4/planted"
+          }
+        },
+        {
+          "id": "ts-typing-5",
+          "condition": "TYP-5",
+          "rule": "typing",
+          "number": 5,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/typing.md condition 5",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-typing-5/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-typing-5/planted"
+          }
+        },
+        {
+          "id": "ts-typing-6",
+          "condition": "TYP-6",
+          "rule": "typing",
+          "number": 6,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/typing.md condition 6",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-typing-6/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-typing-6/planted"
+          }
+        },
+        {
+          "id": "ts-typing-7",
+          "condition": "TYP-7",
+          "rule": "typing",
+          "number": 7,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/typing.md condition 7",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-typing-7/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-typing-7/planted"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ts-promises",
+      "path": "engineering/typescript/hooks/check-promises.py",
+      "languages": [
+        "typescript"
+      ],
+      "conditions": [
+        {
+          "id": "ts-promises-2",
+          "condition": "ERR-5",
+          "rule": "promises",
+          "number": 2,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/promises.md condition 2",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-promises-2/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-promises-2/planted"
+          }
+        },
+        {
+          "id": "ts-promises-3",
+          "condition": "ERR-5",
+          "rule": "promises",
+          "number": 3,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/promises.md condition 3",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-promises-3/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-promises-3/planted"
+          }
+        },
+        {
+          "id": "ts-promises-4",
+          "condition": "ERR-5",
+          "rule": "promises",
+          "number": 4,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/promises.md condition 4",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-promises-4/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-promises-4/planted"
+          }
+        },
+        {
+          "id": "ts-promises-5",
+          "condition": "ERR-5",
+          "rule": "promises",
+          "number": 5,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/promises.md condition 5",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-promises-5/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-promises-5/planted"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ts-untyped-input",
+      "path": "engineering/typescript/hooks/check-untyped-input.py",
+      "languages": [
+        "typescript"
+      ],
+      "conditions": [
+        {
+          "id": "ts-untyped-input-2",
+          "condition": "SEC-4",
+          "rule": "runtime-validation",
+          "number": 2,
+          "kind": "eliminatory",
+          "scope": "added",
+          "threshold": 0,
+          "threshold_source": "inherited:engineering/typescript/rules/runtime-validation.md condition 2",
+          "fixtures": {
+            "clean": "engineering/typescript/hooks/fixtures/scorecard/ts-untyped-input-2/clean",
+            "planted": "engineering/typescript/hooks/fixtures/scorecard/ts-untyped-input-2/planted"
+          }
+        }
+      ]
+    }
+  ]
+}

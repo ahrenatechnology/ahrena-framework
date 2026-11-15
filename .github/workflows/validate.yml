@@ -71,6 +71,14 @@ jobs:
       - name: Test the backstage-language hook
         run: python3 engineering/fundamentals/hooks/test-check-backstage-language.py
 
+      - name: Test the scorecard runner
+        run: python3 engineering/fundamentals/hooks/test-scorecard.py
+
+      # Every registered detector passes its clean fixture and flags its
+      # planted one. A detector that errs on either is a defect of the detector.
+      - name: Prove the scorecard detectors with their fixtures
+        run: python3 engineering/fundamentals/hooks/scorecard.py --fixtures
+
       - name: Test the review router
         run: python3 engineering/quality/hooks/test-route-review.py
 

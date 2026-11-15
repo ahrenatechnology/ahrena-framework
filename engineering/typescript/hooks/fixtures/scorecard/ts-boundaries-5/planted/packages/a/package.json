@@ -1,0 +1,1 @@
+{ "name": "@acme/a", "exports": { ".": "./src/index.ts" }, "dependencies": { "@acme/b": "workspace:*" } }

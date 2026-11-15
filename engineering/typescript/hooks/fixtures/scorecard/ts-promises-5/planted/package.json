@@ -1,0 +1,1 @@
+{ "scripts": { "start": "node --unhandled-rejections=warn dist/main.js" } }
