@@ -29,7 +29,7 @@ A rule may reference only a doc, so the trigger is named here in prose rather th
 
 5. **Interface segregation.** An interface is split when its members partition into two or more groups such that no consumer calls members from more than one group. Decided by a reviewer partitioning the call sites. Gated, and satisfied by construction when each group has a consumer that exists today.
 
-6. **Dependency inversion.** A module on the policy side of the layer map may not import a module on the mechanism side. The map is an input a reviewer supplies; this plugin ships none. Gated, and this is the one condition the trigger genuinely constrains: with a single adapter and no test substituting at the seam, invert the dependency by moving the code rather than by adding a port in front of it.
+6. **Dependency inversion.** A module on the policy side of the layer map may not import a module on the mechanism side. The map is the file [`layer-map.md`](layer-map.md) requires of the project. Gated, and this is the one condition the trigger genuinely constrains: with a single adapter and no test substituting at the seam, invert the dependency by moving the code rather than by adding a port in front of it.
 
 ## Where this stops
 
