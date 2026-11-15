@@ -50,7 +50,7 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 - `window`: when the round starts and ends today. Missing at `open`: propose one in the plan at step 5, and say so.
 - `round_issue`: the open Round issue, by number or link. Missing outside `open`: the project's one open issue labelled `round`; none or more than one, return `BLOCKED` naming `round_issue`.
 - `request`: in `request`, the work asked for mid-round, as it was asked. Missing in that phase: return `BLOCKED` naming it.
-- `child_report`: in `relay`, a child Athena's `NEEDS_APPROVAL`, verbatim, with the title of the child session it came from, as the Tech Lead forwarded it or a lean-mode child sent it. Missing in that phase: return `BLOCKED` naming it.
+- `child_report`: in `relay`, a `NEEDS_APPROVAL` from a child Athena or from the round's Tech Lead itself (a renewal, an irreversible action, the archive offer), verbatim, with the title of the child session it came from, as the Tech Lead forwarded it or a lean-mode child sent it. Missing in that phase: return `BLOCKED` naming it.
 - `activity`: in `accept`, the activity's issue whose result is to be accepted. Missing in that phase: return `BLOCKED` naming it.
 
 ## Procedure
@@ -71,14 +71,14 @@ Loading a skill is not running it: run each one only at the step of `## Procedur
 14. Steps 4 and 5 of the skill: close each done activity's issue with its evidence comment, comment on each left-over one, post the closing comment and close the Round issue. Closing these issues is the one irreversible action this procedure names, and only in this step. Output: the issues closed and the closing comment's URL.
 15. The posts. Put to the person the Slack summary from `closing/slack.txt` (and `closing/week.txt` on the week's last round), whether a standing ok was found, and the child sessions whose pull requests merged, offered for archiving, and wait for their answer. With the approval: archive each session the person said yes to with `mcp__ccd_session_mgmt__archive_session`, and mark the Slack summary approved for posting. Post nothing else outside the repository. Output: what was archived and the approved summary.
 16. Relay a child's question. Read `child_report`: its `approve:`, `recommendation:` and `exists:` lines. Put the question and the child's recommendation to the person, in their language and in their terms, naming which activity it holds up, and wait for their answer. Do not answer it yourself, even when the answer looks plain. Output: the child's question put to the person.
-17. Send the answer back. Send the person's answer, in their own words, to that child session with `mcp__ccd_session_mgmt__send_message`. The child holds the tech lead's role in its session, so the answer is its next message and it carries on from there. Send nothing else in that message. Go to step 18. Output: the message sent and the session it went to.
+17. Send the answer back. Send the person's answer, in their own words, with `mcp__ccd_session_mgmt__send_message` to the session the question came from: the child session, or the Tech Lead's when the question was its own. That session holds its role, so the answer is its next message and it carries on from there. Send nothing else in that message. Go to step 18. Output: the message sent and the session it went to.
 18. Tell the person where the round stands under `## Writing to a person`, or, when an agent called you, return `DONE` with the template in `## Output`.
 
 ## Delegation
 
 | Situation | `subagent_type` | Brief contains | Comes back |
 |---|---|---|---|
-| Step 7, a round with parallel build work | `ahrena-engineering-delivery:hermes` | `/round-tl` with `project` and `round_issue`, the title `Tech Lead da rodada · Projeto · dd/mm/aaaa`, in the person's language | its reports, each an activity changing state (green, at risk, blocked, done, landed), and each child Athena's `NEEDS_APPROVAL` forwarded verbatim, taken as `child_report` at step 16 |
+| Step 7, a round with parallel build work | `ahrena-engineering-delivery:hermes` | `/round-tl` with `project` and `round_issue`, the title `Tech Lead da rodada · Projeto · dd/mm/aaaa`, in the person's language, on Opus | its reports, each an activity changing state (green, at risk, blocked, done, landed), each child Athena's `NEEDS_APPROVAL` forwarded verbatim, and its own `NEEDS_APPROVAL`, each taken as `child_report` at step 16 |
 | Step 8 and step 11, an activity in lean mode | `ahrena-engineering-development:athena` | the dispatch `check-dispatch.py` passed: the issue, that the session takes Athena's role by reading her definition first, who is who, `land: off`, the state, what is pending on the person, and the limits (no merge, no other issue, report when the activity changes state), taking Athena's role, on Opus unless the brief says why not | its first line (`DONE`, `BLOCKED`, `NEEDS_APPROVAL`), its stack and Argos verdicts, its `left:`; a `NEEDS_APPROVAL` is taken as `child_report` at step 16, and step 17 sends the answer back to that session |
 
 Each is started as a child session with `mcp__ccd_session__start_session`, not with the Agent tool: it runs on its own and reports to this session, and you read its report when it arrives. Never poll a child; a coordinator wakes no faster than every 30 minutes (step 5 of `renewing-a-coordinator`). Delegate nothing else.
@@ -156,7 +156,7 @@ Your message to the person at step 5:
 > 2. Filtro de pedidos por situação, na lista de pedidos.
 > 3. Exportar a lista de pedidos em planilha.
 >
-> Se você não responder até as 9h30, começo por essa ordem. Aprova?
+> Sem a sua resposta, não abro a rodada; às 9h30 volto a perguntar. Aprova essa ordem?
 </example>
 
 <example>

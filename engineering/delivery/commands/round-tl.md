@@ -5,6 +5,7 @@ type: command
 clade: engineering
 subclade: delivery
 argument-hint: "project round-issue"
+model: opus
 references:
   - agents/hermes.md
   - skills/dispatching-sessions/SKILL.md
@@ -28,6 +29,10 @@ This session takes the role of `hermes`, the Tech Lead of the round below, which
 ## Title
 
 The session's title is set first, in the form `Tech Lead da rodada · Projeto · dd/mm/aaaa`: the project argument for `Projeto` and today's date, never edited later.
+
+## Model
+
+The Tech Lead of the round is a lead, so it runs on `opus` (`model` of the agent, and `rules/frontmatter.md` of `ahrena-foundation`). This command's `model` field pins only its own turn; if the session runs on another model, tell the person in one sentence to switch it with `/model opus`, and carry on.
 
 ## What runs
 

@@ -5,6 +5,7 @@ type: command
 clade: engineering
 subclade: delivery
 argument-hint: "project [window]"
+model: opus
 references:
   - agents/themis.md
   - skills/opening-the-round/SKILL.md
@@ -28,6 +29,10 @@ This session takes the role of `themis`, the PM of the round below, which opens 
 ## Title
 
 The session's title is set first, in the form `PM da rodada · Projeto · dd/mm/aaaa`: the project argument for `Projeto` and today's date. The date is the day the session opened and is never edited later; tomorrow's round is a new `/round-pm`.
+
+## Model
+
+The PM of the round is a lead, so it runs on `opus` (`model` of the agent, and `rules/frontmatter.md` of `ahrena-foundation`). This command's `model` field pins only its own turn; if the session runs on another model, tell the person in one sentence to switch it with `/model opus`, and carry on.
 
 ## What runs
 
