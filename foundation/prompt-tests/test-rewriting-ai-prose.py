@@ -9,7 +9,7 @@ the description addresses, a typo or a missing accent must still point at the
 phrase it varies, and every phrasing the issue names must be in the data, in
 both languages, with the cases the skill leaves alone beside it.
 
-Covers #365/AC-6 and #365/AC-8.
+Covers #365/AC-1, #365/AC-6 and #365/AC-8.
 
 Usage:
     python3 foundation/prompt-tests/test-rewriting-ai-prose.py
@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 import unicodedata
 from pathlib import Path
@@ -73,6 +74,14 @@ def body(path: Path) -> str:
 
 def words(text: str) -> set[str]:
     return {w[:4] for w in re.findall(r"[a-z]{4,}", fold(text)) if w not in COMMON}
+
+
+def test_skill_passes_the_gate() -> None:
+    """#365/AC-1: the skill exists and the foundation gate, run over the whole corpus, finds nothing."""
+    check(SKILL.is_file(), "the skill's SKILL.md exists")
+    gate = FOUNDATION / "hooks" / "validate-artifacts.py"
+    done = subprocess.run([sys.executable, "-B", str(gate), str(FOUNDATION.parent)], capture_output=True, text=True)
+    check(done.returncode == 0 and "no failures" in done.stdout, "the foundation gate passes over the corpus, the skill and the command with it")
 
 
 def test_command_shape() -> None:
@@ -166,6 +175,7 @@ def test_description_addresses_each_positive() -> None:
 
 
 if __name__ == "__main__":
+    test_skill_passes_the_gate()
     test_command_shape()
     test_command_cases()
     test_triggers_shape()
