@@ -184,8 +184,8 @@ def _report(case: dict, sample: Sample) -> list[str]:
     return failed
 
 
-REQUEST = re.compile(r"send me|paste|give me|pass me|tell me|point me|provide|share|specify|which|what|"
-                     r"cole|passe|envie|me mande|me diga|informe|indique|qual|quais|forne[cç]a", re.I)
+REQUEST = re.compile(r"\b(?:send me|paste|give me|pass me|tell me|point me|provide|share|specify|which|what|"
+                     r"cole|passe|envie|me mande|me diga|informe|indique|qual|quais|forne[cç]a)\b", re.I)
 ASK_MAX_CHARS = 600
 
 

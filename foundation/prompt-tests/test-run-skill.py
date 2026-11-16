@@ -162,6 +162,11 @@ def test_no_target() -> None:
         check(has(failures(case, result="Aqui está o texto reescrito. " + "Lorem ipsum. " * 80 + "?"), "not a short request"), f"{case['id']}: a long invented text fails")
         check(has(failures(case, result="Aqui vai um texto reescrito: Olá, o prazo é 3 dias. Quer ajustar algo?"), "not a short request"), f"{case['id']}: a short invented text with a question mark fails")
         check(has(failures(case, result="Qual texto? " + "x" * ASK_LIMIT), "not a short request"), f"{case['id']}: a request over the length cap fails")
+        check(has(failures(case, result="Aqui vai o texto com mais qualidade: o prazo é 3 dias."), "not a short request"), f"{case['id']}: 'qual' inside 'qualidade' is not a request")
+        check(has(failures(case, result="Texto pronto, informei o prazo de 3 dias. Whatever, done."), "not a short request"), f"{case['id']}: 'informe' and 'what' inside longer words are not a request")
+        check(has(failures(case, result="Rewritten: the sharepoint link and the whatsapp group stay as they were."), "not a short request"), f"{case['id']}: 'share' and 'what' inside longer words are not a request")
+        for ask in ("Informe o arquivo.", "Me diga qual texto.", "Which file?", "What text should I rewrite?", "Forneça o texto.", "Share the file path."):
+            check(failures(case, result=ask) == [], f"{case['id']}: the short ask {ask!r} passes")
         check(failures(case, result="Qual arquivo ou texto você quer reescrever? Cole o texto ou passe o caminho.") == [], f"{case['id']}: a short request passes")
         check(has(failures(case, calls=[Call("Write", {"file_path": "invented.md"})]), "Write was called"), f"{case['id']}: writing a file fails")
 
