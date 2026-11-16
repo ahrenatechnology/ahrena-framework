@@ -1,0 +1,469 @@
+{
+  "kind": "skill-triggers",
+  "skill": "ahrena-foundation:rewriting-ai-prose",
+  "plugins": [
+    "foundation",
+    "contributing",
+    "quality"
+  ],
+  "samples": {
+    "prose": "Vamos mergulhar nas novidades do checkout da Acme Shop. Não é apenas uma atualização, é uma jornada de compra. O frete é grátis acima de R$ 150,00 e o prazo caiu de 5 para 3 dias úteis. Espero ter ajudado!",
+    "code": "def total(items):\n    # soma o preço de cada item\n    return sum(item.price for item in items)\n"
+  },
+  "positives": [
+    {
+      "id": "pt-humaniza",
+      "phrase": "humaniza esse texto",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "humaniza esse texto",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-mais-humano",
+      "phrase": "torna esse texto mais humano",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "torna esse texto mais humano",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-cara-de-ia",
+      "phrase": "tira a cara de IA",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "tira a cara de IA",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-robo",
+      "phrase": "parece escrito por robô",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "parece escrito por robô",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-qualidade-doc",
+      "phrase": "melhora a qualidade do texto dessa documentação",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "melhora a qualidade do texto dessa documentação",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-redacao",
+      "phrase": "melhora a redação",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "melhora a redação",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-texto-melhor",
+      "phrase": "deixa o texto melhor",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "deixa o texto melhor",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-simplifica",
+      "phrase": "simplifica o texto",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "simplifica o texto",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-mais-simples",
+      "phrase": "deixa mais simples",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "deixa mais simples",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-mais-claro",
+      "phrase": "deixa mais claro",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "claro",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-mais-direto",
+      "phrase": "deixa mais direto",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "direto",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-palatavel",
+      "phrase": "torna esse texto mais palatável para humanos",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "mais palatável para humanos",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-facil-de-ler",
+      "phrase": "deixa mais fácil de ler",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "mais fácil de ler",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-natural",
+      "phrase": "mais natural",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "mais natural",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-menos-corporativo",
+      "phrase": "menos corporativo",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "menos corporativo",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-menos-robotico",
+      "phrase": "menos robótico",
+      "lang": "pt",
+      "form": "canonical",
+      "covers": "menos robótico",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-readme",
+      "phrase": "revisa o texto do README",
+      "lang": "pt",
+      "form": "file",
+      "covers": "revisa o texto do README",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-pr",
+      "phrase": "melhora a descrição desse pull request, está com cara de IA",
+      "lang": "pt",
+      "form": "pr",
+      "covers": "tira a cara de IA",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-mensagem",
+      "phrase": "deixa essa mensagem mais natural antes de eu mandar",
+      "lang": "pt",
+      "form": "message",
+      "covers": "mais natural",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-typo-texto",
+      "phrase": "humaniza esse tesxto",
+      "lang": "pt",
+      "form": "typo",
+      "covers": "humaniza esse texto",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-typo-robo",
+      "phrase": "esse texto parce escrito por robo, arruma",
+      "lang": "pt",
+      "form": "typo",
+      "covers": "parece escrito por robô",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-typo-cara",
+      "phrase": "tira a cra de IA desse texto",
+      "lang": "pt",
+      "form": "typo",
+      "covers": "tira a cara de IA",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-sem-acento-palatavel",
+      "phrase": "torna esse texto mais palatavel para humanos",
+      "lang": "pt",
+      "form": "no-accents",
+      "covers": "mais palatável para humanos",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-sem-acento-facil",
+      "phrase": "deixa mais facil de ler",
+      "lang": "pt",
+      "form": "no-accents",
+      "covers": "mais fácil de ler",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-sem-acento-redacao",
+      "phrase": "melhora a redacao",
+      "lang": "pt",
+      "form": "no-accents",
+      "covers": "melhora a redação",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-sem-acento-robotico",
+      "phrase": "deixa menos robotico",
+      "lang": "pt",
+      "form": "no-accents",
+      "covers": "menos robótico",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-imperativo",
+      "phrase": "humanize este texto",
+      "lang": "pt",
+      "form": "imperative",
+      "covers": "humaniza esse texto",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-imperativo-2",
+      "phrase": "reescreve esse parágrafo para soar mais humano",
+      "lang": "pt",
+      "form": "imperative",
+      "covers": "torna esse texto mais humano",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-pergunta-ia",
+      "phrase": "dá pra tirar a cara de IA desse texto?",
+      "lang": "pt",
+      "form": "question",
+      "covers": "tira a cara de IA",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-pergunta-natural",
+      "phrase": "você consegue deixar esse texto mais natural?",
+      "lang": "pt",
+      "form": "question",
+      "covers": "mais natural",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-pergunta-simplificar",
+      "phrase": "pode simplificar o texto?",
+      "lang": "pt",
+      "form": "question",
+      "covers": "simplifica o texto",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-pergunta-robo",
+      "phrase": "esse texto parece escrito por robô?",
+      "lang": "pt",
+      "form": "question",
+      "covers": "parece escrito por robô",
+      "attach": "prose"
+    },
+    {
+      "id": "en-humanize",
+      "phrase": "humanize this text",
+      "lang": "en",
+      "form": "canonical",
+      "covers": "make this sound human",
+      "attach": "prose"
+    },
+    {
+      "id": "en-sound-human",
+      "phrase": "make this sound human",
+      "lang": "en",
+      "form": "canonical",
+      "covers": "make this sound human",
+      "attach": "prose"
+    },
+    {
+      "id": "en-ai-tone",
+      "phrase": "remove the AI tone",
+      "lang": "en",
+      "form": "canonical",
+      "covers": "remove the AI tone",
+      "attach": "prose"
+    },
+    {
+      "id": "en-less-robotic",
+      "phrase": "make it less robotic",
+      "lang": "en",
+      "form": "canonical",
+      "covers": "make it less robotic",
+      "attach": "prose"
+    },
+    {
+      "id": "en-polish-doc",
+      "phrase": "polish this doc",
+      "lang": "en",
+      "form": "canonical",
+      "covers": "polish this doc",
+      "attach": "prose"
+    },
+    {
+      "id": "en-simplify",
+      "phrase": "simplify this text",
+      "lang": "en",
+      "form": "canonical",
+      "covers": "simplify this text",
+      "attach": "prose"
+    },
+    {
+      "id": "en-easier",
+      "phrase": "make this text easier to read",
+      "lang": "en",
+      "form": "canonical",
+      "covers": "make this easier to read",
+      "attach": "prose"
+    },
+    {
+      "id": "en-typo",
+      "phrase": "humanise this txet",
+      "lang": "en",
+      "form": "typo",
+      "covers": "make this sound human",
+      "attach": "prose"
+    },
+    {
+      "id": "en-typo-robotic",
+      "phrase": "make it less robtic",
+      "lang": "en",
+      "form": "typo",
+      "covers": "make it less robotic",
+      "attach": "prose"
+    },
+    {
+      "id": "en-imperative",
+      "phrase": "Strip the AI tone out of this README.",
+      "lang": "en",
+      "form": "imperative",
+      "covers": "remove the AI tone",
+      "attach": "prose"
+    },
+    {
+      "id": "en-imperative-2",
+      "phrase": "Rewrite this paragraph so it sounds human.",
+      "lang": "en",
+      "form": "imperative",
+      "covers": "make this sound human",
+      "attach": "prose"
+    },
+    {
+      "id": "en-question-ai",
+      "phrase": "does this read like it was written by AI? fix it",
+      "lang": "en",
+      "form": "question",
+      "covers": "does this read like AI wrote it",
+      "attach": "prose"
+    },
+    {
+      "id": "en-question-corporate",
+      "phrase": "can you make this less corporate?",
+      "lang": "en",
+      "form": "question",
+      "covers": "make it less corporate",
+      "attach": "prose"
+    },
+    {
+      "id": "en-question-human",
+      "phrase": "could you make this sound more natural?",
+      "lang": "en",
+      "form": "question",
+      "covers": "make this sound human",
+      "attach": "prose"
+    }
+  ],
+  "negatives": [
+    {
+      "id": "pt-traduz",
+      "phrase": "traduz esse texto para o inglês",
+      "lang": "pt",
+      "category": "translate",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-traduz-es",
+      "phrase": "preciso desse texto em espanhol, traduz",
+      "lang": "pt",
+      "category": "translate",
+      "attach": "prose"
+    },
+    {
+      "id": "en-translate",
+      "phrase": "translate this text into French",
+      "lang": "en",
+      "category": "translate",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-resume",
+      "phrase": "resume esse texto em três linhas",
+      "lang": "pt",
+      "category": "summarize",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-resumo",
+      "phrase": "faz um resumo executivo desse texto",
+      "lang": "pt",
+      "category": "summarize",
+      "attach": "prose"
+    },
+    {
+      "id": "en-summarize",
+      "phrase": "summarize this in three bullets",
+      "lang": "en",
+      "category": "summarize",
+      "attach": "prose"
+    },
+    {
+      "id": "en-tldr",
+      "phrase": "tl;dr this text",
+      "lang": "en",
+      "category": "summarize",
+      "attach": "prose"
+    },
+    {
+      "id": "pt-revisa-codigo",
+      "phrase": "revisa esse código e aponta os bugs",
+      "lang": "pt",
+      "category": "review-code",
+      "attach": "code"
+    },
+    {
+      "id": "en-review-code",
+      "phrase": "review this function for bugs",
+      "lang": "en",
+      "category": "review-code",
+      "attach": "code"
+    },
+    {
+      "id": "pt-comentario",
+      "phrase": "escreve o comentário dessa função",
+      "lang": "pt",
+      "category": "code-comment",
+      "attach": "code"
+    },
+    {
+      "id": "en-docstring",
+      "phrase": "write a docstring for this function",
+      "lang": "en",
+      "category": "code-comment",
+      "attach": "code"
+    },
+    {
+      "id": "pt-refatora",
+      "phrase": "refatora essa função para ficar mais legível",
+      "lang": "pt",
+      "category": "review-code",
+      "attach": "code"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -174,9 +175,30 @@ def broken_cases(doc: dict) -> list[tuple[str, dict, str]]:
     ]
 
 
+def check_gate() -> list[str]:
+    """The skill exists and the artifact gate, run over the whole corpus, names nothing against it."""
+    if not (SKILL / "SKILL.md").is_file():
+        return ["SKILL.md: missing"]
+    root = Path(__file__).resolve().parent.parent.parent
+    gate = Path(__file__).resolve().parent / "validate-artifacts.py"
+    run = subprocess.run([sys.executable, str(gate), str(root)], capture_output=True, text=True)
+    lines = [line for line in run.stdout.splitlines() if "rewriting-ai-prose" in line]
+    return lines or ([] if run.returncode == 0 else [run.stdout.strip() or run.stderr.strip()])
+
+
 def main() -> int:
     doc = json.loads(DATA.read_text(encoding="utf-8"))
     failed = 0
+
+    # #365/AC-1 SKILL.md exists and passes the foundation gate.
+    gate = check_gate()
+    if gate:
+        failed += 1
+        print("FAIL  skill passes the foundation gate")
+        for error in gate:
+            print(f"      {error}")
+    else:
+        print("ok    skill passes the foundation gate")
 
     # #365/AC-4 the list parses, every regex compiles, and every pattern meets its own examples.
     checks = [("schema", check_schema(doc))]
