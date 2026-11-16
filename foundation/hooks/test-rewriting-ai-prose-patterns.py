@@ -32,10 +32,9 @@ STRENGTHS = {"strong", "medium", "weak"}
 FLAGS = {"i": re.IGNORECASE, "m": re.MULTILINE, "s": re.DOTALL, "u": 0}
 ID = re.compile(r"[a-z][a-z0-9]*(-[a-z0-9]+)*")
 REQUIRED = ("id", "family", "strength", "language", "flags", "min_hits", "regex", "message", "fix", "examples")
-# Constructs ECMAScript and Python read differently, so a pattern that uses
-# one is not importable by both.
+# #365 constructs the two engines read differently are not portable
 NOT_PORTABLE = (r"(?i)", r"(?P<", r"\w", r"\b", r"\B", r"(?<=\w", r"\A", r"\Z")
-# The families the issue names under How, each of which a pattern must serve.
+# #365 the families the issue names under How, each of which a pattern must serve.
 REQUIRED_IDS = {
     "not-x-but-y", "not-only-but-also", "staged-opener", "closer-phrase", "inflated-verbs",
     "inflated-words", "inflated-scene", "gerundismo", "dash-connector", "bold-labels",
@@ -48,6 +47,34 @@ def compile_pattern(entry: dict) -> re.Pattern:
     for letter in entry["flags"]:
         flags |= FLAGS[letter]
     return re.compile(entry["regex"], flags)
+
+
+def check_entry_fields(pid: str, entry: dict) -> list[str]:
+    errors = []
+    if not ID.fullmatch(pid):
+        errors.append(f"{pid}: id is not kebab-case")
+    if entry["family"] not in FAMILIES:
+        errors.append(f"{pid}: unknown family {entry['family']}")
+    if entry["strength"] not in STRENGTHS:
+        errors.append(f"{pid}: unknown strength {entry['strength']}")
+    if not isinstance(entry["flags"], list) or not set(entry["flags"]) <= set(FLAGS):
+        errors.append(f"{pid}: flags are not a subset of i, m, s, u")
+    if not isinstance(entry["min_hits"], int) or isinstance(entry["min_hits"], bool) or entry["min_hits"] < 1:
+        errors.append(f"{pid}: min_hits is not an integer of at least 1")
+    for key in ("regex", "message", "fix"):
+        if not isinstance(entry[key], str) or not entry[key].strip():
+            errors.append(f"{pid}: {key} is empty")
+    return errors
+
+
+def check_entry_examples(pid: str, entry: dict) -> list[str]:
+    errors = []
+    examples = entry["examples"]
+    for kind in ("positive", "negative"):
+        items = examples.get(kind) if isinstance(examples, dict) else None
+        if not isinstance(items, list) or not items or not all(isinstance(i, str) for i in items):
+            errors.append(f"{pid}: examples.{kind} is not a non-empty list of strings")
+    return errors
 
 
 def check_schema(doc: dict) -> list[str]:
@@ -67,27 +94,10 @@ def check_schema(doc: dict) -> list[str]:
                 errors.append(f"{pid}: missing {key}")
         if errors and any(e.startswith(f"{pid}: missing") for e in errors):
             continue
-        if not ID.fullmatch(pid):
-            errors.append(f"{pid}: id is not kebab-case")
         if pid in seen:
             errors.append(f"{pid}: duplicate id")
         seen.add(pid)
-        if entry["family"] not in FAMILIES:
-            errors.append(f"{pid}: unknown family {entry['family']}")
-        if entry["strength"] not in STRENGTHS:
-            errors.append(f"{pid}: unknown strength {entry['strength']}")
-        if not isinstance(entry["flags"], list) or not set(entry["flags"]) <= set(FLAGS):
-            errors.append(f"{pid}: flags are not a subset of i, m, s, u")
-        if not isinstance(entry["min_hits"], int) or isinstance(entry["min_hits"], bool) or entry["min_hits"] < 1:
-            errors.append(f"{pid}: min_hits is not an integer of at least 1")
-        for key in ("regex", "message", "fix"):
-            if not isinstance(entry[key], str) or not entry[key].strip():
-                errors.append(f"{pid}: {key} is empty")
-        examples = entry["examples"]
-        for kind in ("positive", "negative"):
-            items = examples.get(kind) if isinstance(examples, dict) else None
-            if not isinstance(items, list) or not items or not all(isinstance(i, str) for i in items):
-                errors.append(f"{pid}: examples.{kind} is not a non-empty list of strings")
+        errors += check_entry_fields(pid, entry) + check_entry_examples(pid, entry)
     return errors
 
 
@@ -146,7 +156,7 @@ def check_list(doc: dict) -> list[str]:
     return errors
 
 
-# A deliberately broken copy of the data, to prove each check can fail.
+# #365 a deliberately broken copy of the data, to prove each check can fail.
 def broken_cases(doc: dict) -> list[tuple[str, dict, str]]:
     def mutate(change) -> dict:
         copy = json.loads(json.dumps(doc))
