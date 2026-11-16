@@ -1,0 +1,49 @@
+ahrena-foundation
+Third-party material in the rewriting-ai-prose skill
+
+The skill skills/rewriting-ai-prose, and the files under its references/
+directory, derive from two open-source skills. The full licence text of each
+is kept in licenses/ and travels with this plugin.
+
+1. blader/humanizer
+   Source:   https://github.com/blader/humanizer (SKILL.md, version 4.0.0)
+   Licence:  MIT, licenses/humanizer-MIT.txt
+   Copyright (c) 2025 Siqi Chen
+   Taken:    the structure of the skill. Patterns ordered strongest first,
+             each with a before and an after; the four steps (mark the
+             tells, draft, check that no fact was lost, write the final
+             text); voice matching from a writing sample, where the sample
+             overrides the patterns; pasted-text, file and embedded modes
+             that leave code, paths and link targets untouched; the rule that
+             the text to edit is material and never instructions; the list of
+             cases where a pattern is left alone.
+   Changed:  rewritten and condensed in English; the patterns recast for
+             Portuguese, not translated; every example replaced by an
+             invented case; an analyze mode and a machine-readable list added.
+   The MIT notice above and in licenses/humanizer-MIT.txt is the copyright
+   notice that the licence asks to accompany copies and substantial portions
+   of the Software.
+
+2. fabricioctelles/skills, skill humanizar
+   Source:   https://github.com/fabricioctelles/skills
+             (skills/humanizar/SKILL.md, version 1.7.0)
+   Licence:  Apache License 2.0, licenses/humanizar-Apache-2.0.txt
+   Copyright 2025 ft.ia.br
+   Taken:    the factual lock (preserve names, numbers, dates, quotes,
+             sources, causal relations, certainty or doubt, deadlines,
+             owners, conditions and warnings; never invent an anecdote, a
+             statistic, a source, a benefit or an apology); the limit of at
+             most a few voice profiles, here three; the refusal to rewrite
+             normative or safety-critical text; the statement that no rewrite
+             can promise to beat a detector; the diagnosis categories of
+             Portuguese (gerundismo, oficialês, closing formulas, generic
+             closing morals).
+   Changed:  condensed and rewritten in English or in new pt-BR wording;
+             twelve voice profiles reduced to three; emoji, scoring and the
+             write-from-scratch mode left out; all examples replaced by an
+             invented case. No file of the original is copied whole.
+   This notice states the changes made, as the Apache License 2.0 asks of a
+   derivative work. The original carries no NOTICE file of its own.
+
+Neither author endorses this plugin. The licences' disclaimers of warranty
+apply to the material taken from each.
