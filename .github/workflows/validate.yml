@@ -59,6 +59,9 @@ jobs:
       - name: Test the Anthropic skill checker
         run: python3 foundation/hooks/test-validate-anthropic-skill.py
 
+      - name: Test the rewriting-ai-prose pattern data
+        run: python3 foundation/hooks/test-rewriting-ai-prose-patterns.py
+
       - name: Test the prompt-test runner
         run: python3 foundation/prompt-tests/test-run.py
 

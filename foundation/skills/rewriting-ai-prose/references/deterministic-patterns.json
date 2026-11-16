@@ -1,0 +1,615 @@
+{
+  "version": 1,
+  "language": "pt-BR",
+  "description": "Patterns of machine-sounding Portuguese that a regex can decide. A hit is a candidate to read in context, never a verdict. Prose patterns that need a reader live in patterns-pt-br.md.",
+  "schema": {
+    "id": "kebab-case id, equal to a heading id in patterns-pt-br.md",
+    "family": "staging | rhythm | inflation | formatting | leftovers | portuguese",
+    "strength": "strong: act on one sighting. medium: act when it adds nothing or with a second tell. weak: act only with company.",
+    "regex": "Pattern in the subset shared by Python re and ECMAScript: no inline flags, no named groups, lookbehind of fixed length, no \\w or \\b near accents.",
+    "flags": "subset of i, m, s, u. Apply u only in ECMAScript; Python ignores it.",
+    "min_hits": "number of hits in one text before the pattern counts.",
+    "examples": "positive: strings the regex must match. negative: strings it must not match."
+  },
+  "patterns": [
+    {
+      "id": "not-x-but-y",
+      "family": "staging",
+      "strength": "strong",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])n[ãa]o (?:é|foi|era|são|eram|será) [^.!?\\n]{1,80}?[,;] (?:é|foi|era|são|eram|será|mas|e sim)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "Denies something nobody claimed so the second half sounds bigger.",
+      "fix": "State the point directly; keep the contrast only if the reader really holds the denied belief.",
+      "examples": {
+        "positive": [
+          "Não é só um relatório, é uma decisão.",
+          "O frete não é um custo, é um argumento de venda."
+        ],
+        "negative": [
+          "O pedido não é cancelado depois do envio.",
+          "Não é possível alterar o endereço."
+        ]
+      }
+    },
+    {
+      "id": "not-only-but-also",
+      "family": "staging",
+      "strength": "strong",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])n[ãa]o (?:apenas|só|somente|meramente|simplesmente) [^.!?\\n]{1,100}?,? (?:mas|como) (?:também|ainda)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "The 'not only... but also' build adds weight, not a claim.",
+      "fix": "Say what the thing does, with its two facts as two plain clauses.",
+      "examples": {
+        "positive": [
+          "O cupom não apenas reduz o preço, mas também aumenta a conversão.",
+          "Não só entrega rápido, como também avisa o cliente."
+        ],
+        "negative": [
+          "O cupom reduz o preço e avisa o cliente.",
+          "Não apenas isso: o prazo caiu de 5 para 3 dias."
+        ]
+      }
+    },
+    {
+      "id": "not-split-contrast",
+      "family": "staging",
+      "strength": "strong",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:isso |isto |aquilo )?n[ãa]o significa [^.!?\\n]{1,100}[.!?] (?:significa|quer dizer|isso significa)(?![A-Za-zÀ-ÖØ-öø-ÿ])|(?<![A-Za-zÀ-ÖØ-öø-ÿ])n[ãa]o se trata (?:apenas |só )?d[eoa]s? [^.!?\\n]{1,100}?,? mas (?:sim )?d[eoa]s?(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "The same contrast split over two sentences, or 'não se trata de X, mas de Y'.",
+      "fix": "Drop the denied half and state the real claim.",
+      "examples": {
+        "positive": [
+          "Isso não significa que todo pedido é urgente. Significa que o atraso custa caro.",
+          "Não se trata de velocidade, mas de previsibilidade."
+        ],
+        "negative": [
+          "Isso não significa que o pedido foi cancelado.",
+          "Trata-se de uma regra do frete."
+        ]
+      }
+    },
+    {
+      "id": "staged-opener",
+      "family": "staging",
+      "strength": "strong",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:vamos (?:lá )?(?:mergulhar|explorar|desvendar|entender|dar uma olhada|nos aprofundar)|vale (?:a pena )?(?:ressaltar|destacar|mencionar|salientar|lembrar|notar)|é (?:importante|fundamental|essencial|crucial|válido) (?:destacar|ressaltar|notar|salientar|mencionar|lembrar|frisar)|cumpre (?:salientar|ressaltar|destacar)|sem mais delongas|o que você precisa saber)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "Announces the point or stages its importance instead of making it.",
+      "fix": "Delete the run-up and begin with the claim.",
+      "examples": {
+        "positive": [
+          "Vamos mergulhar no funcionamento do cupom.",
+          "Vale ressaltar que o frete é grátis acima de R$ 150.",
+          "É importante destacar que o prazo mudou."
+        ],
+        "negative": [
+          "O frete é grátis acima de R$ 150.",
+          "Ele mergulhou o pão no leite."
+        ]
+      }
+    },
+    {
+      "id": "closer-phrase",
+      "family": "staging",
+      "strength": "strong",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?:^|[.!?]\\s+|\\n\\s*)(?:em suma|em resumo|em síntese|em conclusão|em última análise|no fim do dia|ao final do dia|no final das contas|no fim das contas|para concluir|diante do exposto|concluindo)(?=[,:\\s])(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "A closing formula that repeats what the text already said.",
+      "fix": "Cut it, or replace it with the next step or the consequence the text has not stated.",
+      "examples": {
+        "positive": [
+          "Em suma, o novo fluxo é mais simples.",
+          "Tudo certo. No fim do dia, o que importa é o cliente."
+        ],
+        "negative": [
+          "O servidor, no fim do dia, é desligado.",
+          "Resumindo o pedido: 3 itens."
+        ]
+      }
+    },
+    {
+      "id": "closer-fragment",
+      "family": "staging",
+      "strength": "medium",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?:^|[.!?]\\s+|\\n\\s*)(?:esse é o (?:verdadeiro |grande )?(?:ganho|diferencial|segredo|poder)|essa é a (?:grande |verdadeira )?(?:diferença|chave)|e isso muda tudo|simples assim|ponto final|pense nisso)\\s*[.!]",
+      "message": "A one-line paragraph that restates the point and asks the reader to pause.",
+      "fix": "Delete it, or merge a new fact into the sentence before.",
+      "examples": {
+        "positive": [
+          "O cache evita reprocesso. Esse é o verdadeiro ganho.",
+          "Pedidos sem retrabalho. E isso muda tudo."
+        ],
+        "negative": [
+          "O ganho do cache é de 40 ms por pedido.",
+          "Simples assim funcionava antes, agora não mais."
+        ]
+      }
+    },
+    {
+      "id": "deep-saying",
+      "family": "staging",
+      "strength": "medium",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:no fundo,|em sua essência,|em essência,|a verdadeira questão é|o que realmente importa é|o que realmente importa são|a chave está em|o coração d[oa]|o verdadeiro desafio (?:é|está))(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "An ordinary point dressed as a hidden truth.",
+      "fix": "Replace the saying with the specific claim it stands for.",
+      "examples": {
+        "positive": [
+          "No fundo, o que realmente importa é a confiança do cliente.",
+          "O verdadeiro desafio é a logística."
+        ],
+        "negative": [
+          "No fundo da caixa havia um recibo.",
+          "O desafio é entregar em 2 dias."
+        ]
+      }
+    },
+    {
+      "id": "arguing-with-no-one",
+      "family": "staging",
+      "strength": "medium",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:não estou (?:dizendo|afirmando|sugerindo) que|não me entenda mal|para ser (?:justo|claro|honesto),|alguém poderia (?:pensar|argumentar|dizer)|você (?:pode|poderia) pensar que|pode parecer que [^.!?\\n]{1,80} mas|seria (?:fácil|tentador) apenas)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "Answers an objection or rejects an option that appears nowhere else.",
+      "fix": "Remove the defense and keep only a real claim, if there is one.",
+      "examples": {
+        "positive": [
+          "Não estou dizendo que o cupom é ruim, mas o frete pesa mais.",
+          "Você poderia pensar que bastava baixar o preço."
+        ],
+        "negative": [
+          "Ela disse que o preço não mudaria.",
+          "O cliente pediu para ser claro nas condições."
+        ]
+      }
+    },
+    {
+      "id": "dash-connector",
+      "family": "rhythm",
+      "strength": "weak",
+      "language": "pt-BR",
+      "flags": [],
+      "min_hits": 3,
+      "regex": "[—–]|(?<=\\S) -- (?=\\S)|(?<=[A-Za-zÀ-ÿ0-9.,)]) - (?=[A-Za-zÀ-ÿ(])",
+      "message": "Dash used as a universal connector.",
+      "fix": "Use a period, a comma, a colon or parentheses, or rewrite the sentence; keep dashes the writer's own sample uses.",
+      "examples": {
+        "positive": [
+          "O frete — que subiu — pesa mais.",
+          "O prazo caiu - de 5 para 3 dias - sem custo."
+        ],
+        "negative": [
+          "O prazo caiu de 5 para 3 dias.",
+          "Rua Sete-de-Setembro, 10-B"
+        ]
+      }
+    },
+    {
+      "id": "stacked-hedges",
+      "family": "rhythm",
+      "strength": "weak",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:pode ser que talvez|talvez possa|possivelmente poderia|poderia potencialmente|pode eventualmente talvez|parece que talvez|em alguns casos pode ser que)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "Hedges stacked on one claim.",
+      "fix": "Keep one hedge, where the doubt is real.",
+      "examples": {
+        "positive": [
+          "Talvez possa ajudar a reduzir o custo.",
+          "Pode ser que talvez o prazo mude."
+        ],
+        "negative": [
+          "Talvez o prazo mude.",
+          "O prazo pode mudar."
+        ]
+      }
+    },
+    {
+      "id": "inflated-verbs",
+      "family": "inflation",
+      "strength": "medium",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:potencializ(?:ar|a|e|am|ando|ação)|alavanc(?:ar|a|e|am|ando|agem)|impulsion(?:ar|a|e|am|ando)|agreg(?:ar|a|ando) valor|desvendar|desvendando|otimizar a experiência)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "Stock verbs that dress an ordinary action as strategy.",
+      "fix": "Use the plain verb: aumentar, usar, melhorar, mostrar.",
+      "examples": {
+        "positive": [
+          "O novo cupom vai potencializar as vendas.",
+          "Podemos alavancar o catálogo atual."
+        ],
+        "negative": [
+          "O carro foi alavancado pelo guincho.",
+          "O pedido sobe de 2 para 3 itens."
+        ]
+      }
+    },
+    {
+      "id": "inflated-words",
+      "family": "inflation",
+      "strength": "medium",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:jornada|robust[oa]s?|holístic[oa]s?|disruptiv[oa]s?|transformador(?:a|es|as)?|inovador(?:a|es|as)?|de ponta|sinergia|paradigma|ecossistema|fundamental|fundamentais|crucial|cruciais|de classe mundial)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "Inflated vocabulary that carries no checkable fact.",
+      "fix": "Name the concrete property (how many, how fast, for whom) or drop the word.",
+      "examples": {
+        "positive": [
+          "Uma jornada de compra robusta e fundamental.",
+          "Uma solução inovadora de ponta."
+        ],
+        "negative": [
+          "O cliente comprou o pão.",
+          "A viga sustenta o teto e aguenta 2 t."
+        ]
+      }
+    },
+    {
+      "id": "inflated-scene",
+      "family": "inflation",
+      "strength": "medium",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:no cenário atual|no atual cenário|no mundo atual|nos dias de hoje|na era digital|em um mundo cada vez mais|num mundo cada vez mais|em constante evolução|em constante transformação)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "A scene-setting opener that fits any subject.",
+      "fix": "Delete it and open with the specific fact.",
+      "examples": {
+        "positive": [
+          "No cenário atual, toda loja precisa de frete rápido.",
+          "Em um mundo cada vez mais conectado, o cupom ganha força."
+        ],
+        "negative": [
+          "O cenário do teste usa 3 pedidos.",
+          "Hoje o frete custa R$ 12."
+        ]
+      }
+    },
+    {
+      "id": "inflated-significance",
+      "family": "inflation",
+      "strength": "medium",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:desempenha|exerce|tem) um papel (?:fundamental|crucial|essencial|central|importante|-chave|de destaque)|(?<![A-Za-zÀ-ÖØ-öø-ÿ])é um testemunho d[oea]|(?<![A-Za-zÀ-ÖØ-öø-ÿ])deixa uma marca indelével|(?<![A-Za-zÀ-ÖØ-öø-ÿ])marca um momento (?:crucial|decisivo|histórico)",
+      "message": "Importance asserted instead of shown.",
+      "fix": "State what it does and for whom.",
+      "examples": {
+        "positive": [
+          "O frete desempenha um papel fundamental na conversão.",
+          "O cupom é um testemunho da força da marca."
+        ],
+        "negative": [
+          "O frete reduziu a conversão em 4%.",
+          "Ele tem um papel no filme."
+        ]
+      }
+    },
+    {
+      "id": "borrowed-authority",
+      "family": "inflation",
+      "strength": "medium",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:estudos|pesquisas|especialistas|analistas|relatórios do setor|segundo especialistas|dizem os especialistas) (?:mostram|apontam|indicam|afirmam|dizem|sugerem|concordam|recomendam)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "An authority with no name, date or link.",
+      "fix": "Keep it only if the source is already in the text; otherwise flag the gap, never invent a source.",
+      "examples": {
+        "positive": [
+          "Estudos mostram que o frete grátis converte mais.",
+          "Especialistas afirmam que o cupom funciona."
+        ],
+        "negative": [
+          "A auditoria interna mostra queda de 4%.",
+          "O especialista Pedro Teste afirma que não."
+        ]
+      }
+    },
+    {
+      "id": "avoiding-is-has",
+      "family": "inflation",
+      "strength": "weak",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:configura-se|constitui-se|apresenta-se|posiciona-se|se configura|se constitui|se posiciona|se destaca) como|(?<![A-Za-zÀ-ÖØ-öø-ÿ])serve como|(?<![A-Za-zÀ-ÖØ-öø-ÿ])atua como (?:um|uma)",
+      "message": "A longer verb where 'é' or 'tem' would do.",
+      "fix": "Restore the simple verb.",
+      "examples": {
+        "positive": [
+          "O módulo se configura como o núcleo do checkout.",
+          "O cupom serve como incentivo."
+        ],
+        "negative": [
+          "O módulo é o núcleo do checkout.",
+          "Ele atua como árbitro da partida inteira."
+        ]
+      }
+    },
+    {
+      "id": "bold-labels",
+      "family": "formatting",
+      "strength": "weak",
+      "language": "pt-BR",
+      "flags": [
+        "m"
+      ],
+      "min_hits": 3,
+      "regex": "^[ \\t]*(?:[-*+]|\\d+\\.)[ \\t]+\\*\\*[^*\\n]{1,50}\\*\\*:?[ \\t]",
+      "message": "Bold label opening each list item.",
+      "fix": "Use plain items; bold only what a reader scans for.",
+      "examples": {
+        "positive": [
+          "- **Objetivo:** reduzir o prazo",
+          "1. **Prazo** de 3 dias"
+        ],
+        "negative": [
+          "- reduzir o prazo",
+          "Texto com **um** destaque."
+        ]
+      }
+    },
+    {
+      "id": "emoji-markers",
+      "family": "formatting",
+      "strength": "weak",
+      "language": "pt-BR",
+      "flags": [
+        "m",
+        "u"
+      ],
+      "min_hits": 3,
+      "regex": "^[ \\t]*(?:#{1,6}[ \\t]+|[-*+][ \\t]+|\\d+\\.[ \\t]+)?[✅❌🚀💡📌✨🎯🔥⚡🔑📈🌟]",
+      "message": "Emoji as a marker on headings or items.",
+      "fix": "Remove it unless it carries a status the reader needs.",
+      "examples": {
+        "positive": [
+          "## 🚀 Novidades",
+          "- ✅ Frete grátis"
+        ],
+        "negative": [
+          "## Novidades",
+          "- Frete grátis"
+        ]
+      }
+    },
+    {
+      "id": "decorative-headings",
+      "family": "formatting",
+      "strength": "weak",
+      "language": "pt-BR",
+      "flags": [
+        "i",
+        "m"
+      ],
+      "min_hits": 1,
+      "regex": "^#{1,6}[ \\t]+(?:introdução|conclusão|considerações finais|resumo executivo|visão geral|principais (?:pontos|aprendizados)|pontos-chave)[ \\t]*$",
+      "message": "A generic heading that names a slot instead of the content.",
+      "fix": "Name the section for what it says, or remove the heading.",
+      "examples": {
+        "positive": [
+          "## Conclusão",
+          "### Principais pontos"
+        ],
+        "negative": [
+          "## Prazo de entrega",
+          "Conclusão do pedido em 3 dias."
+        ]
+      }
+    },
+    {
+      "id": "chatbot-opener",
+      "family": "leftovers",
+      "strength": "strong",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?:^|\\n)[ \\t]*(?:claro|com certeza|certamente|perfeitamente|ótima pergunta|excelente pergunta|boa pergunta|entendido|você tem toda a razão|ótimo ponto)[!,.]",
+      "message": "A chat reply wrapper that was never meant for the reader.",
+      "fix": "Delete the line.",
+      "examples": {
+        "positive": [
+          "Claro! Aqui vai o texto.",
+          "Ótima pergunta! O frete sobe."
+        ],
+        "negative": [
+          "Claro que o frete sobe, a tabela mudou.",
+          "O frete sobe."
+        ]
+      }
+    },
+    {
+      "id": "chatbot-closer",
+      "family": "leftovers",
+      "strength": "strong",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:espero (?:que isso )?(?:ter )?ajud(?:ado|e|ar)|fico à disposição|posso ajudar com mais alguma coisa|qualquer dúvida,? (?:é só )?(?:me )?(?:avise|chamar|falar)|se precisar de (?:mais )?(?:alguma coisa|algo|ajuda),? (?:é só )?(?:me )?(?:avise|chamar|falar)|quer que eu|gostaria que eu|deseja que eu)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "A chat offer or sign-off the reader did not ask for.",
+      "fix": "Delete it; keep a real next step if there is one.",
+      "examples": {
+        "positive": [
+          "Espero ter ajudado!",
+          "Quer que eu reescreva o resto?"
+        ],
+        "negative": [
+          "O suporte fica à disposição das 9h às 18h, no número 0800-000.",
+          "Reescrevi o resto."
+        ]
+      }
+    },
+    {
+      "id": "chatbot-self-reference",
+      "family": "leftovers",
+      "strength": "strong",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:como (?:um )?modelo de linguagem|como (?:uma )?(?:ia|inteligência artificial)|como assistente (?:de ia|virtual)|até (?:a )?minha última atualização|meu conhecimento (?:foi )?(?:atualizado|limitado) até|não tenho acesso a informações em tempo real|com base nas informações disponíveis)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "The model talks about itself or its knowledge limit.",
+      "fix": "Delete it; if a fact is unknown, say what is unknown and who can supply it.",
+      "examples": {
+        "positive": [
+          "Como modelo de linguagem, não tenho acesso ao seu catálogo.",
+          "Até minha última atualização, o frete era R$ 12."
+        ],
+        "negative": [
+          "A inteligência artificial do produto classifica o pedido.",
+          "Ele atualizou o catálogo ontem."
+        ]
+      }
+    },
+    {
+      "id": "chatbot-handoff",
+      "family": "leftovers",
+      "strength": "strong",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?:^|\\n)[ \\t]*(?:aqui está|aqui vai|segue) (?:o|a|um|uma|abaixo|a seguir)[^\\n]{0,80}:[ \\t]*(?:\\n|$)",
+      "message": "A hand-off line that introduces the text instead of being in it.",
+      "fix": "Return only the text.",
+      "examples": {
+        "positive": [
+          "Aqui está o texto reescrito:\n",
+          "Segue abaixo a versão final:\n"
+        ],
+        "negative": [
+          "Aqui está o endereço da loja: Rua Teste, 10.",
+          "O texto está abaixo."
+        ]
+      }
+    },
+    {
+      "id": "document-announces-itself",
+      "family": "leftovers",
+      "strength": "medium",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])neste (?:artigo|texto|documento|guia|post|readme),? (?:vamos|iremos|veremos|exploraremos|abordaremos|apresentaremos|discutiremos|você vai|você irá)|(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:este|esse) (?:artigo|texto|documento|guia|readme) (?:tem como objetivo|busca|visa|pretende|apresenta)",
+      "message": "The text describes itself instead of starting.",
+      "fix": "Delete it and begin with the first fact.",
+      "examples": {
+        "positive": [
+          "Neste artigo, vamos explorar o frete.",
+          "Este documento tem como objetivo apresentar o cupom."
+        ],
+        "negative": [
+          "Neste artigo 5, o prazo é de 3 dias.",
+          "O documento 12 está no anexo."
+        ]
+      }
+    },
+    {
+      "id": "gerundismo",
+      "family": "portuguese",
+      "strength": "strong",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:vou|vamos|vai|vão|irei|iremos|irá|irão) estar [A-Za-zÀ-ÖØ-öø-ÿ]+(?:ando|endo|indo)(?![A-Za-zÀ-ÖØ-öø-ÿ])|(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:estarei|estaremos|estará|estarão|estaria|estaríamos|estariam) [A-Za-zÀ-ÖØ-öø-ÿ]+(?:ando|endo|indo)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "Gerundismo: 'vou estar enviando', 'estaremos enviando'.",
+      "fix": "Use the plain future or present: 'envio', 'enviaremos'.",
+      "examples": {
+        "positive": [
+          "Vamos estar enviando o relatório amanhã.",
+          "Estaremos enviando o código por e-mail."
+        ],
+        "negative": [
+          "Enviaremos o relatório amanhã.",
+          "Estamos enviando o código agora."
+        ]
+      }
+    },
+    {
+      "id": "officialese",
+      "family": "portuguese",
+      "strength": "medium",
+      "language": "pt-BR",
+      "flags": [
+        "i"
+      ],
+      "min_hits": 1,
+      "regex": "(?<![A-Za-zÀ-ÖØ-öø-ÿ])(?:cumpre salientar|no âmbito d[eoa]s?|no que tange|no que diz respeito (?:a|à|ao|aos|às)|diante do exposto|por meio d[eoa]s? presente|a nível de|haja vista)(?![A-Za-zÀ-ÖØ-öø-ÿ])",
+      "message": "Bureaucratic phrasing for a plain statement.",
+      "fix": "Use the direct construction: 'em', 'sobre', 'por causa de'.",
+      "examples": {
+        "positive": [
+          "No âmbito do checkout, o prazo mudou.",
+          "No que diz respeito ao frete, nada muda."
+        ],
+        "negative": [
+          "O prazo do checkout mudou.",
+          "Cumpre-se o prazo."
+        ]
+      }
+    }
+  ]
+}
