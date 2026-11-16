@@ -19,9 +19,12 @@ it works on. It is decided by scripts only, no judge model:
        and no Write or Edit was called; the report names a verdict in the
        case's words, quotes every excerpt the case lists with a fix after it on the line,
        lists the facts to keep, and is in the reader's language
-    3. an `ask` case (a command with no target): the answer asks for one in a few
-       lines and nothing was written
-    4. a case that carries an instruction inside the text, `never_only`: the
+    3. an `ask` case (a command with no target): the answer asks for one in at most
+       600 characters, and an invented text with a question mark does not count, and
+       nothing was written
+    4. every case: the Skill tool was called for the skill, so a model that
+       improvises the edit and ignores the command fails
+    5. a case that carries an instruction inside the text, `never_only`: the
        answer and the file are never just that instruction's reply
 
 `kind: skill-triggers`. A phrase is sent with no command and no skill named. A
@@ -70,7 +73,9 @@ run = _load("run", "run.py")
 run_agent = _load("run_agent", "run-agent.py")
 
 FLAGS = {"i": re.IGNORECASE, "m": re.MULTILINE, "s": re.DOTALL, "u": 0}
-CASE_TOOLS = "Read Edit Write Skill Glob Grep"
+# A case text can carry an instruction written to hijack the model, so the tools that touch
+# files are scoped to the temporary project the process starts in.
+CASE_TOOLS = "Read(./**) Edit(./**) Write(./**) Glob(./**) Grep(./**) Skill"
 TRIGGER_TOOLS = "Skill"
 WRITES = ("Write", "Edit", "NotebookEdit")
 
@@ -140,7 +145,8 @@ def _file_rewrite(case: dict, sample: Sample, patterns: list[dict]) -> list[str]
 
 def _verdict_failures(result: str, verdict: dict) -> list[str]:
     after = re.search(re.escape(verdict["label"]) + r"\W{0,6}((?:\w+\s?){1,3})", result, re.IGNORECASE)
-    if not after or not any(word in squash(after.group(1)) for word in verdict["words"]):
+    said = squash(after.group(1)) if after else ""
+    if not any(re.search(rf"\b{re.escape(word)}\b", said) for word in verdict["words"]):
         return [f"no verdict: expected `{verdict['label']}` followed by one of {verdict['words']}"]
     return []
 
@@ -178,32 +184,33 @@ def _report(case: dict, sample: Sample) -> list[str]:
     return failed
 
 
-REQUEST = re.compile(r"\?|send me|paste|give me|pass me|tell me|point me|cole|passe|envie|me mande|me diga|informe", re.I)
+REQUEST = re.compile(r"send me|paste|give me|pass me|tell me|point me|provide|share|specify|which|what|"
+                     r"cole|passe|envie|me mande|me diga|informe|indique|qual|quais|forne[cç]a", re.I)
+ASK_MAX_CHARS = 600
 
 
 def _ask(case: dict, sample: Sample) -> list[str]:
     """The answer asks for a target in a few lines. Its language is not decided: a bare command carries none."""
     failed = _nothing_written(case, sample)
-    if not REQUEST.search(sample.result) or len(sample.result) > 900:
+    if not REQUEST.search(sample.result) or len(sample.result) > ASK_MAX_CHARS:
         failed.append("the answer is not a short request for a target")
     return failed
-
-
-def decide(case: dict, sample: Sample, patterns: list[dict]) -> list[str]:
-    """The failures of one sample, empty when it passes."""
-    kind = case["expect"]["kind"]
-    if kind == "file-rewrite":
-        return _file_rewrite(case, sample, patterns)
-    if kind == "report":
-        return _report(case, sample)
-    if kind == "ask":
-        return _ask(case, sample)
-    raise ValueError(f"unknown case kind {kind}")
 
 
 def loaded_skill(calls: list, skill: str) -> bool:
     name = skill.split(":")[-1]
     return any(c.name == "Skill" and str(c.args.get("skill", "")).split(":")[-1] == name for c in calls)
+
+
+def decide(case: dict, sample: Sample, patterns: list[dict], skill: str) -> list[str]:
+    """The failures of one sample, empty when it passes. The command must have run the skill, not improvised it."""
+    kind = case["expect"]["kind"]
+    deciders = {"file-rewrite": lambda: _file_rewrite(case, sample, patterns), "report": lambda: _report(case, sample),
+                "ask": lambda: _ask(case, sample)}
+    if kind not in deciders:
+        raise ValueError(f"unknown case kind {kind}")
+    failed = deciders[kind]()
+    return failed if loaded_skill(sample.calls, skill) else ["the skill was not loaded", *failed]
 
 
 def decide_trigger(entry: dict, calls: list, skill: str) -> list[str]:
@@ -229,9 +236,23 @@ def _command(plugins: Path, names: list[str], tools: str, turns: int, model: str
     return command + (["--model", model] if model else [])
 
 
+def argv(command: list[str], prompt: str) -> list[str]:
+    """The prompt after `--`, so a phrase that begins with a dash is a prompt and not an option."""
+    return [*command, "--", prompt]
+
+
+def project_path(project: Path, key: str) -> Path:
+    """Where a case file goes inside the project; a key that leaves the project is refused."""
+    root = project.resolve()
+    target = (root / key).resolve()
+    if not target.is_relative_to(root) or target == root:
+        raise ValueError(f"case file {key!r} is outside the project")
+    return target
+
+
 def _execute(command: list[str], prompt: str, project: Path):
     try:
-        done = subprocess.run([*command, prompt], cwd=project, capture_output=True, text=True,
+        done = subprocess.run(argv(command, prompt), cwd=project, capture_output=True, text=True,
                               stdin=subprocess.DEVNULL, timeout=900)
     except (OSError, subprocess.TimeoutExpired):
         return None
@@ -247,7 +268,9 @@ def run_sample(case: dict, plugins: Path, names: list[str], model: str | None) -
     with tempfile.TemporaryDirectory(prefix="ahrena-skill-test-") as tmp:
         project = Path(tmp)
         for path, text in case["files"].items():
-            (project / path).write_text(text, encoding="utf-8")
+            target = project_path(project, path)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(text, encoding="utf-8")
         done = _execute(_command(plugins, names, CASE_TOOLS, 20, model), case["prompt"], project)
         if done is None:
             return None
@@ -301,12 +324,15 @@ def run_cases(spec: dict, args: argparse.Namespace, plugins: Path) -> tuple[list
     patterns = load_patterns(REPO / spec["patterns"])
     wanted = set(args.only.split(",")) if args.only else None
     cases = [c for c in spec["cases"] if wanted is None or c["id"] in wanted]
+    for case in cases:
+        for key in case["files"]:
+            project_path(Path("/ahrena-skill-test-project"), key)
     jobs = [c for c in cases for _ in range(args.samples)]
     samples = _pool(args.jobs, jobs, lambda c: run_sample(c, plugins, spec["plugins"], args.model))
     lines, code = [], 0
     for case in cases:
         mine = [s for c, s in zip(jobs, samples) if c is case]
-        outcomes = [(s, decide(case, s, patterns) if s else []) for s in mine]
+        outcomes = [(s, decide(case, s, patterns, spec["skill"]) if s else []) for s in mine]
         more, status = report_case(case["id"], outcomes, f" [{', '.join(case['acs'])}]")
         lines, code = lines + more, max(code, status)
     return lines, code

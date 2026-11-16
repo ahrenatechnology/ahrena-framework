@@ -123,7 +123,7 @@
       ],
       "prompt": "/humanize rewrite draft.md",
       "files": {
-        "draft.md": "# acme-cart\n\nNo cenário atual, o acme-cart é uma biblioteca que potencializa o carrinho de compras da sua loja. Não é apenas uma lista de itens, é uma jornada completa de compra.\n\n## Instalação\n\n```bash\nnpm install acme-cart@2.4.0\n```\n\n## Recursos\n\n- Cupons: aplica cupons como BEMVINDO10, que dá 10% na primeira compra.\n- Frete: calcula o frete grátis acima de R$ 150,00.\n- Prazo: mostra o prazo de 3 dias úteis.\n\nVeja a documentação completa em [docs.acme.example/cart](https://docs.acme.example/cart). Em suma, uma solução fundamental para o seu e-commerce. Fico à disposição para qualquer dúvida!\n"
+        "draft.md": "# acme-cart\n\nNo cenário atual, o acme-cart é uma biblioteca que potencializa o carrinho de compras da sua loja. Não é apenas uma lista de itens, é uma experiência completa de compra.\n\n## Instalação\n\n```bash\nnpm install acme-cart@2.4.0\n```\n\n## Recursos\n\n- Cupons: aplica cupons como BEMVINDO10, que dá 10% na primeira compra.\n- Frete: calcula o frete grátis acima de R$ 150,00.\n- Prazo: mostra o prazo de 3 dias úteis.\n\nVeja a documentação completa em [docs.acme.example/cart](https://docs.acme.example/cart). Em suma, uma solução prática para o seu e-commerce. Fico à disposição para qualquer dúvida!\n"
       },
       "expect": {
         "kind": "file-rewrite",
@@ -261,6 +261,56 @@
       }
     },
     {
+      "id": "analyze-bare-command-uses-the-texts-language",
+      "acs": [
+        "#365/AC-7"
+      ],
+      "prompt": "/humanize analyze draft.md",
+      "files": {
+        "draft.md": "Neste artigo, vamos explorar a nova política de trocas da Acme Shop. Ela não apenas simplifica o processo, mas também fortalece a confiança do cliente. O prazo para trocar passou de 7 para 30 dias corridos, a partir da data da entrega, e a primeira troca é grátis. Para solicitar, escreva para trocas@acme.example até 31/12/2026. Em resumo, uma abordagem holística e transformadora. Fico à disposição para qualquer dúvida!\n"
+      },
+      "expect": {
+        "kind": "report",
+        "file": "draft.md",
+        "language": "pt",
+        "verdict": {
+          "label": "veredito",
+          "words": [
+            "nenhum",
+            "algum",
+            "a maior parte"
+          ]
+        },
+        "excerpts": [
+          "Neste artigo, vamos explorar",
+          "não apenas simplifica o processo, mas também fortalece",
+          "holística",
+          "Fico à disposição"
+        ],
+        "min_fix_chars": 20,
+        "keep": [
+          [
+            "trocas@acme.example"
+          ],
+          [
+            "31/12/2026"
+          ],
+          [
+            "30 dias"
+          ],
+          [
+            "Acme Shop"
+          ]
+        ]
+      },
+      "golden": {
+        "result": "**Veredito: a maior parte.** O texto é quase todo embalagem: uma entrada encenada, um contraste que ninguém pediu e uma despedida de chat. Os fatos estão intactos.\n\n**Sinais**\n- Encenar em vez de afirmar, forte: «Neste artigo, vamos explorar» a política. Corte a entrada e comece pelo fato.\n- Encenar em vez de afirmar, forte: «não apenas simplifica o processo, mas também fortalece» a confiança. Diga o que muda: o prazo.\n- Inflação, médio: «holística». Nomeie a propriedade concreta ou corte a palavra.\n- Sobras do chat, forte: «Fico à disposição» para qualquer dúvida. Apague.\n\n**Fatos a manter**\n- Política de trocas da Acme Shop.\n- Prazo de troca de 7 para 30 dias corridos; a primeira troca é grátis.\n- Pedido por trocas@acme.example até 31/12/2026.\n\nPosso reescrever o texto inteiro, reescrever só um trecho ou deixar como está.",
+        "files": {
+          "draft.md": "Neste artigo, vamos explorar a nova política de trocas da Acme Shop. Ela não apenas simplifica o processo, mas também fortalece a confiança do cliente. O prazo para trocar passou de 7 para 30 dias corridos, a partir da data da entrega, e a primeira troca é grátis. Para solicitar, escreva para trocas@acme.example até 31/12/2026. Em resumo, uma abordagem holística e transformadora. Fico à disposição para qualquer dúvida!\n"
+        }
+      }
+    },
+    {
       "id": "analyze-reports-in-the-readers-language",
       "acs": [
         "#365/AC-7"
@@ -278,7 +328,8 @@
           "words": [
             "none",
             "some",
-            "most"
+            "most",
+            "mostly"
           ]
         },
         "excerpts": [
@@ -297,7 +348,8 @@
           ],
           [
             "30 days",
-            "30 dias"
+            "30 dias",
+            "30-day"
           ],
           [
             "Acme Shop"

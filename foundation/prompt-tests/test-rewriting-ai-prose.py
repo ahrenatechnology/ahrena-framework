@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import tempfile
 import unicodedata
 from pathlib import Path
 
@@ -67,6 +68,13 @@ def frontmatter(path: Path) -> dict[str, str]:
     return fields
 
 
+def references(path: Path) -> list[str]:
+    """The items of the `references:` list in the front matter, in order."""
+    block = path.read_text(encoding="utf-8").split("\n---\n", 1)[0].removeprefix("---\n")
+    found = re.search(r"^references:\s*\n((?:\s+- .*\n?)+)", block + "\n", re.M)
+    return [line.strip()[2:].strip() for line in found.group(1).splitlines()] if found else []
+
+
 def body(path: Path) -> str:
     return path.read_text(encoding="utf-8").split("\n---\n", 2)[-1]
 
@@ -83,8 +91,7 @@ def test_command_shape() -> None:
     check("analyze" in meta.get("argument-hint", "") and "rewrite" in meta.get("argument-hint", ""), "the argument hint names both modes")
     check(meta.get("description", "").strip() != "", "the command has a description")
     check((FOUNDATION / "skills" / "rewriting-ai-prose" / "SKILL.md").is_file(), "the skill the command runs exists")
-    check("skills/rewriting-ai-prose/SKILL.md" in meta.get("references", "") or "skills/rewriting-ai-prose/SKILL.md" in COMMAND.read_text(encoding="utf-8").split("---")[1],
-          "the command references the skill and nothing else")
+    check(references(COMMAND) == ["skills/rewriting-ai-prose/SKILL.md"], "the command references the skill and nothing else")
     check(re.search(r"^Invoke `rewriting-ai-prose`", text, re.M) is not None, "the command invokes rewriting-ai-prose")
     rows = {m.group(1): m.group(0) for m in re.finditer(r"^\| `(\w+)` \|.*$", text, re.M)}
     check(set(rows) == {"mode", "target"}, "the command takes a mode and a target and no more")
@@ -92,6 +99,20 @@ def test_command_shape() -> None:
     check("changes nothing" in rows.get("mode", ""), "the command says analyze changes nothing")
     check("asks for one" in rows.get("target", ""), "with no target the command says it asks for one")
     check(len(text.splitlines()) < 40, "the command holds no logic of its own")
+
+
+def test_references_are_parsed_as_a_list() -> None:
+    """The reference check is decided by the list, so a second reference or the skill named elsewhere fails it."""
+    with tempfile.TemporaryDirectory() as tmp:
+        def listed(front: str) -> list[str]:
+            path = Path(tmp) / "c.md"
+            path.write_text(f"---\nname: c\n{front}---\n\n# c\nskills/rewriting-ai-prose/SKILL.md\n", encoding="utf-8")
+            return references(path)
+        skill = "skills/rewriting-ai-prose/SKILL.md"
+        check(listed(f"references:\n  - {skill}\n") == [skill], "one reference is read as one")
+        check(listed(f"references:\n  - {skill}\n  - rules/other.md\n") != [skill], "a second reference in the list fails")
+        check(listed(f"description: {skill}\n") != [skill], "the skill named outside the list fails")
+        check(listed("") == [], "no list is an empty list")
 
 
 def test_command_cases() -> None:
@@ -153,10 +174,8 @@ def test_description_addresses_each_positive() -> None:
     for entry in TRIGGERS["positives"]:
         covers = fold(entry["covers"])
         check(covers in description, f"{entry['id']}: the description holds {entry['covers']!r}")
-        if entry.get("via") == "translation":
-            check(entry["lang"] == "en", f"{entry['id']}: only an English phrase relies on the description's Portuguese")
-        else:
-            check(bool(words(entry["covers"]) & words(entry["phrase"])), f"{entry['id']}: the phrase points at what it covers")
+        check("via" not in entry, f"{entry['id']}: no phrase relies on a translation of the description")
+        check(bool(words(entry["covers"]) & words(entry["phrase"])), f"{entry['id']}: the phrase points at what it covers")
     quoted = {fold(q) for q in re.findall(r'"([^"]+)"', frontmatter(SKILL)["description"])}
     check(len(quoted) >= 12, "the description quotes at least twelve phrasings")
     for entry in TRIGGERS["negatives"]:
@@ -167,6 +186,7 @@ def test_description_addresses_each_positive() -> None:
 
 if __name__ == "__main__":
     test_command_shape()
+    test_references_are_parsed_as_a_list()
     test_command_cases()
     test_triggers_shape()
     test_no_phrase_names_the_skill()

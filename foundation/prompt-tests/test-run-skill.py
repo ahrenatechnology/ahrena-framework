@@ -9,7 +9,7 @@ fail with the failure it was built to cause, so a case that can no longer fail
 is caught here and not on the day a model drops a fact. The model runs are not
 exercised: they need a credential, and what they do is what the test is for.
 
-Covers #365/AC-3, #365/AC-7 and #365/AC-9.
+Covers #365/AC-3, #365/AC-6, #365/AC-7 and #365/AC-9.
 
 Usage:
     python3 foundation/prompt-tests/test-run-skill.py
@@ -31,6 +31,7 @@ spec.loader.exec_module(run_skill)
 SPEC = json.loads((HERE / "rewriting-ai-prose" / "cases.json").read_text(encoding="utf-8"))
 PATTERNS = run_skill.load_patterns(run_skill.REPO / SPEC["patterns"])
 Call = run_skill.run_agent.Call
+ASK_LIMIT = run_skill.ASK_MAX_CHARS
 
 results: list[tuple[str, bool]] = []
 
@@ -42,11 +43,12 @@ def check(ok: bool, label: str) -> None:
 def sample(case: dict, **changes) -> run_skill.Sample:
     golden = case["golden"]
     files = {**golden["files"], **changes.get("files", {})}
-    return run_skill.Sample(changes.get("calls", []), changes.get("result", golden["result"]), files)
+    calls = changes.get("calls", [Call("Skill", {"skill": SPEC["skill"]})])
+    return run_skill.Sample(calls, changes.get("result", golden["result"]), files)
 
 
 def failures(case: dict, **changes) -> list[str]:
-    return run_skill.decide(case, sample(case, **changes), PATTERNS)
+    return run_skill.decide(case, sample(case, **changes), PATTERNS, SPEC["skill"])
 
 
 def has(found: list[str], needle: str) -> bool:
@@ -138,6 +140,7 @@ def test_analyze_report_content() -> None:
     report = pt["golden"]["result"]
     check(has(failures(pt, result=report.replace("Veredito: a maior parte.", "")), "no verdict"), "a report with no verdict fails")
     check(has(failures(pt, result=report.replace("**Veredito: a maior parte.**", "**Veredito: talvez.**")), "no verdict"), "a verdict outside the three words fails")
+    check(has(failures(pt, result=report.replace("**Veredito: a maior parte.**", "**Veredito: algumas vezes.**")), "no verdict"), "a word that only starts with a verdict word fails")
     for excerpt in pt["expect"]["excerpts"]:
         check(has(failures(pt, result=report.replace(excerpt, "")), "tell not quoted"), f"a report that skips {excerpt!r} fails")
     bare = "\n".join(line[: line.index("»") + 1] if "»" in line else line for line in report.splitlines())
@@ -147,14 +150,47 @@ def test_analyze_report_content() -> None:
     english = next(c for c in SPEC["cases"] if c["id"] == "analyze-reports-in-the-readers-language")
     check(has(failures(english, result=pt["golden"]["result"]), "language"), "a report in Portuguese for an English reader fails")
     check(has(failures(pt, result=english["golden"]["result"]), "language"), "a report in English for a Portuguese reader fails")
+    said = english["golden"]["result"]
+    check(has(failures(english, result=said.replace("**Verdict: most.**", "**Verdict: something odd.**")), "no verdict"), "a verdict word inside another word fails")
+    check(has(failures(english, result=said.replace("**Verdict: most.**", "**Verdict: nonexistent.**")), "no verdict"), "none inside nonexistent fails")
 
 
 def test_no_target() -> None:
     """#365/AC-6: a command with no target answers with a request for one and writes nothing."""
     for case in (c for c in SPEC["cases"] if c["expect"]["kind"] == "ask"):
         check(has(failures(case, result="Reescrevi o texto."), "not a short request"), f"{case['id']}: an answer that asks for nothing fails")
-        check(has(failures(case, result="Aqui está o texto reescrito. " + "Lorem ipsum. " * 80 + "?"), "not a short request"), f"{case['id']}: an invented text fails")
+        check(has(failures(case, result="Aqui está o texto reescrito. " + "Lorem ipsum. " * 80 + "?"), "not a short request"), f"{case['id']}: a long invented text fails")
+        check(has(failures(case, result="Aqui vai um texto reescrito: Olá, o prazo é 3 dias. Quer ajustar algo?"), "not a short request"), f"{case['id']}: a short invented text with a question mark fails")
+        check(has(failures(case, result="Qual texto? " + "x" * ASK_LIMIT), "not a short request"), f"{case['id']}: a request over the length cap fails")
+        check(failures(case, result="Qual arquivo ou texto você quer reescrever? Cole o texto ou passe o caminho.") == [], f"{case['id']}: a short request passes")
         check(has(failures(case, calls=[Call("Write", {"file_path": "invented.md"})]), "Write was called"), f"{case['id']}: writing a file fails")
+
+
+def test_the_command_must_run_the_skill() -> None:
+    """#365/AC-6: a model that edits or reports without calling the skill fails, whatever it wrote."""
+    for case in SPEC["cases"]:
+        check(has(failures(case, calls=[]), "skill was not loaded"), f"{case['id']}: the golden with no Skill call fails")
+        check(has(failures(case, calls=[Call("Skill", {"skill": "ahrena-quality:reviewing-diffs"})]), "skill was not loaded"), f"{case['id']}: another skill does not stand in")
+        check(failures(case, calls=[Call("Skill", {"skill": "rewriting-ai-prose"})]) == [], f"{case['id']}: the bare skill name counts")
+
+
+def test_the_process_is_confined() -> None:
+    """The child process reads text written to hijack it: its prompt is an argument, and files and tools stay in the project."""
+    command = run_skill._command(Path("/plugins"), ["foundation"], run_skill.CASE_TOOLS, 20, None)
+    check(run_skill.argv(command, "-x /etc/passwd")[-2:] == ["--", "-x /etc/passwd"], "the prompt follows a `--`")
+    tools = command[command.index("--allowedTools") + 1].split()
+    scoped = [t for t in tools if t not in {"Skill"}]
+    check(bool(scoped) and all(t.endswith("(./**)") for t in scoped), "every tool that touches files is scoped to the project")
+    check(not any(t in {"Read", "Edit", "Write", "Glob", "Grep"} for t in tools), "no file tool is allowed bare")
+    project = Path("/ahrena-test-project")
+    check(run_skill.project_path(project, "draft.md") == project.resolve() / "draft.md", "a case file inside the project is kept")
+    for key in ("../x", "/etc/passwd", "a/../../x", "."):
+        try:
+            run_skill.project_path(project, key)
+            refused = False
+        except ValueError:
+            refused = True
+        check(refused, f"a case file {key!r} outside the project is refused")
 
 
 def test_cases_match_the_data() -> None:
@@ -207,6 +243,8 @@ if __name__ == "__main__":
     test_analyze_changes_nothing()
     test_analyze_report_content()
     test_no_target()
+    test_the_command_must_run_the_skill()
+    test_the_process_is_confined()
     test_cases_match_the_data()
     test_triggers()
     test_helpers()

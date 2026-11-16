@@ -312,18 +312,16 @@
       "phrase": "simplify this text",
       "lang": "en",
       "form": "canonical",
-      "covers": "simplifica o texto",
-      "attach": "prose",
-      "via": "translation"
+      "covers": "simplify this text",
+      "attach": "prose"
     },
     {
       "id": "en-easier",
       "phrase": "make this text easier to read",
       "lang": "en",
       "form": "canonical",
-      "covers": "mais fácil de ler",
-      "attach": "prose",
-      "via": "translation"
+      "covers": "make this easier to read",
+      "attach": "prose"
     },
     {
       "id": "en-typo",
@@ -362,18 +360,16 @@
       "phrase": "does this read like it was written by AI? fix it",
       "lang": "en",
       "form": "question",
-      "covers": "parece escrito por robô",
-      "attach": "prose",
-      "via": "translation"
+      "covers": "does this read like AI wrote it",
+      "attach": "prose"
     },
     {
       "id": "en-question-corporate",
       "phrase": "can you make this less corporate?",
       "lang": "en",
       "form": "question",
-      "covers": "menos corporativo",
-      "attach": "prose",
-      "via": "translation"
+      "covers": "make it less corporate",
+      "attach": "prose"
     },
     {
       "id": "en-question-human",
