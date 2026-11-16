@@ -68,6 +68,12 @@ jobs:
       - name: Test the agent prompt test's deciding logic
         run: python3 foundation/prompt-tests/test-run-agent.py
 
+      - name: Test the skill prompt test's deciding logic
+        run: python3 foundation/prompt-tests/test-run-skill.py
+
+      - name: Test the humanize command and the skill's triggers
+        run: python3 foundation/prompt-tests/test-rewriting-ai-prose.py
+
       - name: Test the structure hook
         run: python3 engineering/fundamentals/hooks/test-check-structure.py
 

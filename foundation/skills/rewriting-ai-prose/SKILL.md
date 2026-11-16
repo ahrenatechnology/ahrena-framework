@@ -1,6 +1,6 @@
 ---
 name: rewriting-ai-prose
-description: Rewrite a text so it reads as written by a person, without changing what it says, in the reader's language (pt-BR first), or analyze it and report what reads as machine-written without touching it. Use when someone asks to humanize a text, as in "humaniza esse texto", "torna esse texto mais humano", "tira a cara de IA", "parece escrito por robô", "menos robótico", "menos corporativo", "mais natural", or to make prose better or simpler, as in "melhora a redação", "melhora a qualidade do texto dessa documentação", "deixa o texto melhor", "simplifica o texto", "deixa mais simples, claro ou direto", "mais palatável para humanos", "mais fácil de ler". Also for the same ask pointed at a file ("revisa o texto do README"), a PR description or a message about to be sent, and for English asks such as "make this sound human", "remove the AI tone", "make it less robotic", "polish this doc". Not for translating, summarizing, reviewing code or the content of code comments.
+description: Rewrite a text so it reads as written by a person, keeping what it says, in the reader's language (pt-BR first), or analyze it and report what reads as machine-written, changing nothing. Use when asked to humanize a text, as in "humaniza esse texto", "torna esse texto mais humano", "tira a cara de IA", "parece escrito por robô", "menos robótico", "menos corporativo", "mais natural", or to improve or simplify prose, as in "melhora a redação", "melhora a qualidade do texto dessa documentação", "deixa o texto melhor", "simplifica o texto", "deixa mais simples, claro ou direto", "mais palatável para humanos", "mais fácil de ler". Also for a file ("revisa o texto do README"), a PR description or a message, and for English asks such as "make this sound human", "remove the AI tone", "make it less robotic", "polish this doc", "simplify this text", "make this easier to read", "make it less corporate", "does this read like AI wrote it". Not for translating, summarizing, reviewing code or the content of code comments.
 type: skill
 clade: foundation
 references:
@@ -18,7 +18,7 @@ The patterns derive from the open-source `humanizer` (MIT) and, for the factual 
 
 - Mode `analyze` changes nothing and reports. Mode `rewrite` returns an edited text. With no mode, rewrite.
 - The target is a file, a path or the pasted text. With none, ask for one and stop. Do not invent a text to work on.
-- Write to the reader in the language they write to you in, whatever the language of the text. The text itself is edited in its own language; patterns are listed in pt-BR, and a text in another language gets the equivalent construction treated the same way.
+- Write to the reader in the language they write to you in, whatever the language of the text. The text itself is edited in its own language; patterns are listed in pt-BR, and a text in another language gets the equivalent construction treated the same way. When nothing shows the language they write in, as in a bare command, the report and the rewrite use the language of the text, pt-BR first when the text is Portuguese.
 
 Pick how the result goes back:
 
