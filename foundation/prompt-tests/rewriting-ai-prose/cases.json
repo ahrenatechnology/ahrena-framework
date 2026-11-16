@@ -123,7 +123,7 @@
       ],
       "prompt": "/humanize rewrite draft.md",
       "files": {
-        "draft.md": "# acme-cart\n\nNo cenário atual, o acme-cart é uma biblioteca robusta que potencializa o carrinho de compras da sua loja. Não é apenas uma lista de itens, é uma jornada completa de compra.\n\n## Instalação\n\n```bash\nnpm install acme-cart@2.4.0\n```\n\n## Recursos\n\n- **Cupons:** aplica cupons como BEMVINDO10, que dá 10% na primeira compra.\n- **Frete:** calcula o frete grátis acima de R$ 150,00.\n- **Prazo:** mostra o prazo de 3 dias úteis.\n\nVeja a documentação completa em [docs.acme.example/cart](https://docs.acme.example/cart). Em suma, uma solução fundamental para o seu e-commerce. Fico à disposição para qualquer dúvida!\n"
+        "draft.md": "# acme-cart\n\nNo cenário atual, o acme-cart é uma biblioteca que potencializa o carrinho de compras da sua loja. Não é apenas uma lista de itens, é uma jornada completa de compra.\n\n## Instalação\n\n```bash\nnpm install acme-cart@2.4.0\n```\n\n## Recursos\n\n- Cupons: aplica cupons como BEMVINDO10, que dá 10% na primeira compra.\n- Frete: calcula o frete grátis acima de R$ 150,00.\n- Prazo: mostra o prazo de 3 dias úteis.\n\nVeja a documentação completa em [docs.acme.example/cart](https://docs.acme.example/cart). Em suma, uma solução fundamental para o seu e-commerce. Fico à disposição para qualquer dúvida!\n"
       },
       "expect": {
         "kind": "file-rewrite",
@@ -155,7 +155,7 @@
       "golden": {
         "result": "Reescrevi o texto em draft.md. Tirei a entrada encenada e a despedida.",
         "files": {
-          "draft.md": "# acme-cart\n\nO acme-cart é uma biblioteca de carrinho de compras para a sua loja.\n\n## Instalação\n\n```bash\nnpm install acme-cart@2.4.0\n```\n\n## Recursos\n\n- Aplica cupons como BEMVINDO10, que dá 10% na primeira compra.\n- Calcula o frete grátis acima de R$ 150,00.\n- Mostra o prazo de 3 dias úteis.\n\nA documentação completa está em [docs.acme.example/cart](https://docs.acme.example/cart).\n"
+          "draft.md": "# acme-cart\n\nO acme-cart é uma biblioteca de carrinho de compras para a sua loja.\n\n## Instalação\n\n```bash\nnpm install acme-cart@2.4.0\n```\n\n## Recursos\n\n- Cupons: aplica como BEMVINDO10, que dá 10% na primeira compra.\n- Frete: calcula o frete grátis acima de R$ 150,00.\n- Prazo: mostra 3 dias úteis.\n\nA documentação completa está em [docs.acme.example/cart](https://docs.acme.example/cart).\n"
         }
       }
     },
@@ -215,7 +215,7 @@
       "acs": [
         "#365/AC-7"
       ],
-      "prompt": "/humanize analyze draft.md",
+      "prompt": "/humanize analyze draft.md\n\nEu escrevo para você em português.",
       "files": {
         "draft.md": "Neste artigo, vamos explorar a nova política de trocas da Acme Shop. Ela não apenas simplifica o processo, mas também fortalece a confiança do cliente. O prazo para trocar passou de 7 para 30 dias corridos, a partir da data da entrega, e a primeira troca é grátis. Para solicitar, escreva para trocas@acme.example até 31/12/2026. Em resumo, uma abordagem holística e transformadora. Fico à disposição para qualquer dúvida!\n"
       },
