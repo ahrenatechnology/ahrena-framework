@@ -181,7 +181,7 @@ def test_the_command_must_run_the_skill() -> None:
 
 def test_the_process_is_confined() -> None:
     """The child process reads text written to hijack it: its prompt is an argument, and files and tools stay in the project."""
-    command = run_skill._command(Path("/plugins"), ["foundation"], run_skill.CASE_TOOLS, 20, None)
+    command = run_skill._command(run_skill.Setup(Path("/plugins"), ("foundation",), None), run_skill.CASE_TOOLS, 20)
     check(run_skill.argv(command, "-x /etc/passwd")[-2:] == ["--", "-x /etc/passwd"], "the prompt follows a `--`")
     tools = command[command.index("--allowedTools") + 1].split()
     scoped = [t for t in tools if t not in {"Skill"}]

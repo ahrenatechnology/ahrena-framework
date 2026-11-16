@@ -56,6 +56,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import NamedTuple
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -73,11 +74,19 @@ run = _load("run", "run.py")
 run_agent = _load("run_agent", "run-agent.py")
 
 FLAGS = {"i": re.IGNORECASE, "m": re.MULTILINE, "s": re.DOTALL, "u": 0}
-# A case text can carry an instruction written to hijack the model, so the tools that touch
-# files are scoped to the temporary project the process starts in.
+# #365 A case text can carry an instruction written to hijack the model, so the tools that touch
+# #365 files are scoped to the temporary project the process starts in.
 CASE_TOOLS = "Read(./**) Edit(./**) Write(./**) Glob(./**) Grep(./**) Skill"
 TRIGGER_TOOLS = "Skill"
 WRITES = ("Write", "Edit", "NotebookEdit")
+
+
+class Setup(NamedTuple):
+    """Where the plugins are, which to load and which model runs them: what every invocation shares."""
+
+    plugins: Path
+    names: tuple[str, ...]
+    model: str | None
 
 
 @dataclass
@@ -227,13 +236,14 @@ def trigger_prompt(entry: dict, samples: dict[str, str]) -> str:
     return entry["phrase"] + (f"\n\n{attached}" if attached else "")
 
 
-def _command(plugins: Path, names: list[str], tools: str, turns: int, model: str | None) -> list[str]:
+def _command(setup: Setup, tools: str, turns: int) -> list[str]:
+    plugins = setup.plugins
     command = ["claude", "-p", "--setting-sources", "", "--strict-mcp-config", "--permission-mode", "acceptEdits",
                "--allowedTools", tools, "--max-turns", str(turns), "--output-format", "stream-json", "--verbose",
                "--add-dir", str(plugins)]
-    for name in names:
+    for name in setup.names:
         command += ["--plugin-dir", str(plugins / run_agent.plugin_dir(name))]
-    return command + (["--model", model] if model else [])
+    return command + (["--model", setup.model] if setup.model else [])
 
 
 def argv(command: list[str], prompt: str) -> list[str]:
@@ -264,23 +274,23 @@ def _execute(command: list[str], prompt: str, project: Path):
     return calls, finished[-1].get("result") or ""
 
 
-def run_sample(case: dict, plugins: Path, names: list[str], model: str | None) -> Sample | None:
+def run_sample(case: dict, setup: Setup) -> Sample | None:
     with tempfile.TemporaryDirectory(prefix="ahrena-skill-test-") as tmp:
         project = Path(tmp)
         for path, text in case["files"].items():
             target = project_path(project, path)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(text, encoding="utf-8")
-        done = _execute(_command(plugins, names, CASE_TOOLS, 20, model), case["prompt"], project)
+        done = _execute(_command(setup, CASE_TOOLS, 20), case["prompt"], project)
         if done is None:
             return None
         files = {p.relative_to(project).as_posix(): p.read_text(encoding="utf-8") for p in project.rglob("*") if p.is_file()}
         return Sample(done[0], done[1], files)
 
 
-def run_trigger(entry: dict, samples: dict[str, str], plugins: Path, names: list[str], model: str | None) -> Sample | None:
+def run_trigger(entry: dict, samples: dict[str, str], setup: Setup) -> Sample | None:
     with tempfile.TemporaryDirectory(prefix="ahrena-trigger-test-") as tmp:
-        done = _execute(_command(plugins, names, TRIGGER_TOOLS, 3, model), trigger_prompt(entry, samples), Path(tmp))
+        done = _execute(_command(setup, TRIGGER_TOOLS, 3), trigger_prompt(entry, samples), Path(tmp))
         return None if done is None else Sample(done[0], done[1])
 
 
@@ -328,7 +338,7 @@ def run_cases(spec: dict, args: argparse.Namespace, plugins: Path) -> tuple[list
         for key in case["files"]:
             project_path(Path("/ahrena-skill-test-project"), key)
     jobs = [c for c in cases for _ in range(args.samples)]
-    samples = _pool(args.jobs, jobs, lambda c: run_sample(c, plugins, spec["plugins"], args.model))
+    samples = _pool(args.jobs, jobs, lambda c: run_sample(c, Setup(plugins, tuple(spec["plugins"]), args.model)))
     lines, code = [], 0
     for case in cases:
         mine = [s for c, s in zip(jobs, samples) if c is case]
@@ -343,7 +353,7 @@ def run_triggers(spec: dict, args: argparse.Namespace, plugins: Path) -> tuple[l
     entries = [{**e, "expect": "load"} for e in spec["positives"]] + [{**e, "expect": "skip"} for e in spec["negatives"]]
     entries = [e for e in entries if wanted is None or e["id"] in wanted]
     jobs = [e for e in entries for _ in range(args.samples)]
-    samples = _pool(args.jobs, jobs, lambda e: run_trigger(e, spec["samples"], plugins, spec["plugins"], args.model))
+    samples = _pool(args.jobs, jobs, lambda e: run_trigger(e, spec["samples"], Setup(plugins, tuple(spec["plugins"]), args.model)))
     lines, code = [], 0
     for entry in entries:
         mine = [s for e, s in zip(jobs, samples) if e is entry]

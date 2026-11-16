@@ -42,7 +42,7 @@ WHAT = (
 FORMS = ("canonical", "typo", "no-accents", "imperative", "question")
 PASTED_ONLY_FORMS = ("file", "pr", "message")
 CATEGORIES = ("translate", "summarize", "review-code", "code-comment")
-# Words every phrase shares, which say nothing about what is asked.
+# #365 words every phrase shares, which say nothing about what is asked.
 COMMON = {"this", "that", "make", "text", "with", "mais", "para", "esse", "essa", "texto", "deixa", "torna", "you", "can", "could", "the"}
 
 results: list[tuple[str, bool]] = []
