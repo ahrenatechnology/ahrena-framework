@@ -18,7 +18,8 @@
     "ahrena-engineering-fundamentals",
     "ahrena-engineering-security",
     "ahrena-contributing",
-    "ahrena-foundation"
+    "ahrena-foundation",
+    "ahrena-engineering-llm-systems"
   ],
   "languages": {
     "python": {

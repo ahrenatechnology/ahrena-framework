@@ -1,7 +1,7 @@
 {
   "name": "ahrena-foundation",
-  "version": "0.2.2",
-  "description": "The self-hosting core: what an artifact is, where it lives, how it is named, and the skills that create the others.",
+  "version": "0.3.0",
+  "description": "The self-hosting core: what an artifact is, where it lives, how it is named, and the skills that create the others; and Claudionor, who writes those artifacts and designs, builds, reviews and debugs AI agents and LLM systems with ahrena-engineering-llm-systems.",
   "author": { "name": "Ahrena Technology", "url": "https://github.com/ahrenatechnology" },
   "homepage": "https://github.com/ahrenatechnology/ahrena-framework/tree/main/foundation",
   "repository": "https://github.com/ahrenatechnology/ahrena-framework",
