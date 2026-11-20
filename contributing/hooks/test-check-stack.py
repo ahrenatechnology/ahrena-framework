@@ -202,15 +202,18 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
-def run(payload: dict, routes: dict | None, server: ThreadingHTTPServer) -> tuple[int, str]:
+def run(payload: dict, routes: dict | None, server: ThreadingHTTPServer, parent: str = "", cwd: str | None = None) -> tuple[int, str]:
     Handler.routes = routes or {}
     url = f"http://127.0.0.1:{server.server_address[1]}"
     env = {**os.environ, "GITHUB_API_URL": url, "GITHUB_GRAPHQL_URL": f"{url}/graphql", "GITHUB_REPOSITORY": REPO}
     env["GITHUB_TOKEN"] = "test-token" if routes else ""
+    env.pop("PARENT_TRUNK", None)
+    if parent:
+        env["PARENT_TRUNK"] = parent
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "event.json"
         path.write_text(json.dumps(payload), encoding="utf-8")
-        result = subprocess.run([sys.executable, str(HOOK), str(path)], capture_output=True, text=True, env=env)
+        result = subprocess.run([sys.executable, str(HOOK), str(path)], capture_output=True, text=True, env=env, cwd=cwd)
     return result.returncode, result.stdout + result.stderr
 
 
@@ -224,12 +227,30 @@ def problems_for(expect: list[str], ok: bool, code: int, output: str) -> list[st
     return found
 
 
+def parent_cases() -> list[tuple]:
+    """#163/AC-1, #163/AC-2: a commit the parent's trunk reaches, carried by a sync that landed as a squash."""
+    tmp = tempfile.mkdtemp()
+    git = ["git", "-C", tmp, "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgSign=false"]
+    subprocess.run(["git", "init", "-q", tmp], check=True)
+    subprocess.run([*git, "commit", "-q", "--allow-empty", "-m", "from the parent"], check=True)
+    sha = subprocess.run([*git, "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+    routes = {**native(None), **commits(90, {sha: [pr(80, merged=True), pr(90)]})}
+    return [
+        # #163/AC-1
+        ("in a fork, a commit the parent's trunk reaches is not a landed commit", routes, sha, tmp, ["0 failure(s)"], True),
+        # #163/AC-2
+        ("without PARENT_TRUNK the same commit still fails condition 3", routes, "", tmp, ["[stacked-pull-requests] condition 3", "#80"], False),
+    ]
+
+
 def main() -> int:
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     failed = 0
-    for name, payload, routes, expect, ok in CASES:
-        code, output = run(payload, routes, server)
+    runs = [(name, payload, routes, "", None, expect, ok) for name, payload, routes, expect, ok in CASES]
+    runs += [(name, event(), routes, parent, cwd, expect, ok) for name, routes, parent, cwd, expect, ok in parent_cases()]
+    for name, payload, routes, parent, cwd, expect, ok in runs:
+        code, output = run(payload, routes, server, parent, cwd)
         problems = problems_for(expect, ok, code, output)
         if not problems:
             print(f"ok    {name}")
@@ -245,9 +266,9 @@ def main() -> int:
 
     print()
     if failed:
-        print(f"{failed} of {len(CASES)} cases failed.")
+        print(f"{failed} of {len(runs)} cases failed.")
         return 1
-    print(f"{len(CASES)} cases passed.")
+    print(f"{len(runs)} cases passed.")
     return 0
 
 
